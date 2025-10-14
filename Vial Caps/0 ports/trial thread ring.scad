@@ -3,8 +3,8 @@
 //   https://github.com/BelfrySCAD/BOSL2
 // If your path differs, adjust the `use <...>` lines.
 
-use <BOSL2/std.scad>
-use <BOSL2/threads.scad>
+include <BOSL2/std.scad>
+use <BOSL2/threading.scad>
 
 // -----------------------------
 // Cap & thread parameters
