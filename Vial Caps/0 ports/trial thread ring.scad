@@ -410,18 +410,20 @@ module thread_polyhedron (radius, pitch, internal, n_starts, thread_size,
 cap_OD = 27; // outer diameter of cap in mm
 cap_height = 8; // height of cap in mm
 top_thickness = 2; // thickness of top of cap in mm
-thread_diameter = 24; // diameter of thread in mm
-thread_pitch = 1; // pitch of thread in mm
+theoretical_thread_diameter = 24.1; // GPI 24 (T≈24.1 mm)
+diametral_print_clearance = 0.30; // Add 0.30 mm diametral clearance for 3D printing.
+thread_diameter = theoretical_thread_diameter + diametral_print_clearance; // effective diameter of thread in mm
+thread_pitch = 25.4/8; // 24-400 uses 1-start CT with ~8 TPI (pitch ≈ 3.175 mm)
 thread_length = cap_height-top_thickness; // length of thread in mm
 internal_thread = true; // internal thread (nut) if true, external (bolt) if false
-thread_starts = 3; // number of thread starts
+thread_starts = 1; // 400 finish = single-start
 thread_size = -1; // use default thread size (same as pitch)
 thread_groove = false; // do not groove thread
 square_thread = false; // do not use square thread
 rectangle_thread = 0; // do not use rectangular thread
 thread_angle = 30; // standard thread angle
 thread_taper = 0; // no taper
-thread_leadin = 2; // chamfer both ends of thread
+thread_leadin = 1; // entry chamfer only (typical), adjust later if needed
 thread_leadfac = 1.0; // chamfer length factor
 thread_test = false; // do not test (draw threads)
 
