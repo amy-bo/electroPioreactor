@@ -24,48 +24,19 @@ module test_ring() {
         internal_thread(neck_major_d - fit_add, thread_pitch, thread_len);
 }
 
-// Internal thread module (Dan Kirshner's metric_thread simplified for internal thread)
-// This is a compact implementation for internal ISO metric thread
+// Internal thread module (simplified placeholder)
 module internal_thread(major_d, pitch, length) {
-    // Thread profile parameters
-    h = pitch * 0.61343; // Thread height
-    r = pitch * 0.14434; // Root radius
-    R = pitch * 0.14434; // Crest radius
-    half_angle = 30; // Thread flank angle in degrees
-
-    // Thread profile polygon (equilateral triangle with truncated roots and crests)
-    thread_profile = polygon(points=[
-        [0,0],
-        [pitch*0.5 - r, h],
-        [pitch*0.5 + r, h],
-        [pitch,0],
-        [pitch*0.5 + R, -h*0.1],
-        [pitch*0.5 - R, -h*0.1]
-    ]);
-
-    // Number of threads to generate
-    n_threads = ceil(length / pitch);
-
-    // Helix parameters
-    turns = length / pitch;
-    thread_radius = major_d / 2 - h;
-
-    // Create the internal thread by subtracting the helix
+    h = pitch * 0.61343;
+    n_turns = ceil(length / pitch);
     difference() {
-        // Cylinder with minor diameter
-        cylinder(h = length, d = major_d - 2 * h, center = false, $fn=100);
-
-        // Helical thread cutout
-        for (i = [0 : n_threads-1]) {
-            rotate_extrude(angle = 360, $fn=100)
-                translate([thread_radius, 0, 0])
-                    linear_extrude(height = pitch)
-                        offset(r = 0)
-                            thread_profile;
+        // Main bore
+        cylinder(h=length, d=major_d - 2*h, $fn=100);
+        // Helical thread subtraction (simplified representation)
+        for (i = [0:n_turns-1]) {
             translate([0,0,i*pitch])
-                rotate([0,0,i*360])
-                    translate([0,0,0])
-                        difference();
+                rotate_extrude(angle=360, $fn=100)
+                    translate([major_d/2 - h, 0, 0])
+                        polygon([[0,0],[pitch/2,h],[pitch,0]]);
         }
     }
 }
