@@ -9,7 +9,7 @@ include <BOSL2/threading.scad>
 // Cap & thread parameters
 // -----------------------------
 cap_od = 27; // mm (outer diameter of ring/cap)
-cap_h = 20; // mm (overall height)
+cap_h = 8; // mm (overall height)
 top_th = 0; // mm (flat top thickness; 0 = open ring)
 bore_len = cap_h - top_th; // mm (length of bore; usually same as cap_h - top_th)
 
