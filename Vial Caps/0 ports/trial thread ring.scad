@@ -1,7 +1,6 @@
 // BOSL2 GPI 24-400 internal thread cap (test ring)
-// Requires BOSL2 in your OpenSCAD libraries path:
+// Requires BOSL2 in OpenSCAD libraries path:
 //   https://github.com/BelfrySCAD/BOSL2
-// If your path differs, adjust the `use <...>` lines.
 
 include <BOSL2/std.scad>
 include <BOSL2/threading.scad>
@@ -36,25 +35,25 @@ D_minor_int = D_maj_int - 2*depth_rad; // base (inner) diameter for internal thr
 // -----------------------------
 // Model
 // -----------------------------
+// Cap
 difference() {
-  // Outer body
+  // Cap body
   cylinder(d=cap_od, h=cap_h);
 
   // Core bore
   translate([0,0,top_th])
     cylinder(d=T_nom, h=bore_len);
 }
-
-  // Add internal thread using BOSL2.
-  translate([0,0,top_th + pitch/2]) // start half pitch down
-    thread_helix(
-      d = D_minor_int, // base (inner) diameter for internal thread
-      pitch = pitch,
-      turns = helix_turns,
-      thread_depth = depth_rad, // RADIAL thread depth (ISO V)
-      flank_angle = 30, // 60° included
-      starts = starts,
-      anchor = BOTTOM, // start helix at z=0 (bottom) rather than centered
-      lead_in = leadin_len, // length of lead-in chamfer; 0 for none
-      internal = true
-    );
+// Internal thread (using BOSL2)
+translate([0,0,top_th + pitch/2]) // start half pitch down
+  thread_helix(
+    d = D_minor_int, // base (inner) diameter for internal thread
+    pitch = pitch,
+    turns = helix_turns,
+    thread_depth = depth_rad, // RADIAL thread depth (ISO V)
+    flank_angle = 30, // 60° included
+    starts = starts,
+    anchor = BOTTOM, // start helix at z=0 (bottom) rather than centered
+    lead_in = leadin_len, // length of lead-in chamfer; 0 for none
+    internal = true
+  );
