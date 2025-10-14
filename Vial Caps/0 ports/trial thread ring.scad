@@ -296,7 +296,7 @@ module gpi_24_400_threaded_ring(od=27, h=8,
     
     // Compute local pitch here (avoid undefined 'pitch' symbol)
     local_pitch = 25.4/threads_per_inch;
-    external_thread_cutter_segmented(d=cutter_d, pitch=local_pitch, length=h+0.20, angle=60, steps_per_turn=96, cut_width=3.0);
+    external_thread_cutter_V(d=cutter_d, pitch=local_pitch, length=h+0.20, half_angle=20, steps_per_turn=120, crest_relief=0.10);
   }
 }
 // =========================
@@ -353,6 +353,49 @@ module external_thread_cutter_segmented(d=24.5, pitch=3.175, length=8, angle=60,
       rotate([0,0,a])
         translate([r - radial, -cut_width/2, z])
           cube([radial, cut_width, step+0.02], center=false);
+    }
+  }
+}
+// =========================
+// V-profile helical external thread cutter (controls flank angle)
+// Builds a helical *V* by stacking thin triangular prisms along a helix.
+// Parameters:
+//  d            : nominal major diameter of the external cutter
+//  pitch        : thread pitch (mm/turn)
+//  length       : axial length to cut
+//  half_angle   : half of the included V angle (smaller = shallower flanks)
+//  steps_per_turn : segmentation of the helix (higher = smoother)
+//  crest_relief : small radial relief to avoid razor-thin crests on the internal thread
+// =========================
+module external_thread_cutter_V(d=24.5, pitch=3.175, length=8, half_angle=20, steps_per_turn=120, crest_relief=0.10)
+{
+  r = d/2;
+  step = pitch/steps_per_turn;
+  n   = ceil(length/step);
+  // Geometric V height for given half-angle
+  hV = pitch/(2*tan(half_angle));     // radial depth of the V
+  // Leave a tiny relief so the internal thread crest is not knife-edge
+  radial = hV - crest_relief;
+  // Tangential "base" of the triangle at the wall surface.
+  // Choose base so V looks clear in preview; ~ 0.6 * pitch works well.
+  base = 0.6 * pitch;
+
+  union() {
+    for (i=[0:n-1]) {
+      z = i * step;
+      a = 360 * (z/pitch);
+      // Triangle points in local (radial, tangential) plane.
+      // Tip points inward by 'radial'; base lies at the wall (radius r).
+      tri = [
+        [0, -base/2],     // base left at wall
+        [-radial, 0],     // inward tip (controls flank angle)
+        [0,  base/2]      // base right at wall
+      ];
+      // Position the triangular prism at azimuth 'a' and height 'z'
+      rotate([0,0,a])
+        translate([r, 0, z])
+          linear_extrude(height=step+0.02, center=false, convexity=10)
+            polygon(points=tri);
     }
   }
 }
