@@ -294,9 +294,9 @@ module gpi_24_400_threaded_ring(od=27, h=8,
     translate([0,0,-0.05])
       cylinder(h=h+0.10, d=bore_d, center=false);
     
-    // Compute local pitch & slices here (avoid undefined 'pitch' symbol)
+    // Compute local pitch here (avoid undefined 'pitch' symbol)
     local_pitch = 25.4/threads_per_inch;
-    external_thread_cutter_linear(d=cutter_d, pitch=local_pitch, length=h+0.20, angle=60, slices=max(120, ceil((h/local_pitch)*160)));
+    external_thread_cutter_segmented(d=cutter_d, pitch=local_pitch, length=h+0.20, angle=60, steps_per_turn=96, cut_width=1.2);
   }
 }
 // =========================
@@ -323,4 +323,36 @@ module external_thread_cutter_linear(d=24.5, pitch=3.175, length=8, angle=60, sl
       [radial, 0],
       [0,  pitch/4]
     ]);
+}
+
+// =========================
+// Segmented helical external thread cutter (robust fallback)
+// Builds a helical ridge by stacking many short rotated boxes.
+// Parameters:
+//   d   = nominal major diameter of the external cutter
+//   pitch = thread pitch (mm per turn)
+//   length = axial length
+//   angle  = included V angle (60 => half-angle 30)
+//   steps_per_turn = segmentation (higher = smoother)
+//   cut_width = tangential width of each cutter segment (mm)
+// =========================
+module external_thread_cutter_segmented(d=24.5, pitch=3.175, length=8, angle=60, steps_per_turn=96, cut_width=1.0)
+{
+  r = d/2;
+  half = angle/2;
+  hV = pitch / (2 * tan(half));   // geometric V height
+  radial = hV * 0.9;              // slightly undercut so crests form inside
+  step = pitch / steps_per_turn;
+  n = ceil(length / step);
+  // Build the cutter as a union of many small rotated prisms
+  union() {
+    for (i = [0 : n-1]) {
+      z = i * step;
+      a = 360 * (z / pitch);
+      // Place a thin box at radius (r - radial/2) so it cuts the inner wall
+      rotate([0,0,a])
+        translate([r - radial, -cut_width/2, z])
+          cube([radial, cut_width, step+0.02], center=false);
+    }
+  }
 }
