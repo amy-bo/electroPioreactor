@@ -294,20 +294,31 @@ module gpi_24_400_threaded_ring(od=27, h=8,
       cylinder(h=h+0.10, d=bore_d, center=false);
     
     // Subtract an EXTERNAL thread "cutter" to create the INTERNAL thread profile
-    // Using english_thread wrapper (8 TPI => 3.175 mm pitch). Keep angle=30 (i.e. 60° included).
-    english_thread(diameter=cutter_d,
-                   threads_per_inch=threads_per_inch,
-                   length=h+0.10,     // tiny overlength to guarantee full cut
-                   internal=false,    // external thread solid acts as cutter
-                   n_starts=1,
-                   thread_size=-1,
-                   groove=false,
-                   square=false,
-                   rectangle=0,
-                   angle=30,
-                   taper=0,
-                   leadin=leadin,
-                   leadfac=1.0,
-                   test=false);
+    external_thread_cutter_linear(d=cutter_d, pitch=25.4/threads_per_inch, length=h+0.20, angle=60, slices=max(80, ceil((h/pitch)*120)));
   }
+}
+// =========================
+// Simple external thread cutter using linear_extrude + twist
+// (Used as boolean cutter to create internal thread.)
+// angle = included thread angle (e.g., 60 for Unified / metric).
+// =========================
+module external_thread_cutter_linear(d=24.5, pitch=3.175, length=8, angle=60, slices=240)
+{
+  r = d/2;
+  half_angle = angle/2;
+  // Approximate thread height for 60° V thread. This is geometric, not ISO truncations.
+  h = pitch / (2 * tan(half_angle));   // geometric height of V
+  // Radial thickness of the tooth (controls how deep the cut goes into the bore)
+  // We bias slightly inward so crests form on the internal thread.
+  radial = h*0.9;
+
+  // 2D profile for one tooth (triangle) at radius r.
+  // We draw it centered at the midline and then linear_extrude with twist.
+  translate([r - radial, 0])  // move near the perimeter
+  linear_extrude(height=length, twist=360*length/pitch, slices=slices, center=false, convexity=10)
+    polygon(points=[
+      [0, -pitch/4],
+      [radial, 0],
+      [0,  pitch/4]
+    ]);
 }
