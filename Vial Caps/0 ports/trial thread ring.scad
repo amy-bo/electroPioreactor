@@ -409,7 +409,7 @@ module thread_polyhedron (radius, pitch, internal, n_starts, thread_size,
 
 cap_OD = 27; // outer diameter of cap in mm
 cap_height = 8; // height of cap in mm
-top_thickness = 2; // thickness of top of cap in mm
+top_thickness = 0; // thickness of top of cap in mm
 theoretical_thread_diameter = 24.1; // GPI 24 (T≈24.1 mm)
 diametral_print_clearance = 0.30; // Add 0.30 mm diametral clearance for 3D printing.
 thread_diameter = theoretical_thread_diameter + diametral_print_clearance; // effective diameter of thread in mm
