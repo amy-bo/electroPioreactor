@@ -9,18 +9,18 @@ include <BOSL2/threading.scad>
 // -----------------------------
 // Cap & thread parameters
 // -----------------------------
-cap_od        = 27;          // mm (outer diameter of ring/cap)
-cap_h         = 8;           // mm (overall height)
-top_th        = 0;           // mm (flat top thickness; 0 = open ring)
+cap_od        = 27;                 // mm (outer diameter of ring/cap)
+cap_h         = 20;                 // mm (overall height)
+top_th        = 0;                  // mm (flat top thickness; 0 = open ring)
 
 // GPI 24-400 basics
-T_nom         = 24.10;       // "T" dimension (outside dia over threads)
-dia_clear     = 0.30;        // diametral print clearance (tune 0.20–0.50)
-pitch         = 25.4/8;      // 8 TPI -> 3.175 mm pitch
-starts        = 1;           // 400 = single-start
-thread_len    = cap_h - top_th;   // run thread through the height
-helix_turns   = thread_len / pitch;   // BOSL2 thread_helix expects 'turns' in this version
-leadin_len    = 0.6*pitch;   // modest entry chamfer; set 0 for none
+T_nom         = 24.10;              // "T" dimension (outside dia over threads)
+dia_clear     = 0.30;               // diametral print clearance (tune 0.20–0.50)
+pitch         = 25.4/8;             // 8 TPI -> 3.175 mm pitch
+starts        = 1;                  // 400 = single-start
+thread_len    = cap_h - top_th;     // run thread through the height
+helix_turns   = thread_len / pitch; // BOSL2 thread_helix expects 'turns' in this version
+leadin_len    = 0.6*pitch;          // modest entry chamfer; set 0 for none
 
 // Render quality
 $fn = 180;
@@ -36,14 +36,13 @@ D_minor_int  = D_maj_int - 2*depth_rad;    // base (inner) diameter for internal
 // Model
 // -----------------------------
 difference() {
-  // Outer body (simple ring)
+  // Outer body
   cylinder(d=cap_od, h=cap_h);
 
-  // Core bore: leave stock for the thread between bore and minor diameter
-  // If we bore out to D_minor_int, the helix has nothing to cut. Keep ~0.6 mm diametral stock.
-  bore_d = D_minor_int - 0.60;   // adjust 0.4–0.8 to tune how much land remains
-  translate([0,0,top_th-0.1])
-    cylinder(d=bore_d, h=thread_len+0.2);
+  // Core bore
+  translate([0,0,top_th])
+    cylinder(d=T_nom, h=thread_len);
+}
 
   // Subtract a solid internal thread using BOSL2.
   // Produces a 60° ISO V thread with internal relief.
@@ -55,6 +54,7 @@ difference() {
       thread_depth = depth_rad,       // RADIAL thread depth (ISO V)
       flank_angle  = 30,              // 60° included
       starts       = starts,
+      anchor       = BOTTOM,          // start helix at z=0 (bottom) rather than centered
+      lead_in      = leadin_len,      // length of lead-in chamfer; 0 for none
       internal     = true
     );
-}
