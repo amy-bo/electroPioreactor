@@ -1,4 +1,5 @@
 // Parametric cylinder for vial cap test
+$fn = 180;
 cap_height = 8;     // mm
 cap_diameter = 27;  // mm
 
@@ -293,8 +294,9 @@ module gpi_24_400_threaded_ring(od=27, h=8,
     translate([0,0,-0.05])
       cylinder(h=h+0.10, d=bore_d, center=false);
     
-    // Subtract an EXTERNAL thread "cutter" to create the INTERNAL thread profile
-    external_thread_cutter_linear(d=cutter_d, pitch=25.4/threads_per_inch, length=h+0.20, angle=60, slices=max(80, ceil((h/pitch)*120)));
+    // Compute local pitch & slices here (avoid undefined 'pitch' symbol)
+    local_pitch = 25.4/threads_per_inch;
+    external_thread_cutter_linear(d=cutter_d, pitch=local_pitch, length=h+0.20, angle=60, slices=max(120, ceil((h/local_pitch)*160)));
   }
 }
 // =========================
