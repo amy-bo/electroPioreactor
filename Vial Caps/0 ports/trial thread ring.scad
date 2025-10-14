@@ -427,7 +427,8 @@ module gpi_24_400_threaded_ring(od=27, h=8,
                                 leadin=0)
 {
   // Practical through-bore for guaranteed clearance at the thread minor
-  bore_d = E + 0.20;           // small safety bump on E
+  // IMPORTANT: leave material for the thread to be cut — bore slightly *smaller* than E
+  bore_d = E - 0.30;           // provides stock for the cutter to form crests
   cutter_d = T + clearance;    // oversize the external-thread cutter for fit
   
   difference() {
