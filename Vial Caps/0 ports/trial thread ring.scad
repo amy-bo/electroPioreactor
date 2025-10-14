@@ -407,63 +407,25 @@ module thread_polyhedron (radius, pitch, internal, n_starts, thread_size,
    }
 }
 
-// 5x100 head is 10mm
-// 6x150 head is 12mm
+cap_OD = 27; // outer diameter of cap in mm
+cap_height = 8; // height of cap in mm
+thread_diameter = 24; // diameter of thread in mm
+thread_pitch = 1; // pitch of thread in mm
+thread_length = 6; // length of thread in mm
+internal_thread = true; // internal thread (nut) if true, external (bolt) if false
+thread_starts = 3; // number of thread starts
+thread_size = -1; // use default thread size (same as pitch)
+thread_groove = false; // do not groove thread
+square_thread = false; // do not use square thread
+rectangle_thread = 0; // do not use rectangular thread
+thread_angle = 30; // standard thread angle
+thread_taper = 0; // no taper
+thread_leadin = 2; // chamfer both ends of thread
+thread_leadfac = 1.0; // chamfer length factor
+thread_test = false; // do not test (draw threads)
 
-screwLength = 49.3; // actual length of screw
-screwDia = 4; // diameter of screw that passes through hanger
-rawlPlugLength = screwLength-31; // length of insertion of screw into wood or rawlPlug
-superCounterDepth = 2; // height of screw above countersinc
-screwHeadDia = 2*screwDia; // diameter of screw head
-threadPitch = 2; // pitch of knob head thread (default 2mm)
-tollerance = 1.25; // difference between internal and external threads of knob head (default 1mm)
-minWallThickness = 3.37; // shaft wall thickness at minimum diameter 3.37mm for 8 perimeters at 0.15 line thickness with 0.4mm nozzle
-wallThickness = 5; // maximum wall thickness
-sagitta = wallThickness-minWallThickness; // amount donut cuts into the hanger shaft to make minimum diameter at center of shaft (default 1mm)
-resolution = 100;
-donutResMultiple = 3;
-$fn=resolution; // print resolution (default 100)
-hangerDia = screwDia+wallThickness*2; // diameter of hanging shaft
-threadHeight = hangerDia; // length of threaded area to accept knob head
-hangerHeight = screwLength-rawlPlugLength-threadHeight; // length of hanging shaft
-counterDepth = screwHeadDia/2; // depth of countersink (to zero point, not just the cut depth)
-cutRadius = (pow(sagitta,2) +pow((hangerHeight/2),2))/(2*sagitta); // donut radius (r = (s^2+l^2)/2s
-knobDia = sqrt(pow(hangerDia,2)+pow(threadHeight+tollerance,2))+tollerance*3; // diameter of knob head 
-knobChop = (knobDia-threadHeight-tollerance)/2; // height of section cut out of knob head 
+difference() {
+    cylinder(d=cap_OD, h=cap_height);
+    metric_thread (thread_diameter, thread_pitch, thread_length, internal_thread, thread_starts, thread_size, thread_groove, square_thread, rectangle_thread, thread_angle, thread_taper, thread_leadin, thread_leadfac, thread_test);
+}   
 
-union() {
-    difference() {
-        cylinder(h=hangerHeight, d=hangerDia);
-        cylinder(h=hangerHeight, d=screwDia);
-        translate([0,0,hangerHeight/2]){
-            rotate_extrude() translate([cutRadius+hangerDia/2-sagitta,0,0]) circle(cutRadius, $fn=resolution*donutResMultiple);
-        }
-
-    }
-    difference() {
-        translate([0,0,hangerHeight]){
-            metric_thread (hangerDia, threadPitch, threadHeight, internal=false, leadin=1);
-        }
-        translate([0,0,hangerHeight]){
-            cylinder(h=threadHeight+1, d=screwDia);
-        }
-        translate([0,0,hangerHeight+threadHeight-counterDepth-superCounterDepth]){
-            cylinder(h=counterDepth, d1=0, d2=screwHeadDia);
-        }
-        translate([0,0,hangerHeight+threadHeight-superCounterDepth]){
-            cylinder(h=superCounterDepth, d=screwHeadDia);
-        }
-    }
-}
-
-translate([hangerDia/2+knobDia/2+tollerance,0,0]) {
-    difference() {
-        translate([0,0,knobDia/2-knobChop]){
-            sphere(d=knobDia);
-        }
-        metric_thread (hangerDia+tollerance, threadPitch, threadHeight+tollerance, internal=true, leadin=3);
-        translate([0,0,-knobDia]){
-            cylinder(h=knobDia,d=knobDia);
-        }   
-}
-}
