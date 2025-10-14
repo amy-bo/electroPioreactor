@@ -2,7 +2,8 @@
 cap_height = 8;     // mm
 cap_diameter = 27;  // mm
 
- cylinder(h = cap_height, d = cap_diameter, center = true);
+// cylinder(h = cap_height, d = cap_diameter, center = true); // replaced by GPI 24-400 threaded ring
+gpi_24_400_threaded_ring(od=cap_diameter, h=cap_height);
 
 // =========================
 // Internal (female) thread support (Dan Kirshner metric threads, extracted verbatim)
@@ -412,4 +413,46 @@ module vial_cap_internal_thread(d=27, pitch=3, length=8, n_starts=1,
    // This creates the *thread geometry*; typically you would `difference()` it from the cap wall.
    metric_thread(diameter=d, pitch=pitch, length=length, internal=true, n_starts=n_starts,
                  angle=angle, taper=taper, leadin=leadin, leadfac=leadfac, test=test);
+}
+
+// =========================
+// GPI 24-400 threaded test ring (internal thread goes through)
+// =========================
+// Defaults per GPI 24-400: T ≈ 24.13 mm, E ≈ 21.97 mm, 8 TPI (pitch 3.175 mm), 60° thread (angle=30)
+module gpi_24_400_threaded_ring(od=27, h=8,
+                                T=24.13,        // outside diameter over finish threads ("T")
+                                E=21.97,        // minor diameter below threads ("E")
+                                clearance=0.30, // diametral clearance added to T for print fit
+                                threads_per_inch=8,
+                                leadin=0)
+{
+  // Practical through-bore for guaranteed clearance at the thread minor
+  bore_d = E + 0.20;           // small safety bump on E
+  cutter_d = T + clearance;    // oversize the external-thread cutter for fit
+  
+  difference() {
+    // Outer ring
+    cylinder(h=h, d=od, center=false);
+    
+    // Ensure a through-hole at least as large as E (slightly over)
+    translate([0,0,-0.05])
+      cylinder(h=h+0.10, d=bore_d, center=false);
+    
+    // Subtract an EXTERNAL thread "cutter" to create the INTERNAL thread profile
+    // Using english_thread wrapper (8 TPI => 3.175 mm pitch). Keep angle=30 (i.e. 60° included).
+    english_thread(diameter=cutter_d,
+                   threads_per_inch=threads_per_inch,
+                   length=h+0.10,     // tiny overlength to guarantee full cut
+                   internal=false,    // external thread solid acts as cutter
+                   n_starts=1,
+                   thread_size=-1,
+                   groove=false,
+                   square=false,
+                   rectangle=0,
+                   angle=30,
+                   taper=0,
+                   leadin=leadin,
+                   leadfac=1.0,
+                   test=false);
+  }
 }
