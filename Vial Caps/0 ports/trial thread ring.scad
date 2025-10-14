@@ -39,9 +39,11 @@ difference() {
   // Outer body (simple ring)
   cylinder(d=cap_od, h=cap_h);
 
-  // Core bore to open the cavity to the minor diameter so the thread subtraction is visible
+  // Core bore: leave stock for the thread between bore and minor diameter
+  // If we bore out to D_minor_int, the helix has nothing to cut. Keep ~0.6 mm diametral stock.
+  bore_d = D_minor_int - 0.60;   // adjust 0.4–0.8 to tune how much land remains
   translate([0,0,top_th-0.1])
-    cylinder(d=D_minor_int, h=thread_len+0.2);
+    cylinder(d=bore_d, h=thread_len+0.2);
 
   // Subtract a solid internal thread using BOSL2.
   // Produces a 60° ISO V thread with internal relief.
