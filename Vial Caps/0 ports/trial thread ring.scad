@@ -283,7 +283,7 @@ module gpi_24_400_threaded_ring(od=27, h=8,
 {
   // Practical through-bore for guaranteed clearance at the thread minor
   // IMPORTANT: leave material for the thread to be cut — bore slightly *smaller* than E
-  bore_d = E - 0.30;           // provides stock for the cutter to form crests
+  bore_d = E - 1.00;           // leave thread roots intact; core clearance only
   cutter_d = T + clearance;    // oversize the external-thread cutter for fit
   
   difference() {
@@ -296,7 +296,7 @@ module gpi_24_400_threaded_ring(od=27, h=8,
     
     // Compute local pitch here (avoid undefined 'pitch' symbol)
     local_pitch = 25.4/threads_per_inch;
-    external_thread_cutter_V(d=cutter_d, pitch=local_pitch, length=h+0.20, half_angle=20, steps_per_turn=120, crest_relief=0.10);
+    external_thread_cutter_V(d=cutter_d, pitch=local_pitch, length=h+0.20, half_angle=20, steps_per_turn=140, crest_relief=0.10, target_min_d=E);
   }
 }
 // =========================
@@ -367,15 +367,16 @@ module external_thread_cutter_segmented(d=24.5, pitch=3.175, length=8, angle=60,
 //  steps_per_turn : segmentation of the helix (higher = smoother)
 //  crest_relief : small radial relief to avoid razor-thin crests on the internal thread
 // =========================
-module external_thread_cutter_V(d=24.5, pitch=3.175, length=8, half_angle=20, steps_per_turn=120, crest_relief=0.10)
+module external_thread_cutter_V(d=24.5, pitch=3.175, length=8, half_angle=20, steps_per_turn=120, crest_relief=0.10, target_min_d=21.97)
 {
   r = d/2;
   step = pitch/steps_per_turn;
   n   = ceil(length/step);
-  // Geometric V height for given half-angle
-  hV = pitch/(2*tan(half_angle));     // radial depth of the V
-  // Leave a tiny relief so the internal thread crest is not knife-edge
-  radial = hV - crest_relief;
+  // Set radial depth so the *minimum* diameter after cutting equals target_min_d
+  // (i.e., the thread root for the internal thread).
+  radial = (d/2) - (target_min_d/2) - crest_relief;
+  // Safety: avoid negative/zero radial in case params are inconsistent
+  radial = max(radial, pitch*0.15);
   // Tangential "base" of the triangle at the wall surface.
   // Choose base so V looks clear in preview; ~ 0.6 * pitch works well.
   base = 0.6 * pitch;
