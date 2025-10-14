@@ -296,7 +296,7 @@ module gpi_24_400_threaded_ring(od=27, h=8,
     
     // Compute local pitch here (avoid undefined 'pitch' symbol)
     local_pitch = 25.4/threads_per_inch;
-    external_thread_cutter_segmented(d=cutter_d, pitch=local_pitch, length=h+0.20, angle=60, steps_per_turn=96, cut_width=1.2);
+    external_thread_cutter_segmented(d=cutter_d, pitch=local_pitch, length=h+0.20, angle=60, steps_per_turn=96, cut_width=3.0);
   }
 }
 // =========================
@@ -341,7 +341,7 @@ module external_thread_cutter_segmented(d=24.5, pitch=3.175, length=8, angle=60,
   r = d/2;
   half = angle/2;
   hV = pitch / (2 * tan(half));   // geometric V height
-  radial = hV * 0.9;              // slightly undercut so crests form inside
+  radial = hV * 1.05;             // deeper radial cut so thread flanks are obvious
   step = pitch / steps_per_turn;
   n = ceil(length / step);
   // Build the cutter as a union of many small rotated prisms
