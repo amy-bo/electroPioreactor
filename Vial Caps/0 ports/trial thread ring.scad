@@ -409,9 +409,10 @@ module thread_polyhedron (radius, pitch, internal, n_starts, thread_size,
 
 cap_OD = 27; // outer diameter of cap in mm
 cap_height = 8; // height of cap in mm
+top_thickness = 2; // thickness of top of cap in mm
 thread_diameter = 24; // diameter of thread in mm
 thread_pitch = 1; // pitch of thread in mm
-thread_length = 6; // length of thread in mm
+thread_length = cap_height-top_thickness; // length of thread in mm
 internal_thread = true; // internal thread (nut) if true, external (bolt) if false
 thread_starts = 3; // number of thread starts
 thread_size = -1; // use default thread size (same as pitch)
@@ -426,6 +427,8 @@ thread_test = false; // do not test (draw threads)
 
 difference() {
     cylinder(d=cap_OD, h=cap_height);
-    metric_thread (thread_diameter, thread_pitch, thread_length, internal_thread, thread_starts, thread_size, thread_groove, square_thread, rectangle_thread, thread_angle, thread_taper, thread_leadin, thread_leadfac, thread_test);
+    translate([0,0,top_thickness]) {
+        metric_thread (thread_diameter, thread_pitch, thread_length, internal_thread, thread_starts, thread_size, thread_groove, square_thread, rectangle_thread, thread_angle, thread_taper, thread_leadin, thread_leadfac, thread_test);
+    }   
 }   
 
