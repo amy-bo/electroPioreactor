@@ -15,6 +15,7 @@ cap_h = 10; // mm (overall height)
 top_th = 2; // mm (flat top thickness; 0 = open ring)
 ribs = 0; // number or ribs to add to the cap for grip (Cam used ~84)
 rib_dia = 0.856; // mm (diameter of ribs, Cam used 0.856)
+bore_len = cap_h - top_th; // mm (length of bore; usually same as cap_h - top_th)
 // Cap O-ring
 cap_o_ring_id = 19.559; // mm (inner diameter of o-ring)
 cap_o_ring_cs = 1.7; // mm (cross-sectional diameter of o-ring)
@@ -23,17 +24,15 @@ electrodes = 2; // electrode ports (0 = none, 2 = two opposite)
 electrode_od = 6; // mm (outer diameter of electrode)
 electrode_tol = 0.1; // mm (diametral print tolerance for electrode port)
 electrode_offset = 5; // mm (distance from center to electrode port center)
+electrode_port_od = electrode_od + electrode_tol; // mm (diameter of electrode port)
 electrode_o_ring_id = electrode_od; // mm (inner diameter of o-ring)
 electrode_o_ring_cs = 1.6; // mm (cross-sectional diameter of o-ring)
 // Ports
-ports = 2; // number of ports
+ports = 5; // number of ports
 port_dia = 3.2; // mm (diameter of silicone tube ports)
+port_limit = cap_o_ring_id; // mm (maximum distance from centre to far edge of port)
 // Print quality
 $fn = 180; // render quality - facets for smoothness
-
-// Derived parameters
-bore_len = cap_h - top_th; // mm (length of bore; usually same as cap_h - top_th)
-electrode_port_od = electrode_od + electrode_tol; // mm (diameter of electrode port)
 
 // GPI 24-400 basics
 T_nom = 24.10; // "T" dimension (outside dia over threads)
@@ -43,8 +42,6 @@ starts = 1; // 400 = single-start
 thread_len = bore_len - pitch; // run thread through the height
 helix_turns = thread_len / pitch; // BOSL2 thread_helix expects 'turns' in this version
 leadin_len = 0.6*pitch; // modest entry chamfer; set 0 for none
-
-// Derived parameters
 D_maj_int = T_nom + dia_clear; // Internal-thread major diameter at the crests (what the bottle’s thread “sees”).
 
 // ISO V-thread geometry for internal thread using BOSL2 thread_helix trapezoid
@@ -94,20 +91,22 @@ difference() {
     // O-ring wedge
       // *** NOT YET IMPLEMENTED ***
   }
+  // Anything beyond this point is subtracted from the cap
+
   // Chamfer top edge
     // *** NOT YET IMPLEMENTED ***
 
   // Cap O-ring groove
   translate([0,0,top_th])
     rotate_extrude(convexity = 10, $fn = 100)
-      translate([cap_o_ring_id/2, 0, 0])
+      translate([(cap_o_ring_id+cap_o_ring_cs)/2, 0, 0])
           circle(d = cap_o_ring_cs, $fn = 100);
   // ***
   // Ports
   // ***
   // Electrodes
   if (electrodes > 0)
-    for (i = [0 : electrodes]) {
+    for (i = [0 : electrodes - 1]) {
       rotate([0,0,i*360/electrodes])
         translate([electrode_offset,0,0])
           union() {
@@ -121,5 +120,28 @@ difference() {
           }
           
     }
-
+  // Tube ports
+  if (ports > 0)
+    if (electrodes == 0 || electrode_offset == 0)
+      for (i = [0 : ports - 1]) {
+        rotate([0,0,i*360/ports])
+          translate([(port_limit-port_dia)/2,0,0])
+            cylinder(d=port_dia, h=cap_h);
+      }
+    else if (ports < 3)
+      for (i = [0 : ports - 1]) {
+        rotate([0,0,90+i*360/ports])
+          translate([(port_limit-port_dia)/2,0,0])
+            cylinder(d=port_dia, h=cap_h);
+      }
+    else // ports >= 3
+      {
+        ring_ports = (ports < 4) ? ports : 4;  // limit to 4, or fewer if ports<4
+        for (k = [0 : 2 + ring_ports - 1]) {
+          rotate([0,0,k*360/6])
+            translate([(port_limit-port_dia)/2,0,0])
+              if (k==0 || k==3) { /* skip electrodes at 0° and 180° */ } else
+              cylinder(d=port_dia, h=cap_h);
+        }
+      }
 }
