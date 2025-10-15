@@ -13,12 +13,21 @@ include <BOSL2/threading.scad>
 cap_od = 27; // mm (outer diameter of ring/cap)
 cap_h = 10; // mm (overall height)
 top_th = 2; // mm (flat top thickness; 0 = open ring)
-ribs = 84; // number or ribs to add to the cap for grip
+ribs = 0; // number or ribs to add to the cap for grip (Cam used ~84)
 rib_dia = 0.856; // mm (diameter of ribs, Cam used 0.856)
+// Cap O-ring
+cap_o_ring_id = 19.559; // mm (inner diameter of o-ring)
+cap_o_ring_cs = 1.7; // mm (cross-sectional diameter of o-ring)
 // Electrodes
+electrodes = 2; // electrode ports (0 = none, 2 = two opposite)
 electrode_od = 6; // mm (outer diameter of electrode)
 electrode_tol = 0.1; // mm (diametral print tolerance for electrode port)
-electrode_pitch = 10; // mm (center-to-center pitch of electrode ports)
+electrode_offset = 5; // mm (distance from center to electrode port center)
+electrode_o_ring_id = electrode_od; // mm (inner diameter of o-ring)
+electrode_o_ring_cs = 1.6; // mm (cross-sectional diameter of o-ring)
+// Ports
+ports = 2; // number of ports
+port_dia = 3.2; // mm (diameter of silicone tube ports)
 // Print quality
 $fn = 180; // render quality - facets for smoothness
 
@@ -81,10 +90,36 @@ difference() {
             cylinder(d=rib_dia, h=cap_h);
       }
     } 
+
+    // O-ring wedge
+      // *** NOT YET IMPLEMENTED ***
   }
+  // Chamfer top edge
+    // *** NOT YET IMPLEMENTED ***
+
+  // Cap O-ring groove
+  translate([0,0,top_th])
+    rotate_extrude(convexity = 10, $fn = 100)
+      translate([cap_o_ring_id/2, 0, 0])
+          circle(d = cap_o_ring_cs, $fn = 100);
   // ***
   // Ports
   // ***
   // Electrodes
+  if (electrodes > 0)
+    for (i = [0 : electrodes]) {
+      rotate([0,0,i*360/electrodes])
+        translate([electrode_offset,0,0])
+          union() {
+            // Electrode port
+            cylinder(d=electrode_port_od, h=cap_h);
+            // Electrode O-ring groove
+            translate([0,0,top_th/2])
+              rotate_extrude(convexity = 10, $fn = 100)
+                translate([(electrode_o_ring_id)/2, 0, 0])
+                    circle(d = electrode_o_ring_cs, $fn = 100);
+          }
+          
+    }
 
 }
