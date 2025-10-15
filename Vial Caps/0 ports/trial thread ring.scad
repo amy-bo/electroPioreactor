@@ -13,7 +13,7 @@ include <BOSL2/threading.scad>
 cap_od = 27; // mm (outer diameter of ring/cap)
 cap_h = 10; // mm (overall height)
 top_th = 2; // mm (flat top thickness; 0 = open ring)
-ribs = 0; // number or ribs to add to the cap for grip (Cam used ~84)
+ribs = 84; // number or ribs to add to the cap for grip (Cam used ~84)
 rib_dia = 0.856; // mm (diameter of ribs, Cam used 0.856)
 bore_len = cap_h - top_th; // mm (length of bore; usually same as cap_h - top_th)
 // Cap O-ring
@@ -37,15 +37,13 @@ $fn = 180; // render quality - facets for smoothness
 // GPI 24-400 basics
 T_nom = 24.10; // "T" dimension (outside dia over threads)
 dia_clear = 0.30; // diametral print clearance (tune 0.20–0.50)
-pitch = 25.4/8; // 8 TPI -> 3.175 mm pitch
+pitch = 25.4/8; // theoretically 8 TPI -> 3.175 mm pitch
 starts = 1; // 400 = single-start
 thread_len = bore_len - pitch; // run thread through the height
 helix_turns = thread_len / pitch; // BOSL2 thread_helix expects 'turns' in this version
 leadin_len = 0.6*pitch; // modest entry chamfer; set 0 for none
 D_maj_int = T_nom + dia_clear; // Internal-thread major diameter at the crests (what the bottle’s thread “sees”).
-
-// ISO V-thread geometry for internal thread using BOSL2 thread_helix trapezoid
-depth_rad = 0.541265 * pitch; // radial thread depth (ISO V) = 5/8 * H = 0.541265*P
+depth_rad = 0.3 * pitch; // theoretically radial thread depth (ISO V) = 5/8 * H = 0.541265*P
 D_minor_int = D_maj_int - 2*depth_rad; // base (inner) diameter for internal threads
 
 // -----------------------------
@@ -129,8 +127,8 @@ difference() {
             cylinder(d=port_dia, h=cap_h);
       }
     else if (ports < 3)
-      for (i = [0 : ports - 1]) {
-        rotate([0,0,90+i*360/ports])
+      for (j = [0 : ports - 1]) {
+        rotate([0,0,90+j*360/ports])
           translate([(port_limit-port_dia)/2,0,0])
             cylinder(d=port_dia, h=cap_h);
       }
@@ -144,4 +142,10 @@ difference() {
               cylinder(d=port_dia, h=cap_h);
         }
       }
+  if (ports > 4)
+    for (l = [0 : ports - 5]) {
+      rotate([0,0,90+l*180])
+        translate([(port_limit-port_dia)/2,0,0])
+          cylinder(d=port_dia, h=cap_h);
+    }
 }
