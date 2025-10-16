@@ -1,1 +1,3 @@
 [![View HOB fermentation by in-culture electrolysis bibliography](https://img.shields.io/badge/HOB%20Fermentation%20by%20inCulture%20Electrolysis-BibBase-blue)](https://bibbase.org/show?bib=https://raw.githubusercontent.com/amy-bo/electroPioreactor/main/Literature/HOB%20ferm.%20in-culture%20electrolysis.bib)
+
+(AMYBO also has a small group [Zotero library](https://www.zotero.org/groups/6254483/amybo/library) for our [Journal Club](https://forum.amybo.org/c/journal-club))
