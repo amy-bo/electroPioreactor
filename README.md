@@ -7,6 +7,8 @@ New [components](Components) - including our parametric [Vial Cap](Components/Vi
 
 This repo also contains summary outputs of past research projects including [Harvey Mudd](Past%20research/HMC%20Final%20Outputs)'s anode and valve optimisation work and Brown's [CO2 sparger backflow solution](Past%20research/1.%20CO2%20backflow%20diagnosis%20-%20Eli%20Silver.md).
 
+[![View HOB fermentation by in-culture electrolysis bibliography](https://img.shields.io/static/v1?label=HOB%20fermentation%20by%20in%E2%80%91culture%20electrolysis&message=Bibliography&color=blue)](https://bibbase.org/show?bib=https://raw.githubusercontent.com/amy-bo/electroPioreactor/main/Literature/HOB%20ferm.%20in-culture%20electrolysis.bib)
+
 # Aseptic electroPioreactor
 
 A current focus is development and testing of an Aseptic electroPioreactor to faciliate research on monocultures.
