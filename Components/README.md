@@ -2,13 +2,13 @@
 
 ## Unique Components
 
-- [Vial Cap](Vial%20Cap)
+- 1x [Vial Cap](Vial%20Cap)
 
 ## Pioreactor
 
-1. [Pioreactor 20ml](https://pioreactor.com/products/pioreactor-20ml?variant=46984254586936)
-1. [Peristaltic Pumps](https://pioreactor.com/products/peristaltic-pump)
-1. [Dovetail Platform for Pioreactor and Pumps](https://pioreactor.com/collections/accessories-and-parts/products/pioreactor-and-pump-dovetail-platform?variant=42835335872568)
+1. 1x [Pioreactor 20ml](https://pioreactor.com/products/pioreactor-20ml?variant=46984254586936)
+1. 1x [Peristaltic Pumps](https://pioreactor.com/products/peristaltic-pump)
+1. 1x [Dovetail Platform for Pioreactor and Pumps](https://pioreactor.com/collections/accessories-and-parts/products/pioreactor-and-pump-dovetail-platform?variant=42835335872568)
 
 ## Media vessel options
 
