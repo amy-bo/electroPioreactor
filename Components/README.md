@@ -6,24 +6,24 @@
 
 ## Pioreactor
 
-- [Pioreactor 20ml](https://pioreactor.com/products/pioreactor-20ml?variant=46984254586936)
-- [Peristaltic Pumps](https://pioreactor.com/products/peristaltic-pump)
-- [Dovetail Platform for Pioreactor and Pumps](https://pioreactor.com/collections/accessories-and-parts/products/pioreactor-and-pump-dovetail-platform?variant=42835335872568)
+1. [Pioreactor 20ml](https://pioreactor.com/products/pioreactor-20ml?variant=46984254586936)
+1. [Peristaltic Pumps](https://pioreactor.com/products/peristaltic-pump)
+1. [Dovetail Platform for Pioreactor and Pumps](https://pioreactor.com/collections/accessories-and-parts/products/pioreactor-and-pump-dovetail-platform?variant=42835335872568)
 
 ## Media vessel options
 
 ### Centrifuge Tubes
 
-- 2x [Autoclavable](https://www.starlabgroup.com/GB-en/product/50-ml-centrifuge-tubes-pf-sl-9455674.html?utm_source=chatgpt.com&childSku=E1450-0400) or [Not](https://amzn.eu/d/9wjwtFf)
-- 2x [Dovetail centrifuge tube holders](https://github.com/oplz/DormantBioLabResources/blob/main/Prints/dovetailed_rack/50ml_tube_rack.stl)
+1. 2x [Autoclavable](https://www.starlabgroup.com/GB-en/product/50-ml-centrifuge-tubes-pf-sl-9455674.html?utm_source=chatgpt.com&childSku=E1450-0400) or [Not](https://amzn.eu/d/9wjwtFf)
+1. 2x [Dovetail centrifuge tube holders](https://github.com/oplz/DormantBioLabResources/blob/main/Prints/dovetailed_rack/50ml_tube_rack.stl)
 
 OR
 
 ### GL45 Bottles
 
-- 2x [Caps](https://pioreactor.com/collections/accessories-and-parts/products/gl45-cap-with-luer-lock-connectors?variant=46788561371192)
-- 2x [250 ml Bottles](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate/)
-- 2x [Dovetail Duran holders 0.25L](https://www.printables.com/model/1058356-duran-bottle-holding-platform-for-pioreactor-platf/files)
+1. 2x [Caps](https://pioreactor.com/collections/accessories-and-parts/products/gl45-cap-with-luer-lock-connectors?variant=46788561371192)
+1. 2x [250 ml Bottles](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate/)
+1. 2x [Dovetail Duran holders 0.25L](https://www.printables.com/model/1058356-duran-bottle-holding-platform-for-pioreactor-platf/files)
 
 ## Electrolysis
 
@@ -31,13 +31,13 @@ OR
    - 1x Platinum plated titanium anode (for MEP0.02Pt – 6mm diameter, 60mm total length, 35mm platinised length), or  
    - 1x Graphite anode (for MEP0.02C – 6mm diameter, 60mm total length)  
 1. 1x Crocodile clip
-2. Either
+1. Either
    - Bolt option
      1. 1x Stainless Steel 60mm M4 bolt
      2. 1x Stainless Steel M4 Locking Nut
      3. 1x Ring Crimp Terminal, or
     - 1x Stainless Steel anode (6mm diameter, 60mm total length)
-3. 4x Female Dupont Cables: [Amazon.co.uk](https://amzn.eu/d/fKdnqrx) (also needed for CO<sub>2</sub> sparging)
+1. 4x Female Dupont Cables: [Amazon.co.uk](https://amzn.eu/d/fKdnqrx) (also needed for CO<sub>2</sub> sparging)
 
 ### CO<sub>2</sub> sparging
 
