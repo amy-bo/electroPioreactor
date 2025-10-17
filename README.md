@@ -4,7 +4,7 @@ The electroPioreactor is a [Pioreactor](https://pioreactor.com) adapted to incor
 
 More details, including a Bill of Materials for the original electroPioreactor can be found at [AMYBO.org/docs/electroPioreactor/](https://amybo.org/docs/electropioreactor/)
 
-New [components](Components) - including our parametric [Vial Cap](Components/Vial%20Cap/) design - will live here.
+Components, including our parametric [Vial Cap](Components/Vial%20Cap/) design, are detailed [here](Components).
 
 This repo also contains summary outputs of past research projects including [Harvey Mudd](Past%20research/HMC%20Final%20Outputs)'s anode and valve optimisation work and Brown's [CO2 sparger backflow solution](Past%20research/1.%20CO2%20backflow%20diagnosis%20-%20Eli%20Silver.md).
 
