@@ -2,7 +2,7 @@
 
 The electroPioreactor is a [Pioreactor](https://pioreactor.com) adapted to incorporate electrolysis and CO2 sparging.  The main motivation is to facilitate affordable, safe, local production of Hydrogen Oxidising Bacteria (HOB) as a sustainable alternative protein.
 
-Our parametric [Vial Cap](Components/Vial%20Cap/) design and generic components are detailed in [Components](Components).
+Our parametric [Vial Cap](Components/Vial%20Cap/) design and bill of materials are detailed in [Components](Components).
 
 This repo also contains summary outputs of past research projects including [Harvey Mudd](Past%20research/HMC%20Final%20Outputs)'s anode and valve optimisation work and Brown's [CO2 sparger backflow solution](Past%20research/1.%20CO2%20backflow%20diagnosis%20-%20Eli%20Silver.md).
 
