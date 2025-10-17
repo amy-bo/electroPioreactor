@@ -44,7 +44,7 @@ OR
 1. 1x Sodastream cylinder: [Amazon.co.uk](https://amzn.eu/d/1dZqKsi) (classic blue NOT quick connect pink)
 1. 1x [Sodastream holder for Pioreactor](https://www.printables.com/model/855700-sodastream-holder-for-pioreactor)
 1. 1x W21.8-14 to TR21-4 adaptor: [Amazon.co.uk](https://amzn.eu/d/1eZLJ7n) [^1]
-1. 1x CO<sub>2</sub> Regulator and Solenoid: [Amazon.co.uk](https://amzn.eu/d/gSnMfxg) [^2]
+1. 1x CO<sub>2</sub> Regulator and Solenoid: [Amazon.co.uk](https://amzn.eu/d/gSnMfxg)
 1. ~ 20cm 4mm PU tubing: [Amazon.co.uk](https://amzn.eu/d/h9DJO5H)
 1. 2x Check valves: [Amazon.co.uk](https://amzn.eu/d/giKnew4)
 1. 1x 3/16" barb male Luer lock: [Amazon.co.uk](https://amzn.eu/d/83w3N6F)
@@ -79,4 +79,3 @@ OR
 1. 1x PH0 Screwdriver: [Amazon.co.uk](https://amzn.eu/d/houYNco)
 
 [^1]: Could be improved, I got this as it is also a 90° bend, but mine is uncomfortably stiff to adjust
-[^2]: **[Harvey Mudd](https://forum.amybo.org/t/keeping-up-with-hmc-clinic-project/126/32) are currently working on a Pinch Valve that should significantly improve this**
