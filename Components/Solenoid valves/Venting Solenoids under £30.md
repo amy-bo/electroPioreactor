@@ -1,6 +1,6 @@
 # 3/2‑Way Venting Solenoid Valves under £30 (UK & EU)
 
-## Overview
+## ChatGPT5 Agent Overview
 
 I searched UK vendors, EU vendors that ship to the UK, and marketplaces such as Amazon and eBay for 3/2‑way venting solenoid valves requiring ≤12 V DC. Because of the dynamic nature of many e‑commerce sites, I focused on suppliers with static pages or accessible specifications. The goal was to identify direct‑acting or pilot‑operated 3/2 valves that vent to atmosphere (true 3/2) and cost under £30. Duplicate models were consolidated and the cheapest seller is listed. Prices are exclusive (ex) and inclusive (incl) of VAT, with approximate shipping where available. Exchange rates of €1 = £0.87 were used for EU prices.
 
