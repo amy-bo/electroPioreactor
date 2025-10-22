@@ -5,17 +5,17 @@ Non-venting solenoid valves result in backflow as, when they shut, they trap a v
 
 ### Other selection criteria
 - **Direct-acting operation:** Must function from 0 bar differential pressure (no pilot assist).
-- **Voltage:** 12 V DC or below preferred for compatibility with standard control systems.
-- **Venting function:** Must exhaust trapped CO₂ to atmosphere when de-energised.
-- **CO₂ compatibility:** All wetted materials must tolerate dry and humid CO₂ exposure without swelling or corrosion.
+- **Voltage:** Pioreactor peristaltic pumps are most [accurate at 12 V DC](https://pioreactor.com/products/peristaltic-pump?srsltid=AfmBOopqCva4IPJAFzWi4JB8_vKfOdVNGJQGYBdzjM64rJHtXwWiJc7H&utm_source=chatgpt.com), if a second power supply is being used for this purpose, it would likely be preferable to not require a third for the solenoid valve.  If 12 V was not being supplied for the peristaltic pumps, 5 V DC solenoids could potentially run from the single Raspberry Pi power supply, however 5 V DC venting solenoids tend to be rare, sub-miniature and use push-fit or non-standard connectors.
+- **Venting function:** Must exhaust trapped CO₂ to atmosphere when closed.
+- **CO₂ compatibility:** All wetted materials must tolerate dry (and ideally also humid) CO₂ exposure without swelling or corrosion.
 - **Wetted materials:** Prefer food-grade, non-cytotoxic materials (e.g. FKM, EPDM, PTFE, PPS, or stainless steel).
 - **Sterilisability:** Ideally capable of cleaning or sterilisation (EtOH, peracetic acid, or autoclave resistance desirable).
-- **Manual override:** Manual actuation preferred for testing and safety.
+- **Operation:** Manual actuation, bistable or latching preferred so solenoid valve does not need to be continuously actuated or removed for continuous CO₂ sparging.
 - **Certifications:** CE/UKCA and RoHS compliance required; FDA/EU 1935/2004 desirable.
 - **Pressure and temperature range:** Suitable for 0–8 bar and 0–70 °C operating conditions.
-- **Form factor:** Compact size for integration near the reactor vessel; standard BSPP or compatible threads.
+- **Form factor:** Compact size for integration near the reactor vessel; standard threads to allow short, direct connections to other equipment.
 
-## Why Not use the valve trialled at Brown?
+## Why not use the valve trialled at Brown?
 The [solenoid valve trialled at Brown](https://a.co/d/0sMpHv1) is harder to procure in the UK, both it, and a [1/8" BSP version](https://amzn.eu/d/7Ma3tM2) sold via amazon.co.uk are not intended for Aseptic use, they are also pilot operated, requiring minimum 1.7 bar.
 
 ## Valve selection
