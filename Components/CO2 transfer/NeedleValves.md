@@ -1,6 +1,6 @@
 # Needle Valves
 ## Requirement
-Most CO2 regulators have insufficient control resolution to be able to accurately set the low gas flow rates required for continuous CO2 sparging.  Needle valves offer the most accurate flow control.
+Most CO2 regulators have insufficient control resolution to be able to precisely control the low gas flow rates required for continuous CO₂ sparging.  Needle valves offer the most accurate flow control.
 
 ### Selection criteria
 1. **CO₂ compatibility:** All wetted materials must tolerate dry (and ideally also humid) CO₂ exposure without swelling or corrosion.
