@@ -1,26 +1,28 @@
 # Venting Solenoid Valves
 ## Selection Criteria
 ### Venting
+<<<<<<< HEAD
 Non-venting solenoid valves result in backflow as, when they shut, they trap a volume of CO2 between the solenoid and the broth (largely water).  As determined by [Eli Silver at Brown](../../Past%20research/Brown%20-%20Harris%20Lab/1.%20CO2%20backflow%20diagnosis%20-%20Eli%20Silver.md) this CO2 completely dissolves in the water drawing the water back up to the valve.  Given that the Aseptic electroPioreactor requires filters between the solenoid valve and the broth, this is unacceptable.
+=======
+Non-venting solenoid valves result in backflow as, when they shut, they trap a volume of CO2 between the solenoid and the broth (largely water).  As [determined by Eli Silver at Brown](Past%20research/Brown%20-%20Harris%20Lab/1.%20CO2%20backflow%20diagnosis%20-%20Eli Silver.md) this CO2 completely dissolves in the water drawing the water back up to the valve.  Given that the Aseptic electroPioreactor requires filters between the solenoid valve and the broth, this is unacceptable.  As [demonstrated by Eli Silver](Past%20research/Brown%20-%20Harris%20Lab/2.%20Backflow%20testing%20with%20revised%20components%20-%20Eli Silver.md) this can be resolved by employing a 3/2 venting solenoid which connects the reactor to the CO2 supply when closed and vents the reactor to atmosphere when open.
+>>>>>>> e881fae (general text rework)
 
 ### Other selection criteria
-- **Direct-acting operation:** Must function from 0 bar differential pressure (no pilot assist).
-- **Voltage:** Pioreactor peristaltic pumps are most [accurate at 12 V DC](https://pioreactor.com/products/peristaltic-pump?srsltid=AfmBOopqCva4IPJAFzWi4JB8_vKfOdVNGJQGYBdzjM64rJHtXwWiJc7H&utm_source=chatgpt.com), if a second power supply is being used for this purpose, it would likely be preferable to not require a third for the solenoid valve.  If 12 V was not being supplied for the peristaltic pumps, 5 V DC solenoids could potentially run from the single Raspberry Pi power supply, however 5 V DC venting solenoids tend to be rare, sub-miniature and use push-fit or non-standard connectors.
-- **Venting function:** Must exhaust trapped CO₂ to atmosphere when closed.
-- **CO₂ compatibility:** All wetted materials must tolerate dry (and ideally also humid) CO₂ exposure without swelling or corrosion.
-- **Wetted materials:** Prefer food-grade, non-cytotoxic materials (e.g. FKM, EPDM, PTFE, PPS, or stainless steel).
-- **Sterilisability:** Ideally capable of cleaning or sterilisation (EtOH, peracetic acid, or autoclave resistance desirable).
-- **Operation:** Manual actuation, bistable or latching preferred so solenoid valve does not need to be continuously actuated or removed for continuous CO₂ sparging.
-- **Certifications:** CE/UKCA and RoHS compliance required; FDA/EU 1935/2004 desirable.
-- **Pressure and temperature range:** Suitable for 0–8 bar and 0–70 °C operating conditions.
-- **Form factor:** Compact size for integration near the reactor vessel; standard threads to allow short, direct connections to other equipment.
+1. **Voltage:** Pioreactor peristaltic pumps are most [accurate at 12 V DC](https://pioreactor.com/products/peristaltic-pump?srsltid=AfmBOopqCva4IPJAFzWi4JB8_vKfOdVNGJQGYBdzjM64rJHtXwWiJc7H&utm_source=chatgpt.com), if a second power supply is being used for this purpose, it would likely be preferable to not require a third for the solenoid valve.  If 12 V was not being supplied for the peristaltic pumps, 5 V DC solenoids could potentially run from the single Raspberry Pi power supply, however 5 V DC venting solenoids tend to be rare, sub-miniature and use push-fit or non-standard connectors.
+1. **Direct-acting operation:** Must function from 0 bar differential pressure (no pilot assist).
+1. **CO₂ compatibility:** All wetted materials must tolerate dry (and ideally also humid) CO₂ exposure without swelling or corrosion.
+1. **Wetted materials:** Prefer food-grade, non-cytotoxic materials (e.g. FKM, EPDM, PTFE, PPS, or stainless steel).
+1. **Sterilisability:** Ideally capable of cleaning or sterilisation (EtOH, peracetic acid, or autoclave resistance desirable).
+1. **Operation:** Manual actuation, bistable or latching preferred so solenoid valve does not need to be continuously actuated or removed for continuous CO₂ sparging.
+1. **Certifications:** CE/UKCA and RoHS compliance required; FDA/EU 1935/2004 desirable.
+1. **Form factor:** Compact size for integration with the electroPioreactor system; standard threads to allow short, direct connections to other equipment.
 
 ## Why not use the valve trialled at Brown?
-The [solenoid valve trialled at Brown](https://a.co/d/0sMpHv1) is harder to procure in the UK, both it, and a [1/8" BSP version](https://amzn.eu/d/7Ma3tM2) sold via amazon.co.uk are not intended for Aseptic use, they are also pilot operated, requiring minimum 1.7 bar.
+The [solenoid valve trialled at Brown](https://a.co/d/0sMpHv1) is harder to procure in the UK. Both it, and a [1/8" BSP version](https://amzn.eu/d/7Ma3tM2) sold via amazon.co.uk are  pilot operated, requiring minimum 1.7 bar.  They are also not intended for aseptic use.
 
-## Valve selection
-### Bürkert 6014 (Optimum / Food-Grade Option)
-The [Bürkert 6014](https://tameson.co.uk/products/solenoid-valve-3-2-way-g1-8-bistable-brass-fkm-0-16bar-232psi-12vdc-latching-6014-209280) is available in G 1/8″ BSPP configuration, with versions featuring latching coils, FKM or EPDM seals, and materials compliant with FDA, EU 1935/2004, and USP Class VI standards.  
+## Preferred options
+### Bürkert 6014
+The [Bürkert 6014 209280](https://tameson.co.uk/products/solenoid-valve-3-2-way-g1-8-bistable-brass-fkm-0-16bar-232psi-12vdc-latching-6014-209280) is a 3/2 venting 12 V DC direct action is available in G 1/8″ BSPP configuration, with versions featuring latching coils, FKM or EPDM seals, and materials compliant with FDA, EU 1935/2004, and USP Class VI standards.  
 
 ### HP Control R23 (Selected Low-Cost Direct-Acting Valve)
 The [HP Control R23](https://hpcontrol.uk/elektrozawor-r23-1-8-cala-2-lub-3-drogowy-laczony-w-grupy.html) is a low-cost venting valve, selected for its direct-acting design and ability to operate from 0 bar.  
