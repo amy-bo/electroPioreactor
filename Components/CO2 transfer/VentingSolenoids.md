@@ -1,11 +1,7 @@
 # Venting Solenoid Valves
 ## Selection Criteria
 ### Venting
-<<<<<<< HEAD
-Non-venting solenoid valves result in backflow as, when they shut, they trap a volume of CO2 between the solenoid and the broth (largely water).  As determined by [Eli Silver at Brown](../../Past%20research/Brown%20-%20Harris%20Lab/1.%20CO2%20backflow%20diagnosis%20-%20Eli%20Silver.md) this CO2 completely dissolves in the water drawing the water back up to the valve.  Given that the Aseptic electroPioreactor requires filters between the solenoid valve and the broth, this is unacceptable.
-=======
 Non-venting solenoid valves result in backflow as, when they shut, they trap a volume of CO2 between the solenoid and the broth (largely water).  As [determined by Eli Silver at Brown](Past%20research/Brown%20-%20Harris%20Lab/1.%20CO2%20backflow%20diagnosis%20-%20Eli Silver.md) this CO2 completely dissolves in the water drawing the water back up to the valve.  Given that the Aseptic electroPioreactor requires filters between the solenoid valve and the broth, this is unacceptable.  As [demonstrated by Eli Silver](Past%20research/Brown%20-%20Harris%20Lab/2.%20Backflow%20testing%20with%20revised%20components%20-%20Eli Silver.md) this can be resolved by employing a 3/2 venting solenoid which connects the reactor to the CO2 supply when closed and vents the reactor to atmosphere when open.
->>>>>>> e881fae (general text rework)
 
 ### Other selection criteria
 1. **Voltage:** Pioreactor peristaltic pumps are most [accurate at 12 V DC](https://pioreactor.com/products/peristaltic-pump?srsltid=AfmBOopqCva4IPJAFzWi4JB8_vKfOdVNGJQGYBdzjM64rJHtXwWiJc7H&utm_source=chatgpt.com), if a second power supply is being used for this purpose, it would likely be preferable to not require a third for the solenoid valve.  If 12 V was not being supplied for the peristaltic pumps, 5 V DC solenoids could potentially run from the single Raspberry Pi power supply, however 5 V DC venting solenoids tend to be rare, sub-miniature and use push-fit or non-standard connectors.
