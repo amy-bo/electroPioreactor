@@ -25,7 +25,6 @@
 ## Budget Options
 1. SodaStream cylinder
 1. [2 in 1 Mini CO2 Gas Regulator Soda Pressure Gauge](https://www.manomano.co.uk/p/co2-pressure-regulator-2-in-1-mini-co2-gas-regulator-soda-pressure-gauge-with-38in-to-tr214-adapter-for-sodastream-88562182) £25.54
-1. [G1/8" Nickel Plated Brass Needle Valve NBR 18 bar - NLBN](https://tameson.co.uk/products/nlbn-018-g1-8inch-nickel-plated-brass-needle-valve-nbr-18-bar) £7.98
 1. [HP Control R23](https://hpcontrol.uk/elektrozawor-r23-1-8-cala-2-lub-3-drogowy-laczony-w-grupy.html) £11.29
 1. [Inline CO2 Needle Valve For Planted Aquarium Systems](https://www.co2supermarket.co.uk/product/co2-needle-valve-inline-93)
 1. [CO2 Bubble Counter & Integrated Check Valve For Regulators](https://www.co2supermarket.co.uk/product/co2-bubble-counter-for-regulators-check-valve-27) £9.99
