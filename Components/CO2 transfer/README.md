@@ -36,7 +36,7 @@
 ## Recommended Option
 1. SodaStream cylinder
 1. [Premium ODL Sodastream Regulator](https://brewkegtap.co.uk/products/premium-sodastream-regulator-made-in-italy?pr_prod_strat=e5_desc&pr_rec_id=2f3634a5a&pr_rec_pid=1342006853713&pr_ref_pid=1323950768209&pr_seq=uniform) £65
-1. 1/4" BSPP to 1/8" BSPP reducer
+1. [1/4" BSPT MALE x 1/8" BSPP FEMALE HEX REDUCING BUSH-RB-150-04-02](https://customfittings.com/products/bspt-male-bsp-female-hex-reducing-bush-rb-150-04-02) £3.76
 1. [CO2 Needle Valve For Regulator Or Solenoid](https://www.co2supermarket.co.uk/product/precision-co2-needle-valve-for-regulator-solenoid-564) £11.49
 1. [CO2 Bubble Counter & Integrated Check Valve For Regulators](https://www.co2supermarket.co.uk/product/co2-bubble-counter-for-regulators-check-valve-27) £9.99
 1. Tubing
