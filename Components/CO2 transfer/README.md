@@ -32,7 +32,7 @@
 
 ## Recommended Option
 1. SodaStream cylinder
-[Kegland Mk5 Beverage CO2 Regulator (with included SodaStream adapter)](https://brewkegtap.co.uk/products/new-sodastream-kegland-mk5-beverage-co2-regulator?srsltid=AfmBOoobMTRpV6vxwUH7l_2heci5BtLtWX2f6uNH4RyX184RTBbr6M0V) £52.00
+1. [Kegland Mk5 Beverage CO2 Regulator (with included SodaStream adapter)](https://brewkegtap.co.uk/products/new-sodastream-kegland-mk5-beverage-co2-regulator?srsltid=AfmBOoobMTRpV6vxwUH7l_2heci5BtLtWX2f6uNH4RyX184RTBbr6M0V) £52.00
 1. [G1/8" Nickel Plated Brass Needle Valve NBR 18 bar - NLBN](https://tameson.co.uk/products/nlbn-018-g1-8inch-nickel-plated-brass-needle-valve-nbr-18-bar) £7.98
 1. Bubble column
 1. Tubing
