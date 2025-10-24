@@ -15,6 +15,18 @@ In order to avoid the need for complex interconnections, if a bubble counter or 
 1. **Form factor:** Compact size for integration with the electroPioreactor system; standard threads to allow short, direct connections to other equipment.
 
 ## Preferred Option?
+[Premium ODL Sodastream Regulator](https://brewkegtap.co.uk/products/premium-sodastream-regulator-made-in-italy?pr_prod_strat=e5_desc&pr_rec_id=2f3634a5a&pr_rec_pid=1342006853713&pr_ref_pid=1323950768209&pr_seq=uniform) £65
+SodaStream-native (TR21-4) inlet with 3/8″ John Guest push-fit outlet; includes built-in relief valve and 0–80 psi gauge. Compact, CO₂-compatible and adjustable.
+No CE/UKCA, RoHS, or food-grade certification listed; sterilisation capability unspecified.  Only 6 currently available.
+### Outstanding questions
+1. Are you getting more in? - they have plenty
+1. What is the connector thread type to the John Guest outlet? - 1/4" MFL
+1. Does it have UKCA, RoHS, food-grade and/or any other certification? - doesn't know
+1. How can it be sterilised?
+1. Does it have a check valve at the outlet?
+1. Do you sell compatible needle valves, bubble meters or rotatmeters?
+
+## Affordable dual-guage tool-less option
 [Kegland Mk5 Beverage CO2 Regulator (with included SodaStream adapter)](https://brewkegtap.co.uk/products/new-sodastream-kegland-mk5-beverage-co2-regulator?srsltid=AfmBOoobMTRpV6vxwUH7l_2heci5BtLtWX2f6uNH4RyX184RTBbr6M0V) £52.00
 Nickel-plated brass body with steel components and polymer seals, CE-marked, includes SodaStream adapter and push-fit outlets; compact and CO₂ compatible.
 No CE or food-grade certification listed and outlet at irregular angle.
@@ -28,6 +40,12 @@ No CE or food-grade certification listed and outlet at irregular angle.
 Compact anodised-aluminium and stainless-steel regulator. TR21-4 SodaStream thread, 1/8″ BSPP outlet with ¼″ push-fit adapter.
 Adjustable 1.5–6 bar, 130 bar max inlet, 1/8" BSPP outlet, assumed horizontal.
 No CE or food-grade certification listed.  No fine pressure readout.
+
+## Compact option with gauge
+[Kegland Mini Co2 Regulator Threaded Co2 Soda Stream Type](https://brew-day.co.uk/product/kegland-mini-co2-regulator-threaded-co2-soda-stream-type/#:~:text=Kegland%20Mini%20Co2%20Regulator%20Threaded,Co2%20Soda%20Stream%20Type) £39.95
+SodaStream‑native inlet and barbed male outlet (no adapter needed), compact anodised‑aluminium body with push‑on gas outlet, simple portable design
+brew-day.co.uk
+Lacks dual gauges and high‑accuracy controls; material/compliance, pressure range, CE/UKCA and sterilisation capability are unspecified
 
 ## Budget option
 [2 in 1 Mini CO2 Gas Regulator Soda Pressure Gauge](https://www.manomano.co.uk/p/co2-pressure-regulator-2-in-1-mini-co2-gas-regulator-soda-pressure-gauge-with-38in-to-tr214-adapter-for-sodastream-88562182) £25.54
