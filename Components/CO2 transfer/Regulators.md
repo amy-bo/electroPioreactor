@@ -20,11 +20,11 @@ SodaStream-native (TR21-4) inlet with 3/8″ John Guest push-fit outlet; include
 No CE/UKCA, RoHS, or food-grade certification listed; sterilisation capability unspecified.  Only 6 currently available.
 ### Outstanding questions
 1. Are you getting more in? - they have plenty
-1. What is the connector thread type to the John Guest outlet? - 1/4" MFL
-1. Does it have UKCA, RoHS, food-grade and/or any other certification? - doesn't know
-1. How can it be sterilised?
-1. Does it have a check valve at the outlet?
-1. Do you sell compatible needle valves, bubble meters or rotatmeters?
+1. What is the connector thread type to the John Guest outlet? - 1/4" BSPP
+1. Does it have UKCA, RoHS, food-grade and/or any other certification? - doesn't know, nothing on box, but they are intended for food.
+1. How can it be sterilised? - don't know, thinks wouldn't want to put things through
+1. Does it have a check valve at the outlet? - would need to buy sepatrately, they sell john guest.
+1. Do you sell compatible needle valves, bubble meters or rotatmeters? - send Alan an email at orders@brewkegtap.co.uk
 
 ## Affordable dual-guage tool-less option
 [Kegland Mk5 Beverage CO2 Regulator (with included SodaStream adapter)](https://brewkegtap.co.uk/products/new-sodastream-kegland-mk5-beverage-co2-regulator?srsltid=AfmBOoobMTRpV6vxwUH7l_2heci5BtLtWX2f6uNH4RyX184RTBbr6M0V) £52.00
