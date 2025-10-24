@@ -4,7 +4,8 @@
 [SodaStream adapters](https://www.co2supermarket.co.uk/category/sodastream-cylinder-adapters-2) tend to cost >£10, so this cost should be taken into consideration when determining whether to use a SodaStream native regulator, or one that comes bundled with a SodaStream adapter.  SodaStream native would be preferable, to minimise the number of connections, reducing bulk, complexity and leak risk.
 
 ## Outlet connector
-The outlet connector should ideally match the downstream units' connector types for configuration flexibility and minimising the number of unique parts (assuming all parts are female-female and require male-male connectors).
+The outlet connector should ideally match the downstream units' connector types for configuration flexibility and minimising the number of unique parts (assuming all parts are female-female and require male-male connectors).  
+In order to avoid the need for complex interconnections, if a bubble counter or variable area flow meter (rotameter) is required for flow rate monitoring the outlet will need to be horizontal.
 
 ### Other selection criteria
 1. **CO₂ compatibility:** All wetted materials must tolerate dry (and ideally also humid) CO₂ exposure without swelling or corrosion.
