@@ -36,9 +36,8 @@
 ## Recommended Option
 1. SodaStream cylinder
 1. [Premium ODL Sodastream Regulator](https://brewkegtap.co.uk/products/premium-sodastream-regulator-made-in-italy?pr_prod_strat=e5_desc&pr_rec_id=2f3634a5a&pr_rec_pid=1342006853713&pr_ref_pid=1323950768209&pr_seq=uniform) £65
-1. [G1/4'' Nickel Plated Brass Needle Valve NBR 18 bar - NLBN](https://tameson.co.uk/products/nlbn-014-g1-4inch-nickel-plated-brass-needle-valve-nbr-18-bar) £8.14
-1. Check valve
-1. Bubble column
+1. [CO2 Needle Valve For Regulator Or Solenoid](https://www.co2supermarket.co.uk/product/precision-co2-needle-valve-for-regulator-solenoid-564) £11.49
+1. [CO2 Bubble Counter & Integrated Check Valve For Regulators](https://www.co2supermarket.co.uk/product/co2-bubble-counter-for-regulators-check-valve-27) £9.99
 1. Tubing
 1. Filter
 1. Sparge tubing
