@@ -39,8 +39,7 @@
 1. [G1/4'' Nickel Plated Brass Needle Valve NBR 18 bar - NLBN](https://tameson.co.uk/products/nlbn-014-g1-4inch-nickel-plated-brass-needle-valve-nbr-18-bar) £8.14
 1. Check valve
 1. Bubble column
-1. [Push-In Fitting 10mm & G1/4'' Male Auto Shut-Off Brass/PBT 0-10bar (0-145psi)](https://tameson.co.uk/products/f2e6g-push-in-fitting-10mm-g1-4inch-male-self-locking-brass-pbt-0-10bar-0-145-psi) £6.52
-1. 10mm Tubing
+1. Tubing
 1. Filter
 1. Sparge tubing
 
