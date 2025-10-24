@@ -25,12 +25,12 @@ The [solenoid valve trialled at Brown](https://a.co/d/0sMpHv1) is harder to proc
 Not autoclavable above 80 °C, latching, or with standard threaded connectors.
 
 ### Latching with standard ports
-The [6014 / Article number 343200](https://www.burkert.co.uk/en/products/process-and-control-valves/shut-off-valves-on-off/pneumatic-control/343200) £167
+[Bürkert Type 6014 343200](https://www.burkert.co.uk/en/products/process-and-control-valves/shut-off-valves-on-off/pneumatic-control/343200) £167
 3/2 NC, 12 V DC, direct-acting, stainless-steel body, FKM seals, 0–16 bar, chemically sterilisable, implicitly CO₂ compatible, latching (pulse version) with G 1/8" BSPP ports.
 Not autoclavable above 120 °C, media-separated, or food-certified.
 
 ### HP Control R23 (Selected Low-Cost Direct-Acting Valve)
-The [HP Control R23](https://hpcontrol.uk/elektrozawor-r23-1-8-cala-2-lub-3-drogowy-laczony-w-grupy.html) £11.29
+[HP Control R23](https://hpcontrol.uk/elektrozawor-r23-1-8-cala-2-lub-3-drogowy-laczony-w-grupy.html) £11.29
 3/2 or 2/2 universal, 12 V DC, direct-acting, aluminium body, NBR seal, 0–8 bar (16 bar max), filtered air medium, manual override, IP65 coil with LED DIN plug, G 1/8″ BSPP ports plus M5 exhaust connector, group-mountable (modular valve island type).
 Not media-separated, chemically sterilisable, or food-certified.
 
