@@ -1,6 +1,6 @@
 # Media for HOB fermentation with in-culture electrolysis
 ## Literature found
-The following papers have been found which give media compositions for fermentation of hydrogen oxidising bacteria (HOB) using in-culture electrolysis.  We are not considering fermentation where H2 is supplied from a source external to the culture, as we believe the impact of ionic strength on electrolysis is significant and that chlorides will also adversely impact HOB (through biocidal hypochlorous acid formation) and electrode impacts.  We have likewise excluded formulations for Photoelectroautotrophic growth and Microbial Electrochemical Recovery Cells.
+The following papers have been [found](Literature/README.md) which give media compositions for fermentation of hydrogen oxidising bacteria (HOB) using in-culture electrolysis.  We are not considering fermentation where H2 is supplied from a source external to the culture, as we believe the impact of ionic strength on electrolysis is significant and that chlorides will also adversely impact HOB (through biocidal hypochlorous acid formation) and electrode impacts.  We have likewise excluded formulations for Photoelectroautotrophic growth and Microbial Electrochemical Recovery Cells.
 
 ### Original formulations
 1. [Liu et al. (2016)](https://doi.org/10.1126/science.aaf5039) detailed Minimal Medium (36 mM phosphate buffer) and high salt version (108 mM) for R. eutropha.
