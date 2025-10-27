@@ -22,3 +22,9 @@ The following papers have been found which give media compositions for fermentat
 
 ### Patents
 1. [Reed et al. (2015)](https://worldwide.espacenet.com/publicationDetails/biblio?FT=D&date=20150721&DB=&locale=&CC=US&NR=9085785B2&KC=B2&ND=1).
+
+## Selection of base formulation
+Of the above [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252), most of the papers modifying their formulation and [Al Rowaihi et al. (2018)](https://doi.org/10.1371/journal.pone.0196079) are explicitly chloride free.  Of these Al Rowaihi needed to maximize cellular stress as their main aim was PHB production, whereas Sydow, et al. aimed for rapid growth, requiring optimization for biological vitality.  Sydow et al's aims are therefore aligned with ours.
+
+## Motivation for modification 
+Prof. Dirk Holtmann was the corresponding author of [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252). Personal communication with researchers in his current lab, who use the same formulation, indicated that the solution starts off blue then turns yellow within a couple of days, and starts to precipitate within a couple of weeks or months.  While it is beneficial for the Holtmann lab to maintain consistency between their experiments.  We require media with longer shelf life.
