@@ -12,21 +12,22 @@ include <BOSL2/threading.scad>
 // Cap
 cap_od = 27; // mm (outer diameter of ring/cap)
 cap_h = 10; // mm (overall height)
-top_th = 2; // mm (flat top thickness; 0 = open ring)
+top_th = 2.2; // mm (flat top thickness; 0 = open ring)
 ribs = 84; // number or ribs to add to the cap for grip (Cam used ~84)
 rib_dia = 0.856; // mm (diameter of ribs, Cam used 0.856)
 bore_len = cap_h - top_th; // mm (length of bore; usually same as cap_h - top_th)
 // Cap O-ring
-cap_o_ring_id = 19.559; // mm (inner diameter of o-ring)
+cap_o_ring_id = 18.7706; // mm (inner diameter of o-ring)
 cap_o_ring_cs = 1.7; // mm (cross-sectional diameter of o-ring)
 // Electrodes
 electrodes = 2; // electrode ports (0 = none, 2 = two opposite)
 electrode_od = 6; // mm (outer diameter of electrode)
-electrode_tol = 0.1; // mm (diametral print tolerance for electrode port)
+electrode_tol = 0.4; // mm (diametral print tolerance for electrode port)
 electrode_offset = 5; // mm (distance from center to electrode port center)
 electrode_port_od = electrode_od + electrode_tol; // mm (diameter of electrode port)
-electrode_o_ring_id = electrode_od; // mm (inner diameter of o-ring)
-electrode_o_ring_cs = 1.6; // mm (cross-sectional diameter of o-ring)
+electrode_o_ring_cs = 1.8; // mm (cross-sectional diameter of o-ring)
+electrode_o_ring_id = electrode_od + (electrode_o_ring_cs/2); // mm (inner diameter of o-ring)
+
 // Ports
 ports = 5; // number of ports
 port_dia = 3.2; // mm (diameter of silicone tube ports)
