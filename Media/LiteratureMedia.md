@@ -7,7 +7,7 @@ The following papers have been [found](../Literature/README.md) which give media
 ### Original formulations
 
 1. [Liu et al. (2016)](https://doi.org/10.1126/science.aaf5039) used a low‑ionic‑strength (~36 mM phosphate buffer) R. eutropha medium and showed improved electrolysis performance at higher ionic strength (~108 mM phosphate buffer).
-2. [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) focused on the design and characterization of a new minimal medium to enable fast electroautotrophic growth of Cupriavidus necator in microbial electrosynthesis, reporting essentially zero lag phase, a high specific growth rate (~0.09 h⁻¹) and no observable electrode fouling under in‑culture electrolysis.
+2. [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) proposed a reduced chloride, organic fee minimal medium to enable fast electroautotrophic growth of Cupriavidus necator in microbial electrosynthesis, reporting essentially zero lag phase, a high specific growth rate (~0.09 h⁻¹) and no observable electrode fouling under in‑culture electrolysis.
 3. [Al Rowaihi et al. (2018)](https://doi.org/10.1371/journal.pone.0196079) customised nitrogen- and trace metal‑deprivation media specifically to drive PHB accumulation under stress rather than maximise growth.
 
 ### Modifications to [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252)
