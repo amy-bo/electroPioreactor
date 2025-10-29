@@ -6,8 +6,8 @@ The following papers have been [found](../Literature/README.md) which give media
 
 ### Original formulations
 
-1. [Liu et al. (2016)](https://doi.org/10.1126/science.aaf5039) used a low‑ionic‑strength (~36 mM phosphate buffer) R. eutropha medium and showed improved electrolysis performance at higher ionic strength (~108 mM phosphate buffer).
-2. [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) proposed a reduced chloride, organic fee minimal medium to enable fast electroautotrophic growth of Cupriavidus necator in microbial electrosynthesis, reporting essentially zero lag phase, a high specific growth rate (~0.09 h⁻¹) and no observable electrode fouling under in‑culture electrolysis.
+1. [Liu et al. (2016)](https://doi.org/10.1126/science.aaf5039) used a low‑ionic‑strength (~36 mM phosphate buffer) _R. eutropha_ medium and showed improved electrolysis performance at higher ionic strength (~108 mM phosphate buffer).
+2. [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) proposed a low‑chloride, organic‑free minimal medium to enable fast electroautotrophic growth of _Cupriavidus necator_, reporting essentially zero lag phase, a high specific growth rate (~0.09 h⁻¹) and no observable electrode fouling under in‑culture electrolysis.
 3. [Al Rowaihi et al. (2018)](https://doi.org/10.1371/journal.pone.0196079) customised nitrogen- and trace metal‑deprivation media specifically to drive PHB accumulation under stress rather than maximise growth.
 
 ### Modifications to [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252)
@@ -22,7 +22,7 @@ The following papers have been [found](../Literature/README.md) which give media
 
 ### Modifications to [Matassa et al. (2016)](https://doi.org/10.1111/1751-7915.12369)
 
-1. Pous et al. ([2022](http://doi.org/10.1016/j.biteb.2022.101010) and [2023](http://doi.org/10.1016/j.jece.2023.111550)) reduced ammonium content but included chloride salt inclusion (CaCl₂).
+1. Pous et al. ([2022](http://doi.org/10.1016/j.biteb.2022.101010) and [2023](http://doi.org/10.1016/j.jece.2023.111550)) reduced ammonium content but retained chloride.
 
 ### Modifications to [Leibniz-Institut DSMZ growth medium number 81](https://www.dsmz.de/microorganisms/medium/pdf/DSMZ_Medium81.pdf)
 
@@ -41,7 +41,7 @@ Of the above [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252), most
 
 ### Shelf life
 
-Prof. Dirk Holtmann was the corresponding author of [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252). Personal communication with researchers in his current lab, who use the same formulation, indicated that the solution starts off blue then turns yellow within a couple of days, and starts to precipitate within a couple of weeks or months.  While it is beneficial for the Holtmann lab to maintain consistency between their experiments.  We require media with longer shelf life.
+Prof. Dirk Holtmann was the corresponding author of [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252). Personal communication with researchers in his current lab, who use the same formulation, indicated that the solution starts off blue then turns yellow within a couple of days, and starts to precipitate within a couple of weeks or months.  While it is beneficial for the Holtmann lab to maintain consistency between their experiments, we require media with longer shelf life.
 
 ### Omitted Components
 
@@ -61,7 +61,7 @@ In order to make the medium free of carbon sources, chelating agents (which like
 
 #### Chlorides
 
-[Sydow et al.](https://doi.org/10.1002/elsc.201600252) sought to be chloride-free, only using HCl to acidify the trace mineral solution.  Nobody at the Holtmann lab was able to explain why they didn't use H₂SO₄ in order to go completely chloride-free.
+[Sydow et al.](https://doi.org/10.1002/elsc.201600252) sought to be chloride-free, only using HCl to acidify the trace mineral solution.  Nobody at the Holtmann lab could recall why they didn't use H₂SO₄ in order to go completely chloride‑free.
 
 #### Vitamins and Organic Cofactors
 
