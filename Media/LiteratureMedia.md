@@ -66,9 +66,3 @@ Some media, particularly those designed for specific strains or based on compreh
 • Vitamins: The modified DSMZ81 mineral medium used by [Nyyssölä et al. (2021)](https://doi.org/10.1021/acsfoodscitech.0c00129) and the medium used by [Yang et al. (2021)]() explicitly included a comprehensive vitamin solution. This typically included riboflavin, thiamine-HCl, nicotinic acid, pyridoxine-HCl, Ca-pantothenate, biotin, and vitamin B12. 
 
 [Nyyssölä et al.](https://doi.org/10.1021/acsfoodscitech.0c00129) noted that both strains they tested could also grow in the absence of these vitamins.
-
-## Modifications
-
-Given the success reported with use of the [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) minimal medium, we intend to stay as close to its formulation as possible while removing the final chlorides (in the HCl) and separating it into two solutions in order to increase shelf life.
-
-We may try to compare ferrous acidified with HCl and H₂SO₄ thereafter we only intend to add more components if we have reason to suspect that they are specifically required by HOB of interest.
