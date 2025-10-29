@@ -2,9 +2,9 @@
 
 ## Background
 
-We require a long shelf life, relatively easy to formulate, optimal minimal media for Hydrogen Oxidising Bacteria (HOB) fermentation that is also appropriate for use as an electrolyte when producing hydrogen and oxygen for HOB via electrolysis within the culture.  
+We require a long shelf life, relatively easy to formulate, optimal minimal media for hydrogen-oxidising bacteria (HOB) fermentation that is also appropriate to use as an electrolyte for in-culture electrolysis to generate hydrogen and oxygen for HOB.  
 
-While many standard and optimised formulations exist for general HOB fermentation, most contain compounds that would have deleterious consequences when subject to electrolysis, for example, gassing off as chlorine, ammonia, etc.
+While many standard and optimised formulations exist for general HOB fermentation, most contain compounds that would have deleterious consequences when subject to electrolysis, for example, evolving chlorine, ammonia, etc.
 
 [LiteratureMedia.md](LiteratureMedia.md) discusses over 10 papers describing media used specifically for HOB fermentation with in-culture electrolysis.  Of these it explains the selection of [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) as the basis for our media formulation. [MediaFormulation.md](MediaFormulation.md) goes on to explain how we derived the following longer shelf life formulation from this:
 
@@ -19,7 +19,7 @@ While many standard and optimised formulations exist for general HOB fermentatio
 | Copper(II) sulfate pentahydrate | CuSO₄·5H₂O | 0.48 |
 | Sodium molybdate dihydrate | Na₂MoO₄·2H₂O | 1.8 |
 | Nickel(II) sulfate hexahydrate | NiSO₄·6H₂O | 1.5 |
-| Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.0402 |
+| Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.040 |
 
 ### Iron solution
 
@@ -29,4 +29,4 @@ While many standard and optimised formulations exist for general HOB fermentatio
 
 ### Storage and shelf life
 
-We anticipate that, if refrigerated at 4°C in amber bottles, the mineral solution may last >5 years, and the acidified iron solution >3 years if the bottle's head space is purged of oxygen following opening.
+We anticipate that, if refrigerated at 4 °C in amber bottles (kept dark), the mineral solution may remain stable for multiple years (target >5 years), and the acidified iron solution for >3 years if the bottle headspace is purged with an inert gas (e.g. N₂ or Ar) after opening.
