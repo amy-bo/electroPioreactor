@@ -36,4 +36,39 @@ Of the above [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252), most
 
 ## Motivation for modification
 
+### Shelf life
+
 Prof. Dirk Holtmann was the corresponding author of [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252). Personal communication with researchers in his current lab, who use the same formulation, indicated that the solution starts off blue then turns yellow within a couple of days, and starts to precipitate within a couple of weeks or months.  While it is beneficial for the Holtmann lab to maintain consistency between their experiments.  We require media with longer shelf life.
+
+### Omitted Components
+
+[Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) and papers based on their formulation omitted the following:
+
+#### Boron
+
+The vast majority of other formulations included boric acid (H3BO3).
+
+#### Vanadium
+
+Some DSMZ papers included Sodium Metavanadate (NaVO3) or Ammonium metavanadate (NH4VO3).
+
+#### Chelating agents
+
+In order to make the medium free of carbon sources, chelating agents (which likely prevented precipitation hence lengthening shelf life) were omitted by [Sydow et al.](https://doi.org/10.1002/elsc.201600252).
+
+#### Chlorides
+
+[Sydow et al.](https://doi.org/10.1002/elsc.201600252) sought to be chloride-free, only using HCl to acidify the trace mineral solution.  Nobody at the Hotmann lab was able to explain why they didn't use H₂SO₄ in order to go completely chloride-free.
+
+#### Vitamins and Organic Cofactors
+
+Some media, particularly those designed for specific strains or based on comprehensive formulations like DSMZ-81, include various vitamins, which are generally omitted from the basic minimal media optimized for electroautotrophic C. necator growth by [Sydow et al](https://doi.org/10.1002/elsc.201600252):
+• Vitamins: The modified DSMZ81 mineral medium used by [Nyyssölä et al. (2021)](https://doi.org/10.1021/acsfoodscitech.0c00129) and the medium used by [Yang et al. (2021)]() explicitly included a comprehensive vitamin solution. This typically included riboflavin, thiamine-HCl, nicotinic acid, pyridoxine-HCl, Ca-pantothenate, biotin, and vitamin B12. 
+
+[Nyyssölä et al.](https://doi.org/10.1021/acsfoodscitech.0c00129) noted that both strains they tested could also grow in the absence of these vitamins.
+
+## Modifications
+
+Given the success reported with use of the [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) minimal medium, we intend to stay as close to its formulation as possible while removing the final chlorides (in the HCl) and separating it into two solutions in order to increase shelf life.
+
+We may try to compare ferrous acidified with HCl and H₂SO₄ thereafter we only intend to add more components if we have reason to suspect that they are specifically required by HOB of interest.
