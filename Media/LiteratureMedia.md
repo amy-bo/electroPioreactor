@@ -66,6 +66,6 @@ In order to make the medium free of carbon sources, chelating agents (which like
 #### Vitamins and Organic Cofactors
 
 Some media, particularly those designed for specific strains or based on comprehensive formulations like DSMZ-81, include various vitamins, which are generally omitted from the basic minimal media optimized for electroautotrophic C. necator growth by [Sydow et al](https://doi.org/10.1002/elsc.201600252):
-• Vitamins: The modified DSMZ81 mineral medium used by [Nyyssölä et al. (2021)](https://doi.org/10.1021/acsfoodscitech.0c00129) and the medium used by [Yang et al. (2021)]() explicitly included a comprehensive vitamin solution. This typically included riboflavin, thiamine-HCl, nicotinic acid, pyridoxine-HCl, Ca-pantothenate, biotin, and vitamin B12. 
+• Vitamins: The modified DSMZ81 mineral medium used by [Nyyssölä et al. (2021)](https://doi.org/10.1021/acsfoodscitech.0c00129) and the medium used by [Yang et al. (2021)](https://doi.org/10.1016/j.jclepro.2021.125921) explicitly included a comprehensive vitamin solution. This typically included riboflavin, thiamine-HCl, nicotinic acid, pyridoxine-HCl, Ca-pantothenate, biotin, and vitamin B12. 
 
 [Nyyssölä et al.](https://doi.org/10.1021/acsfoodscitech.0c00129) noted that both strains they tested could also grow in the absence of these vitamins.
