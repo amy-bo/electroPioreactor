@@ -14,10 +14,10 @@ While many standard and optimised formulations exist for general HOB fermentatio
 
 | Component | Formula | Concentration (g/L H₂O) |
 |------------|----------|--------------------------------------|
-| Manganese(II) sulfate monohydrate | MnSO₄·H₂O | 2.4 |
-| Zinc sulfate heptahydrate | ZnSO₄·7H₂O | 2.4 |
-| Copper(II) sulfate pentahydrate | CuSO₄·5H₂O | 0.48 |
 | Sodium molybdate dihydrate | Na₂MoO₄·2H₂O | 1.8 |
+| Zinc sulfate heptahydrate | ZnSO₄·7H₂O | 2.4 |
+| Manganese(II) sulfate monohydrate | MnSO₄·H₂O | 2.4 |
+| Copper(II) sulfate pentahydrate | CuSO₄·5H₂O | 0.48 |
 | Nickel(II) sulfate hexahydrate | NiSO₄·6H₂O | 1.5 |
 | Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.040 |
 
