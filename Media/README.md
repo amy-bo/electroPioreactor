@@ -10,4 +10,25 @@ While many standard and optimised formulations exist for general HOB fermentatio
 
 ## Recipe
 
-###
+### Mineral solution
+
+| Component | Formula | Concentration (g/L H₂O) |
+|------------|----------|--------------------------------------|
+| Manganese (II) Sulfate Monohydrate | MnSO₄·H₂O | 2.4 |
+| Zinc Sulfate Heptahydrate | ZnSO₄·7H₂O | 2.4 |
+| Copper (II) Sulfate Pentahydrate | CuSO₄·5H₂O | 0.48 |
+| Sodium Molybdate Dihydrate | Na₂MoO₄·2H₂O | 1.8 |
+| Nickel (II) Sulfate Hexahydrate | NiSO₄·6H₂O | 1.5 |
+| Cobalt (II) Sulfate Heptahydrate | CoSO₄·7H₂O | 0.0402 |
+
+### Iron solution
+
+| Component | Formula | Concentration (g/L in 0.1 M H₂SO₄
+) |
+|------------|----------|--------------------------------------|
+| Iron (II) Sulfate Heptahydrate | FeSO₄·7H₂O | 15.0 |
+
+### Storage and shelf life
+
+We anticipate that, if refrigerate at 4°C in amber bottles, the mineral solution should last >5 years, and the acidified iron solution >3 years, purging the bottle head space of oxygen if opened.
+
