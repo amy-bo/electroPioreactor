@@ -14,18 +14,18 @@ While many standard and optimised formulations exist for general HOB fermentatio
 
 | Component | Formula | Concentration (g/L H₂O) |
 |------------|----------|--------------------------------------|
-| Manganese (II) Sulfate Monohydrate | MnSO₄·H₂O | 2.4 |
-| Zinc Sulfate Heptahydrate | ZnSO₄·7H₂O | 2.4 |
-| Copper (II) Sulfate Pentahydrate | CuSO₄·5H₂O | 0.48 |
-| Sodium Molybdate Dihydrate | Na₂MoO₄·2H₂O | 1.8 |
-| Nickel (II) Sulfate Hexahydrate | NiSO₄·6H₂O | 1.5 |
-| Cobalt (II) Sulfate Heptahydrate | CoSO₄·7H₂O | 0.0402 |
+| Manganese(II) sulfate monohydrate | MnSO₄·H₂O | 2.4 |
+| Zinc sulfate heptahydrate | ZnSO₄·7H₂O | 2.4 |
+| Copper(II) sulfate pentahydrate | CuSO₄·5H₂O | 0.48 |
+| Sodium molybdate dihydrate | Na₂MoO₄·2H₂O | 1.8 |
+| Nickel(II) sulfate hexahydrate | NiSO₄·6H₂O | 1.5 |
+| Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.0402 |
 
 ### Iron solution
 
 | Component | Formula | Concentration (g/L in 0.2 M H₂SO₄) |
 |------------|----------|--------------------------------------|
-| Iron (II) Sulfate Heptahydrate | FeSO₄·7H₂O | 15.0 |
+| Iron(II) sulfate heptahydrate | FeSO₄·7H₂O | 15.0 |
 
 ### Storage and shelf life
 
