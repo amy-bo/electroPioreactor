@@ -7,8 +7,8 @@ The following papers have been [found](../Literature/README.md) which give media
 ### Original formulations
 
 1. [Liu et al. (2016)](https://doi.org/10.1126/science.aaf5039) detailed Minimal Medium (36 mM phosphate buffer) and high salt version (108 mM) for R. eutropha.
-2. [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) focused on the design and characterization of a new minimal medium to enable fast electroautotrophic growth of Cupriavidus necator in microbial electrosynthesis.
-3. [Al Rowaihi et al. (2018)](https://doi.org/10.1371/journal.pone.0196079) customized nitrogen- and trace metal-deprivation media used for electrochemical formate generation.
+2. [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) focused on the design and characterization of a new minimal medium to enable fast electroautotrophic growth of Cupriavidus necator in microbial electrosynthesis, reporting essentially zero lag phase, a high specific growth rate (~0.09 h⁻¹) and no observable electrode fouling under in‑culture electrolysis.
+3. [Al Rowaihi et al. (2018)](https://doi.org/10.1371/journal.pone.0196079) customised nitrogen- and trace metal‑deprivation media specifically to drive PHB accumulation under stress rather than maximise growth.
 4. [Feng et al. (2023)](https://doi.org/10.3389/fmicb.2023.1254451) developed specialized high-ionic-strength medium (180 mM phosphate buffer) to enrich halotolerant HOB strains.
 
 ### Modifications to [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252)
@@ -46,11 +46,11 @@ Prof. Dirk Holtmann was the corresponding author of [Sydow et al. (2017)](https:
 
 #### Boron
 
-The vast majority of other formulations included boric acid (H3BO3).
+The vast majority of other formulations included boric acid (H₃BO₃).
 
 #### Vanadium
 
-Some DSMZ papers included Sodium Metavanadate (NaVO3) or Ammonium metavanadate (NH4VO3).
+Some DSMZ papers included Sodium Metavanadate (NaVO₃) or Ammonium metavanadate (NH₄VO₃).
 
 #### Chelating agents
 
@@ -58,7 +58,7 @@ In order to make the medium free of carbon sources, chelating agents (which like
 
 #### Chlorides
 
-[Sydow et al.](https://doi.org/10.1002/elsc.201600252) sought to be chloride-free, only using HCl to acidify the trace mineral solution.  Nobody at the Hotmann lab was able to explain why they didn't use H₂SO₄ in order to go completely chloride-free.
+[Sydow et al.](https://doi.org/10.1002/elsc.201600252) sought to be chloride-free, only using HCl to acidify the trace mineral solution.  Nobody at the Holtmann lab was able to explain why they didn't use H₂SO₄ in order to go completely chloride-free.
 
 #### Vitamins and Organic Cofactors
 
