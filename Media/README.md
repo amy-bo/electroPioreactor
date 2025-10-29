@@ -23,8 +23,7 @@ While many standard and optimised formulations exist for general HOB fermentatio
 
 ### Iron solution
 
-| Component | Formula | Concentration (g/L in 0.2 M H₂SO₄
-) |
+| Component | Formula | Concentration (g/L in 0.2 M H₂SO₄) |
 |------------|----------|--------------------------------------|
 | Iron (II) Sulfate Heptahydrate | FeSO₄·7H₂O | 15.0 |
 
