@@ -17,14 +17,14 @@ We describe in [LiteratureMedia.md](LiteratureMedia.md) why we selected [Sydow e
 | Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.0402 |
 
 ## Long shelf life split solution
-In the presence of oxygen at pH >1 Fe²⁺ oxidises rapidly to Fe³⁺ which hydrolyses and precipitates.  Acidification of the solution should slow this. However:
-1. Anydrous HCl boils at −85°C, opening the bottle to withdraw solution will both introduce oxygen and allow HCl gas to escape.
-2. Cu²⁺ is known to catalyse Fe²⁺ oxidation in oxygen ([Wermink, et al](https://doi.org/10.1080/00986445.2018.1499017)).
+In the presence of oxygen, at pH >1, Fe²⁺ oxidises rapidly to Fe³⁺ which hydrolyses and precipitates. Acidification of the solution should slow this. However:
+1. Anhydrous HCl boils at −85 °C. Opening the bottle to withdraw solution will both introduce oxygen and allow HCl gas to escape.
+2. Cu²⁺ can accelerate Fe²⁺ oxidation in acidic sulfate solution under oxidising conditions ([Wermink, et al](https://doi.org/10.1080/00986445.2018.1499017)).
 3. Other metals are likely to co-precipitate onto/with freshly formed Fe(III) hydroxide/oxyhydroxide ([Gyliene, et al](https://sterc.org/pdf/p1196i.pdf)).
-   
-This explains the colour change (aqueous Fe²⁺ is green, Fe³⁺ is yellow/red/brown) and precipitation seen at the Holtmann lab.
 
-Segregating iron from the other trace minerals will mean that if it precipitates, only the iron solution needs to be remade.  It can also be made at lower pH, which should reduce precipitation.  H₂SO₄ boils at over 300°C, so it will be less likely to gas off.  It also has a lower pH given the same concentration, and we intend to increase the acid concentration to 0.2M.
+This explains the colour change (aqueous Fe²⁺ is green, Fe³⁺ is yellow/red/brown) and precipitation seen at the Holtmann lab. It is consistent with Fe²⁺ oxidising to Fe³⁺ and Fe³⁺ forming ferric hydroxide/oxyhydroxide, which can also remove other trace metals from solution.
+
+Segregating iron from the other trace minerals will mean that if it precipitates, only the iron solution needs to be remade.  It can also be made at lower pH, which should reduce precipitation.  H₂SO₄ boils at over 300°C, so it will be less likely to gas off.  It also has a lower pH given the same concentration, and we intend to increase the acid concentration to 0.2 M.
 
 ## Composition
 
