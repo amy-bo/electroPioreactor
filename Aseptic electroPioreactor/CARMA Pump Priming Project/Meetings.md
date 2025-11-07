@@ -1,2 +1,2 @@
 - 15 October 2025 - Technical Kickoff - [Notes](https://docs.google.com/document/d/1IUWILiN5pzhQHGo-e3H6aDOmsiF0MDY4hRcOmFHr-SU/edit), [Video](https://drive.google.com/file/u/0/d/16KjriSBPmUZoKtShsOLISINdFB97BUuE/view?pli=1)
-  
+- 7 November 2025 - Logistics / Training Dates - [Notes](https://docs.google.com/document/d/1OQUeoEuzbik-jupsEP24sXcDKl41dDJlg_wjAyXXfog/edit?tab=t.0)
