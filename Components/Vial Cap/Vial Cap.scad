@@ -11,8 +11,8 @@ include <BOSL2/threading.scad>
 // Input parameters
 // Cap
 cap_od = 27; // mm (outer diameter of ring/cap)
-cap_h = 10; // mm (overall height)
-top_th = 2.2; // mm (flat top thickness; 0 = open ring)
+cap_h = 12.3; // mm (overall height)
+top_th = 2.5; // mm (flat top thickness; 0 = open ring)
 ribs = 84; // number or ribs to add to the cap for grip (Cam used ~84)
 rib_dia = 0.856; // mm (diameter of ribs, Cam used 0.856)
 bore_len = cap_h - top_th; // mm (length of bore; usually same as cap_h - top_th)
@@ -22,11 +22,12 @@ cap_o_ring_cs = 1.7; // mm (cross-sectional diameter of o-ring)
 // Electrodes
 electrodes = 2; // electrode ports (0 = none, 2 = two opposite)
 electrode_od = 6; // mm (outer diameter of electrode)
-electrode_tol = 0.4; // mm (diametral print tolerance for electrode port)
-electrode_offset = 5; // mm (distance from center to electrode port center)
-electrode_port_od = electrode_od + electrode_tol; // mm (diameter of electrode port)
-electrode_o_ring_cs = 1.8; // mm (cross-sectional diameter of o-ring)
-electrode_o_ring_id = electrode_od + (electrode_o_ring_cs/2); // mm (inner diameter of o-ring)
+electrode_tol = 0.6; // mm (diametral print tolerance for electrode port)
+electrode_cutout = 1; // mm (cutting back to prevent overhang)
+electrode_offset = 4.8; // mm (distance from center to electrode port center)
+electrode_port_od = electrode_od + electrode_tol + electrode_cutout; // mm (diameter of electrode port)
+electrode_o_ring_cs = 2.5; // mm (cross-sectional diameter of o-ring)
+electrode_o_ring_id = electrode_od - (electrode_cutout/2) + (electrode_o_ring_cs/2); // mm (inner diameter of o-ring)
 
 // Ports
 ports = 5; // number of ports
@@ -36,8 +37,8 @@ port_limit = cap_o_ring_id; // mm (maximum distance from centre to far edge of p
 $fn = 180; // render quality - facets for smoothness
 
 // GPI 24-400 basics
-T_nom = 24.10; // "T" dimension (outside dia over threads)
-dia_clear = 0.30; // diametral print clearance (tune 0.20–0.50)
+T_nom = 24.30; // "T" dimension (outside dia over threads)
+dia_clear = 0.50; // diametral print clearance (tune 0.20–0.50)
 pitch = 25.4/8; // theoretically 8 TPI -> 3.175 mm pitch
 starts = 1; // 400 = single-start
 thread_len = bore_len - pitch; // run thread through the height
