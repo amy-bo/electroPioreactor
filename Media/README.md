@@ -12,9 +12,74 @@ While many standard and optimised formulations exist for general HOB fermentatio
 
 | Component | Formula | Source |
 |---|---|---|
-| Oxygen | O2 | electrolysis of water |
-| Hydrogen | H2 | electrolysis of water |
-| Carbon Dioxide | CO2 | sparged from Sodastream cylinder |
+| Oxygen | O₂ | electrolysis of water |
+| Hydrogen | H₂ | electrolysis of water |
+| Carbon Dioxide | CO₂ | sparged from Sodastream cylinder |
+
+All of the above are delivered to excess.  
+
+Hydrogen should be the limiting nutrient, so its production will be maximised without causing excessive electrode degradation.
+
+Oxygen is produced at a rate that will cause accumulation that limits electrolysis unless purged by Carbon Dioxide.  
+
+The Carbon Dioxide purge rate will be set with this and hydrogen combustion risk reduction in mind.
+
+## Mesonutrients
+
+[Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252)'s Supporting Information Table S1 gives their "Optimal Medium as:
+
+| Component | Formula | Concentration (g/L) |
+|---|---|---|
+| Disodium hydrogen phosphate | Na₂HPO₄ | 2.895 |
+| Sodium dihydrogen phosphate dihydrate | NaH₂PO₄·2H₂O | 3.060 |
+| Potassium sulfate | K₂SO₄ | 0.170 |
+| Calcium sulfate dihydrate | CaSO₄·2H₂O | 0.097 |
+| Magnesium sulfate heptahydrate | MgSO₄·7H₂O | 0.800 |
+| Ammonium sulfate | (NH₄)2SO₄ | 0.943 |
+
+With trace elements (see below for our split solution) to give:
+
+| Component | Formula | Concentration (g/L) |
+|---|---|---|
+| Iron(II) sulfate heptahydrate | FeSO₄·7H₂O | 0.051 |
+| Manganese(II) sulfate monohydrate | MnSO₄·H₂O | 1.2 ×10⁻⁴ |
+| Zinc sulfate heptahydrate | ZnSO₄·7H₂O | 1.2 ×10⁻⁴ |
+| Copper(II) sulfate pentahydrate | CuSO₄·5H₂O | 2.4 ×10⁻⁵ |
+| Sodium molybdate dihydrate | Na₂MoO₄·2H₂O | 9 ×10⁻⁵ |
+| | Ni2SO₄·6H₂O | 7.5 ×10⁻⁵ |
+| Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 2.01 ×10⁻⁶ |
+
+They also note the following:
+
+| Parameter | Value |
+|---|---|
+| Buffer molarity | 40 mM |
+| Conductivity | 6.1 mS/cm |
+
+And that the solution has no carbon species, is not pH stable but is electrochemically stable.
+
+They give the following elemental composition:
+
+| Element | Symbol | Concentration (g/L) |
+|---|---|---|
+| Sodium | Na | 1.389 |
+| Potassium | K | 76 ×10⁻³ |
+| Nitrogen | N | 0.2 |
+| Magnesium | Mg | 79 ×10⁻³ |
+| Calcium | Ca | 22.6 ×10⁻³ |
+| Iron | Fe | 10 ×10⁻³ |
+| Nickel | Ni | 2.7 ×10⁻⁵ |
+| Copper | Cu | 6.1 ×10⁻⁶ |
+| Chromium | Cr | - |
+| Cobalt | Co | 4.2 ×10⁻⁷ |
+| Manganese | Mn | 3.9 ×10⁻⁵ |
+| Zinc | Zn | 2.73 ×10⁻⁵ |
+| Potassium | P | 1.24 |
+| Sulphur | S | 0.39 |
+| Molybdenum | Mo | 3.6 ×10⁻⁵ |
+| Chlorine | Cl | - |
+| Carbon | C | - |
+
 
 ## Micronutrients / Trace Element Solution
 
