@@ -18,6 +18,8 @@ While many standard and optimised formulations exist for general HOB fermentatio
 
 ## Micronutrients / Trace Element Solution
 
+The trace element solution is made up in batches, at concentrations such that a few drops are added to a batch of macronutrient solution.
+
 ### Mineral solution
 
 | Component | Formula | Concentration (g/L H₂O) |
