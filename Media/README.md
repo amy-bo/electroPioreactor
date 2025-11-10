@@ -8,7 +8,15 @@ While many standard and optimised formulations exist for general HOB fermentatio
 
 [LiteratureMedia.md](LiteratureMedia.md) discusses over 10 papers describing media used specifically for HOB fermentation with in-culture electrolysis.  Of these it explains the selection of [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) as the basis for our media formulation. [MediaFormulation.md](MediaFormulation.md) goes on to explain how we derived the following longer shelf life formulation from this:
 
-## Trace elements
+## Macronutrients
+
+| Component | Formula | Source |
+|---|---|---|
+| Oxygen | O2 | electrolysis of water |
+| Hydrogen | H2 | electrolysis of water |
+| Carbon Dioxide | CO2 | sparged from Sodastream cylinder |
+
+## Micronutrients / Trace Element Solution
 
 ### Mineral solution
 
