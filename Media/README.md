@@ -57,7 +57,7 @@ Our two-bottle trace element solution, [modified](MediaFormulation.md) from [Syd
 | Zinc sulfate heptahydrate | ZnSO₄·7H₂O | 2.4 |
 | Manganese(II) sulfate monohydrate | MnSO₄·H₂O | 2.4 |
 | Copper(II) sulfate pentahydrate | CuSO₄·5H₂O | 0.48 |
-| Nickel(II) sulfate hexahydrate | NiSO₄·6H₂O | 1.5 |
+| Nickel(II) sulfate hexahydrate | Ni₂SO₄·6H₂O | 1.5 |
 | Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.040 |
 
 ### Iron solution
@@ -79,7 +79,7 @@ We anticipate that, if refrigerated at 4 °C in amber bottles (kept dark), the m
 | Zinc sulfate heptahydrate | ZnSO₄·7H₂O | 1.2 ×10⁻⁴ |
 | Copper(II) sulfate pentahydrate | CuSO₄·5H₂O | 2.4 ×10⁻⁵ |
 | Sodium molybdate dihydrate | Na₂MoO₄·2H₂O | 9 ×10⁻⁵ |
-| | Ni2SO₄·6H₂O | 7.5 ×10⁻⁵ |
+| Nickel(II) sulfate hexahydrate | Ni₂SO₄·6H₂O | 7.5 ×10⁻⁵ |
 | Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 2.01 ×10⁻⁶ |
 
 ## Final Media
