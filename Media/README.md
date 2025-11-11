@@ -47,7 +47,7 @@ With trace elements given in 'Sydow Trace Nutrients in final media' below.
 
 ## Micronutrients / Trace Element Solution
 
-Our two-bottle trace element solution, [modified](MediaFormulation.md) from [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) is made up in batches, at concentrations such that a few drops are added to a batch of macronutrient solution.
+Our two-bottle trace element solution, [modified](MediaFormulation.md) from [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) is made up in batches, at concentrations such that 0.050 mL of Mineral solution and 3.40 mL are added per 1.000 L of Mesonutrient solution.
 
 ### Mineral solution
 
@@ -58,7 +58,7 @@ Our two-bottle trace element solution, [modified](MediaFormulation.md) from [Syd
 | Manganese(II) sulfate monohydrate | MnSO₄·H₂O | 2.4 |
 | Copper(II) sulfate pentahydrate | CuSO₄·5H₂O | 0.48 |
 | Nickel(II) sulfate hexahydrate | Ni₂SO₄·6H₂O | 1.5 |
-| Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.040 |
+| Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.0402 |
 
 ### Iron solution
 
@@ -68,7 +68,7 @@ Our two-bottle trace element solution, [modified](MediaFormulation.md) from [Syd
 
 ### Storage and shelf life
 
-We anticipate that, if refrigerated at 4 °C in amber bottles (kept dark), the mineral solution may remain stable for multiple years (target >5 years), and the acidified iron solution for >3 years if the bottle headspace is purged with an inert gas (e.g. N₂ or Ar) after opening.
+We anticipate that, if refrigerated at 4 °C in amber bottles (kept dark), the mineral solution may remain stable for multiple years (target >5 years), and the acidified iron solution for nearly as long (target >3 years) if the bottle headspace is purged with an inert gas (e.g. N₂ or Ar) after opening.
 
 ### Sydow Trace Elements in final media
 
@@ -100,7 +100,7 @@ We anticipate that, if refrigerated at 4 °C in amber bottles (kept dark), the m
 | Cobalt | Co | 4.2 ×10⁻⁷ |
 | Manganese | Mn | 3.9 ×10⁻⁵ |
 | Zinc | Zn | 2.73 ×10⁻⁵ |
-| Potassium | P | 1.24 |
+| Phosphorous | P | 1.24 |
 | Sulphur | S | 0.39 |
 | Molybdenum | Mo | 3.6 ×10⁻⁵ |
 | Chlorine | Cl | - |
