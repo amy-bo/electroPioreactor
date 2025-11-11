@@ -21,7 +21,7 @@ cap_o_ring_id = 18.7706; // mm (inner diameter of o-ring)
 cap_o_ring_cs = 1.7; // mm (cross-sectional diameter of o-ring)
 // Electrodes
 electrodes = 2; // electrode ports (0 = none, 2 = two opposite)
-electrode_od = 6; // mm (outer diameter of electrode)
+electrode_od = 6.2; // mm (outer diameter of electrode)
 electrode_tol = 0.6; // mm (diametral print tolerance for electrode port)
 electrode_cutout = 1; // mm (cutting back to prevent overhang)
 electrode_offset = 4.8; // mm (distance from center to electrode port center)
