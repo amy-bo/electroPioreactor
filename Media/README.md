@@ -3,9 +3,10 @@
 ## Background
 
 This document details our proposed total nutrients for hydrogen-oxidising bacteria (HOB) fermentation.  
-Nutrients are broken down into 
-1. Macronutrient gasses, 
-2. Mesonutrient solution as per [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252), and 
+Nutrients are broken down into:
+
+1. Macronutrient gasses,
+2. Mesonutrient solution as per [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252), and
 3. Our modified two-bottle Micronutrient solution.
 
 We require a long shelf life, relatively easy to formulate, optimal micronutrient solution for HOB fermentation that is also appropriate to use as an electrolyte for in-culture electrolysis to generate hydrogen and oxygen for HOB.  
