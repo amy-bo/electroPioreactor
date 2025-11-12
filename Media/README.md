@@ -93,7 +93,7 @@ We anticipate that, if refrigerated at 4 °C in amber bottles (kept dark), the m
 | Magnesium | Mg | 79 ×10⁻³ |
 | Calcium | Ca | 22.6 ×10⁻³ |
 | Iron | Fe | 10 ×10⁻³ |
-| Nickel | Ni | 2.7 ×10⁻⁵ |
+| Nickel | Ni | _2.7 ×10⁻⁵ <sup>*</sup>_ |
 | Copper | Cu | 6.1 ×10⁻⁶ |
 | Chromium | Cr | - |
 | Cobalt | Co | 4.2 ×10⁻⁷ |
@@ -104,6 +104,8 @@ We anticipate that, if refrigerated at 4 °C in amber bottles (kept dark), the m
 | Molybdenum | Mo | 3.6 ×10⁻⁵ |
 | Chlorine | Cl | - |
 | Carbon | C | - |
+
+_<sup>*</sup>_ We believe that [Sydow et al. (2017)'s Supporting Information](https://analyticalsciencejournals.onlinelibrary.wiley.com/action/downloadSupplement?doi=10.1002%2Felsc.201600252&file=elsc999-sup-0001-SuppMat.docx)'s calculation has carried forward the Ni₂SO₄·6H₂O typo and the actual concentration of Ni would be 1.67 ×10⁻⁵. While we don't anticipate this impacting their results further investigation may be prudent.
 
 Their media was also supplied with 200 μg/mL kanamycin for pEG7c maintenance, it is assumed that this will not be required with our strains.
 
