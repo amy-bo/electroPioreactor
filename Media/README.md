@@ -1,4 +1,4 @@
-# Media for HOB fermentation with in-culture electrolysis
+# Medium for HOB fermentation with in-culture electrolysis
 
 ## Background
 
@@ -9,31 +9,29 @@ Nutrients are broken down into:
 2. Mesonutrient solution as per [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252), and
 3. Our modified two-bottle Micronutrient solution.
 
-We require a long shelf life, relatively easy to formulate, optimal micronutrient solution for HOB fermentation that is also appropriate to use as an electrolyte for in-culture electrolysis to generate hydrogen and oxygen for HOB.  
+We require an optimal nutrient solution for HOB fermentation that is also appropriate to use as an electrolyte for in-culture electrolysis to generate hydrogen and oxygen for HOB. The solution should be relatively easy to formulate, and its trace elements component should have a long shelf life.
 
-While many standard and optimised formulations exist for general HOB fermentation, most contain compounds that would have deleterious consequences when subject to electrolysis, for example, evolving chlorine, ammonia, etc.
+While many standard and optimised formulations exist for general HOB fermentation, most contain compounds that would have deleterious consequences when subject to electrolysis, for example, evolving ammonia and chlorine, forming hypochlorous acid, etc.
 
-[LiteratureMedia.md](LiteratureMedia.md) discusses over 10 papers describing media used specifically for HOB fermentation with in-culture electrolysis.  Of these it explains the selection of [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) as the basis for our media formulation. [MediaFormulation.md](MediaFormulation.md) goes on to explain how we derived the longer shelf life trace element solution below from this.
+[LiteratureMedia.md](LiteratureMedia.md) discusses over 10 papers describing media used specifically for HOB fermentation with in-culture electrolysis.  Of these it explains the selection of [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252)'s 'Optimal Medium' as the basis for our media formulation. [MediaFormulation.md](MediaFormulation.md) goes on to explain how we derived the longer shelf life trace element solution below from this.
 
 ## Macronutrients
 
 | Component | Formula | Source |
 |---|---|---|
-| Oxygen | O₂ | electrolysis of water |
 | Hydrogen | H₂ | electrolysis of water |
-| Carbon Dioxide | CO₂ | sparged from Sodastream cylinder |
-
-All of the above are delivered to excess.  
+| Oxygen | O₂ | electrolysis of water |
+| Carbon Dioxide | CO₂ | sparged from SodaStream cylinder |
 
 Hydrogen should be the limiting nutrient, so its production will be maximised without causing excessive electrode degradation.
 
-Oxygen is produced at a rate that will cause accumulation that limits electrolysis unless purged by carbon dioxide.  
+Oxygen is produced to excess at a rate that will cause accumulation that limits electrolysis unless purged by carbon dioxide.
 
-The carbon dioxide purge rate will be set with this and hydrogen combustion risk reduction in mind.  [See calculations](https://docs.google.com/spreadsheets/d/1Aeqz_CXZz-brBo-cXe8sFfjbX8h42vEcrhPH9bGLhIA/edit?gid=0#gid=0).
+The carbon dioxide purge rate will be set with this, and hydrogen combustion risk reduction, in mind.  [See calculations](https://docs.google.com/spreadsheets/d/1Aeqz_CXZz-brBo-cXe8sFfjbX8h42vEcrhPH9bGLhIA/edit?gid=0#gid=0).
 
 ## Mesonutrients
 
-[Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252)'s Supporting Information Table S1 gives their "Optimal Medium as:
+[Sydow et al. (2017)'s Supporting Information](https://analyticalsciencejournals.onlinelibrary.wiley.com/action/downloadSupplement?doi=10.1002%2Felsc.201600252&file=elsc999-sup-0001-SuppMat.docx) Table S1 gives their 'Optimal Medium' as:
 
 | Component | Formula | Concentration (g/L) |
 |---|---|---|
@@ -83,9 +81,9 @@ We anticipate that, if refrigerated at 4 °C in amber bottles (kept dark), the m
 | Nickel(II) sulfate hexahydrate | Ni₂SO₄·6H₂O | 7.5 ×10⁻⁵ |
 | Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 2.01 ×10⁻⁶ |
 
-## Final Media
+## Final Medium
 
-[Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252)'s Supporting Information Table S1 gives the following elemental composition:
+[Sydow et al. (2017)'s Supporting Information](https://analyticalsciencejournals.onlinelibrary.wiley.com/action/downloadSupplement?doi=10.1002%2Felsc.201600252&file=elsc999-sup-0001-SuppMat.docx) S1 gives the following elemental composition:
 
 | Element | Symbol | Concentration (g/L) |
 |---|---|---|
@@ -116,4 +114,4 @@ They also note the following:
 | Buffer molarity | 40 mM |
 | Conductivity | 6.1 mS/cm |
 
-And that the solution has no carbon species, is not pH stable but is electrochemically stable.
+And that the solution has no carbon species, is not pH stable, but is electrochemically stable.
