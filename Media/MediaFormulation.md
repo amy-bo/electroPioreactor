@@ -16,6 +16,8 @@ We describe in [LiteratureMedia.md](LiteratureMedia.md) why we selected [Sydow e
 | Nickel(II) sulfate hexahydrate | NiSO₄·6H₂O | 1.5 |
 | Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.0402 |
 
+Sydow et al. (2017) list Ni₂SO₄·6H₂O in Table S1, which appears to be a typographical error. Nickel(II) sulfate hexahydrate (NiSO₄·6H₂O) is used here.
+
 ## Long shelf life split solution
 In the presence of oxygen, at pH >1, Fe²⁺ oxidises rapidly to Fe³⁺ which hydrolyses and precipitates. Acidification of the solution should slow this. However:
 1. Anhydrous HCl boils at −85 °C. Opening the bottle to withdraw solution will both introduce oxygen and allow HCl gas to escape.
