@@ -46,9 +46,9 @@ With trace elements given in 'Sydow Trace Nutrients in final media' below.
 
 ## Micronutrients / Trace Element Solution
 
-Our two-bottle trace element solution, [modified](MediaFormulation.md) from [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) is made up in batches, at concentrations such that 0.050 mL of Mineral solution and 3.40 mL are added per 1.000 L of Mesonutrient solution.
+Our two-bottle trace element solution, [modified](MediaFormulation.md) from [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) is made up in batches, at concentrations such that 0.050 mL of Mineral Solution and 3.40 mL of Iron Solution are added per 1.000 L of Mesonutrient solution.
 
-### Mineral solution
+### Mineral Solution
 
 | Component | Formula | Concentration (g/L H₂O) |
 |------------|----------|--------------------------------------|
@@ -59,7 +59,7 @@ Our two-bottle trace element solution, [modified](MediaFormulation.md) from [Syd
 | Nickel(II) sulfate hexahydrate | NiSO₄·6H₂O | 1.5 |
 | Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.0402 |
 
-### Iron solution
+### Iron Solution
 
 | Component | Formula | Concentration (g/L in 0.2 M H₂SO₄) |
 |------------|----------|--------------------------------------|
