@@ -5,7 +5,7 @@
 This document details our proposed total nutrients for hydrogen-oxidising bacteria (HOB) fermentation.  
 Nutrients are broken down into:
 
-1. Macronutrient gasses,
+1. Macronutrient gases,
 2. Mesonutrient solution as per [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252), and
 3. Our modified two-bottle Micronutrient solution.
 
@@ -99,7 +99,7 @@ We anticipate that, if refrigerated at 4 °C in amber bottles (kept dark), the m
 | Cobalt | Co | 4.2 ×10⁻⁷ |
 | Manganese | Mn | 3.9 ×10⁻⁵ |
 | Zinc | Zn | 2.73 ×10⁻⁵ |
-| Phosphorous | P | 1.24 |
+| Phosphorus | P | 1.24 |
 | Sulphur | S | 0.39 |
 | Molybdenum | Mo | 3.6 ×10⁻⁵ |
 | Chlorine | Cl | - |
