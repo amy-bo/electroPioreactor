@@ -9,7 +9,7 @@
 5. Cryogenic gloves (rated to at least -80°C)
 6. Eye/face protection
 7. Lab coat
-8. Other PPE as directed by your supervisor/department/employer
+8. Other PPE as directed by your supervisor/department/employer/H&S advisor
 
 ## Method
 
