@@ -5,7 +5,7 @@
 1. Computer with SD card reader
 2. microSD to SD adapter
 3. Philips PH0 Screwdriver
-4. ***(Martin to insert size)***Gas cylinder wrench
+4. ***(Martin to insert size)*** Gas cylinder wrench
 5. Cryogenic gloves (rated to at least -80°C)
 6. Eye/face protection
 7. Lab coat
