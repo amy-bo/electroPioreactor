@@ -23,7 +23,7 @@
 3. Follow relevant Pioreactor software setup guide: <https://docs.pioreactor.com/user-guide/software-set-up>
 4. Set up electrolysis
    1. Insert electrodes half-way into Vial Cap
-   2. Push electrodes fully into their Electrode Top Stop ***(Martin to design and print)***
+   2. Push electrodes fully into their Electrode Top Stop 
    3. Temporarily place the Seating Guide ***(Martin to design and print)*** on top of the Vial Cap between the electrodes
    4. Push down the Electrode Top Stop until it is flush with the Seating Guide which is flush with the top of the Vial Cap
    5. Add nutrient solution (or equal ionic strength phosphate/sulfate) to the Vial
