@@ -1,90 +1,99 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <opml version="2.0">
-  <head>
+  <head><!-- <editor>
+      <sidebar/>
+      <column name="text" width="659"/>
+    </editor> -->
     <title>Aseptic electroPioreactor AEP0.1 Assembly instructions</title>
+    <expansionState>0,1,10</expansionState>
+    <vertScrollState>0</vertScrollState>
+    <windowTop>216</windowTop>
+    <windowLeft>0</windowLeft>
+    <windowRight>680</windowRight>
+    <windowBottom>965</windowBottom>
   </head>
   <body>
     <outline text="Aseptic electroPioreactor AEP0.1 Assembly instructions">
       <outline text="Required Tools">
-        <outline text="1. Computer with SD card reader" />
-        <outline text="2. microSD to SD adapter" />
-        <outline text="3. Philips PH0 screwdriver" />
-        <outline text="4. (Martin to insert size) gas cylinder wrench" />
-        <outline text="5. Cryogenic gloves rated to at least -80°C" />
-        <outline text="6. Eye/face protection" />
-        <outline text="7. Lab coat" />
-        <outline text="8. Other PPE as directed by supervisor/department/employer/H&amp;S advisor" />
+        <outline text="1. Computer with SD card reader"/>
+        <outline text="2. microSD to SD adapter"/>
+        <outline text="3. Philips PH0 screwdriver"/>
+        <outline text="4. (Martin to insert size) gas cylinder wrench"/>
+        <outline text="5. Cryogenic gloves rated to at least -80°C"/>
+        <outline text="6. Eye/face protection"/>
+        <outline text="7. Lab coat"/>
+        <outline text="8. Other PPE as directed by supervisor/department/employer/H&amp;S advisor"/>
       </outline>
       <outline text="Method">
         <outline text="1. Connect empty dovetail platforms in raft">
-          <outline text="a. 250 ml Duran media bottle at rear" />
-          <outline text="b. 250 ml Duran product bottle next to media bottle (alternate media and waste if multiple AEPs)" />
-          <outline text="c. Sodastream in front of media bottle" />
-          <outline text="d. Peristaltic pumps in front of Sodastream" />
-          <outline text="e. Pioreactor in front of peristaltic pumps" />
+          <outline text="a. 250 ml Duran media bottle at rear"/>
+          <outline text="b. 250 ml Duran product bottle next to media bottle (alternate media and waste if multiple AEPs)"/>
+          <outline text="c. Sodastream in front of media bottle"/>
+          <outline text="d. Peristaltic pumps in front of Sodastream"/>
+          <outline text="e. Pioreactor in front of peristaltic pumps"/>
         </outline>
-        <outline text="2. Follow relevant Pioreactor hardware setup guide (https://docs.pioreactor.com/user-guide/20ml-v11-hardware-setup-intro)" />
-        <outline text="3. Follow relevant Pioreactor software setup guide (https://docs.pioreactor.com/user-guide/software-set-up)" />
+        <outline text="2. Follow relevant Pioreactor hardware setup guide (https://docs.pioreactor.com/user-guide/20ml-v11-hardware-setup-intro)"/>
+        <outline text="3. Follow relevant Pioreactor software setup guide (https://docs.pioreactor.com/user-guide/software-set-up)"/>
         <outline text="4. Set up electrolysis">
-          <outline text="a. Insert electrodes half-way into vial cap" />
-          <outline text="b. Push electrodes fully into their electrode top stop" />
-          <outline text="c. Temporarily place the seating guide (Martin to design and print) on top of the vial cap between the electrodes" />
-          <outline text="d. Push down the electrode top stop until it is flush with the seating guide which is flush with the top of the vial cap" />
-          <outline text="e. Add nutrient solution (or equal ionic strength phosphate/sulfate) to the vial" />
-          <outline text="f. Fully screw the vial cap onto the vial" />
-          <outline text="g. Without raising the electrode top stop, slide out the seating guide" />
-          <outline text="h. Ensure the electrodes protrude into the vial to the standard depth" />
-          <outline text="i. Connect electrodes to (Gerrit to describe)" />
-          <outline text="j. Check electrolysis by (Martin to describe)" />
-          <outline text="k. Insert vial into Pioreactor once satisfied all vials have even electrolysis" />
+          <outline text="a. Insert electrodes half-way into vial cap"/>
+          <outline text="b. Push electrodes fully into their electrode top stop"/>
+          <outline text="c. Temporarily place the seating guide (Martin to design and print) on top of the vial cap between the electrodes"/>
+          <outline text="d. Push down the electrode top stop until it is flush with the seating guide which is flush with the top of the vial cap"/>
+          <outline text="e. Add nutrient solution (or equal ionic strength phosphate/sulfate) to the vial"/>
+          <outline text="f. Fully screw the vial cap onto the vial"/>
+          <outline text="g. Without raising the electrode top stop, slide out the seating guide"/>
+          <outline text="h. Ensure the electrodes protrude into the vial to the standard depth"/>
+          <outline text="i. Connect electrodes to (Gerrit to describe)"/>
+          <outline text="j. Check electrolysis by (Martin to describe)"/>
+          <outline text="k. Insert vial into Pioreactor once satisfied all vials have even electrolysis"/>
         </outline>
         <outline text="5. Set up nutrient solution flow">
-          <outline text="a. (Gerrit to describe tubing insertion steps)" />
-          <outline text="b. Determine how to ensure equal depth of liquid in each vial via equal angle and insertion of tubing" />
-          <outline text="c. Fill media vessel with DI water" />
-          <outline text="d. Calibrate peristaltic pumps (Martin to insert link)" />
-          <outline text="e. Replace water with media (decide whether final calibration check is required)" />
-          <outline text="f. Set up Pioreactor in turbidostat mode (Martin to insert link)" />
+          <outline text="a. (Gerrit to describe tubing insertion steps)"/>
+          <outline text="b. Determine how to ensure equal depth of liquid in each vial via equal angle and insertion of tubing"/>
+          <outline text="c. Fill media vessel with DI water"/>
+          <outline text="d. Calibrate peristaltic pumps (Martin to insert link)"/>
+          <outline text="e. Replace water with media (decide whether final calibration check is required)"/>
+          <outline text="f. Set up Pioreactor in turbidostat mode (Martin to insert link)"/>
         </outline>
         <outline text="6. Set up carbon dioxide sparging">
-          <outline text="1. (Gerrit to review: strike through any steps completed before shipping)" />
-          <outline text="2. Unscrew John-Guest push-fit output from the regulator outlet port" />
-          <outline text="3. Insert 8 mm ID 2 mm CS o-ring into the regulator outlet port" />
-          <outline text="4. Screw in the 1.4&quot; male to 1/8&quot; female reducer to the regulator outlet port" />
-          <outline text="5. Cut a rectangle of gas PTFE tape to wrap around the needle valve inlet thread (bare metal thread opposite the screw adjuster) 1.5 times" />
-          <outline text="6. Wrap gas PTFE tape around the needle valve inlet thread 1.5 times" />
-          <outline text="7. Screw needle valve into 1/8&quot; female reducer" />
-          <outline text="8. Close needle valve (Martin to insert direction)" />
-          <outline text="9. Close regulator (Martin to insert direction)" />
-          <outline text="10. Move plastic washer attached to regulator to between regulator and SodaStream adapter" />
-          <outline text="11. Sit second plastic washer on top of SodaStream cylinder (confirm with BKT whether silicone grease should be used)" />
-          <outline text="12. Important: don PPE including cryogenic gloves and follow instructions included with SodaStream adapter when tightening cylinder" />
-          <outline text="13. Place SodaStream in dovetail raft" />
-          <outline text="14. Remove o-ring from bubble counter and place over needle valve outlet" />
-          <outline text="15. Screw bubble counter onto needle valve" />
-          <outline text="16. Fill bubble counter three-quarters full with DI water" />
-          <outline text="17. Remove compression nut from the top of the bubble counter" />
-          <outline text="18. Attach the 4 mm tubing to the top of the bubble counter (heat to soften if necessary)" />
-          <outline text="19. Reattach the compression nut" />
-          <outline text="20. Attach the male end of a 0.2 μm vent filter to the female luer lock on the vial CO₂ entry port" />
-          <outline text="21. Attach the female ends of two 0.2 μm vent filters to the two male luer locks on the vial exhaust ports" />
-          <outline text="22. Cut the 4 mm tubing just long enough to run over the regulator so it keeps the bubble counter vertical and down to the CO₂ entry filter" />
-          <outline text="23. Measure this and ensure all other 4 mm tubing is cut to the same length" />
-          <outline text="24. Insert a 1/8&quot; (or 5/32&quot; if 1/8&quot; is too loose) barb hose to male luer lock adapter in the free end of the 4 mm tubing (heat to soften if necessary)" />
-          <outline text="25. Connect the luer lock to the CO₂ entry filter" />
+          <outline text="1. (Gerrit to review: strike through any steps completed before shipping)"/>
+          <outline text="2. Unscrew John-Guest push-fit output from the regulator outlet port"/>
+          <outline text="3. Insert 8 mm ID 2 mm CS o-ring into the regulator outlet port"/>
+          <outline text="4. Screw in the 1.4&quot; male to 1/8&quot; female reducer to the regulator outlet port"/>
+          <outline text="5. Cut a rectangle of gas PTFE tape to wrap around the needle valve inlet thread (bare metal thread opposite the screw adjuster) 1.5 times"/>
+          <outline text="6. Wrap gas PTFE tape around the needle valve inlet thread 1.5 times"/>
+          <outline text="7. Screw needle valve into 1/8&quot; female reducer"/>
+          <outline text="8. Close needle valve (Martin to insert direction)"/>
+          <outline text="9. Close regulator (Martin to insert direction)"/>
+          <outline text="10. Move plastic washer attached to regulator to between regulator and SodaStream adapter"/>
+          <outline text="11. Sit second plastic washer on top of SodaStream cylinder (confirm with BKT whether silicone grease should be used)"/>
+          <outline text="12. Important: don PPE including cryogenic gloves and follow instructions included with SodaStream adapter when tightening cylinder"/>
+          <outline text="13. Place SodaStream in dovetail raft"/>
+          <outline text="14. Remove o-ring from bubble counter and place over needle valve outlet"/>
+          <outline text="15. Screw bubble counter onto needle valve"/>
+          <outline text="16. Fill bubble counter three-quarters full with DI water"/>
+          <outline text="17. Remove compression nut from the top of the bubble counter"/>
+          <outline text="18. Attach the 4 mm tubing to the top of the bubble counter (heat to soften if necessary)"/>
+          <outline text="19. Reattach the compression nut"/>
+          <outline text="20. Attach the male end of a 0.2 μm vent filter to the female luer lock on the vial CO₂ entry port"/>
+          <outline text="21. Attach the female ends of two 0.2 μm vent filters to the two male luer locks on the vial exhaust ports"/>
+          <outline text="22. Cut the 4 mm tubing just long enough to run over the regulator so it keeps the bubble counter vertical and down to the CO₂ entry filter"/>
+          <outline text="23. Measure this and ensure all other 4 mm tubing is cut to the same length"/>
+          <outline text="24. Insert a 1/8&quot; (or 5/32&quot; if 1/8&quot; is too loose) barb hose to male luer lock adapter in the free end of the 4 mm tubing (heat to soften if necessary)"/>
+          <outline text="25. Connect the luer lock to the CO₂ entry filter"/>
         </outline>
         <outline text="7. Calibrate CO₂ flow">
-          <outline text="a. Set regulator to 1 bar" />
-          <outline text="b. Adjust needle valve to give approximately 30 bubbles per 10 seconds" />
-          <outline text="c. Wait for system to equilibrate" />
-          <outline text="d. Repeat from step a as needed" />
-          <outline text="e. Temporarily pinch one of the two gas vent ports closed" />
-          <outline text="f. Run 1/16&quot; tubing from the outlet of the open gas vent port to a bath to collect CO₂ over water into a measuring cylinder" />
-          <outline text="g. Determine the actual flow rate" />
-          <outline text="h. Adjust target bubble count and repeat process until the target flow rate is achieved" />
+          <outline text="a. Set regulator to 1 bar"/>
+          <outline text="b. Adjust needle valve to give approximately 30 bubbles per 10 seconds"/>
+          <outline text="c. Wait for system to equilibrate"/>
+          <outline text="d. Repeat from step a as needed"/>
+          <outline text="e. Temporarily pinch one of the two gas vent ports closed"/>
+          <outline text="f. Run 1/16&quot; tubing from the outlet of the open gas vent port to a bath to collect CO₂ over water into a measuring cylinder"/>
+          <outline text="g. Determine the actual flow rate"/>
+          <outline text="h. Adjust target bubble count and repeat process until the target flow rate is achieved"/>
         </outline>
         <outline text="8. Sterilise">
-          <outline text="a. Principal investigators to determine process in accordance with departmental requirements" />
+          <outline text="a. Principal investigators to determine process in accordance with departmental requirements"/>
         </outline>
       </outline>
     </outline>
