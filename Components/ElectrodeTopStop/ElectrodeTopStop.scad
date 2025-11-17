@@ -35,7 +35,7 @@ module electrode_shell(height) {
         cylinder(d = outer_shell_od, h = height, center = false);
 
     // Rectangular bridge that closes the sleeves into a racetrack profile
-    translate([- outer_shell_od / 2, -outer_shell_od / 2, 0])
+    translate([- electrode_offset, -outer_shell_od / 2, 0])
       cube([2 * electrode_offset, outer_shell_od, height], center = false);
   }
 }
