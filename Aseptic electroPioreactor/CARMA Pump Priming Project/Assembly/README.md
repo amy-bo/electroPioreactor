@@ -1,5 +1,10 @@
 # Aseptic electroPioreactor AEP0.1 Assembly instructions
 
+## Before you start
+
+1. Procure Bill of Materials (ask Labcrafter for AEP0.1 BoM)
+2. Check your HOB are growing happily heterotrophically.
+
 ## Required Tools
 
 1. Computer with SD card reader
@@ -51,7 +56,7 @@
    7. Close needle valve ***(Martin to insert direction)***
    8. Close regulator ***(Martin to insert direction)***
    9. Move plastic washer attached to regulator to between regulator and SodaStream adapter
-   10. Sit second plastic washer on top of SodaStream cylinder ***(Martin to chase BKT on whether silicone grease should be used)***
+   10. Sit second plastic washer on top of SodaStream cylinder
    11. **Important:** (while remembering to don all PPE including cryogenic gloves prior to tightening cylinder in one swift, decisive move) **follow instructions included with SodaStream adapter**
    12. Place SodaStream in dovetail raft
    13. Remove o-ring from bubble counter and place over needle valve outlet
