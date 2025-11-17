@@ -19,7 +19,7 @@
 ## Method
 
 1. Connect empty dovetail platforms in raft
-   1. 250ml duran media bottle at rear wuith dovetails to front and ***(Martin to determine second dovetail direction)***
+   1. 250ml duran media bottle at rear with dovetails to front and ***(Martin to determine second dovetail direction)***
    2. 250ml duran product bottle next to media bottle (alternate media and waste if multiple AEPs)
    3. Sodastream in front of media bottle
    4. Peristaltic pumps in front of Sodastream
@@ -27,8 +27,8 @@
 2. Follow relevant Pioreactor hardware setup guide: <https://docs.pioreactor.com/user-guide/20ml-v11-hardware-setup-intro>
 3. Follow relevant Pioreactor software setup guide: <https://docs.pioreactor.com/user-guide/software-set-up>
 4. Set up electrolysis
-   1. Insert electrode o-rings into the [Vial Cap](../Components/Vial%20Cap)
-   2. Insert electrodes half-way into Vial Cap using a twisting motion to avoid dislodging the o-rings
+   1. ~Insert electrode o-rings into the [Vial Cap](../Components/Vial%20Cap)~
+   2. ~Insert electrodes half-way into Vial Cap using a twisting motion to avoid dislodging the o-rings~
    3. Push electrodes fully into their [Electrode Top Stop](../Components/ElectrodeTopStop)
    4. Temporarily place the [Electrode Seating Guide](../Components/ElectrodeSeatingGuide) on top of the Vial Cap between the electrodes
    5. Push down the Electrode Top Stop until it is flush with the Electrode Seating Guide which is flush with the top of the Vial Cap
@@ -36,25 +36,25 @@
    7. Fully screw the Vial Cap onto the Vial
    8. Without raising the Electrode Top Stop, slide out the Seating Guide
    9. The electrodes should now protrude into the vial to the standard depth
-   10. Connect electrodes to ***(Gerrit to describe)***
-   11. Check electrolysis by ***(Martin to describe)***
-   12. Insert vial into Pioreactor once satisfied all vials have even electrolysis
-5. Set up nutrient solution flow
-   1. ***(Gerrit to describe - sorry I realise I don't know if you've inserted tubing in either the peristaltics or vial caps)***
+   10. Connect the platinized titanium anode to the positive terminal of channel D on the Pioreactor with the black crocodile clip
+   11. Connect the stainless steel cathode to the negative terminal of channel D with the red crocodile clip
+   12. With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 10%, and verifying that roughly twice as many bubbles are forming on the cathode
+   13. Insert vial into Pioreactor once satisfied all vials have even electrolysis
+6. Set up nutrient solution flow
+   1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
    2. ***(How do we ensure equal depth of liquid in each vial - it will be by equal angle and insertion of tubing, but how do we achieve that?)***
    3. Fill media vessel with DI water
-   4. Calibrate peristaltic pumps as per ***(Martin to insert link)***
+   4. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
    5. Replace water with media ***(decide whether final calibration check required)***
-   6. Set up Pioreactor in turbidostat mode ***(Martin to insert link)***
-6. Set up carbon dioxide sparging
-   1. ***(Gerrit I was going to ask you to describe this, but to save time, I wrote it up as I recall doing it, could you please strike-through any lines that you already completed prior to shipping? I suggest we keep them as strike-through as in the interests of open-source we should produce complete DIY instructions)***
-   Unscrew John-Guest push-fit output from the regulator outlet port
+   6. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
+7. Set up carbon dioxide sparging
+   1. Unscrew John-Guest push-fit output from the regulator outlet port
    2. Insert 8mm ID 2mm CS o-ring into the regulator outlet port
    3. Screw in the 1.4" male to 1/8" female reducer to the regulator outlet port
    4. Cut a rectangle of gas PTFE tape to wrap around needle valve inlet thread (the bare metal thread opposite the screw adjustor) 1.5 times.
    5. Wrap gas PTFE tap around needle valve inlet thread 1.5 times.
    6. Screw needle valve into 1/8" female reducer
-   7. Close needle valve ***(Martin to insert direction)***
+   7. Close needle valve clockwise
    8. Close regulator ***(Martin to insert direction)***
    9. Move plastic washer attached to regulator to between regulator and SodaStream adapter
    10. Sit second plastic washer on top of SodaStream cylinder
@@ -72,7 +72,7 @@
    22. Measure this and ensure all other 4mm tubing is cut to the same length
    23. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
    24. Connect the luer lock to the CO₂ entry filter
-7. Calibrate CO₂ flow
+8. Calibrate CO₂ flow
     1. Set regulator to 1 bar
     2. Adjust needle valve to give say 30 bubbles per 10 seconds
     3. Wait for system to equilibrate
@@ -81,6 +81,6 @@
     6. Run 1/16" tubing from outlet of open gas vent port to bath in order to collect CO₂ over water into a measuring cylinder
     7. Determine the actual flow rate
     8. Adjust target bubble count and repeat process until target flow rate is achieved
-8. Sterilise
+9. Sterilise
     1. ***(PI's to determine process in accordance with departmental requiremnents)***
 
