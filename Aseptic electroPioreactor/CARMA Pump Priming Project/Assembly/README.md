@@ -19,7 +19,7 @@
 ## Method
 
 1. Connect empty dovetail platforms in raft
-   1. 250ml duran media bottle at rear with dovetails to front and ***(Martin to determine second dovetail direction)***
+   1. 250ml duran media bottle at rear with dovetails to front and left
    2. 250ml duran product bottle next to media bottle (alternate media and waste if multiple AEPs)
    3. Sodastream in front of media bottle
    4. Peristaltic pumps in front of Sodastream
