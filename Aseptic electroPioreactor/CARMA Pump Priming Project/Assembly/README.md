@@ -18,9 +18,9 @@
 
 ## Method
 
-1. Connect empty dovetail platforms in raft
+1. Connect empty dovetail platforms in 'inverted L' raft
    1. 250ml duran media bottle at rear with dovetails to front and left
-   2. 250ml duran product bottle next to media bottle (alternate media and waste if multiple AEPs)
+   2. 250ml duran product bottle to right of media bottle (alternate media and waste if multiple AEPs)
    3. Sodastream in front of media bottle
    4. Peristaltic pumps in front of Sodastream
    5. Pioreactor in front of Peristaltic pumps with dovetails to front and connector cutouts to left.
@@ -40,14 +40,14 @@
    11. Connect the stainless steel cathode to the negative terminal of channel D with the red crocodile clip
    12. With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 10%, and verifying that roughly twice as many bubbles are forming on the cathode
    13. Insert vial into Pioreactor once satisfied all vials have even electrolysis
-6. Set up nutrient solution flow
+5. Set up nutrient solution flow
    1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
    2. ***(How do we ensure equal depth of liquid in each vial - it will be by equal angle and insertion of tubing, but how do we achieve that?)***
    3. Fill media vessel with DI water
    4. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
    5. Replace water with media ***(decide whether final calibration check required)***
    6. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
-7. Set up carbon dioxide sparging
+6. Set up carbon dioxide sparging
    1. Unscrew John-Guest push-fit output from the regulator outlet port
    2. Insert 8mm ID 2mm CS o-ring into the regulator outlet port
    3. Screw in the 1.4" male to 1/8" female reducer to the regulator outlet port
@@ -72,7 +72,7 @@
    22. Measure this and ensure all other 4mm tubing is cut to the same length
    23. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
    24. Connect the luer lock to the CO₂ entry filter
-8. Calibrate CO₂ flow
+7. Calibrate CO₂ flow
     1. Set regulator to 1 bar
     2. Adjust needle valve to give say 30 bubbles per 10 seconds
     3. Wait for system to equilibrate
@@ -81,6 +81,6 @@
     6. Run 1/16" tubing from outlet of open gas vent port to bath in order to collect CO₂ over water into a measuring cylinder
     7. Determine the actual flow rate
     8. Adjust target bubble count and repeat process until target flow rate is achieved
-9. Sterilise
+8. Sterilise
     1. ***(PI's to determine process in accordance with departmental requiremnents)***
 
