@@ -74,7 +74,7 @@
    21. Attach the male end of an 0.2 μm vent filter to the female luer lock on the vial CO₂ entry port
    22. Attach the female ends of two 0.2 μm vent filters to the two male luer locks on the vial exhaust ports
    23. Cut the 4mm tubing just long enough to run over the regulator so it keeps the bubble counter vertical and down to the CO₂ entry filter
-   24. Measure this and ensure all other 4mm tubing is cut to the same length
+   24. Measure the 4mm tubing cut length and ensure all other 4mm tubing is cut to the same length
    25. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
    26. Connect the luer lock to the CO₂ entry filter
 7. Calibrate CO₂ flow
