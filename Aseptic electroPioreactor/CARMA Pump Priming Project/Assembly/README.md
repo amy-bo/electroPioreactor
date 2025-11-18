@@ -45,10 +45,10 @@
    16. Insert vial into Pioreactor once satisfied all vials have even electrolysis
 5. Set up nutrient solution flow
    1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
-   2. ***(How do we ensure equal depth of liquid in each vial - it will be by equal angle and insertion of tubing, but how do we achieve that?)***
-   3. Fill media vessel with DI water
-   4. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
-   5. Replace water with media ***(decide whether final calibration check required)***
+   2. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
+   3. Weigh dry empty vial
+   4. Fill vial with DI water via the pumps, then weigh vials and adjust tube lengths until vial volume is 15ml
+   5. Measure electrodes immersion depths, if necessary adjust to the standard, and record the insertion depth of each electrode
    6. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
 6. Set up carbon dioxide sparging
    1. Unscrew John-Guest push-fit output from the regulator outlet port
@@ -85,5 +85,4 @@
     7. Determine the actual flow rate
     8. Adjust target bubble count and repeat process until target flow rate is achieved
 8. Sterilise
-    1. ***(PI's to determine process in accordance with departmental requiremnents)***
-
+    1. ***(PI's to determine process in accordance with departmental requirements)***
