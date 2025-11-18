@@ -83,8 +83,9 @@
     3. Wait for system to equilibrate
     4. Repeat from step 1 as needed
     5. Temporarily pinch one of the two gas vent ports closed
-    6. Run 1/16" tubing from outlet of open gas vent port to bath in order to collect CO₂ over water into a measuring cylinder
-    7. Determine the actual flow rate
-    8. Adjust target bubble count and repeat process until target flow rate is achieved
+    6. Run 1/16" tubing from outlet of open gas vent port to bath until water CO2 concentration is assumed (or if possible measured) to have equilibrated
+    7. Record time taken to fill measuring cylinder with CO₂ over water
+    8. Determine the actual flow rate
+    9. Adjust target bubble count and repeat process until target flow rate is achieved
 8. Sterilise
     1. ***(PI's to determine process in accordance with departmental requirements)***
