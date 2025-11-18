@@ -61,7 +61,4 @@ union() {
   // Central cylinder to protrude beyond centre point for better seating
       cylinder(d = separation, h = stop_height, center = false);
 
-  // Pull handle
-    translate([0,-outer_shell_od/2 - separation/4,0])
-      cylinder(d = separation, h = stop_height, center = false); 
 }
