@@ -38,8 +38,8 @@
    9. The electrodes should now protrude into the vial to the standard depth
    10. If necessary, adjust the electrodes to the standard depth
    11. Record the distance from the plane of the top of the Vial Cap to the bottom of each electrode.
-   12. Connect the platinised titanium anode to the positive terminal of channel D on the Pioreactor with the black crocodile clip
-   13. Connect the stainless steel cathode to the negative terminal of channel D with the red crocodile clip
+   12. Connect the platinised titanium electrode to the positive terminal of channel D on the Pioreactor with the red crocodile clip
+   13. Connect the stainless steel electrode to the negative terminal of channel D with the black crocodile clip
    14. With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 10%, and verifying that roughly twice as many bubbles are forming on the cathode
    15. Record the voltage across each electrode, and the current through the electrodes, adjust the LED channel D intensity to attain standard values if necessary
    16. Insert vial into Pioreactor once satisfied all vials have even electrolysis
