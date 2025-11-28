@@ -30,7 +30,7 @@ electrode_o_ring_cs = 2.5; // mm (cross-sectional diameter of o-ring)
 electrode_o_ring_id = electrode_od - (electrode_cutout/2) + (electrode_o_ring_cs/2); // mm (inner diameter of o-ring)
 
 // Ports
-ports = 5; // number of ports
+ports = 6; // number of ports
 port_dia = 3.2; // mm (diameter of silicone tube ports)
 port_limit = cap_o_ring_id; // mm (maximum distance from centre to far edge of port)
 // Print quality
@@ -48,9 +48,17 @@ D_maj_int = T_nom + dia_clear; // Internal-thread major diameter at the crests (
 depth_rad = 0.3 * pitch; // theoretically radial thread depth (ISO V) = 5/8 * H = 0.541265*P
 D_minor_int = D_maj_int - 2*depth_rad; // base (inner) diameter for internal threads
 
+module dovetail(top) {
+    bottom = top + 0.3;
+    thickness = 1;
+    polygon(points=[[0, 0], [bottom, 0], [top + 0.15, thickness], [0.15, thickness]]);
+}
+
 // -----------------------------
 // Model
 // -----------------------------
+
+
 difference() {
   // *** 
   // Cap
@@ -96,11 +104,11 @@ difference() {
   // Chamfer top edge
     // *** NOT YET IMPLEMENTED ***
 
-  // Cap O-ring groove
-  translate([0,0,top_th])
+  // Cap O-ring groove 
+  translate([0,0,top_th-1])
     rotate_extrude(convexity = 10, $fn = 100)
       translate([(cap_o_ring_id+cap_o_ring_cs)/2, 0, 0])
-          circle(d = cap_o_ring_cs, $fn = 100);
+        dovetail(cap_o_ring_cs);
   // ***
   // Ports
   // ***
@@ -151,3 +159,4 @@ difference() {
           cylinder(d=port_dia, h=cap_h);
     }
 }
+
