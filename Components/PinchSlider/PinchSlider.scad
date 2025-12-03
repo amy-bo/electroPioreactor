@@ -21,27 +21,36 @@ ThinBodyWidth = ClosedWidth + 2*Margin*TubingOD; // thin body width in mm
 ThickBodyWidth = OpenWidth + 2*Margin*TubingOD; // thick body width in mm
 Depth = Margin*TubingOD; // body depth in mm
 
+$fn = 64;
+
+// 2D capsule used for rounded bodies and slots
+module capsule2d(length, width) {
+  r = width/2;
+  hull() {
+    translate([r, 0]) circle(r = r);
+    translate([length - r, 0]) circle(r = r);
+  }
+}
+
 // -----------------------------
 // Model
 // -----------------------------
 difference() {
   // Body
-  union() {
-    // Thin section
-    translate([-ThinBodyLength, -ThinBodyWidth/2, 0])
-      cube([ThinBodyLength, ThinBodyWidth, Depth]);
-
-    // Thick section
-    translate([0, -ThickBodyWidth/2, 0])
-      cube([ThickBodyLength, ThickBodyWidth, Depth]);
+  linear_extrude(Depth) {
+    union() {
+      translate([-ThinBodyLength, 0])
+        capsule2d(ThinBodyLength, ThinBodyWidth);
+      capsule2d(ThickBodyLength, ThickBodyWidth);
+    }
   }
 
   // Slot
-    // Thin section
-    translate([-ClosedLength, -ClosedWidth/2, 0])
-      cube([ClosedLength, ClosedWidth, Depth]);
+  translate([-ClosedLength, 0, 0])
+    linear_extrude(Depth)
+      capsule2d(ClosedLength, ClosedWidth);
 
-    // Thick section
-    translate([0, -OpenWidth/2, 0])
-      cube([OpenLength, OpenWidth, Depth]);
+  // Open slot is now a circular cutout
+  translate([OpenLength/2, 0, 0])
+    cylinder(h = Depth, d = OpenWidth, center = false);
 }
