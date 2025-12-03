@@ -15,11 +15,13 @@ OpenWidth = TubingOD + OpenTolerance; // open slot width in mm
 ClosedWidth = TubingCompressed; // closed slot width in mm
 OpenLength = OpenWidth; // open slot length in mm
 ClosedLength = SlotRatio * ClosedWidth; // closed slot length in mm
-ThinBodyLength = ClosedLength + Margin*TubingOD; // thin body width in mm
-ThickBodyLength = OpenLength + Margin*TubingOD; // thick body length in mm
-ThinBodyWidth = ClosedWidth + 2*Margin*TubingOD; // thin body width in mm
-ThickBodyWidth = OpenWidth + 2*Margin*TubingOD; // thick body width in mm
-Depth = Margin*TubingOD; // body depth in mm
+MarginMM = Margin*TubingOD; // margin distance in mm
+ThinBodyLength = ClosedLength + 2*MarginMM; // thin body length in mm (margin each end)
+ThinBodyWidth = ClosedWidth + 2*MarginMM; // thin body width in mm (margin each side)
+OpenBodyDiameter = OpenWidth + 2*MarginMM; // thick body diameter in mm
+OpenBodyRadius = OpenBodyDiameter/2;
+Depth = MarginMM; // body depth in mm
+Bump = TubingID/8; // small bump to help retain tubing
 
 $fn = 64;
 
@@ -32,6 +34,11 @@ module capsule2d(length, width) {
   }
 }
 
+// Centered capsule helper
+module capsule2d_centered(length, width) {
+  translate([-length/2, 0]) capsule2d(length, width);
+}
+
 // -----------------------------
 // Model
 // -----------------------------
@@ -39,16 +46,17 @@ difference() {
   // Body
   linear_extrude(Depth) {
     union() {
-      translate([-ThinBodyLength, 0])
-        capsule2d(ThinBodyLength, ThinBodyWidth);
-      capsule2d(ThickBodyLength, ThickBodyWidth);
+      translate([-ClosedLength/2, 0])
+        capsule2d_centered(ThinBodyLength, ThinBodyWidth);
+      translate([OpenLength/2, 0])
+        circle(r = OpenBodyRadius);
     }
   }
 
   // Slot
-  translate([-ClosedLength, 0, 0])
+  translate([-ClosedLength/2, 0, 0])
     linear_extrude(Depth)
-      capsule2d(ClosedLength, ClosedWidth);
+      capsule2d_centered(ClosedLength, ClosedWidth);
 
   // Open slot is now a circular cutout
   translate([OpenLength/2, 0, 0])
