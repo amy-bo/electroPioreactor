@@ -5,7 +5,7 @@ TubingIDimp = 1/16; // tubing inner diameter in inches
 // Design parameters
 SlotRatio = 3; // ratio of slot length to width
 OpenTolerance = 0.2; // outer diameter print tolerance in mm
-
+ClosedTolerance = 0.05; // closed slot print tolerance in mm
 Margin = 2; // multiple of TubingOD to use as printed area around slot
 
 // Calculated parameters
@@ -13,7 +13,7 @@ TubingID = TubingIDimp * 25.4; // Tubing inner diameter in mm
 TubingOD = TubingODimp * 25.4; // Tubing outer diameter in mm
 TubingCompressed = TubingOD-TubingID; // compressed tubing wall thickness in mm
 OpenWidth = TubingOD + OpenTolerance; // open slot width in mm
-ClosedWidth = TubingCompressed // closed slot width in mm
+ClosedWidth = TubingCompressed + ClosedTolerance // closed slot width in mm
 OpenLength = OpenWidth; // open slot length in mm
 ClosedLength = SlotRatio * ClosedWidth; // closed slot length in mm
 MarginMM = Margin*TubingOD; // margin distance in mm
