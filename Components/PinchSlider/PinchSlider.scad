@@ -5,6 +5,7 @@ TubingIDimp = 1/16; // tubing inner diameter in inches
 // Design parameters
 SlotRatio = 3; // ratio of slot length to width
 OpenTolerance = 0.2; // outer diameter print tolerance in mm
+
 Margin = 2; // multiple of TubingOD to use as printed area around slot
 
 // Calculated parameters
@@ -12,7 +13,7 @@ TubingID = TubingIDimp * 25.4; // Tubing inner diameter in mm
 TubingOD = TubingODimp * 25.4; // Tubing outer diameter in mm
 TubingCompressed = TubingOD-TubingID; // compressed tubing wall thickness in mm
 OpenWidth = TubingOD + OpenTolerance; // open slot width in mm
-ClosedWidth = TubingCompressed; // closed slot width in mm
+ClosedWidth = TubingCompressed // closed slot width in mm
 OpenLength = OpenWidth; // open slot length in mm
 ClosedLength = SlotRatio * ClosedWidth; // closed slot length in mm
 MarginMM = Margin*TubingOD; // margin distance in mm
@@ -21,7 +22,8 @@ ThinBodyWidth = ClosedWidth + 2*MarginMM; // thin body width in mm (margin each 
 OpenBodyDiameter = OpenWidth + 2*MarginMM; // thick body diameter in mm
 OpenBodyRadius = OpenBodyDiameter/2;
 Depth = MarginMM; // body depth in mm
-Bump = TubingID/8; // small bump to help retain tubing
+BridgeApexFraction = 0.6; // 0–1 along closed slot length from its far end toward the open slot: larger values give a bigger bump to retain tubing in closed position
+BridgeBaseLength = OpenWidth; // base length of connecting triangle
 
 $fn = 64;
 
@@ -57,6 +59,14 @@ difference() {
   translate([-ClosedLength/2, 0, 0])
     linear_extrude(Depth)
       capsule2d_centered(ClosedLength, ClosedWidth);
+
+  // Triangular cutout joining far closed end to open center
+  linear_extrude(Depth)
+    polygon(points = [
+      [-ClosedLength + ClosedLength*BridgeApexFraction, 0], // apex along closed slot
+      [OpenLength/2, -BridgeBaseLength/2],
+      [OpenLength/2,  BridgeBaseLength/2]
+    ]);
 
   // Open slot is now a circular cutout
   translate([OpenLength/2, 0, 0])
