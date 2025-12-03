@@ -1,6 +1,7 @@
 // Input parameters
-TubingODimp = 1/8; // tubing outer diameter in inches
-TubingIDimp = 1/16; // tubing inner diameter in inches
+TubingOD = 1/8; // tubing outer diameter
+TubingID = 1/16; // tubing inner diameter
+TubingUnits = "inches"; // units of input parameters: "inches" or "mm"
 
 // Design parameters
 SlotRatio = 3; // ratio of slot length to width
@@ -9,14 +10,15 @@ ClosedTolerance = 0.05; // closed slot print tolerance in mm
 Margin = 2; // multiple of TubingOD to use as printed area around slot
 
 // Calculated parameters
-TubingID = TubingIDimp * 25.4; // Tubing inner diameter in mm
-TubingOD = TubingODimp * 25.4; // Tubing outer diameter in mm
-TubingCompressed = TubingOD-TubingID; // compressed tubing wall thickness in mm
-OpenWidth = TubingOD + OpenTolerance; // open slot width in mm
+conversionFactor = (TubingUnits == "inches") ? 25.4 : (TubingUnits == "mm") ? 1 : undef;
+TubingIDc = TubingID * conversionFactor; // Tubing inner diameter in mm
+TubingODc = TubingOD * conversionFactor; // Tubing outer diameter in mm
+TubingCompressed = TubingODc-TubingIDc; // compressed tubing wall thickness in mm
+OpenWidth = TubingODc + OpenTolerance; // open slot width in mm
 ClosedWidth = TubingCompressed + ClosedTolerance; // closed slot width in mm
 OpenLength = OpenWidth; // open slot length in mm
 ClosedLength = SlotRatio * ClosedWidth; // closed slot length in mm
-MarginMM = Margin*TubingOD; // margin distance in mm
+MarginMM = Margin*TubingODc; // margin distance in mm
 ThinBodyLength = ClosedLength + 2*MarginMM; // thin body length in mm (margin each end)
 ThinBodyWidth = ClosedWidth + 2*MarginMM; // thin body width in mm (margin each side)
 OpenBodyDiameter = OpenWidth + 2*MarginMM; // thick body diameter in mm
