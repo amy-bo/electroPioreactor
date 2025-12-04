@@ -1,19 +1,21 @@
 // Input parameters
-TubingOD = 1/8; // tubing outer diameter
-TubingID = 1/16; // tubing inner diameter
-TubingUnits = "inches"; // units of input parameters: "inches" or "mm"
+TubingOD = 3; // tubing outer diameter
+TubingPinched = 1.5; // tubing thickness when fully pinched
+TubingUnits = "mm"; // units of input parameters: "inches" or "mm"
 
 // Design parameters
 SlotRatio = 3; // ratio of slot length to width
 OpenTolerance = 0.2; // outer diameter print tolerance in mm
 ClosedTolerance = 0.05; // closed slot print tolerance in mm
 Margin = 2; // multiple of TubingOD to use as printed area around slot
+BridgeApexFraction = 0.6; // 0–1 along closed slot length from its far end toward the open slot: larger values give a bigger bump to retain tubing in closed position
+BungDepthMultiplier = 2.5; // bung is this many times deeper than body depth
+TubeHoleTolerance = TubingOD/4 + OpenTolerance; // clearance for tubing through bung
 
 // Calculated parameters
 conversionFactor = (TubingUnits == "inches") ? 25.4 : (TubingUnits == "mm") ? 1 : undef;
-TubingIDc = TubingID * conversionFactor; // Tubing inner diameter in mm
 TubingODc = TubingOD * conversionFactor; // Tubing outer diameter in mm
-TubingCompressed = TubingODc-TubingIDc; // compressed tubing wall thickness in mm
+TubingCompressed = TubingPinched * conversionFactor; // compressed tubing wall thickness in mm
 OpenWidth = TubingODc + OpenTolerance; // open slot width in mm
 ClosedWidth = TubingCompressed + ClosedTolerance; // closed slot width in mm
 OpenLength = OpenWidth; // open slot length in mm
@@ -24,13 +26,10 @@ ThinBodyWidth = ClosedWidth + 2*MarginMM; // thin body width in mm (margin each 
 OpenBodyDiameter = OpenWidth + 2*MarginMM; // thick body diameter in mm
 OpenBodyRadius = OpenBodyDiameter/2;
 Depth = MarginMM; // body depth in mm
-BridgeApexFraction = 0.6; // 0–1 along closed slot length from its far end toward the open slot: larger values give a bigger bump to retain tubing in closed position
 BridgeBaseLength = OpenWidth; // base length of connecting triangle
-BungDepthMultiplier = 2.5; // bung is this many times deeper than body depth
 BungTolerance = OpenTolerance; // clearance on bung profile to allow insertion
 CollarThickness = max(MarginMM/4, 1); // collar wall thickness around tubing
 CollarHeight = Depth/2; // collar height
-TubeHoleTolerance = OpenTolerance; // clearance for tubing through bung
 BungOffset = OpenLength/2 + OpenBodyRadius + MarginMM + max(BridgeBaseLength/2, OpenWidth/2); // place bung one margin away
 
 $fn = 64;
@@ -66,7 +65,7 @@ module bung_profile_2d(tol = 0) {
 
 // Bung solid with retaining collar
 module bung() {
-  holeD = TubingODc - TubeHoleTolerance;
+  holeD = TubingODc + TubeHoleTolerance;
   holeR = holeD/2;
   collarOuterR = holeR + CollarThickness;
   bungDepth = BungDepthMultiplier * Depth;
@@ -77,13 +76,8 @@ module bung() {
       linear_extrude(bungDepth)
         bung_profile_2d(BungTolerance);
 
-      // Collar at base around the tubing
       translate([collarX, 0, 0])
-        difference() {
           cylinder(h = CollarHeight, r = collarOuterR, center = false);
-          translate([0, 0, -1])
-            cylinder(h = CollarHeight + 2, r = holeR, center = false);
-        }
     }
 
     // Through-hole for tubing
