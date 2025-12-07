@@ -15,15 +15,16 @@
 6. Eye/face protection
 7. Lab coat
 8. Other PPE as directed by your supervisor/department/employer/H&S advisor
+9. Analytical balance for pump calibration (Pioreactor docs only require 0.1g accuracy)
 
 ## Method
 
-1. Connect empty dovetail platforms in 'inverted L' raft
-   1. 250ml duran media bottle at rear with dovetails to front and left
-   2. 250ml duran product bottle to right of media bottle (alternate media and waste if multiple AEPs)
-   3. Sodastream in front of media bottle
-   4. Peristaltic pumps in front of Sodastream
-   5. Pioreactor in front of Peristaltic pumps with dovetails to front and connector cutouts to left.
+1. Connect empty dovetail platforms in raft, with dovetails always to front and left
+   1. SodaStream at rear with expansion gap to right.
+   2. 250ml duran product bottle in front of SodaStream
+   3. 250ml duran media bottle to right of product bottle (alternate media and waste if multiple AEPs, forming a backbone of media bottle dovetail platforms)
+   4. Peristaltic pumps in front of product bottle
+   5. Pioreactor in front of Peristaltic pumps
 2. Follow relevant Pioreactor hardware setup guide: <https://docs.pioreactor.com/user-guide/20ml-v11-hardware-setup-intro>
 3. Follow relevant Pioreactor software setup guide: <https://docs.pioreactor.com/user-guide/software-set-up>
 4. Set up electrolysis
@@ -38,9 +39,15 @@
    9. The electrodes should now protrude into the vial to the standard depth
    10. If necessary, adjust the electrodes to the standard depth
    11. Record the distance from the plane of the top of the Vial Cap to the bottom of each electrode.
+<<<<<<< HEAD
    12. Connect the platinised titanium electrode to the positive terminal of channel D on the Pioreactor with the red crocodile clip
    13. Connect the stainless steel electrode to the negative terminal of channel D with the black crocodile clip
    14. With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 10%, and verifying that roughly twice as many bubbles are forming on the cathode
+=======
+   12. Connect the platinised titanium anode to the positive terminal of channel D on the Pioreactor with the red crocodile clip
+   13. Connect the stainless steel cathode to the negative terminal of channel D with the black crocodile clip
+   14. With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 3%, and verifying that roughly twice as many bubbles are forming on the cathode
+>>>>>>> eeeb4d6 (initial commit)
    15. Record the voltage across each electrode, and the current through the electrodes, adjust the LED channel D intensity to attain standard values if necessary
    16. Insert vial into Pioreactor once satisfied all vials have even electrolysis
 5. Set up nutrient solution flow
@@ -66,7 +73,7 @@
    13. Remove o-ring from bubble counter and place over needle valve outlet
    14. Screw bubble counter onto needle valve
    15. Unscrew metal cap from transparent bubble counter tube
-   16. Add ***(Insert standard volume to give ~2/3-3/4 full)*** ml of deionised water to the bubble counter
+   16. Add 2.5 ml (or 2.25 with old type [rounded compression nut, supplied with clear o-ring] bubble counter) of deionised water to the bubble counter
    17. Replace metal cap on transparent buble counter tube
    18. Remove compression nut from the top of the bubble counter
    19. Attach the 4mm tubing to the top of the bubble counter - dip in hot water to soften if necessary
