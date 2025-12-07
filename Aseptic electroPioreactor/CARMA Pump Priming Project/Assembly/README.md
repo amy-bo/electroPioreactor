@@ -2,7 +2,7 @@
 
 ## Before you start
 
-1. Procure Bill of Materials (TBD - contact us or [Labcrafter](https://labcrafter.co.uk) for AEP0.1 BoM)
+1. Procure Bill of Materials (TBD - contact us or [Labcrafter](https://labcrafter.co.uk) for AEP0.1.1 BoM)
 2. Check your HOB are growing happily heterotrophically.
 
 ## Required Tools
