@@ -34,10 +34,9 @@
    4. Push down the Electrode Top Stop until it is flush with the top of the Vial Cap
    5. Add nutrient solution (or equal ionic strength phosphate/sulfate) to the Vial
    6. Fully screw the Vial Cap onto the Vial
-   7. Without raising the Electrode Top Stop, slide out the Seating Guide
-   8. The electrodes should now protrude into the vial to the standard depth
-   9.  If necessary, adjust the electrodes to the standard depth
-   10. Record the distance from the plane of the top of the Vial Cap to the bottom of each electrode.
+   7. The electrodes should now protrude into the vial to the standard depth
+   8.  If necessary, adjust the electrodes to the standard depth
+   9.  Record the distance from the plane of the top of the Vial Cap to the bottom of each electrode.
 <<<<<<< HEAD
    1.  Connect the platinised titanium electrode to the positive terminal of channel D on the Pioreactor with the red crocodile clip
    2.  Connect the stainless steel electrode to the negative terminal of channel D with the black crocodile clip
