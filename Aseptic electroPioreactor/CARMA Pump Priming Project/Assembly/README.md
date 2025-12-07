@@ -57,39 +57,40 @@
 2. Set up carbon dioxide sparging
    1. Unscrew John-Guest push-fit output from the regulator outlet port
    2. Insert 8mm ID 2mm CS o-ring into the regulator outlet port
-   3. Screw in the 1.4" male to 1/8" female reducer to the regulator outlet port
-   4. Cut a rectangle of gas PTFE tape to wrap around needle valve inlet thread (the bare metal thread opposite the screw adjustor) 1.5 times.
-   5. Wrap gas PTFE tap around needle valve inlet thread 1.5 times.
-   6. Screw needle valve into 1/8" female reducer
-   7. Close needle valve clockwise
-   8. Close regulator (turn flathead screw fully anti-clockwise)
-   9. Move plastic washer attached to regulator to between regulator and SodaStream adapter
-   10. Sit second plastic washer on top of SodaStream cylinder
-   11. **Important:** (while remembering to don all PPE including cryogenic gloves prior to tightening cylinder in one swift, decisive move) **follow instructions included with SodaStream adapter**
-   12. Place SodaStream in dovetail raft
-   13. Remove o-ring from bubble counter and place over needle valve outlet
-   14. Screw bubble counter onto needle valve
-   15. Unscrew metal cap from transparent bubble counter tube
-   16. Add 2.5 ml (or 2.25 with old type [rounded compression nut, supplied with clear o-ring] bubble counter) of deionised water to the bubble counter
-   17. Replace metal cap on transparent buble counter tube
-   18. Remove compression nut from the top of the bubble counter
-   19. Attach the 4mm tubing to the top of the bubble counter - dip in hot water to soften if necessary
-   20. Reattach the compression nut
-   21. Attach the male end of an 0.2 μm vent filter to the female luer lock on the vial CO₂ entry port
-   22. Attach the female ends of two 0.2 μm vent filters to the two male luer locks on the vial exhaust ports
-   23. Cut the 4mm tubing just long enough to run over the regulator so it keeps the bubble counter vertical and down to the CO₂ entry filter
-   24. Measure the 4mm tubing cut length and ensure all other 4mm tubing is cut to the same length
-   25. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
-   26. Connect the luer lock to the CO₂ entry filter
+   3. Screw in the 1.4" male to 1/8" male reducer to the regulator outlet port
+   4. Cut a rectangle of gas PTFE tape to wrap around 1/8" male outlet thread 1.5 times.
+   5. Wrap gas PTFE tap around 1/8" male outlet thread 1.5 times.
+   6. Screw left port of the solenoid valve (with solenoid electronics to rear) into 1/8" male outlet
+   7. Cut a rectangle of gas PTFE tape to wrap around needle valve inlet thread (the bare metal thread opposite the screw adjustor) 1.5 times.
+   8. Wrap gas PTFE tap around needle valve inlet thread 1.5 times.
+   9. Screw needle valve into 1/8" front port of solenoid valve
+   10. Close needle valve clockwise
+   11. Cut a rectangle of gas PTFE tape to wrap around 1/8" male blanking plug thread 1.5 times.
+   12. Wrap gas PTFE tap around 1/8" male blanking plug thread 1.5 times.
+   13. Screw male blanking plug thread into right port of solenoid valve
+   14.  Close regulator (turn flathead screw fully anti-clockwise)
+   15.  Move plastic washer attached to regulator to between regulator and SodaStream adapter
+   16.  Sit second plastic washer on top of SodaStream cylinder
+   17. **Important:** (while remembering to don all PPE including cryogenic gloves prior to tightening cylinder in one swift, decisive move) **follow instructions included with SodaStream adapter**
+   18. Place SodaStream in dovetail raft
+   19. Remove o-ring from bubble counter and place over needle valve outlet
+   20. Remove compression nut from the top of the needle valve
+   21. Attach the 4mm tubing to the needle valve ferrule - dip in hot water to soften if necessary
+   22. Reattach the compression nut
+   23. Attach the male end of an 0.2 μm vent filter to the female luer lock on the vial CO₂ entry port
+   24. Attach the female ends of two 0.2 μm vent filters to the two male luer locks on the vial exhaust ports
+   25. Cut the 4mm tubing just long enough to run over the regulator so it keeps the bubble counter vertical and down to the CO₂ entry filter
+   26. Measure the 4mm tubing cut length and ensure all other 4mm tubing is cut to the same length
+   27. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
+   28. Connect the luer lock to the CO₂ entry filter
 3. Calibrate CO₂ flow
     1. Set regulator to 1 bar
-    2. Adjust needle valve to give say 30 bubbles per 10 seconds
-    3. Wait for system to equilibrate
-    4. Repeat from step 1 as needed
-    5. Temporarily pinch one of the two gas vent ports closed
-    6. Run 1/16" tubing from outlet of open gas vent port to bath until water CO2 concentration is assumed (or if possible measured) to have equilibrated
-    7. Record time taken to fill measuring cylinder with CO₂ over water
-    8. Determine the actual flow rate
-    9. Adjust target bubble count and repeat process until target flow rate is achieved
+    2. Adjust needle valve to give target flow rate
+    3. ***(Gerrit to describe manual sparge process)***
+    4. Temporarily close one of two outlet gas vents with luer plug
+    5. Run 1/16" tubing from outlet of open gas vent port to bath until water CO2 concentration is assumed (or if possible measured) to have equilibrated
+    6. Record time taken to fill measuring cylinder with CO₂ over water
+    7. Determine the actual flow rate
+    8.  Adjust needle valve and repeat process until target flow rate is achieved
 4. Sterilise
     1. ***(PI's to determine process in accordance with departmental requirements)***
