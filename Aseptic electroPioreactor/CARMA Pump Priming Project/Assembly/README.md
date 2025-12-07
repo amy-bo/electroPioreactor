@@ -31,33 +31,32 @@
    1. ~Insert electrode o-rings into the [Vial Cap](../Components/Vial%20Cap)~
    2. ~Insert electrodes half-way into Vial Cap using a twisting motion to avoid dislodging the o-rings~
    3. Push electrodes fully into their [Electrode Top Stop](../Components/ElectrodeTopStop)
-   4. Temporarily place the [Electrode Seating Guide](../Components/ElectrodeSeatingGuide) on top of the Vial Cap between the electrodes
-   5. Push down the Electrode Top Stop until it is flush with the Electrode Seating Guide which is flush with the top of the Vial Cap
-   6. Add nutrient solution (or equal ionic strength phosphate/sulfate) to the Vial
-   7. Fully screw the Vial Cap onto the Vial
-   8. Without raising the Electrode Top Stop, slide out the Seating Guide
-   9. The electrodes should now protrude into the vial to the standard depth
-   10. If necessary, adjust the electrodes to the standard depth
-   11. Record the distance from the plane of the top of the Vial Cap to the bottom of each electrode.
+   4. Push down the Electrode Top Stop until it is flush with the top of the Vial Cap
+   5. Add nutrient solution (or equal ionic strength phosphate/sulfate) to the Vial
+   6. Fully screw the Vial Cap onto the Vial
+   7. Without raising the Electrode Top Stop, slide out the Seating Guide
+   8. The electrodes should now protrude into the vial to the standard depth
+   9.  If necessary, adjust the electrodes to the standard depth
+   10. Record the distance from the plane of the top of the Vial Cap to the bottom of each electrode.
 <<<<<<< HEAD
-   12. Connect the platinised titanium electrode to the positive terminal of channel D on the Pioreactor with the red crocodile clip
-   13. Connect the stainless steel electrode to the negative terminal of channel D with the black crocodile clip
-   14. With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 10%, and verifying that roughly twice as many bubbles are forming on the cathode
+   1.  Connect the platinised titanium electrode to the positive terminal of channel D on the Pioreactor with the red crocodile clip
+   2.  Connect the stainless steel electrode to the negative terminal of channel D with the black crocodile clip
+   3.  With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 10%, and verifying that roughly twice as many bubbles are forming on the cathode
 =======
-   12. Connect the platinised titanium anode to the positive terminal of channel D on the Pioreactor with the red crocodile clip
-   13. Connect the stainless steel cathode to the negative terminal of channel D with the black crocodile clip
-   14. With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 3%, and verifying that roughly twice as many bubbles are forming on the cathode
+   1.  Connect the platinised titanium anode to the positive terminal of channel D on the Pioreactor with the red crocodile clip
+   2.  Connect the stainless steel cathode to the negative terminal of channel D with the black crocodile clip
+   3.  With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 3%, and verifying that roughly twice as many bubbles are forming on the cathode
 >>>>>>> eeeb4d6 (initial commit)
-   15. Record the voltage across each electrode, and the current through the electrodes, adjust the LED channel D intensity to attain standard values if necessary
-   16. Insert vial into Pioreactor once satisfied all vials have even electrolysis
-5. Set up nutrient solution flow
+   1.  Record the voltage across each electrode, and the current through the electrodes, adjust the LED channel D intensity to attain standard values if necessary
+   2.  Insert vial into Pioreactor once satisfied all vials have even electrolysis
+1. Set up nutrient solution flow
    1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
    2. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
    3. Weigh dry empty vial
    4. Fill vial with DI water via the pumps, then weigh vials and adjust tube lengths until vial volume is 15ml
    5. Measure electrodes immersion depths, if necessary adjust to the standard, and record the insertion depth of each electrode
    6. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
-6. Set up carbon dioxide sparging
+2. Set up carbon dioxide sparging
    1. Unscrew John-Guest push-fit output from the regulator outlet port
    2. Insert 8mm ID 2mm CS o-ring into the regulator outlet port
    3. Screw in the 1.4" male to 1/8" female reducer to the regulator outlet port
@@ -84,7 +83,7 @@
    24. Measure the 4mm tubing cut length and ensure all other 4mm tubing is cut to the same length
    25. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
    26. Connect the luer lock to the CO₂ entry filter
-7. Calibrate CO₂ flow
+3. Calibrate CO₂ flow
     1. Set regulator to 1 bar
     2. Adjust needle valve to give say 30 bubbles per 10 seconds
     3. Wait for system to equilibrate
@@ -94,5 +93,5 @@
     7. Record time taken to fill measuring cylinder with CO₂ over water
     8. Determine the actual flow rate
     9. Adjust target bubble count and repeat process until target flow rate is achieved
-8. Sterilise
+4. Sterilise
     1. ***(PI's to determine process in accordance with departmental requirements)***
