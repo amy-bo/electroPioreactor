@@ -37,16 +37,10 @@
    7. The electrodes should now protrude into the vial to the standard depth
    8.  If necessary, adjust the electrodes to the standard depth
    9.  Record the distance from the plane of the top of the Vial Cap to the bottom of each electrode.
-<<<<<<< HEAD
-   1.  Connect the electrodes to LED channel D (catch upwards)
-   2.  With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 3%, and verifying that roughly twice as many bubbles are forming on the cathode
-=======
-   1.  Connect the platinised titanium anode to the positive terminal of channel D on the Pioreactor with the red crocodile clip
-   2.  Connect the stainless steel cathode to the negative terminal of channel D with the black crocodile clip
-   3.  With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 3%, and verifying that roughly twice as many bubbles are forming on the cathode
->>>>>>> eeeb4d6 (initial commit)
-   1.  Record the voltage across each electrode, and the current through the electrodes, adjust the LED channel D intensity to attain standard values if necessary
-   2.  Insert vial into Pioreactor once satisfied all vials have even electrolysis
+   10.  Connect the electrodes to LED channel D (catch upwards)
+   11.  With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 3%, and verifying that roughly twice as many bubbles are forming on the cathode
+   12.  Record the voltage across each electrode, and the current through the electrodes, adjust the LED channel D intensity to attain standard values if necessary
+   13.  Insert vial into Pioreactor once satisfied all vials have even electrolysis
 1. Set up nutrient solution flow
    1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
    2. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
@@ -57,7 +51,7 @@
 2. Set up carbon dioxide sparging
    1. Unscrew John-Guest push-fit output from the regulator outlet port
    2. Insert 8mm ID 2mm CS o-ring into the regulator outlet port
-   3. Screw in the 1.4" male to 1/8" male reducer to the regulator outlet port
+   3. Screw in the 1.4" male to 1/8" male reducer to the regulator outlet port and tighten with wrench.
    4. Cut a rectangle of gas PTFE tape to wrap around 1/8" male outlet thread 1.5 times.
    5. Wrap gas PTFE tap around 1/8" male outlet thread 1.5 times.
    6. Screw left port of the solenoid valve (with solenoid electronics to rear) into 1/8" male outlet
@@ -67,7 +61,7 @@
    10. Close needle valve clockwise
    11. Cut a rectangle of gas PTFE tape to wrap around 1/8" male blanking plug thread 1.5 times.
    12. Wrap gas PTFE tap around 1/8" male blanking plug thread 1.5 times.
-   13. Screw male blanking plug thread into right port of solenoid valve
+   13. Screw male blanking plug thread into right port of solenoid valve and tighten with wrench.
    14.  Close regulator (turn flathead screw fully anti-clockwise)
    15.  Move plastic washer attached to regulator to between regulator and SodaStream adapter
    16.  Sit second plastic washer on top of SodaStream cylinder
