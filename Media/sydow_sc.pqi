@@ -1,0 +1,43 @@
+TITLE Sydow 2017 Optimal Medium (mesonutrients + trace) - specific conductance
+
+SOLUTION 1 Sydow_optimal_with_trace
+    temp 25
+    units mol/L
+
+    # Element totals calculated from the exact salts and g/L you listed (mesonutrients + Sydow trace in final media)
+    Na    6.04016461e-02
+    K     1.95111650e-03
+    Ca    5.63392847e-04
+    Mg    3.24577108e-03
+
+    # Nitrogen as ammonium (N oxidation state -3)
+    N(-3) 1.42727929e-02
+
+    # Phosphorus from Na2HPO4 + NaH2PO4·2H2O
+    P     4.00076674e-02
+
+    # Sulphur as sulphate (S oxidation state +6) - includes trace sulphates too
+    S(6)  1.21060782e-02
+
+    # Trace metals (from Sydow trace elements in final media table)
+    Fe(2) 1.83443630e-04
+    Mn(2) 7.09992268e-07
+    Zn(2) 4.17319366e-07
+    Cu(2) 9.61211126e-08
+    Ni(2) 2.85336359e-07
+    Co(2) 7.15041018e-09
+    Mo(6) 3.71950471e-07
+
+    # Set a reference pH so charge balance is well-posed (adjust if you know Sydow’s measured pH)
+    pH 7 charge
+    -water 1
+
+SELECTED_OUTPUT
+    -file sydow_sc.tsv
+    -reset false
+    -high_precision true
+
+USER_PUNCH
+    -headings SC_uS_cm  Temp_C  pH
+10  PUNCH SC, TC, -LA("H+")
+END
