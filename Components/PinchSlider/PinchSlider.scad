@@ -5,12 +5,12 @@ TubingUnits = "mm"; // units of input parameters: "inches" or "mm"
 
 // Design parameters
 SlotRatio = 3; // ratio of slot length to width
-OpenTolerance = 0.2; // outer diameter print tolerance in mm
+OpenTolerance = 0.6; // outer diameter print tolerance in mm
 ClosedTolerance = 0.05; // closed slot print tolerance in mm
 Margin = 2; // multiple of TubingOD to use as printed area around slot
 BridgeApexFraction = 0.6; // 0–1 along closed slot length from its far end toward the open slot: larger values give a bigger bump to retain tubing in closed position
 BungDepthMultiplier = 2.5; // bung is this many times deeper than body depth
-TubeHoleTolerance = TubingOD/4 + OpenTolerance; // clearance for tubing through bung
+TubeHoleTolerance = TubingOD/6 + OpenTolerance; // clearance for tubing through bung
 
 // Calculated parameters
 conversionFactor = (TubingUnits == "inches") ? 25.4 : (TubingUnits == "mm") ? 1 : undef;
