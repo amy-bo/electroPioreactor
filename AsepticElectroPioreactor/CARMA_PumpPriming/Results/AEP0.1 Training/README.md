@@ -18,6 +18,7 @@ Improvements to the assembly procedures were made during the course of the train
 ### Software issues
 
 Following the documented software installation, we were unable to SSH into the AEPs.  This issue took a long time to diagnose and required consultation with Labcrafter and Pioreactor.  We initially conflated the issue with a trivial LED not lighting issue which was resolved by Pioreactor in that day's nightly Pioreactor software build. Cameron Davidson-Pilon of Pioreactor found that it was due to an [issue with the Raspberry Pi Imager](https://github.com/raspberrypi/rpi-imager/issues/1170) which was resolved by using an earlier version of the Imager.
+<!-- TODO: Insert calibration results | assignee: @Bingqiao @Amir @Teo -->
 
 ## Media
 
@@ -32,6 +33,7 @@ Versions were sterilised by autoclaving and by filter sterilisation.
 A heterotrophic culture of Cupriavidus metallidurans was established using the above Media plus gluconic acid (sodium salt) as the carbon and energy source.
 
 <!-- TODO: insert results | assignee: @Bingqiao or anyone who noted them -->
+<!-- TODO: Insert section on Autotrophic results and our planned next steps | assignee: @Bingqiao @Amir @Teo -->
 
 ## Sparging
 
