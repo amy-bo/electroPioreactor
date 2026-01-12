@@ -12,19 +12,21 @@ The main focus of the training was assembly and calibration of three AEP0.1 prot
 
 ### Software issues
 
-The software installation 
+The software installation
 
 ## Media
 
-Media was made up as per [MediaFormulation.md 2025-11-12](https://github.com/amy-bo/electroPioreactor/blob/ba442ae67962f1ee57649e94e9f0302e0077b55f/Media/MediaFormulation.md) with the following exceptions ###
+Media was made up as per [MediaFormulation.md 2025-11-12](https://github.com/amy-bo/electroPioreactor/blob/ba442ae67962f1ee57649e94e9f0302e0077b55f/Media/MediaFormulation.md) <!-- TODO: insert variations from MediaFormulation.md 2025-11-12 | assignee: @Bingqiao or anyone who noted details -->.
 
-Versions were sterilised by autoclaving and by filter sterilisation using ### however ###
+Versions were sterilised by autoclaving and by filter sterilisation. 
+<!-- TODO: define filter type - was it 0.2 μm? what material? | assignee: @Bingqiao or anyone who noted details -->
+<!-- TODO: detail the media discolouration and precipitation issues | assignee: @Bingqiao or anyone who noted details -->
 
 ## Heterotrophic culture
 
 A heterotrophic culture of Cupriavidus metallidurans was established using the above Media plus gluconic acid (sodium salt) as the carbon and energy source.
 
-###Insert Results###
+<!-- TODO: insert results | assignee: @Bingqiao or anyone who noted them -->
 
 ## Sparging
 
@@ -38,7 +40,7 @@ Various configurations were discussed and a number of them tested.  Replacing th
 
 ### Oxygen purging
 
-The low flow rates of CO₂ made the 
+The low flow rates of CO₂ made the
 
 ### Optical Density Measurement
 
