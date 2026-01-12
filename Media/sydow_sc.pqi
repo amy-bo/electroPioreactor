@@ -22,11 +22,11 @@ SOLUTION 1 Sydow_optimal_with_trace
     # Trace metals (from Sydow trace elements in final media table)
     Fe(2) 1.83443630e-04
     Mn(2) 7.09992268e-07
-    Zn(2) 4.17319366e-07
+    Zn 4.17319366e-07
     Cu(2) 9.61211126e-08
-    Ni(2) 2.85336359e-07
+    Ni 2.85336359e-07
     Co(2) 7.15041018e-09
-    Mo(6) 3.71950471e-07
+    Mo 3.71950471e-07
 
     # Set a reference pH so charge balance is well-posed (adjust if you know Sydow’s measured pH)
     pH 7 charge
