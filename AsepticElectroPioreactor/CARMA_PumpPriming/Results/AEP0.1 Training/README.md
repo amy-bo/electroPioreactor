@@ -11,13 +11,13 @@ Initial in-person training was provided by AMYBO's Dr Martin Currie for both Imp
 
 The main focus of the training was assembly and calibration of three AEP0.1 prototypes following the [AEP0.1_Assembly.md](AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/AEP0.1_Assembly.md) guide.  One prototype was assembled by each of the three students.
 
-### Software issues
-
-Following the documented software installation, we were unable to SSH into the AEPs.  This issue took a long time to diagnose and required consultation with Labcrafter and Pioreactor.  We initially conflated the issue with a trivial LED not lighting issue which was resolved by Pioreactor in that day's nightly Pioreactor software build. Cameron Davidson-Pilon of Pioreactor found that it was due to an [issue with the Raspberry Pi Imager](https://github.com/raspberrypi/rpi-imager/issues/1170) which was resolved by using an earlier version of the Imager.
-
 ### Assembly issues
 
 Improvements to the assembly procedures were made during the course of the training.  See [Other Issues](#other-issues) below for the most significant examples.
+
+### Software issues
+
+Following the documented software installation, we were unable to SSH into the AEPs.  This issue took a long time to diagnose and required consultation with Labcrafter and Pioreactor.  We initially conflated the issue with a trivial LED not lighting issue which was resolved by Pioreactor in that day's nightly Pioreactor software build. Cameron Davidson-Pilon of Pioreactor found that it was due to an [issue with the Raspberry Pi Imager](https://github.com/raspberrypi/rpi-imager/issues/1170) which was resolved by using an earlier version of the Imager.
 
 ## Media
 
