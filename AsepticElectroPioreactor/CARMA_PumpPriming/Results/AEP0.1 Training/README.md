@@ -49,3 +49,7 @@ The low flow rates of CO₂ made the
 ### Vial Fragility
 
 One of the [vials](https://labcrafter.co.uk/products/20ml-glass-vial-cap-s-with-ports-and-stir-bar) dropped and smashed. It would be prudent to carry boxed spares of critical components.
+
+### Vial Cap O-Ring Dislodgement
+
+The vial cap o-rings tended to fall out, making aseptic technique difficult.  This inspired a vial cap [design improvement](https://github.com/amy-bo/electroPioreactor/commit/88e3c8db04196599436d371a5588a67b8afb526a) with a lip to retain the o-ring.
