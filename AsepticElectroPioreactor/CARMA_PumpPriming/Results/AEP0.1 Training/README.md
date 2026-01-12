@@ -53,9 +53,12 @@ While intermittent sparging previously triggered a postponement of optical densi
 
 ### Sparging Solution
 
-It was decided that intermittent sparging should resume, this meant that the bubble counters were no longer required, that CO₂ bubbles take a much broader range of pathways, so the sparging tube's location was less critical.  This required a significant design change in order to avoid [CO backflow](PastResearch/Brown-HarrisLab/1.CO2backflowDiagnosis-EliSilver.md)
+It was decided that intermittent sparging should resume, this meant that the bubble counters were no longer required, that CO₂ bubbles take a much broader range of pathways, so the sparging tube's location was less critical.  This required a significant design change in order to avoid [CO backflow](PastResearch/Brown-HarrisLab/1.CO2backflowDiagnosis-EliSilver.md).
 
-## Electrode Discolouration
+## Anode Discolouration
+
+At the end of the experiments the platinum plated titanium anodes were noted to have discoloured to brown in the areas closest to the cathode, with rainbow discolouration further away:
+<img src="AnodeDiscolouration.jpg" alt="Platinum plated titanium anode discolouration - At the bottom, above the shadow, we see the brown discolouration that we found on the cathode-facing side of the anode.  Above this you see a transition to rainbow discolouration.  At the very top you can see the natural platinum colour." width="100%">
 
 ## Other Issues
 
