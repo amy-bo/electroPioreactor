@@ -12,13 +12,13 @@ The main focus of the training was assembly and calibration of three AEP0.1 prot
 
 ### Software issues
 
-The software installation
+Following the documented software installation, we were unable to SSH into the AEPs.  This issue took a long time to diagnose and required consultation with Labcrafter and Pioreactor.  We conflated the issue with a trivial LED not lighting issue which was resolved by Pioreactor in that day's nightly Pioreactor software build. Cameron Davidson-Pilon of Pioreactor found that it was due to an [issue with the Raspberry Pi Imager](https://github.com/raspberrypi/rpi-imager/issues/1170) which was resolved by using an earlier version of the Imager.
 
 ## Media
 
 Media was made up as per [MediaFormulation.md 2025-11-12](https://github.com/amy-bo/electroPioreactor/blob/ba442ae67962f1ee57649e94e9f0302e0077b55f/Media/MediaFormulation.md) <!-- TODO: insert variations from MediaFormulation.md 2025-11-12 | assignee: @Bingqiao or anyone who noted details -->.
 
-Versions were sterilised by autoclaving and by filter sterilisation. 
+Versions were sterilised by autoclaving and by filter sterilisation.
 <!-- TODO: define filter type - was it 0.2 μm? what material? | assignee: @Bingqiao or anyone who noted details -->
 <!-- TODO: detail the media discolouration and precipitation issues | assignee: @Bingqiao or anyone who noted details -->
 
