@@ -17,8 +17,7 @@ Following the documented software installation, we were unable to SSH into the A
 
 ### Assembly issues
 
-Improvements to the assembly procedures were made during the course of the training.  For example:
-1. Rafts reoriented to have sodastream cylinders at back - this improved visibility and reduced peristaltic tubing run lengths.
+Improvements to the assembly procedures were made during the course of the training.  See [Other Issues](#other-issues) below for the most significant examples.
 
 ## Media
 
@@ -38,17 +37,23 @@ A heterotrophic culture of Cupriavidus metallidurans was established using the a
 
 The system was set up for continuous sparging of CO₂, however this presented three issues:
 
-### Water in CO₂ lines
+### 1. Water in CO₂ lines
 
 The bubble counters, when set up as per manufacturers instructions, resulted in rising bubbles passing water into the downstream CO₂ lines.  This was unacceptable as over time it would impact the hydrophobic gas filters.
 
 Various configurations were discussed and a number of them tested.  Replacing the distilled water with mineral oil improved the situation, but still required a restrictively low gas flow to ensure no mineral oil entered the downstream CO₂ lines.
 
-### Oxygen purging
+### 2. Oxygen Purging Sensitivity
 
-The low flow rates of CO₂ made the
+The low flow rates of CO₂ made the positioning of the CO₂ sparging tube extremely critical in terms of O₂ bubble dislodgement from the anode.  An adaptation was made using o-rings to maintain the tube's location, however this may have adversely impacted fluid flow.
 
-### Optical Density Measurement
+### 3. Optical Density Measurement Issues
+
+While intermittent sparging previously triggered a postponement of optical density measurement, continuous sparging could not.  This meant that the bubbles could interfere with optical density measurement, which was then also highly sensitive to optical density measurement.
+
+### Sparging Solution
+
+It was decided that intermittent sparging should resume, this meant that the bubble counters were no longer required, that CO₂ bubbles take a much broader range of pathways, so the sparging tube's location was less critical.  This required a significant design change in order to avoid [CO backflow](PastResearch/Brown-HarrisLab/1.CO2backflowDiagnosis-EliSilver.md)
 
 ## Electrode Discolouration
 
@@ -57,6 +62,10 @@ The low flow rates of CO₂ made the
 ### Crocodile Clip Detachment
 
 The new higher quality crocodile clips purchased for the cylindrical electrodes easily detached.  This inspired [Top Stop improvements](https://github.com/amy-bo/electroPioreactor/commit/e0ebc9f5677bb1e9d91fb322b1b6322d0b47057f) that remove the need for crocodile clips and reduce the risk of electrode polarity inversion.
+
+### Suboptimal Raft Order
+
+Traditionally AMYBO located the SodaStream cyclinder in the centre of the raft for stability.  However this makes the media bottles harder to observe in large rafts and results in excessive peristaltic pump tubing run lengths.  The raft was reoriented to place sodastream cylinders at back - this improved visibility and reduced peristaltic tubing run lengths.
 
 ### Vial Fragility
 
