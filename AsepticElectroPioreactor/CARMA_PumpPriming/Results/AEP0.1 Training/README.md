@@ -3,6 +3,7 @@
 ## Time & Location
 
 Initial in-person training was provided by AMYBO's Dr Martin Currie for both Imperial College and Edinburgh students at Edinburgh University's Chris French Laboratory from 18-21 November 2025.
+<!-- TODO: let me know if you'd like your names mentioned here and I'll add them, we could also link to our LinkedIn profiles or link-in-bios if you like | assignee: @Bingqiao @Amir @Teo -->
 
 ## Assembly and Calibration
 
