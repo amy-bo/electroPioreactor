@@ -65,7 +65,7 @@
    14.  Close regulator (turn flathead screw fully anti-clockwise)
    15.  Move plastic washer attached to regulator to between regulator and SodaStream adapter
    16.  Sit second plastic washer on top of SodaStream cylinder
-   17. **Important:** (while remembering to don all PPE including cryogenic gloves prior to tightening cylinder in one swift, decisive move) **follow instructions included with SodaStream adapter**
+   17. **Important:** (while remembering to don all PPE including cryogenic gloves prior to tightening cylinder in one swift, decisive move) [**follow instructions included with SodaStream adapter**](https://cdn.shopify.com/s/files/1/2268/6279/files/BrewKegTap_Sodastream_Adapter_Instructions.pdf?v=1763549894)
    18. Place SodaStream in dovetail raft
    19. Remove o-ring from bubble counter and place over needle valve outlet
    20. Remove compression nut from the top of the needle valve
