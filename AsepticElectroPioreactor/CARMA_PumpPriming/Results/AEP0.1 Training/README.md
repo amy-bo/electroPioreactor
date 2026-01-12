@@ -43,3 +43,9 @@ The low flow rates of CO₂ made the
 ### Optical Density Measurement
 
 ## Electrode Discolouration
+
+## Other Issues
+
+### Vial Fragility
+
+One of the [vials](https://labcrafter.co.uk/products/20ml-glass-vial-cap-s-with-ports-and-stir-bar) dropped and smashed. It would be prudent to carry boxed spares of critical components.
