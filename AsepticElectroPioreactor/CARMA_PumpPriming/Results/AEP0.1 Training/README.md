@@ -4,6 +4,7 @@
 
 Initial in-person training was provided by AMYBO's Dr Martin Currie for both Imperial College and Edinburgh students at Edinburgh University's Chris French Laboratory from 18-21 November 2025.
 <!-- TODO: let me know if you'd like your names mentioned here and I'll add them, we could also link to our LinkedIn profiles or link-in-bios if you like | assignee: @Bingqiao @Amir @Teo -->
+<!-- I think it would be nice to have our names but I personally don't feel the need to link any bio of mine. Teo -->
 
 ## Assembly and Calibration
 
@@ -34,6 +35,21 @@ A heterotrophic culture of Cupriavidus metallidurans was established using the a
 
 <!-- TODO: insert results | assignee: @Bingqiao or anyone who noted them -->
 <!-- TODO: Insert section on Autotrophic results and our planned next steps | assignee: @Bingqiao @Amir @Teo -->
+
+## Autotrophic culture
+
+Following sucessful heterotrophic culture of Cupriavidus metallidurans, autotrophic culture was attempted. Four reactors were seeded, two with an initial concentration of 0.001 OD600 (the same as the sucessful heterotrophic culture) and two with an initial concentration of 0.02 OD600 (an arbitrary high concentration to try and guarantee growth). Both were grown as batch culture with the carbon free MM of 20mL for ~17 hours at 30C with stirring. No growth was observed. Plausible causes of no growth:
+- Suboptimal media composition
+- High voltage
+- Inconsistent temperature maintenance
+- Ineffective CO₂ sparging and thus O₂ dispelling
+- Issues with anode discoloration (may be related to media composition)
+
+Planned next steps are to:
+- introduce intermittent CO₂ sparging
+- Experiment with a current limiter
+- Remove variables to determine autotrophic growth limiting steps
+- Experiment with media composition such as changing concentration of or removing iron or phosphate
 
 ## Sparging
 
