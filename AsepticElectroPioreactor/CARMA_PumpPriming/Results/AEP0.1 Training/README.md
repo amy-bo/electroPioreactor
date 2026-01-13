@@ -12,6 +12,12 @@ Initial in-person training was provided by AMYBO's Dr Martin Currie for both Imp
 
 The main focus of the training was assembly and calibration of three AEP0.1 prototypes following the [AEP0.1_Assembly.md](AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/AEP0.1_Assembly.md) guide.  One prototype was assembled by each of the three students.
 
+Views of partial assembly (without pumps or media bottles set up)
+Side on view:
+![PXL_20251119_180459396](https://github.com/user-attachments/assets/2e2ccb5d-a208-45da-bd2d-c277c07b033f)
+Top down view:
+![PXL_20251119_234414463](https://github.com/user-attachments/assets/73752be7-5b2a-41bc-9c7b-3fa906691b0c)
+
 ### Assembly issues
 
 Improvements to the assembly procedures were made during the course of the training.  See [Other Issues](#other-issues) below for the most significant examples.
