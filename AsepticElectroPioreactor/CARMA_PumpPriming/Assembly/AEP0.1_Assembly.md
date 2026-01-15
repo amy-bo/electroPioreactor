@@ -21,10 +21,13 @@
 
 1. Connect empty dovetail platforms in raft, with dovetails always to front and left
    1. SodaStream at rear with expansion gap to right.
-   2. 250ml duran product bottle in front of SodaStream
-   3. 250ml duran media bottle to right of product bottle (alternate media and waste if multiple AEPs, forming a backbone of media bottle dovetail platforms)
+   2. 250ml duran product bottle in front and to the left of the SodaStream.
+   3. 250ml duran media bottle in front and to the right of the SodaStream. (alternate media and waste if multiple AEPs, forming a backbone of media bottle dovetail platforms)
    4. Peristaltic pumps in front of product bottle
    5. Pioreactor in front of Peristaltic pumps
+   6. The setup should look like this:
+<img width="555" height="998" alt="image" src="https://github.com/user-attachments/assets/0f4a6756-ea78-466b-bb35-c8b1a1c2c4af" />
+
 2. Follow relevant Pioreactor hardware setup guide: <https://docs.pioreactor.com/user-guide/20ml-v11-hardware-setup-intro>
 3. Follow relevant Pioreactor software setup guide: <https://docs.pioreactor.com/user-guide/software-set-up>
 4. Set up electrolysis
