@@ -50,11 +50,12 @@
    15.  Insert vial into Pioreactor once satisfied all vials have even electrolysis
 5. Set up nutrient solution flow
    1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
-   2. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
-   3. Weigh dry empty vial
-   4. Fill vial with DI water via the pumps, then weigh vials and adjust tube lengths until vial volume is 15ml
-   5. Measure electrodes immersion depths, if necessary adjust to the standard, and record the insertion depth of each electrode
-   6. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
+   2. Follow the Pioreactor guide to attaching a 12V power supply: <https://docs.pioreactor.com/user-guide/external-power>
+   3. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
+   4. Weigh dry empty vial
+   5. Fill vial with DI water via the pumps, then weigh vials and adjust tube lengths until vial volume is 15ml
+   6. Measure electrodes immersion depths, if necessary adjust to the standard, and record the insertion depth of each electrode
+   7. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
 6. Set up carbon dioxide sparging
    1. Unscrew John-Guest push-fit output from the regulator outlet port
    2. Insert 8mm ID 2mm CS o-ring into the regulator outlet port
@@ -74,13 +75,13 @@
    16.  Sit second plastic washer on top of SodaStream cylinder
    17. **Important:** (while remembering to don all PPE including cryogenic gloves prior to tightening cylinder in one swift, decisive move) [**follow instructions included with SodaStream adapter**](https://cdn.shopify.com/s/files/1/2268/6279/files/BrewKegTap_Sodastream_Adapter_Instructions.pdf?v=1763549894)
    18. Place SodaStream in dovetail raft
-   19. Remove o-ring from bubble counter and place over needle valve outlet <!-- TODO: Confirm if units still ship with bubble counters, or where o-ring comes from | assignee: @Gerrit -->
+   19. ~Remove o-ring from bubble counter and place over needle valve outlet~
    20. Remove compression nut from the top of the needle valve
    21. Attach the 4mm tubing to the needle valve ferrule - dip in hot water to soften if necessary
    22. Reattach the compression nut
    23. Attach the male end of an 0.2 μm vent filter to the female luer lock on the vial CO₂ entry port
    24. Attach the female ends of two 0.2 μm vent filters to the two male luer locks on the vial exhaust ports
-   25. Cut the 4mm tubing just long enough to run over the regulator so it keeps the bubble counter vertical and down to the CO₂ entry filter
+   25. Cut the 4mm tubing just long enough to run over the regulator ~so it keeps the bubble counter vertical~ and down to the CO₂ entry filter
    26. Measure the 4mm tubing cut length and ensure all other 4mm tubing is cut to the same length
    27. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
    28. Connect the luer lock to the CO₂ entry filter
