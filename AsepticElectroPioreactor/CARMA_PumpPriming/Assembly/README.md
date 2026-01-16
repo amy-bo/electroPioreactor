@@ -12,11 +12,12 @@
 3. Philips PH0 Screwdriver
 4. 28mm Gas cylinder wrench
 5. Vernier Callipers
-6. Cryogenic gloves (safe to at least -80°C)
-7. Eye/face protection
-8. Lab coat
-9. Other PPE as directed by your supervisor/department/employer/H&S advisor
-10. Analytical balance for pump calibration (Pioreactor docs only require 0.1g accuracy)
+6. Analytical balance for pump calibration (Pioreactor docs only require 0.1g accuracy)
+7. Cryogenic gloves (safe to at least -80°C)
+8. Eye/face protection
+9. Lab coat
+10. Other PPE as directed by your supervisor/department/employer/H&S advisor
+
 
 ## Method
 
