@@ -11,11 +11,12 @@
 2. microSD to SD adapter
 3. Philips PH0 Screwdriver
 4. 28mm Gas cylinder wrench
-5. Cryogenic gloves (safe to at least -80°C)
-6. Eye/face protection
-7. Lab coat
-8. Other PPE as directed by your supervisor/department/employer/H&S advisor
-9. Analytical balance for pump calibration (Pioreactor docs only require 0.1g accuracy)
+5. Vernier Callipers
+6. Cryogenic gloves (safe to at least -80°C)
+7. Eye/face protection
+8. Lab coat
+9. Other PPE as directed by your supervisor/department/employer/H&S advisor
+10. Analytical balance for pump calibration (Pioreactor docs only require 0.1g accuracy)
 
 ## Method
 
@@ -33,9 +34,9 @@
    3. ~Push electrodes fully into their [Electrode Top Stop](../Components/ElectrodeTopStop)~
    4. ~Connect red electrode cable to platinum plated anode by tightening M3 bolt through captive nut~
    5. ~Connect black electrode cable to stainless steel cathode by tightening M3 bolt through captive nut~
-   6. ~Push down the Electrode Top Stop until the electrodes are at the standard depth <!-- TODO: Agree standard depth | assignee: @Bingqiao @Amir @Teo -->~
+   6. ~Push down the Electrode Top Stop until the electrodes are at the standard depth <!-- TODO: Agree standard depth and produce protocol to repeatably attain it | assignee: @Bingqiao @Amir @Teo @Martin -->~
    7. Add nutrient solution (or equal ionic strength bicarbonate) to the Vial
-   8. Fully screw the Vial Cap onto the Vial
+   8. Fully screw the Vial Cap onto the Vial <!-- TODO: Agree standard depth and insert protocol to attain it using callipers | assignee: @Bingqiao @Amir @Teo @Martin -->
    9. The electrodes should now protrude into the vial to the standard depth
    10. If necessary, adjust the electrodes to the standard depth
    11. Record the distance from the plane of the top of the Vial Cap to the bottom of each electrode.
