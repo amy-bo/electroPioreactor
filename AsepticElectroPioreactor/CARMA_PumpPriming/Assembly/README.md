@@ -34,7 +34,7 @@
    4. ~Connect red electrode cable to platinum plated anode by tightening M3 bolt through captive nut~
    5. ~Connect black electrode cable to stainless steel cathode by tightening M3 bolt through captive nut~
    6. ~Push down the Electrode Top Stop until the electrodes are at the standard depth <!-- TODO: Agree standard depth | assignee: @Bingqiao @Amir @Teo -->~
-   7. Add nutrient solution (or equal ionic strength phosphate/sulfate) to the Vial
+   7. Add nutrient solution (or equal ionic strength bicarbonate) to the Vial
    8. Fully screw the Vial Cap onto the Vial
    9. The electrodes should now protrude into the vial to the standard depth
    10. If necessary, adjust the electrodes to the standard depth
