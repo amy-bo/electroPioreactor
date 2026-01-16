@@ -84,10 +84,57 @@
    26. Measure the 4mm tubing cut length and ensure all other 4mm tubing is cut to the same length
    27. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
    28. Connect the luer lock to the CO₂ entry filter
+   29. Connect the solenoid connector to PWM channel 4 on the Pioreactor.
+7. Set up software for sparging
+   1. [Install](https://docs.pioreactor.com/user-guide/using-community-plugins#installing-plugins) the `pioreactor-relay-plugin` plugin.
+   2. In your Pioreactor configuration, make sure that PWM channel 4 is set to `relay`:
+   ```
+   [PWM]
+   # map the PWM channels to externals.
+   # hardware PWM are available on channels 2 & 4.
+   1=stirring
+   2=media
+   3=waste
+   4=relay
+   5=heating
+   ```
+   3. Test that it works by manually turning on the relay in the **Activities** tab of the *Manage* screen of the Pioreactor UI. You should hear the solenoid turn on and CO2 rushing into the Pioreactor vial. You can adjust the amount of CO2 sparged using the dial on the regulator.
+
+      <img width="877" height="167" alt="image" src="https://github.com/user-attachments/assets/71183531-ccc0-4fb2-b36e-4153a897ce3b" />
+
+   5. Create a new [experiment profile](https://docs.pioreactor.com/user-guide/experiment-profiles) and copy and paste the following into the profile:
+   ```yaml
+   experiment_profile_name: CO2 sparging every hour
+   
+   metadata:
+     author: Gerrit Niezen
+     description: Turns on the relay for 10 seconds every hour
+   
+   common:
+     jobs:
+       relay:
+         actions:
+           - type: repeat
+             hours_elapsed: 1.0
+             repeat_every_hours: 1.0
+             actions:
+               - type: log
+                 hours_elapsed: 0.0  # relative to the repeat loop, 1h
+                 options:
+                   message: "Sparging CO2 for 10 seconds"
+                   level: info
+               - type: start
+                 hours_elapsed: 0.0
+                 options:
+                   start_on: True
+               - type: stop
+                 hours_elapsed: 0.00278
+   ```
+   When the experiment profile is running it should sparge CO2 for 10 seconds every hour.
 7. Calibrate CO₂ flow
     1. Set regulator to 1 bar
     2. Adjust needle valve to give target flow rate
-    3. <!-- TODO: Insert software setup for sparging and instructions on ad hoc sparge software command | assignee: @Gerrit -->
+    3. To start sparging, turn on the relay in the Pioreactor UI
     4. Temporarily close one of two outlet gas vents with luer plug
     5. Run 1/16" tubing from outlet of open gas vent port to bath until water CO2 concentration is assumed (or if possible measured) to have equilibrated
     6. Record time taken to fill measuring cylinder with CO₂ over water
