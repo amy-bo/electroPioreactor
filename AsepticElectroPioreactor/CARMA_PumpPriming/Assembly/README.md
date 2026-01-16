@@ -71,7 +71,7 @@
    16.  Sit second plastic washer on top of SodaStream cylinder
    17. **Important:** (while remembering to don all PPE including cryogenic gloves prior to tightening cylinder in one swift, decisive move) [**follow instructions included with SodaStream adapter**](https://cdn.shopify.com/s/files/1/2268/6279/files/BrewKegTap_Sodastream_Adapter_Instructions.pdf?v=1763549894)
    18. Place SodaStream in dovetail raft
-   19. Remove o-ring from bubble counter and place over needle valve outlet
+   19. Remove o-ring from bubble counter and place over needle valve outlet <!-- TODO: Confirm if units still ship with bubble counters, or where o-ring comes from | assignee: @Gerrit -->
    20. Remove compression nut from the top of the needle valve
    21. Attach the 4mm tubing to the needle valve ferrule - dip in hot water to soften if necessary
    22. Reattach the compression nut
@@ -84,7 +84,7 @@
 7. Calibrate CO₂ flow
     1. Set regulator to 1 bar
     2. Adjust needle valve to give target flow rate
-    3. ***(Gerrit to describe manual sparge process)***
+    3. <!-- TODO: Insert software setup for sparging and instructions on ad hoc sparge software command | assignee: @Gerrit -->
     4. Temporarily close one of two outlet gas vents with luer plug
     5. Run 1/16" tubing from outlet of open gas vent port to bath until water CO2 concentration is assumed (or if possible measured) to have equilibrated
     6. Record time taken to fill measuring cylinder with CO₂ over water
