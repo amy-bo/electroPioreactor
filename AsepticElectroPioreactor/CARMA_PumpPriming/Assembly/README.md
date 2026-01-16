@@ -30,25 +30,27 @@
 4. Set up electrolysis
    1. ~Insert electrode o-rings into the [Vial Cap](../Components/Vial%20Cap)~
    2. ~Insert electrodes half-way into Vial Cap using a twisting motion to avoid dislodging the o-rings~
-   3. Push electrodes fully into their [Electrode Top Stop](../Components/ElectrodeTopStop)
-   4. Push down the Electrode Top Stop until it is flush with the top of the Vial Cap
-   5. Add nutrient solution (or equal ionic strength phosphate/sulfate) to the Vial
-   6. Fully screw the Vial Cap onto the Vial
-   7. The electrodes should now protrude into the vial to the standard depth
-   8.  If necessary, adjust the electrodes to the standard depth
-   9.  Record the distance from the plane of the top of the Vial Cap to the bottom of each electrode.
-   10.  Connect the electrodes to LED channel D (catch upwards)
-   11.  With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 3%, and verifying that roughly twice as many bubbles are forming on the cathode
-   12.  Record the voltage across each electrode, and the current through the electrodes, adjust the LED channel D intensity to attain standard values if necessary
-   13.  Insert vial into Pioreactor once satisfied all vials have even electrolysis
-1. Set up nutrient solution flow
+   3. ~Push electrodes fully into their [Electrode Top Stop](../Components/ElectrodeTopStop)~
+   4. ~Connect red electrode cable to platinum plated anode by tightening M3 bolt through captive nut~
+   5. ~Connect black electrode cable to stainless steel cathode by tightening M3 bolt through captive nut~
+   6. ~Push down the Electrode Top Stop until the electrodes are at the standard depth <!-- TODO: Agree standard depth | assignee: @Bingqiao @Amir @Teo -->~
+   7. Add nutrient solution (or equal ionic strength phosphate/sulfate) to the Vial
+   8. Fully screw the Vial Cap onto the Vial
+   9. The electrodes should now protrude into the vial to the standard depth
+   10. If necessary, adjust the electrodes to the standard depth
+   11. Record the distance from the plane of the top of the Vial Cap to the bottom of each electrode.
+   12.  Connect the electrodes to LED channel D (catch upwards)
+   13.  With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 3%, and verifying that roughly twice as many bubbles are forming on the cathode
+   14.  Record the voltage across each electrode, and the current through the electrodes, adjust the LED channel D intensity to attain standard values if necessary
+   15.  Insert vial into Pioreactor once satisfied all vials have even electrolysis
+5. Set up nutrient solution flow
    1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
    2. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
    3. Weigh dry empty vial
    4. Fill vial with DI water via the pumps, then weigh vials and adjust tube lengths until vial volume is 15ml
    5. Measure electrodes immersion depths, if necessary adjust to the standard, and record the insertion depth of each electrode
    6. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
-2. Set up carbon dioxide sparging
+6. Set up carbon dioxide sparging
    1. Unscrew John-Guest push-fit output from the regulator outlet port
    2. Insert 8mm ID 2mm CS o-ring into the regulator outlet port
    3. Screw in the 1.4" male to 1/8" male reducer to the regulator outlet port and tighten with wrench.
@@ -77,7 +79,7 @@
    26. Measure the 4mm tubing cut length and ensure all other 4mm tubing is cut to the same length
    27. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
    28. Connect the luer lock to the CO₂ entry filter
-3. Calibrate CO₂ flow
+7. Calibrate CO₂ flow
     1. Set regulator to 1 bar
     2. Adjust needle valve to give target flow rate
     3. ***(Gerrit to describe manual sparge process)***
@@ -86,5 +88,5 @@
     6. Record time taken to fill measuring cylinder with CO₂ over water
     7. Determine the actual flow rate
     8.  Adjust needle valve and repeat process until target flow rate is achieved
-4. Sterilise
+8. Sterilise
     1. ***(PI's to determine process in accordance with departmental requirements)***
