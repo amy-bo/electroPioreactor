@@ -75,17 +75,16 @@
    16.  Sit second plastic washer on top of SodaStream cylinder
    17. **Important:** (while remembering to don all PPE including cryogenic gloves prior to tightening cylinder in one swift, decisive move) [**follow instructions included with SodaStream adapter**](https://cdn.shopify.com/s/files/1/2268/6279/files/BrewKegTap_Sodastream_Adapter_Instructions.pdf?v=1763549894)
    18. Place SodaStream in dovetail raft
-   19. ~Remove o-ring from bubble counter and place over needle valve outlet~
-   20. Remove compression nut from the top of the needle valve
-   21. Attach the 4mm tubing to the needle valve ferrule - dip in hot water to soften if necessary
-   22. Reattach the compression nut
-   23. Attach the male end of an 0.2 μm vent filter to the female luer lock on the vial CO₂ entry port
-   24. Attach the female ends of two 0.2 μm vent filters to the two male luer locks on the vial exhaust ports
-   25. Cut the 4mm tubing just long enough to run over the regulator ~so it keeps the bubble counter vertical~ and down to the CO₂ entry filter
-   26. Measure the 4mm tubing cut length and ensure all other 4mm tubing is cut to the same length
-   27. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
-   28. Connect the luer lock to the CO₂ entry filter
-   29. Connect the solenoid connector to PWM channel 4 on the Pioreactor.
+   19. Remove compression nut from the top of the needle valve
+   20. Attach the 4mm tubing to the needle valve ferrule - dip in hot water to soften if necessary
+   21. Reattach the compression nut
+   22. Attach the male end of an 0.2 μm vent filter to the female luer lock on the vial CO₂ entry port
+   23. Attach the female ends of two 0.2 μm vent filters to the two male luer locks on the vial exhaust ports
+   24. Cut the 4mm tubing just long enough to run over the regulator and down to the CO₂ entry filter
+   25. Measure the 4mm tubing cut length and ensure all other 4mm tubing is cut to the same length
+   26. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
+   27. Connect the luer lock to the CO₂ entry filter
+   28. Connect the solenoid connector to PWM channel 4 on the Pioreactor.
 7. Set up software for sparging
    1. [Install](https://docs.pioreactor.com/user-guide/using-community-plugins#installing-plugins) the `pioreactor-relay-plugin` plugin.
    2. In your Pioreactor configuration, make sure that PWM channel 4 is set to `relay`:
@@ -103,7 +102,7 @@
 
       <img width="877" height="167" alt="image" src="https://github.com/user-attachments/assets/71183531-ccc0-4fb2-b36e-4153a897ce3b" />
 
-   5. Create a new [experiment profile](https://docs.pioreactor.com/user-guide/experiment-profiles) and copy and paste the following into the profile:
+   4. Create a new [experiment profile](https://docs.pioreactor.com/user-guide/experiment-profiles) and copy and paste the following into the profile:
    ```yaml
    experiment_profile_name: CO2 sparging every hour
    
@@ -132,7 +131,7 @@
                  hours_elapsed: 0.00278
    ```
    When the experiment profile is running it should sparge CO2 for 10 seconds every hour.
-7. Calibrate CO₂ flow
+8. Calibrate CO₂ flow
     1. Set regulator to 1 bar
     2. Adjust needle valve to give target flow rate
     3. To start sparging, turn on the relay in the Pioreactor UI
@@ -141,5 +140,5 @@
     6. Record time taken to fill measuring cylinder with CO₂ over water
     7. Determine the actual flow rate
     8.  Adjust needle valve and repeat process until target flow rate is achieved
-8. Sterilise
+9. Sterilise
     1. <!-- TODO: PI's to approve process in accordance with departmental requirements | assignee: @Amir @Teo @Bingqiao @Chris @Sonja -->
