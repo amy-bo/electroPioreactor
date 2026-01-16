@@ -91,4 +91,4 @@
     7. Determine the actual flow rate
     8.  Adjust needle valve and repeat process until target flow rate is achieved
 8. Sterilise
-    1. ***(PI's to determine process in accordance with departmental requirements)***
+    1. <!-- TODO: PI's to approve process in accordance with departmental requirements | assignee: @Amir @Teo @Bingqiao @Chris @Sonja -->
