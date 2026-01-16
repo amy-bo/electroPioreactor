@@ -50,11 +50,12 @@
    15.  Insert vial into Pioreactor once satisfied all vials have even electrolysis
 5. Set up nutrient solution flow
    1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
-   2. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
-   3. Weigh dry empty vial
-   4. Fill vial with DI water via the pumps, then weigh vials and adjust tube lengths until vial volume is 15ml
-   5. Measure electrodes immersion depths, if necessary adjust to the standard, and record the insertion depth of each electrode
-   6. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
+   2. Follow the Pioreactor guide to attaching a 12V power supply: <https://docs.pioreactor.com/user-guide/external-power>
+   3. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
+   4. Weigh dry empty vial
+   5. Fill vial with DI water via the pumps, then weigh vials and adjust tube lengths until vial volume is 15ml
+   6. Measure electrodes immersion depths, if necessary adjust to the standard, and record the insertion depth of each electrode
+   7. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
 6. Set up carbon dioxide sparging
    1. Unscrew John-Guest push-fit output from the regulator outlet port
    2. Insert 8mm ID 2mm CS o-ring into the regulator outlet port
@@ -74,20 +75,67 @@
    16.  Sit second plastic washer on top of SodaStream cylinder
    17. **Important:** (while remembering to don all PPE including cryogenic gloves prior to tightening cylinder in one swift, decisive move) [**follow instructions included with SodaStream adapter**](https://cdn.shopify.com/s/files/1/2268/6279/files/BrewKegTap_Sodastream_Adapter_Instructions.pdf?v=1763549894)
    18. Place SodaStream in dovetail raft
-   19. Remove o-ring from bubble counter and place over needle valve outlet <!-- TODO: Confirm if units still ship with bubble counters, or where o-ring comes from | assignee: @Gerrit -->
+   19. ~Remove o-ring from bubble counter and place over needle valve outlet~
    20. Remove compression nut from the top of the needle valve
    21. Attach the 4mm tubing to the needle valve ferrule - dip in hot water to soften if necessary
    22. Reattach the compression nut
    23. Attach the male end of an 0.2 μm vent filter to the female luer lock on the vial CO₂ entry port
    24. Attach the female ends of two 0.2 μm vent filters to the two male luer locks on the vial exhaust ports
-   25. Cut the 4mm tubing just long enough to run over the regulator so it keeps the bubble counter vertical and down to the CO₂ entry filter
+   25. Cut the 4mm tubing just long enough to run over the regulator ~so it keeps the bubble counter vertical~ and down to the CO₂ entry filter
    26. Measure the 4mm tubing cut length and ensure all other 4mm tubing is cut to the same length
    27. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
    28. Connect the luer lock to the CO₂ entry filter
+   29. Connect the solenoid connector to PWM channel 4 on the Pioreactor.
+7. Set up software for sparging
+   1. [Install](https://docs.pioreactor.com/user-guide/using-community-plugins#installing-plugins) the `pioreactor-relay-plugin` plugin.
+   2. In your Pioreactor configuration, make sure that PWM channel 4 is set to `relay`:
+   ```
+   [PWM]
+   # map the PWM channels to externals.
+   # hardware PWM are available on channels 2 & 4.
+   1=stirring
+   2=media
+   3=waste
+   4=relay
+   5=heating
+   ```
+   3. Test that it works by manually turning on the relay in the **Activities** tab of the *Manage* screen of the Pioreactor UI. You should hear the solenoid turn on and CO2 rushing into the Pioreactor vial. You can adjust the amount of CO2 sparged using the dial on the regulator.
+
+      <img width="877" height="167" alt="image" src="https://github.com/user-attachments/assets/71183531-ccc0-4fb2-b36e-4153a897ce3b" />
+
+   5. Create a new [experiment profile](https://docs.pioreactor.com/user-guide/experiment-profiles) and copy and paste the following into the profile:
+   ```yaml
+   experiment_profile_name: CO2 sparging every hour
+   
+   metadata:
+     author: Gerrit Niezen
+     description: Turns on the relay for 10 seconds every hour
+   
+   common:
+     jobs:
+       relay:
+         actions:
+           - type: repeat
+             hours_elapsed: 1.0
+             repeat_every_hours: 1.0
+             actions:
+               - type: log
+                 hours_elapsed: 0.0  # relative to the repeat loop, 1h
+                 options:
+                   message: "Sparging CO2 for 10 seconds"
+                   level: info
+               - type: start
+                 hours_elapsed: 0.0
+                 options:
+                   start_on: True
+               - type: stop
+                 hours_elapsed: 0.00278
+   ```
+   When the experiment profile is running it should sparge CO2 for 10 seconds every hour.
 7. Calibrate CO₂ flow
     1. Set regulator to 1 bar
     2. Adjust needle valve to give target flow rate
-    3. <!-- TODO: Insert software setup for sparging and instructions on ad hoc sparge software command | assignee: @Gerrit -->
+    3. To start sparging, turn on the relay in the Pioreactor UI
     4. Temporarily close one of two outlet gas vents with luer plug
     5. Run 1/16" tubing from outlet of open gas vent port to bath until water CO2 concentration is assumed (or if possible measured) to have equilibrated
     6. Record time taken to fill measuring cylinder with CO₂ over water
