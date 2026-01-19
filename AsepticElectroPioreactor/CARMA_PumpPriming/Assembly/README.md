@@ -9,7 +9,7 @@
 
 1. Computer with SD card reader
 2. microSD to SD adapter
-3. Philips PH0 Screwdriver
+3. Phillips PH0 Screwdriver
 4. 28mm Gas cylinder wrench
 5. Vernier Callipers
 6. Analytical balance for pump calibration (Pioreactor docs only require 0.1g accuracy)
@@ -59,9 +59,9 @@
 6. Set up carbon dioxide sparging
    1. Unscrew John-Guest push-fit output from the regulator outlet port
    2. Insert 8mm ID 2mm CS o-ring into the regulator outlet port
-   3. Screw in the 1.4" male to 1/8" male reducer to the regulator outlet port and tighten with wrench.
+   3. Screw in the 1/4" male to 1/8" male reducer to the regulator outlet port and tighten with wrench.
    4. Cut a rectangle of gas PTFE tape to wrap around 1/8" male outlet thread 1.5 times.
-   5. Wrap gas PTFE tap around 1/8" male outlet thread 1.5 times.
+   5. Wrap gas PTFE tape around 1/8" male outlet thread 1.5 times.
    6. Screw left port of the solenoid valve (with solenoid electronics to rear) into 1/8" male outlet
    7. Cut a rectangle of gas PTFE tape to wrap around needle valve inlet thread (the bare metal thread opposite the screw adjustor) 1.5 times.
    8. Wrap gas PTFE tap around needle valve inlet thread 1.5 times.
