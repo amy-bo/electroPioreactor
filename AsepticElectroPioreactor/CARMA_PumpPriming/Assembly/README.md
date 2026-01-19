@@ -32,7 +32,7 @@
 
 2. Follow relevant Pioreactor hardware setup guide: <https://docs.pioreactor.com/user-guide/20ml-v11-hardware-setup-intro>
 3. Follow relevant Pioreactor software setup guide: <https://docs.pioreactor.com/user-guide/software-set-up>
-4. Set up electrolysis
+4. Set up electrolysis (NOTE: ~struck through~ lines will already have been completed if you received a kit from Labcrafter)
    1. ~Insert electrode o-rings into the [Vial Cap](../Components/Vial%20Cap)~
    2. ~Insert electrodes half-way into Vial Cap using a twisting motion to avoid dislodging the o-rings~
    3. ~Push electrodes fully into their [Electrode Top Stop](../Components/ElectrodeTopStop)~
