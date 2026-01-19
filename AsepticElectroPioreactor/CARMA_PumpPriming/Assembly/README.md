@@ -64,11 +64,11 @@
    5. Wrap gas PTFE tape around 1/8" male outlet thread 1.5 times.
    6. Screw left port of the solenoid valve (with solenoid electronics to rear) into 1/8" male outlet
    7. Cut a rectangle of gas PTFE tape to wrap around needle valve inlet thread (the bare metal thread opposite the screw adjustor) 1.5 times.
-   8. Wrap gas PTFE tap around needle valve inlet thread 1.5 times.
+   8. Wrap gas PTFE tape around needle valve inlet thread 1.5 times.
    9. Screw needle valve into 1/8" front port of solenoid valve
    10. Close needle valve clockwise
    11. Cut a rectangle of gas PTFE tape to wrap around 1/8" male blanking plug thread 1.5 times.
-   12. Wrap gas PTFE tap around 1/8" male blanking plug thread 1.5 times.
+   12. Wrap gas PTFE tape around 1/8" male blanking plug thread 1.5 times.
    13. Screw male blanking plug thread into right port of solenoid valve and tighten with wrench.
    14.  Close regulator (turn flathead screw fully anti-clockwise)
    15.  Move plastic washer attached to regulator to between regulator and SodaStream adapter
