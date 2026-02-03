@@ -58,11 +58,19 @@
    7. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
 6. Set up carbon dioxide sparging
    1. Unscrew John-Guest push-fit output from the regulator outlet port
+<img width="1330" height="1767" alt="image" src="https://github.com/user-attachments/assets/3cbc619c-be7c-4abb-87d3-048d8350dcfc" />
+
    2. Insert 8mm ID 2mm CS o-ring into the regulator outlet port
+<img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/3316cd49-21c7-4fb3-a931-dd5c0798a27b" />
+
    3. Screw in the 1/4" male to 1/8" male reducer to the regulator outlet port and tighten with wrench.
+<img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/800812cb-2ccb-4a8f-8198-f8e381757552" />
+
    4. Cut a rectangle of gas PTFE tape to wrap around 1/8" male outlet thread 1.5 times.
    5. Wrap gas PTFE tape around 1/8" male outlet thread 1.5 times.
-   6. Screw left port of the solenoid valve (with solenoid electronics to rear) into 1/8" male outlet
+   6. Screw left port of the solenoid valve (with solenoid electronics to rear) into 1/8" male outlet. Ensure solinoid manual overide is closed (horizontal line pointing at 0 on the front on the solinoid).
+<img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/ec433749-5866-476b-a965-ec070b80083e" />
+
    7. Cut a rectangle of gas PTFE tape to wrap around needle valve inlet thread (the bare metal thread opposite the screw adjustor) 1.5 times.
    8. Wrap gas PTFE tape around needle valve inlet thread 1.5 times.
    9. Screw needle valve into 1/8" front port of solenoid valve
@@ -85,7 +93,7 @@
    26. Insert a 1/8" (or 5/32" if 1/8" too loose) barb hose to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
    27. Connect the luer lock to the CO₂ entry filter
    28. Connect the solenoid connector to PWM channel 4 on the Pioreactor.
-7. Set up software for sparging
+8. Set up software for sparging
    1. [Install](https://docs.pioreactor.com/user-guide/using-community-plugins#installing-plugins) the `pioreactor-relay-plugin` plugin.
    2. In your Pioreactor configuration, make sure that PWM channel 4 is set to `relay`:
    ```
@@ -131,7 +139,7 @@
                  hours_elapsed: 0.00278
    ```
    When the experiment profile is running it should sparge CO2 for 10 seconds every hour.
-8. Calibrate CO₂ flow
+9. Calibrate CO₂ flow
     1. Set regulator to 1 bar
     2. Adjust needle valve to give target flow rate
     3. To start sparging, turn on the relay in the Pioreactor UI
@@ -140,5 +148,5 @@
     6. Record time taken to fill measuring cylinder with CO₂ over water
     7. Determine the actual flow rate
     8.  Adjust needle valve and repeat process until target flow rate is achieved
-9. Sterilise
+10. Sterilise
     1. <!-- TODO: PI's to approve process in accordance with departmental requirements | assignee: @Amir @Teo @Bingqiao @Chris @Sonja -->
