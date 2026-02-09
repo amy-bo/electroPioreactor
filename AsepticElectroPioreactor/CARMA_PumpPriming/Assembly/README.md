@@ -17,7 +17,15 @@
 8. Eye/face protection
 9. Lab coat
 10. Other PPE as directed by your supervisor/department/employer/H&S advisor
+11. Adjustable pliers wrenches
+12. Gas PTFE Tape
 
+## Recommended Tools
+
+1. Multitool and/or needle nose pliers (for general assembly and tubing adjustment)
+2. Multimeter (for checking electrolysis)
+3. Banded oil filter wrench (for CO2 canister tightening)
+4. Kit of syringe adapter luer locks, tube pinchers, & caps
 
 ## Method
 
@@ -31,8 +39,9 @@
 <img width="555" height="998" alt="image" src="https://github.com/user-attachments/assets/0f4a6756-ea78-466b-bb35-c8b1a1c2c4af" />
 
 2. Follow relevant Pioreactor hardware setup guide: <https://docs.pioreactor.com/user-guide/20ml-v11-hardware-setup-intro>
-3. Follow relevant Pioreactor software setup guide: <https://docs.pioreactor.com/user-guide/software-set-up>
-4. Set up electrolysis (NOTE: ~struck through~ lines will already have been completed if you received a kit from Labcrafter)
+   1. If using solenoid for sparging you will need more power, follow instructions here: <https://docs.pioreactor.com/user-guide/external-power>
+4. Follow relevant Pioreactor software setup guide: <https://docs.pioreactor.com/user-guide/software-set-up>
+5. Set up electrolysis (NOTE: ~struck through~ lines will already have been completed if you received a kit from Labcrafter)
    1. ~Insert electrode o-rings into the [Vial Cap](../Components/Vial%20Cap)~
    2. ~Insert electrodes half-way into Vial Cap using a twisting motion to avoid dislodging the o-rings~
    3. ~Push electrodes fully into their [Electrode Top Stop](../Components/ElectrodeTopStop)~
@@ -48,7 +57,7 @@
    13.  With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 3%, and verifying that roughly twice as many bubbles are forming on the cathode
    14.  Record the voltage across each electrode, and the current through the electrodes, adjust the LED channel D intensity to attain standard values if necessary
    15.  Insert vial into Pioreactor once satisfied all vials have even electrolysis
-5. Set up nutrient solution flow
+6. Set up nutrient solution flow
    1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
    2. Follow the Pioreactor guide to attaching a 12V power supply: <https://docs.pioreactor.com/user-guide/external-power>
    3. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
@@ -56,7 +65,7 @@
    5. Fill vial with DI water via the pumps, then weigh vials and adjust tube lengths until vial volume is 15ml
    6. Measure electrodes immersion depths, if necessary adjust to the standard, and record the insertion depth of each electrode
    7. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
-6. Set up carbon dioxide sparging
+7. Set up carbon dioxide sparging
    1. Unscrew John-Guest push-fit output from the regulator outlet port
 <img width="1330" height="1767" alt="image" src="https://github.com/user-attachments/assets/3cbc619c-be7c-4abb-87d3-048d8350dcfc" />
 
