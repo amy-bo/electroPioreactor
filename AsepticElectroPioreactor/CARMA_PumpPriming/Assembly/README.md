@@ -17,15 +17,12 @@
 8. Eye/face protection
 9. Lab coat
 10. Other PPE as directed by your supervisor/department/employer/H&S advisor
-11. Adjustable pliers wrenches
-12. Gas PTFE Tape
 
 ## Recommended Tools
 
 1. Multitool and/or needle nose pliers (for general assembly and tubing adjustment)
 2. Multimeter (for checking electrolysis)
 3. Banded oil filter wrench (for CO2 canister tightening)
-4. Kit of syringe adapter luer locks, tube pinchers, & caps
 
 ## Method
 
