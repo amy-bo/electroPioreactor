@@ -32,4 +32,6 @@ Segregating iron from the other trace minerals will mean that if it precipitates
 
 Given the success reported with use of the [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) minimal medium, we intend to stay as close to its formulation as possible while removing the final chlorides (in the HCl) and separating it into two solutions in order to increase shelf life.
 
+We initially tried ony acidifying the FeSO₄ and making the separate trace mineral solution in deionised water without pH adjustment, however this resulted in precipitation.  Addition of concentrated H₂SO₄ to bring the H₂SO₄ concentration to 0.1M redisolved the precipitate.  It was subsequently decided to change our trace mineral formulation protocol to dissolve the minerals in 0.2M H₂SO₄.
+
 We may compare FeSO₄ stocks acidified with HCl versus H₂SO₄; thereafter we only intend to add more components if we have reason to suspect that they are specifically required by HOB of interest.
