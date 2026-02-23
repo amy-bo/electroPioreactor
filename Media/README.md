@@ -50,7 +50,7 @@ Our two-bottle trace element solution, [modified](MediaFormulation.md) from [Syd
 
 ### Mineral Solution
 
-| Component | Formula | Concentration (g/L H₂O) |
+| Component | Formula | Concentration (g/L in 0.2 M H₂SO₄) |
 |------------|----------|--------------------------------------|
 | Sodium molybdate dihydrate | Na₂MoO₄·2H₂O | 1.8 |
 | Zinc sulfate heptahydrate | ZnSO₄·7H₂O | 2.4 |
