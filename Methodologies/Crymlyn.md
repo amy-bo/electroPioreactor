@@ -36,9 +36,9 @@ This gives a phosphate buffer molarity of ~40 mM and a conductivity of ~6.1 mS/c
 | Iron(II) sulphate heptahydrate | FeSO₄·7H₂O | 1.50 g |
 | Sulphuric acid (0.2 M) | H₂SO₄ | to 100 mL |
 
-H₂SO₄ at 0.2 M is the preferred acidulant: no carbon source, no chloride, lower vapour pressure than HCl, and longer shelf life. At home, battery acid (typically ~30–35% H₂SO₄) can be used to prepare a 0.2 M solution by careful dilution into water. Handle with gloves and eye protection; always add acid to water, never the reverse.
+H₂SO₄ at 0.2 M was chosen as the for MC02 as it has no chloride, no carbon source, lower vapour pressure than HCl, and longer shelf life. But H₂SO₄ is much less accessible domestically and more hazardous than the HCl used by Sydow et al. It should be avoided for home use.
 
-If H₂SO₄ is genuinely inaccessible, HCl (sold as brick acid/patio cleaner at B&Q, typically 30–36%) is the next best option. It introduces a small chloride contribution but at this dilution it is negligible in the final medium. HCl is Sydow et al.'s original acidulant.
+HCl (sold as brick acid/patio cleaner at B&Q, typically 30–36%) may be more appropriate. It introduces a small chloride contribution but at this dilution it is negligible in the final medium. HCl is Sydow et al.'s original acidulant, used by the Holtmann lab to this day.
 
 > **Why not citric acid:** Citric acid is a readily metabolisable carbon source for heterotrophs and some HOB. In a protocol designed to select against heterotrophs in Stages 2–3, adding any free carbon source to the iron stock undermines the selective pressure and means autotrophic growth cannot be confirmed as the sole basis for OD increase. Note that ferric ammonium citrate, used by Givirovskiy et al. (2019) at 5 mg/L, is a different case – at that concentration the carbon load is negligible and chelation improves iron bioavailability. However, it introduces ammonium and is harder to source at home than FeSO₄, so it is not recommended here.
 
