@@ -54,9 +54,10 @@ HCl (sold as brick acid/patio cleaner at B&Q, typically 30–36%) may be more ap
 | Manganese(II) sulfate monohydrate | MnSO₄·H₂O | 2.4 |
 | Copper(II) sulfate pentahydrate | CuSO₄·5H₂O | 0.48 |
 | Nickel(II) sulfate hexahydrate | NiSO₄·6H₂O | 1.5 |
-| Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.04 |
+| Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.04* |
 
-If cobalt can't be obtained locally, or you would rather not work with a you might attempt to skip it, hoping for “contamination as a feature”.
+*If cobalt can't be obtained locally, or you would rather not work with a Category 1B carcinogen and SVHC (substance of very high concern) under REACH, you might attempt to skip it, hoping your HOB will obtain enough through “contamination as a feature”.
+
 Store in amber bottle at 4°C.
 
 #### Yeast extract (Stage 4 only)
