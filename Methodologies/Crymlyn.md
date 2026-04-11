@@ -44,18 +44,18 @@ HCl (sold as brick acid/patio cleaner at B&Q, typically 30–36%) may be more ap
 
 > **Iron stock shelf life:** Store in an amber bottle at 4°C. Purge headspace with CO₂ from the SodaStream after each use. Remake when the solution turns yellow-brown or precipitate appears.
 
-#### Trace elements – Mineral Solution (make 50 mL, dose 0.050 mL per litre of medium)
+#### Trace elements – Mineral Solution (make 1 L, dose 0.050 mL per litre of medium)
+| Component | Formula | Concentration (g/L in 0.1 M HCl) |
+|------------|----------|--------------------------------------|
+| Sodium molybdate dihydrate | Na₂MoO₄·2H₂O | 1.8 |
+| Zinc sulfate heptahydrate | ZnSO₄·7H₂O | 2.4 |
+| Manganese(II) sulfate monohydrate | MnSO₄·H₂O | 2.4 |
+| Copper(II) sulfate pentahydrate | CuSO₄·5H₂O | 0.48 |
+| Nickel(II) sulfate hexahydrate | NiSO₄·6H₂O | 1.5 |
+| Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.04 |
 
-| Component | Formula | Amount |
-|---|---|---|
-| Sodium molybdate dihydrate | Na₂MoO₄·2H₂O | 0.090 g |
-| Zinc sulphate heptahydrate | ZnSO₄·7H₂O | 0.120 g |
-| Manganese(II) sulphate monohydrate | MnSO₄·H₂O | 0.120 g |
-| Copper(II) sulphate pentahydrate | CuSO₄·5H₂O | 0.024 g |
-| Nickel(II) sulphate hexahydrate | NiSO₄·6H₂O | 0.075 g |
-| Cobalt(II) sulphate heptahydrate | CoSO₄·7H₂O | 0.002 g |
-
-Prepare in 0.2 M H₂SO₄ (or HCl if H₂SO₄ unavailable). Store in amber bottle at 4°C.
+If cobalt can't be obtained locally, you might attempt to skip it, hoping for “contamination as a feature”.
+Store in amber bottle at 4°C.
 
 #### Yeast extract (Stage 4 only)
 
