@@ -34,7 +34,7 @@ This gives a phosphate buffer molarity of ~40 mM and a conductivity of ~6.1 mS/c
 | Component | Formula | Amount |
 |---|---|---|
 | Iron(II) sulphate heptahydrate | FeSO₄·7H₂O | 1.50 g |
-| Sulphuric acid (0.2 M) | H₂SO₄ | to 100 mL |
+| Hydrochloric acid (0.1 M) | HCl | to 100 mL |
 
 H₂SO₄ at 0.2 M was chosen as the for MC02 as it has no chloride, no carbon source, lower vapour pressure than HCl, and longer shelf life. But H₂SO₄ is much less accessible domestically and more hazardous than the HCl used by Sydow et al. It should be avoided for home use.
 
@@ -83,7 +83,7 @@ This option is more accessible to home users who cannot source NaH₂PO₄·2H�
 | Potassium source | K₂SO₄ (0.17 g/L, separate) | Via KH₂PO₄ (excess) | Option A gives tighter control of K⁺ |
 | Nitrogen source | (NH₄)₂SO₄ | (NH₄)₂SO₄ | Same |
 | Calcium source | CaSO₄·2H₂O | CaSO₄·2H₂O | Same |
-| Iron acidulant | H₂SO₄ preferred, HCl acceptable | HCl (brick acid) | HCl more accessible at home |
+| Iron acidulant | HCl | HCl (brick acid) | HCl more accessible at home |
 | Trace elements | Full 6-component mineral solution | Full 6-component mineral solution | Same – see note below |
 
 > **Trace element note:** Both options use the full 6-component mineral solution. Mn and Zn in particular are cofactors for key metalloenzymes in HOB and must not be omitted in Stages 2–3 where there is no yeast extract to compensate.
