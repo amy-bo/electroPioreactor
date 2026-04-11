@@ -38,7 +38,9 @@ This gives a phosphate buffer molarity of ~40 mM and a conductivity of ~6.1 mS/c
 
 H₂SO₄ at 0.2 M was chosen as the for MC02 as it has no chloride, no carbon source, lower vapour pressure than HCl, and longer shelf life. But H₂SO₄ is much less accessible domestically and more hazardous than the HCl used by Sydow et al. It should be avoided for home use.
 
-HCl (sold as brick acid/patio cleaner at B&Q, typically 30–36%) may be more appropriate. It introduces a small chloride contribution but at this dilution it is negligible in the final medium. HCl is Sydow et al.'s original acidulant, used by the Holtmann lab to this day.
+HCl (sold as brick acid/patio cleaner at B&Q, typically 30–36%) may be more appropriate. It introduces a small chloride contribution, but at this dilution (~1.4 mg/L final concentration) it is negligible. HCl is Sydow et al.'s original acidulant, used by the Holtmann lab to this day. 
+
+> **Alternative for avoiding liquid acids:** If you prefer not to handle or store HCl at home, Sodium Bisulphate (NaHSO₄, sold as dry granular pool "pH Reducer") may be an acceptable carbon-free, chloride-free alternative.  It introduces only Na⁺ and SO₄²⁻ which are already present in the medium. Dissolving 1.20 g of NaHSO₄ in 100 mL of distilled water yields a ~0.1 M acidic solution suitable for the iron stock.
 
 > **Why not citric acid:** Citric acid is a readily metabolisable carbon source for heterotrophs and some HOB. In a protocol designed to select against heterotrophs in Stages 2–3, adding any free carbon source to the iron stock undermines the selective pressure and means autotrophic growth cannot be confirmed as the sole basis for OD increase. Note that ferric ammonium citrate, used by Givirovskiy et al. (2019) at 5 mg/L, is a different case – at that concentration the carbon load is negligible and chelation improves iron bioavailability. However, it introduces ammonium and is harder to source at home than FeSO₄, so it is not recommended here.
 
@@ -54,7 +56,7 @@ HCl (sold as brick acid/patio cleaner at B&Q, typically 30–36%) may be more ap
 | Nickel(II) sulfate hexahydrate | NiSO₄·6H₂O | 1.5 |
 | Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.04 |
 
-If cobalt can't be obtained locally, you might attempt to skip it, hoping for “contamination as a feature”.
+If cobalt can't be obtained locally, or you would rather not work with a you might attempt to skip it, hoping for “contamination as a feature”.
 Store in amber bottle at 4°C.
 
 #### Yeast extract (Stage 4 only)
