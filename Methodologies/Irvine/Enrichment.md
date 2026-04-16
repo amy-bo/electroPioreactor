@@ -18,6 +18,23 @@ Once sustained growth is confirmed by rising OD, biomass consumption should keep
 
 ---
 
+## Equipment and materials checklist
+
+Before starting, confirm the following are available and functional:
+
+- AEP0.1 (fully assembled with electrodes, CO₂ sparging, and peristaltic pumps)
+- SodaStream cylinder, connected and regulated
+- Measuring cylinder (>15 ml)
+- Basin large enough to collect gas in measuring cylinder over water
+- Multimeter
+- Pressure cooker
+- Clean centrifuge tubes (scalded with boiling water)
+- Disposable sterile syringe for yeast extract addition in Stage 4
+- Medium prepared as per [Medium.md](Medium.md), without yeast extract
+- Yeast extract stock prepared separately in distilled water and pressure-cooked
+
+---
+
 ## Stage 1 – Pre-run calibrations
 
 Complete all calibrations before collecting field samples. The inoculum should go into a running, calibrated reactor with as little delay as possible.

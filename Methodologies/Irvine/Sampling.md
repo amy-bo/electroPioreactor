@@ -8,19 +8,13 @@ Field sampling protocol for collecting inoculum from the Irvine River for HOB en
 
 Before starting, confirm the following are available and functional:
 
-- AEP0.1 (fully assembled with electrodes, CO₂ sparging, and peristaltic pumps)
-- SodaStream cylinder, connected and regulated
-- Multimeter
-- Pressure cooker
-- Clean sealable sample jars (scalded with boiling water)
-- Disposable sterile syringe for yeast extract addition in Stage 4
-- Medium prepared as per [Medium.md](Medium.md), without yeast extract
-- Yeast extract stock prepared separately in distilled water and pressure-cooked
+- AEP0.1 initially set up at base - see [Enrichment.md](Enrichment.md)
+- Clean centrifuge tubes (scalded with boiling water)
 - 12V battery and leads (optional – see field pre-conditioning below)
 
 ---
 
-## Stage 1 – Sampling at the Irvine River
+## Sampling at the Irvine River
 
 Sample from the inside bank. Target slow-flowing margins where fine sediment accumulates — pools behind rocks, inside bends, or backwater eddies where organic matter collects. The target community is at the oxic-anoxic interface where H₂ produced by anaerobes in the sediment diffuses upward into oxygenated water — this is where HOB naturally concentrate. In a river, this interface is typically in the top few centimetres of accumulated fine sediment in depositional zones, not in fast-flowing gravel beds.
 
@@ -28,7 +22,7 @@ Take a few centimetres of interface sediment and ~200 mL of overlying water from
 
 Keep samples cool and dark during transport and process within 4 hours.
 
-Transfer a portion of sediment into a clean centrifuge tube. Label with location, GPS coordinates, date, time, sampler name and sample ID matching the enrichment inoculum. Place in freezer on return and store until required for DNA extraction. No preservative is necessary for frozen samples; freezing prevents further community shift between sampling and analysis. This archive allows retrospective 16S rRNA sequencing of the source community for comparison against any enrichment culture derived from the matched inoculum. Samples remain viable for years in a domestic freezer (-18°C) and indefinitely at -80°C.
+Transfer a portion of sediment to fill a clean centrifuge tube. Label with location, GPS coordinates, date, time, sampler name and sample ID matching the enrichment inoculum. Place in freezer on return and store until required for DNA extraction. No preservative is necessary for frozen samples; freezing prevents further community shift between sampling and analysis. This archive allows retrospective 16S rRNA sequencing of the source community for comparison against any enrichment culture derived from the matched inoculum. Samples remain viable for years in a domestic freezer (-18°C) and indefinitely at -80°C.
 
 ---
 
