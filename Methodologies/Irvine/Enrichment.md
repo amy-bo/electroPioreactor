@@ -28,7 +28,7 @@ Follow the standard Pioreactor calibration procedures for OD sensor and peristal
 
 ### 1b. CO₂ sparge volume calibration
 
-The AEP0.1 headspace is approximately 3 mL (20 mL vial minus 15 mL liquid minus ~2 mL of submerged electrodes and tubing). Each sparge event should deliver **6–9 mL of CO₂** (2–3 headspace volumes) to ensure effective displacement of accumulated O₂.
+The AEP0.1 headspace is approximately 3 mL (20 mL vial minus 15 mL liquid minus ~2 mL of submerged electrodes and tubing). Each sparge event should deliver 15 mL of CO₂. This volume both displaces the headspace several times and bubbles through the liquid, to saturate it with CO₂ as the primary carbon source for autotrophic growth. Headspace displacement provides a secondary O₂-reduction benefit but cannot maintain low O₂ between sparges in this vented single-chamber configuration (see Stage 2 sparging rationale).
 
 **Calibration procedure:**
 
@@ -36,7 +36,7 @@ The AEP0.1 headspace is approximately 3 mL (20 mL vial minus 15 mL liquid minus 
 2. Direct the CO₂ sparging tube into the measuring cylinder
 3. Open the solenoid valve for a timed interval (start with 5 seconds) and record the volume of water displaced
 4. Repeat at 3, 5, 10 and 15 seconds to establish a flow-rate curve
-5. Determine the solenoid-open duration that delivers 6–9 mL; this is **one sparge event**
+5. Determine the solenoid-open duration that delivers 15 mL; this is **one sparge event**
 
 Record the calibrated sparge duration. This value is hardware-specific and must be re-measured if the SodaStream cylinder, solenoid, or tubing is changed.
 
@@ -54,11 +54,11 @@ Set stir rate to **500 rpm** initially. Note the rate used – if results are un
 
 **Begin electrolysis.** In the AEP0.1, electrolysis is driven by LED D – the fourth LED channel on the Pioreactor HAT, repurposed to drive electrolysis current rather than its default illumination function. Set LED D power to 2.5%, or the lowest level that produces consistent visible bubble formation on both electrodes – whichever is higher. Record the resulting voltage and current using the multimeter. LED D power percentage is not transferable between different electrode configurations; voltage and current are the transferable reference values for anyone replicating this protocol with different hardware.
 
-**Begin automated CO₂ sparging.** CO₂ sparging serves two simultaneous purposes: supplying inorganic carbon for autotrophic growth, and purging accumulated O₂ from the headspace. Water electrolysis produces H₂ and O₂ at a 2:1 molar ratio but HOB consume them at approximately 4:1 (Rovira-Alsina et al., 2025a), so O₂ accumulates in excess without active management. However, over-sparging strips dissolved H₂ from the medium, directly limiting HOB growth.
+**Begin automated CO₂ sparging.** CO₂ sparging serves two simultaneous purposes: supplying inorganic carbon for autotrophic growth, and purging accumulated O₂. At 1 atm CO₂ during a sparge, dissolved CO₂ saturates at ~29 mM in 15 mL (~435 µmol). HOB consume CO₂ at ~1 mol per 4 mol H₂, so at expected low currents (single mA range) this reserve lasts tens of hours between sparges.
+Sparging also reduces headspace O₂ transiently, but cannot maintain low O₂ between sparges in a vented single-chamber electrolyser. Water electrolysis produces H₂ and O₂ at a 2:1 molar ratio; between sparges the vented headspace trends toward this composition.
 
-**Pause electrolysis during each sparge event** by setting LED D to 0% for the duration of the sparge. This prevents the anode generating O₂ that the purge is simultaneously trying to remove. Rovira-Alsina et al. (2025b) disconnected electrolysis during CO₂ flushing for the same reason. Restore LED D to its operating power immediately after the sparge completes.
-
-**Starting frequency: 4× per day (every 6 hours),** using the calibrated sparge duration from Stage 1b. This is conservative: Pous et al. (2023) used 2×/day in reactors with approximately 50× more headspace (150 mL vs. ~3 mL) and found this insufficient at higher current densities. The AEP0.1's small headspace means O₂ partial pressure rises much faster per unit of O₂ produced, demanding more frequent purging. If OD stalls or declines unexpectedly, increase to 6×/day as the first diagnostic step. Do not reduce below 3×/day.
+**Frequency: 8× per day (every 3 hours)**, using the calibrated sparge duration from Stage 1b. This is driven by CO₂ replenishment timing. If OD stalls or declines unexpectedly, increase CO2 sparge frequency as the first diagnostic step.
+Pausing electrolysis during each sparge (LED D → 0% for the sparge duration) provides a marginal benefit by avoiding simultaneous O₂ generation. Implement it in the automation if straightforward, otherwise do not delay starting the enrichment for this.
 
 **Inoculate via sediment elutriation.** In a clean tube, combine ~1 mL of collected sediment with ~5 mL of river water from the same sampling site. Cap and shake vigorously for 30 seconds. Let coarse material settle for 1-2 minutes. Draw 750 μL (5% v/v) from the upper portion of the liquid for inoculation, avoiding the settled grit at the bottom. This concentrates sediment-associated microbes (including HOB, which are more abundant in sediment than in overlying water) while excluding the coarse mineral fraction that would otherwise risk scratching electrodes, jamming the stir bar, or contributing to OD noise.
 
@@ -95,6 +95,8 @@ The HOB community established in Stages 2–3 now receives a growth boost via ye
 
 The turbidostat will now gradually wash out any heterotrophs that grew on the yeast extract, while HOB continue on H₂ and CO₂.
 
+After this milestone, the turbidostat continues running indefinitely as the maintenance mode for the established HOB culture.
+
 **Milestone to advance:** OD stable through at least three volume turnovers of yeast-extract-free medium.
 
 ---
@@ -117,5 +119,5 @@ If OD declines over subsequent readings and does not recover until electrolysis 
 - Pous et al. (2022) https://doi.org/10.1016/j.biteb.2022.101010
 - Pous et al. (2023) https://doi.org/10.1016/j.jece.2023.111550
 - Rovira-Alsina et al. (2025a) https://doi.org/10.1016/j.jpowsour.2025.236499
-- Rovira-Alsina et al. (2025b) https://doi.org/10.1016/j.biortech.2024.131767
+- Rovira-Alsina et al. (2025b, preprint) https://doi.org/10.2139/ssrn.5457298
 - Yang et al. (2021) https://doi.org/10.1016/j.jclepro.2021.125921
