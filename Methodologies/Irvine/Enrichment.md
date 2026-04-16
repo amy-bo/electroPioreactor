@@ -28,7 +28,7 @@ Follow the standard Pioreactor calibration procedures for OD sensor and peristal
 
 ### 1b. CO₂ sparge volume calibration
 
-The AEP0.1 headspace is approximately 3 mL (20 mL vial minus 15 mL liquid minus ~2 mL of submerged electrodes and tubing). Each sparge event should deliver 15 mL of CO₂. This volume both displaces the headspace several times and bubbles through the liquid, to saturate it with CO₂ as the primary carbon source for autotrophic growth. Headspace displacement provides a secondary O₂-reduction benefit but cannot maintain low O₂ between sparges in this vented single-chamber configuration (see Stage 2 sparging rationale).
+The AEP0.1 headspace is approximately 3 mL (20 mL vial minus 15 mL liquid minus ~2 mL of submerged electrodes and tubing). Each sparge event delivers 15 mL of CO₂. The sparging tube terminates at the anode base, so CO₂ bubbles rise through the upper portion of the liquid column before displacing the headspace. This both saturates the liquid with dissolved CO₂ as the carbon source for autotrophic growth, and strips dissolved O₂ away from the cathode to prevent parasitic cathodic O₂ reduction (see Stage 2 sparging rationale).
 
 **Calibration procedure:**
 
@@ -54,11 +54,10 @@ Set stir rate to **500 rpm** initially. Note the rate used – if results are un
 
 **Begin electrolysis.** In the AEP0.1, electrolysis is driven by LED D – the fourth LED channel on the Pioreactor HAT, repurposed to drive electrolysis current rather than its default illumination function. Set LED D power to 2.5%, or the lowest level that produces consistent visible bubble formation on both electrodes – whichever is higher. Record the resulting voltage and current using the multimeter. LED D power percentage is not transferable between different electrode configurations; voltage and current are the transferable reference values for anyone replicating this protocol with different hardware.
 
-**Begin automated CO₂ sparging.** CO₂ sparging serves two simultaneous purposes: supplying inorganic carbon for autotrophic growth, and purging accumulated O₂. At 1 atm CO₂ during a sparge, dissolved CO₂ saturates at ~29 mM in 15 mL (~435 µmol). HOB consume CO₂ at ~1 mol per 4 mol H₂, so at expected low currents (single mA range) this reserve lasts tens of hours between sparges.
-Sparging also reduces headspace O₂ transiently, but cannot maintain low O₂ between sparges in a vented single-chamber electrolyser. Water electrolysis produces H₂ and O₂ at a 2:1 molar ratio; between sparges the vented headspace trends toward this composition.
+**Begin automated CO₂ sparging.** Sparging serves two purposes: supplying dissolved CO₂ as the carbon source for autotrophic growth, and stripping dissolved O₂ to protect cathodic H₂ evolution. Water electrolysis produces H₂ and O₂ at a 2:1 molar ratio; HOB consume them at approximately 4:1, so excess O₂ accumulates. If dissolved O₂ reaches the cathode, it is preferentially reduced back to water (O₂ + 4H⁺ + 4e⁻ → 2H₂O is thermodynamically favoured over 2H⁺ + 2e⁻ → H₂), consuming current without producing H₂. This "oxygen recycling" was identified as a major efficiency loss by Pous et al. (2022). The purge target is therefore low cathode-local dissolved O₂ - not low ambient O₂ for the bacteria themselves, which are aerobic.
 
-**Frequency: 8× per day (every 3 hours)**, using the calibrated sparge duration from Stage 1b. This is driven by CO₂ replenishment timing. If OD stalls or declines unexpectedly, increase CO2 sparge frequency as the first diagnostic step.
-Pausing electrolysis during each sparge (LED D → 0% for the sparge duration) provides a marginal benefit by avoiding simultaneous O₂ generation. Implement it in the automation if straightforward, otherwise do not delay starting the enrichment for this.
+**Frequency: 8× per day (every 3 hours)**, using the calibrated sparge duration from Stage 1b. This is an initial estimate; optimal frequency for preventing cathodic O₂ reduction at the operating current has not been determined empirically. Monitor current draw during operation - if current rises without corresponding bubble formation at the cathode (indicating O₂ reduction rather than H₂ evolution), increase sparge frequency.
+Pause electrolysis during each sparge event (LED D → 0% for the sparge duration) to avoid simultaneous anodic O₂ generation working against the purge. Restore LED D to its operating power immediately after the sparge completes.
 
 **Inoculate via sediment elutriation.** In a clean tube, combine ~1 mL of collected sediment with ~5 mL of river water from the same sampling site. Cap and shake vigorously for 30 seconds. Let coarse material settle for 1-2 minutes. Draw 750 μL (5% v/v) from the upper portion of the liquid for inoculation, avoiding the settled grit at the bottom. This concentrates sediment-associated microbes (including HOB, which are more abundant in sediment than in overlying water) while excluding the coarse mineral fraction that would otherwise risk scratching electrodes, jamming the stir bar, or contributing to OD noise.
 
@@ -84,13 +83,13 @@ Repeat once more.
 
 ## Stage 4 – Yeast extract boost
 
-The HOB community established in Stages 2–3 now receives a growth boost via yeast extract, providing vitamins and trace organics that accelerate growth. This must be delivered in **batch mode**, not via the turbidostat. Even after two rounds of autotrophic selection, residual heterotrophs remain in the culture at low abundance. If yeast extract is introduced while the turbidostat is running, any heterotrophic growth it stimulates will be continuously amplified by dilution; delivering it as a batch pulse allows the culture to consume it and reach stationary phase before continuous dilution resumes, limiting the window during which heterotrophs can compete.
+The HOB community established in Stages 2–3 now receives a growth boost via yeast extract, providing vitamins and trace organics that accelerate growth. The yeast extract is delivered as a batch pulse before the turbidostat is started. Even after two rounds of autotrophic selection, residual heterotrophs remain in the culture at low abundance. Delivering yeast extract as a batch pulse allows the culture to consume it and reach stationary phase before continuous dilution begins, limiting the window during which heterotrophs can compete. Once the pulse has been consumed and the medium reservoir switched to yeast-extract-free medium, the turbidostat is started for the first time; it then gradually washes out any heterotrophs that grew on the yeast extract while HOB continue on H₂ and CO₂.
 
 **Procedure:**
 
 1. Using a disposable sterile syringe, add a pulse of pressure-cooked yeast extract stock directly to the running culture (target 1.0 g/L final concentration in the vial)
 2. Allow the culture to consume it and reach stationary phase – indicated by OD plateauing and remaining stable for at least 6 hours
-3. Switch the medium reservoir to yeast-extract-free medium and turn the turbidostat back on
+3. Switch the medium reservoir to yeast-extract-free medium and start the turbidostat
 
 The turbidostat will now gradually wash out any heterotrophs that grew on the yeast extract, while HOB continue on H₂ and CO₂.
 
