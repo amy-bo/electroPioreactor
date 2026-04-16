@@ -88,10 +88,9 @@ The HOB community established in Stages 2–3 now receives a growth boost via ye
 
 **Procedure:**
 
-1. Turn off the turbidostat automation (switch to batch mode)
-2. Using a disposable sterile syringe, add a pulse of pressure-cooked yeast extract stock directly to the running culture (target 1.0 g/L final concentration in the vial)
-3. Allow the culture to consume it and reach stationary phase – indicated by OD plateauing and remaining stable for at least 6 hours
-4. Switch the medium reservoir to yeast-extract-free medium and turn the turbidostat back on
+1. Using a disposable sterile syringe, add a pulse of pressure-cooked yeast extract stock directly to the running culture (target 1.0 g/L final concentration in the vial)
+2. Allow the culture to consume it and reach stationary phase – indicated by OD plateauing and remaining stable for at least 6 hours
+3. Switch the medium reservoir to yeast-extract-free medium and turn the turbidostat back on
 
 The turbidostat will now gradually wash out any heterotrophs that grew on the yeast extract, while HOB continue on H₂ and CO₂.
 
