@@ -60,7 +60,9 @@ Set stir rate to **500 rpm** initially. Note the rate used – if results are un
 
 **Starting frequency: 4× per day (every 6 hours),** using the calibrated sparge duration from Stage 1b. This is conservative: Pous et al. (2023) used 2×/day in reactors with approximately 50× more headspace (150 mL vs. ~3 mL) and found this insufficient at higher current densities. The AEP0.1's small headspace means O₂ partial pressure rises much faster per unit of O₂ produced, demanding more frequent purging. If OD stalls or declines unexpectedly, increase to 6×/day as the first diagnostic step. Do not reduce below 3×/day.
 
-Inoculate with 750 μL (5% v/v) of river water with a small amount of interface sediment suspended within it.
+**Inoculate via sediment elutriation.** In a clean tube, combine ~1 mL of collected sediment with ~5 mL of river water from the same sampling site. Cap and shake vigorously for 30 seconds. Let coarse material settle for 1-2 minutes. Draw 750 μL (5% v/v) from the upper portion of the liquid for inoculation, avoiding the settled grit at the bottom. This concentrates sediment-associated microbes (including HOB, which are more abundant in sediment than in overlying water) while excluding the coarse mineral fraction that would otherwise risk scratching electrodes, jamming the stir bar, or contributing to OD noise.
+
+**Operating mode: batch with manual volume maintenance.** Stage 2 runs in batch mode - no turbidostat or chemostat automation. At low initial cell densities, any dilution would wash out the sparse inoculum before it could establish. However, evaporative loss through the vent stubs at 30°C is significant over 10-14 days and will concentrate salts, drop the liquid level below the OD path, and eventually expose electrodes. Pause OD measurement and check the liquid level daily manually pumping in sterile deionised water (not fresh medium) to maintain 15 mL. Topping up with medium would progressively concentrate salts; topping up with water replaces only what has evaporated.
 
 **OD growth expectations.** Do not expect detectable OD increases for at least 10–14 days. Environmental HOB are present at low abundance in river water; the inoculum starts at perhaps 10³–10⁴ relevant cells/mL. Autotrophic HOB doubling times are 6–24 hours under favourable conditions and likely longer during initial adaptation. Many doublings are needed before the culture reaches the Pioreactor's OD detection threshold. This lag is normal and consistent with published enrichment timescales.
 
@@ -72,11 +74,11 @@ Inoculate with 750 μL (5% v/v) of river water with a small amount of interface 
 
 ## Stage 3 – Pre-conditioning serial transfer
 
-Once the Stage 2 milestone is met, transfer 750 μL (5% v/v) of the culture into a fresh vial of identical medium (no yeast extract, no sterilisation). Resume electrolysis, sparging, and temperature immediately.
+Once the Stage 2 milestone is met, transfer 750 μL (5% v/v) of the culture into a fresh vial of identical medium (no yeast extract, no sterilisation). Resume electrolysis, sparging, and temperature immediately.  Stage 3 also runs in batch mode; maintain daily volume top-ups with sterile deionised water as in Stage 2.
 
 Repeat once more.
 
-**Milestone to advance:** OD rising to a consistent level detectably faster in the second transfer than in the first.
+**Milestone to advance:** OD rising to a consistent plateau in the second transfer at a similar or higher level to the first, demonstrating the culture is self-sustaining across transfers. With a single enrichment line, genuine community refinement cannot be distinguished from stochastic variation between transfers; the meaningful test is self-sustainability, not speed of growth.
 
 ---
 
