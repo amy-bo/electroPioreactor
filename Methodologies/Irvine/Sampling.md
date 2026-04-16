@@ -28,6 +28,8 @@ Take a few centimetres of interface sediment and ~200 mL of overlying water from
 
 Keep samples cool and dark during transport and process within 4 hours.
 
+Transfer a portion of sediment into a clean centrifuge tube. Label with location, GPS coordinates, date, time, sampler name and sample ID matching the enrichment inoculum. Place in freezer on return and store until required for DNA extraction. No preservative is necessary for frozen samples; freezing prevents further community shift between sampling and analysis. This archive allows retrospective 16S rRNA sequencing of the source community for comparison against any enrichment culture derived from the matched inoculum. Samples remain viable for years in a domestic freezer (-18°C) and indefinitely at -80°C.
+
 ---
 
 ### Optional field pre-conditioning
