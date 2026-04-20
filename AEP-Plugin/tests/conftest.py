@@ -1,0 +1,83 @@
+# -*- coding: utf-8 -*-
+"""
+Inject stub modules for the pioreactor package so tests can run off-device.
+
+All pioreactor imports are satisfied by lightweight fakes; only the logic
+inside ElectroPioreactor itself is exercised.
+"""
+import sys
+import types
+from unittest.mock import MagicMock
+
+
+def _mod(name: str) -> types.ModuleType:
+    m = types.ModuleType(name)
+    sys.modules[name] = m
+    return m
+
+
+# ── package skeleton ──────────────────────────────────────────────────────────
+_mod("pioreactor")
+_mod("pioreactor.background_jobs")
+_mod("pioreactor.actions")
+_mod("pioreactor.cli")
+_mod("pioreactor.utils")
+
+
+# ── BackgroundJob ─────────────────────────────────────────────────────────────
+class _BackgroundJob:
+    READY = "ready"
+    SLEEPING = "sleeping"
+    DISCONNECTED = "disconnected"
+
+    def __init__(self, unit, experiment):
+        self.unit = unit
+        self.experiment = experiment
+        self.state = self.READY
+        self.logger = MagicMock()
+        self.pub_client = MagicMock()
+
+    def on_init_to_ready(self): pass
+    def on_ready_to_sleeping(self): pass
+    def on_sleeping_to_ready(self): pass
+    def on_disconnected(self): pass
+
+
+_bgj = _mod("pioreactor.background_jobs.base")
+_bgj.BackgroundJob = _BackgroundJob
+
+
+# ── led_intensity ─────────────────────────────────────────────────────────────
+_ali = _mod("pioreactor.actions.led_intensity")
+_ali.led_intensity = MagicMock()
+
+
+# ── CLI run group (click group is replaced by a no-op decorator factory) ──────
+_cli = _mod("pioreactor.cli.run")
+_mock_run = MagicMock()
+_mock_run.command = lambda *a, **kw: (lambda f: f)
+_cli.run = _mock_run
+
+
+# ── config ────────────────────────────────────────────────────────────────────
+_cfg = _mod("pioreactor.config")
+_mock_config = MagicMock()
+_mock_config.get.return_value = "4"                          # PWM_reverse → channel "4"
+_mock_config.getfloat.side_effect = lambda s, k, **kw: kw.get("fallback", 0.0)
+_cfg.config = _mock_config
+
+
+# ── hardware ──────────────────────────────────────────────────────────────────
+_hw = _mod("pioreactor.hardware")
+_hw.PWM_TO_PIN = {"4": 12}
+
+
+# ── PWM ───────────────────────────────────────────────────────────────────────
+_upwm = _mod("pioreactor.utils.pwm")
+_upwm.PWM = MagicMock(side_effect=lambda *a, **kw: MagicMock())  # fresh unspec'd mock per call
+
+
+# ── whoami ────────────────────────────────────────────────────────────────────
+_wai = _mod("pioreactor.whoami")
+_wai.get_unit_name = MagicMock(return_value="unit")
+_wai.get_assigned_experiment_name = MagicMock(return_value="exp")

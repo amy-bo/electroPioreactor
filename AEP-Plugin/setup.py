@@ -18,6 +18,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[],
+    extras_require={"dev": ["pytest>=7", "click"]},
     entry_points={
         "pioreactor.plugins": "pioreactor_electropioreactor_plugin = pioreactor_electropioreactor_plugin"
     },
