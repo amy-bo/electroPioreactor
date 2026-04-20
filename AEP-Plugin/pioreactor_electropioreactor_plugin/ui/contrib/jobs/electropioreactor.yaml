@@ -1,0 +1,33 @@
+---
+display_name: electroPioreactor
+job_name: electropioreactor
+display: true
+source: pioreactor_electropioreactor_plugin
+description: >
+  Drives electrolysis (LED D) at a user-defined power level and periodically
+  opens the CO₂ solenoid for a user-defined duration. Electrolysis is paused
+  during each sparge and resumed immediately afterwards.
+published_settings:
+  - key: electrolysis_power
+    unit: "%"
+    label: Electrolysis Power
+    description: >
+      Intensity of LED D, which drives electrolysis via the electrode pair
+      (0–100 %). Set to 0 to disable electrolysis.
+    type: numeric
+    default: 2.5
+    display: true
+  - key: sparge_duration_seconds
+    unit: s
+    label: Sparging Duration
+    description: How long the CO₂ solenoid is opened during each sparging cycle.
+    type: numeric
+    default: 10.0
+    display: true
+  - key: sparge_interval_minutes
+    unit: min
+    label: Sparging Interval
+    description: How often a sparging cycle occurs.
+    type: numeric
+    default: 60.0
+    display: true

@@ -13,28 +13,29 @@ from pioreactor.utils.pwm import PWM
 from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
-__plugin_summary__ = "AEP CO₂ sparging with electrolysis power control"
-__plugin_version__ = "0.1.0"
-__plugin_name__ = "AEP Sparging"
+__plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
+__plugin_version__ = "0.2.0"
+__plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
-__plugin_homepage__ = "https://github.com/amybo-org/pioreactor-aep-plugin"
+__plugin_homepage__ = "https://github.com/amybo-org/pioreactor-electropioreactor-plugin"
 
 
-class AEPSparging(BackgroundJob):
+class ElectroPioreactor(BackgroundJob):
     """
-    Controls CO₂ sparging and electrolysis (LED D) for the Aseptic ElectroPioreactor.
+    Single background job for electroPioreactors.
 
-    Periodically opens the CO₂ solenoid for `sparge_duration_seconds` every
-    `sparge_interval_hours`. LED D (electrolysis) is turned off during sparging
-    and restored immediately after.
+    Drives electrolysis via LED channel D at a user-defined power level, and
+    periodically opens a CO₂ solenoid (PWM channel 4) for a user-defined
+    duration every user-defined interval. Electrolysis is paused for the
+    duration of each sparge and resumed immediately after.
     """
 
-    job_name = "aep_sparging"
+    job_name = "electropioreactor"
 
     published_settings = {
-        "electrolysis_power": {"datatype": "float", "settable": True, "unit": "%"},
-        "sparge_duration_seconds": {"datatype": "float", "settable": True, "unit": "s"},
-        "sparge_interval_hours": {"datatype": "float", "settable": True, "unit": "h"},
+        "electrolysis_power": {"datatype": "float", "settable": True},
+        "sparge_duration_seconds": {"datatype": "float", "settable": True},
+        "sparge_interval_minutes": {"datatype": "float", "settable": True},
     }
 
     def __init__(
@@ -43,12 +44,12 @@ class AEPSparging(BackgroundJob):
         experiment: str,
         electrolysis_power: float = 2.5,
         sparge_duration_seconds: float = 10.0,
-        sparge_interval_hours: float = 1.0,
+        sparge_interval_minutes: float = 60.0,
     ) -> None:
         super().__init__(unit=unit, experiment=experiment)
-        self.electrolysis_power = float(electrolysis_power)
-        self.sparge_duration_seconds = float(sparge_duration_seconds)
-        self.sparge_interval_hours = float(sparge_interval_hours)
+        self.electrolysis_power = self._clamp_power(electrolysis_power)
+        self.sparge_duration_seconds = self._positive(sparge_duration_seconds, "sparge_duration_seconds")
+        self.sparge_interval_minutes = self._positive(sparge_interval_minutes, "sparge_interval_minutes")
         self._is_sparging = False
         self._sparge_timer: threading.Timer | None = None
         self._stop_timer: threading.Timer | None = None
@@ -72,15 +73,15 @@ class AEPSparging(BackgroundJob):
     # ── settings setters ────────────────────────────────────────────────────
 
     def set_electrolysis_power(self, value: float) -> None:
-        self.electrolysis_power = float(value)
+        self.electrolysis_power = self._clamp_power(value)
         if not self._is_sparging:
             self._set_led_d(self.electrolysis_power)
 
     def set_sparge_duration_seconds(self, value: float) -> None:
-        self.sparge_duration_seconds = float(value)
+        self.sparge_duration_seconds = self._positive(value, "sparge_duration_seconds")
 
-    def set_sparge_interval_hours(self, value: float) -> None:
-        self.sparge_interval_hours = float(value)
+    def set_sparge_interval_minutes(self, value: float) -> None:
+        self.sparge_interval_minutes = self._positive(value, "sparge_interval_minutes")
         if not self._is_sparging:
             self._schedule_next_sparge()
 
@@ -90,19 +91,18 @@ class AEPSparging(BackgroundJob):
         if self._sparge_timer is not None:
             self._sparge_timer.cancel()
         self._sparge_timer = threading.Timer(
-            self.sparge_interval_hours * 3600, self._begin_sparge
+            self.sparge_interval_minutes * 60.0, self._begin_sparge
         )
         self._sparge_timer.daemon = True
         self._sparge_timer.start()
 
     def _begin_sparge(self) -> None:
         if self.state != self.READY:
-            self._schedule_next_sparge()
             return
 
         self._is_sparging = True
         self.logger.info(
-            f"Sparging CO₂ for {self.sparge_duration_seconds:.0f}s (LED D off during sparging)"
+            f"Sparging CO₂ for {self.sparge_duration_seconds:.0f}s (electrolysis paused)"
         )
         self._set_led_d(0.0)
         self._pwm.change_duty_cycle(100.0)
@@ -113,10 +113,11 @@ class AEPSparging(BackgroundJob):
 
     def _end_sparge(self) -> None:
         self._pwm.change_duty_cycle(0.0)
-        self._set_led_d(self.electrolysis_power)
         self._is_sparging = False
-        self.logger.debug("CO₂ sparging complete; LED D restored")
-        self._schedule_next_sparge()
+        if self.state == self.READY:
+            self._set_led_d(self.electrolysis_power)
+            self.logger.debug("CO₂ sparging complete; electrolysis resumed")
+            self._schedule_next_sparge()
 
     # ── lifecycle hooks ──────────────────────────────────────────────────────
 
@@ -125,6 +126,7 @@ class AEPSparging(BackgroundJob):
         self._cancel_timers()
         self._pwm.change_duty_cycle(0.0)
         self._set_led_d(0.0)
+        self._is_sparging = False
 
     def on_sleeping_to_ready(self) -> None:
         super().on_sleeping_to_ready()
@@ -152,41 +154,57 @@ class AEPSparging(BackgroundJob):
             self._stop_timer.cancel()
             self._stop_timer = None
 
+    @staticmethod
+    def _clamp_power(value: float) -> float:
+        v = float(value)
+        if v < 0.0:
+            return 0.0
+        if v > 100.0:
+            return 100.0
+        return v
 
-@run.command(name="aep_sparging", help=__plugin_summary__)
+    @staticmethod
+    def _positive(value: float, name: str) -> float:
+        v = float(value)
+        if v <= 0.0:
+            raise ValueError(f"{name} must be > 0 (got {v})")
+        return v
+
+
+@run.command(name="electropioreactor", help=__plugin_summary__)
 @click.option(
     "--electrolysis-power",
-    default=config.getfloat("aep_sparging.config", "electrolysis_power", fallback=2.5),
+    default=config.getfloat("electropioreactor.config", "electrolysis_power", fallback=2.5),
     type=float,
     show_default=True,
-    help="Initial LED D intensity for electrolysis (0–100 %).",
+    help="LED D intensity for electrolysis (0–100 %).",
 )
 @click.option(
     "--sparge-duration-seconds",
-    default=config.getfloat("aep_sparging.config", "sparge_duration_seconds", fallback=10.0),
+    default=config.getfloat("electropioreactor.config", "sparge_duration_seconds", fallback=10.0),
     type=float,
     show_default=True,
     help="How long to open the CO₂ solenoid each cycle (seconds).",
 )
 @click.option(
-    "--sparge-interval-hours",
-    default=config.getfloat("aep_sparging.config", "sparge_interval_hours", fallback=1.0),
+    "--sparge-interval-minutes",
+    default=config.getfloat("electropioreactor.config", "sparge_interval_minutes", fallback=60.0),
     type=float,
     show_default=True,
-    help="How often to sparge (hours).",
+    help="How often to sparge (minutes).",
 )
-def click_aep_sparging(
+def click_electropioreactor(
     electrolysis_power: float,
     sparge_duration_seconds: float,
-    sparge_interval_hours: float,
+    sparge_interval_minutes: float,
 ) -> None:
     unit = get_unit_name()
     experiment = get_assigned_experiment_name(unit)
-    job = AEPSparging(
+    job = ElectroPioreactor(
         unit=unit,
         experiment=experiment,
         electrolysis_power=electrolysis_power,
         sparge_duration_seconds=sparge_duration_seconds,
-        sparge_interval_hours=sparge_interval_hours,
+        sparge_interval_minutes=sparge_interval_minutes,
     )
     job.block_until_disconnected()

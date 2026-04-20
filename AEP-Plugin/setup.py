@@ -5,20 +5,20 @@ from setuptools import find_packages
 from setuptools import setup
 
 setup(
-    name="pioreactor-aep-plugin",
-    version="0.1.0",
+    name="pioreactor-electropioreactor-plugin",
+    version="0.2.0",
     license="MIT",
     license_files=("LICENSE.txt",),
-    description="CO₂ sparging and electrolysis power control for the Aseptic ElectroPioreactor.",
+    description="Electrolysis and CO₂ sparging control for electroPioreactors.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     author="Martin Currie",
     author_email="martin@amybo.org",
-    url="https://github.com/amybo-org/pioreactor-aep-plugin",
+    url="https://github.com/amybo-org/pioreactor-electropioreactor-plugin",
     packages=find_packages(),
     include_package_data=True,
     install_requires=[],
     entry_points={
-        "pioreactor.plugins": "pioreactor_aep_plugin = pioreactor_aep_plugin"
+        "pioreactor.plugins": "pioreactor_electropioreactor_plugin = pioreactor_electropioreactor_plugin"
     },
 )
