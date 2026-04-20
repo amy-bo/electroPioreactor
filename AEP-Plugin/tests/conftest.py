@@ -5,9 +5,14 @@ Inject stub modules for the pioreactor package so tests can run off-device.
 All pioreactor imports are satisfied by lightweight fakes; only the logic
 inside ElectroPioreactor itself is exercised.
 """
+import os
 import sys
 import types
-from unittest.mock import MagicMock
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+# Point DOT_PIOREACTOR at /tmp so _config_paths() has a writable directory.
+os.environ.setdefault("DOT_PIOREACTOR", "/tmp")
 
 
 def _mod(name: str) -> types.ModuleType:

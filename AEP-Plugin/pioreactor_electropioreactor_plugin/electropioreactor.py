@@ -17,7 +17,7 @@ from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
 __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
-__plugin_version__ = "0.5.0"
+__plugin_version__ = "0.5.1"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
 __plugin_homepage__ = "https://github.com/amybo-org/pioreactor-electropioreactor-plugin"
@@ -185,50 +185,54 @@ class ElectroPioreactor(BackgroundJob):
             self._stop_timer.cancel()
             self._stop_timer = None
 
-    def _unit_config_path(self) -> Path:
-        return Path(os.environ["DOT_PIOREACTOR"]) / "unit_config.ini"
+    def _config_paths(self) -> list[Path]:
+        # The web UI reads config.ini + config_<unit>.ini (e.g. config_pio01.ini).
+        # The job process reads config.ini + unit_config.ini.
+        # We must write to both so the Advanced form and the next job start stay in sync.
+        dot = Path(os.environ["DOT_PIOREACTOR"])
+        return [dot / f"config_{self.unit}.ini", dot / "unit_config.ini"]
 
     def _save_all_config(self) -> None:
-        """Write all three current values to unit_config.ini in one pass."""
-        try:
-            path = self._unit_config_path()
-            parser = configparser.ConfigParser()
-            parser.read(path)
-            if not parser.has_section(_CONFIG_SECTION):
-                parser.add_section(_CONFIG_SECTION)
-            parser.set(_CONFIG_SECTION, "electrolysis_power", str(self.electrolysis_power))
-            parser.set(_CONFIG_SECTION, "sparge_duration_seconds", str(self.sparge_duration_seconds))
-            parser.set(_CONFIG_SECTION, "sparge_interval_minutes", str(self.sparge_interval_minutes))
-            with open(path, "w") as fh:
-                parser.write(fh)
-        except Exception as e:
-            self.logger.warning(f"Could not persist settings to unit_config.ini: {e}")
+        """Write all three current values to both config files in one pass."""
+        for path in self._config_paths():
+            try:
+                parser = configparser.ConfigParser()
+                parser.read(path)
+                if not parser.has_section(_CONFIG_SECTION):
+                    parser.add_section(_CONFIG_SECTION)
+                parser.set(_CONFIG_SECTION, "electrolysis_power", str(self.electrolysis_power))
+                parser.set(_CONFIG_SECTION, "sparge_duration_seconds", str(self.sparge_duration_seconds))
+                parser.set(_CONFIG_SECTION, "sparge_interval_minutes", str(self.sparge_interval_minutes))
+                with open(path, "w") as fh:
+                    parser.write(fh)
+            except Exception as e:
+                self.logger.warning(f"Could not persist settings to {path.name}: {e}")
 
     def _save_config(self, key: str, value: float) -> None:
-        """Persist a single setting to unit_config.ini (used by runtime setters)."""
-        try:
-            path = self._unit_config_path()
-            parser = configparser.ConfigParser()
-            parser.read(path)
-            if not parser.has_section(_CONFIG_SECTION):
-                parser.add_section(_CONFIG_SECTION)
-            parser.set(_CONFIG_SECTION, key, str(value))
-            with open(path, "w") as fh:
-                parser.write(fh)
-        except Exception as e:
-            self.logger.warning(f"Could not persist {key} to unit_config.ini: {e}")
+        """Persist a single setting to both config files (used by runtime setters)."""
+        for path in self._config_paths():
+            try:
+                parser = configparser.ConfigParser()
+                parser.read(path)
+                if not parser.has_section(_CONFIG_SECTION):
+                    parser.add_section(_CONFIG_SECTION)
+                parser.set(_CONFIG_SECTION, key, str(value))
+                with open(path, "w") as fh:
+                    parser.write(fh)
+            except Exception as e:
+                self.logger.warning(f"Could not persist {key} to {path.name}: {e}")
 
     def _clear_unit_config(self) -> None:
-        """Remove our section from unit_config.ini so base config.ini defaults take effect."""
-        try:
-            path = self._unit_config_path()
-            parser = configparser.ConfigParser()
-            parser.read(path)
-            parser.remove_section(_CONFIG_SECTION)
-            with open(path, "w") as fh:
-                parser.write(fh)
-        except Exception as e:
-            self.logger.warning(f"Could not clear unit_config.ini: {e}")
+        """Remove our section from both config files so config.ini defaults take effect."""
+        for path in self._config_paths():
+            try:
+                parser = configparser.ConfigParser()
+                parser.read(path)
+                parser.remove_section(_CONFIG_SECTION)
+                with open(path, "w") as fh:
+                    parser.write(fh)
+            except Exception as e:
+                self.logger.warning(f"Could not clear {path.name}: {e}")
 
     @staticmethod
     def _clamp_power(value: float) -> float:
