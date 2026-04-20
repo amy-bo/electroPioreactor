@@ -17,7 +17,7 @@ from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
 __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
-__plugin_version__ = "0.4.0"
+__plugin_version__ = "0.5.0"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
 __plugin_homepage__ = "https://github.com/amybo-org/pioreactor-electropioreactor-plugin"
@@ -41,7 +41,10 @@ class ElectroPioreactor(BackgroundJob):
         "electrolysis_power": {"datatype": "float", "settable": True},
         "sparge_duration_seconds": {"datatype": "float", "settable": True},
         "sparge_interval_minutes": {"datatype": "float", "settable": True},
-        "reset_to_defaults": {"datatype": "boolean", "settable": True},
+        # reset_to_defaults is intentionally NOT in published_settings — Pioreactor
+        # would otherwise store and replay the last True value on every restart,
+        # firing a reset 2 seconds after each start. It is in the YAML for UI display
+        # and handled via MQTT set/<unit>/<exp>/electropioreactor/reset_to_defaults.
     }
 
     def __init__(
@@ -73,6 +76,9 @@ class ElectroPioreactor(BackgroundJob):
 
     def on_init_to_ready(self) -> None:
         super().on_init_to_ready()
+        # Persist startup values (which may have come from Pioreactor's config-override
+        # replay) so the Advanced tab always shows what the job actually started with.
+        self._save_all_config()
         self._pwm.start(0.0)
         self._set_led_d(self.electrolysis_power)
         self._schedule_next_sparge()
@@ -109,7 +115,6 @@ class ElectroPioreactor(BackgroundJob):
         self.set_sparge_interval_minutes(
             config.getfloat(_CONFIG_SECTION, "sparge_interval_minutes", fallback=60.0)
         )
-        self.reset_to_defaults = False
 
     # ── sparging cycle ───────────────────────────────────────────────────────
 
@@ -183,8 +188,24 @@ class ElectroPioreactor(BackgroundJob):
     def _unit_config_path(self) -> Path:
         return Path(os.environ["DOT_PIOREACTOR"]) / "unit_config.ini"
 
+    def _save_all_config(self) -> None:
+        """Write all three current values to unit_config.ini in one pass."""
+        try:
+            path = self._unit_config_path()
+            parser = configparser.ConfigParser()
+            parser.read(path)
+            if not parser.has_section(_CONFIG_SECTION):
+                parser.add_section(_CONFIG_SECTION)
+            parser.set(_CONFIG_SECTION, "electrolysis_power", str(self.electrolysis_power))
+            parser.set(_CONFIG_SECTION, "sparge_duration_seconds", str(self.sparge_duration_seconds))
+            parser.set(_CONFIG_SECTION, "sparge_interval_minutes", str(self.sparge_interval_minutes))
+            with open(path, "w") as fh:
+                parser.write(fh)
+        except Exception as e:
+            self.logger.warning(f"Could not persist settings to unit_config.ini: {e}")
+
     def _save_config(self, key: str, value: float) -> None:
-        """Persist a setting to unit_config.ini so the Advanced tab reflects it."""
+        """Persist a single setting to unit_config.ini (used by runtime setters)."""
         try:
             path = self._unit_config_path()
             parser = configparser.ConfigParser()

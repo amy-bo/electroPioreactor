@@ -180,11 +180,10 @@ class TestResetToDefaults:
             "electropioreactor.config", "sparge_duration_seconds", fallback=10.0
         )
 
-    def test_reset_toggles_back_to_false(self, job):
-        job.set_reset_to_defaults(True)
-        assert job.reset_to_defaults is False
-
     def test_reset_false_is_noop(self, job):
         job.set_electrolysis_power(50.0)
         job.set_reset_to_defaults(False)
         assert job.electrolysis_power == 50.0
+
+    def test_reset_to_defaults_not_in_published_settings(self):
+        assert "reset_to_defaults" not in ElectroPioreactor.published_settings
