@@ -1,0 +1,2 @@
+recursive-include pioreactor_aep_plugin/ui *.yaml
+include pioreactor_aep_plugin/additional_config.ini

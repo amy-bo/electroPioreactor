@@ -1,0 +1,33 @@
+---
+display_name: AEP Sparging
+job_name: aep_sparging
+display: true
+source: pioreactor_aep_plugin
+description: >
+  Controls periodic CO₂ sparging and electrolysis (LED D) for the Aseptic
+  ElectroPioreactor. LED D is automatically switched off during each sparging
+  cycle and restored afterwards.
+published_settings:
+  - key: electrolysis_power
+    unit: "%"
+    label: Electrolysis Power
+    description: >
+      Intensity of LED D, which drives electrolysis via the electrode pair.
+      Set to 0 to disable electrolysis.
+    type: numeric
+    default: 3.0
+    display: true
+  - key: sparge_duration_seconds
+    unit: s
+    label: Sparging Duration
+    description: How long the CO₂ solenoid is opened during each sparging cycle.
+    type: numeric
+    default: 10.0
+    display: true
+  - key: sparge_interval_hours
+    unit: h
+    label: Sparging Interval
+    description: How often a sparging cycle occurs.
+    type: numeric
+    default: 1.0
+    display: true
