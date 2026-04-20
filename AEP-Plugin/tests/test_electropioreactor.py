@@ -158,3 +158,33 @@ class TestLifecycle:
         job.on_sleeping_to_ready()
         assert not job._is_sparging
         led_intensity.assert_called_with({"D": 3.0}, unit="unit", experiment="exp")
+
+
+# ── reset_to_defaults ─────────────────────────────────────────────────────────
+
+class TestResetToDefaults:
+    def test_reset_applies_config_defaults(self, job):
+        from pioreactor.config import config
+        job.set_electrolysis_power(99.0)
+        job.set_sparge_interval_minutes(5.0)
+        job.set_sparge_duration_seconds(30.0)
+        job.set_reset_to_defaults(True)
+        # config mock returns fallback values
+        assert job.electrolysis_power == config.getfloat(
+            "electropioreactor.config", "electrolysis_power", fallback=2.5
+        )
+        assert job.sparge_interval_minutes == config.getfloat(
+            "electropioreactor.config", "sparge_interval_minutes", fallback=60.0
+        )
+        assert job.sparge_duration_seconds == config.getfloat(
+            "electropioreactor.config", "sparge_duration_seconds", fallback=10.0
+        )
+
+    def test_reset_toggles_back_to_false(self, job):
+        job.set_reset_to_defaults(True)
+        assert job.reset_to_defaults is False
+
+    def test_reset_false_is_noop(self, job):
+        job.set_electrolysis_power(50.0)
+        job.set_reset_to_defaults(False)
+        assert job.electrolysis_power == 50.0

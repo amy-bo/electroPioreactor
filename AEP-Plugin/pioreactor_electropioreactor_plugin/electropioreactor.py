@@ -14,7 +14,7 @@ from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
 __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
-__plugin_version__ = "0.2.0"
+__plugin_version__ = "0.3.0"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
 __plugin_homepage__ = "https://github.com/amybo-org/pioreactor-electropioreactor-plugin"
@@ -36,6 +36,7 @@ class ElectroPioreactor(BackgroundJob):
         "electrolysis_power": {"datatype": "float", "settable": True},
         "sparge_duration_seconds": {"datatype": "float", "settable": True},
         "sparge_interval_minutes": {"datatype": "float", "settable": True},
+        "reset_to_defaults": {"datatype": "boolean", "settable": True},
     }
 
     def __init__(
@@ -50,6 +51,7 @@ class ElectroPioreactor(BackgroundJob):
         self.electrolysis_power = self._clamp_power(electrolysis_power)
         self.sparge_duration_seconds = self._positive(sparge_duration_seconds, "sparge_duration_seconds")
         self.sparge_interval_minutes = self._positive(sparge_interval_minutes, "sparge_interval_minutes")
+        self.reset_to_defaults = False
         self._is_sparging = False
         self._sparge_timer: threading.Timer | None = None
         self._stop_timer: threading.Timer | None = None
@@ -84,6 +86,21 @@ class ElectroPioreactor(BackgroundJob):
         self.sparge_interval_minutes = self._positive(value, "sparge_interval_minutes")
         if not self._is_sparging:
             self._schedule_next_sparge()
+
+    def set_reset_to_defaults(self, value: bool) -> None:
+        if not value:
+            return
+        self.logger.info("Resetting all settings to config.ini defaults.")
+        self.set_electrolysis_power(
+            config.getfloat("electropioreactor.config", "electrolysis_power", fallback=2.5)
+        )
+        self.set_sparge_duration_seconds(
+            config.getfloat("electropioreactor.config", "sparge_duration_seconds", fallback=10.0)
+        )
+        self.set_sparge_interval_minutes(
+            config.getfloat("electropioreactor.config", "sparge_interval_minutes", fallback=60.0)
+        )
+        self.reset_to_defaults = False  # toggle back so the button appears un-pressed
 
     # ── sparging cycle ───────────────────────────────────────────────────────
 
@@ -171,24 +188,28 @@ class ElectroPioreactor(BackgroundJob):
         return v
 
 
+# ── CLI entry point ──────────────────────────────────────────────────────────
+# IMPORTANT: defaults must be lambdas so they are evaluated at invocation time,
+# after Pioreactor has applied any --config-override values from the Advanced panel.
+
 @run.command(name="electropioreactor", help=__plugin_summary__)
 @click.option(
     "--electrolysis-power",
-    default=config.getfloat("electropioreactor.config", "electrolysis_power", fallback=2.5),
+    default=lambda: config.getfloat("electropioreactor.config", "electrolysis_power", fallback=2.5),
     type=float,
     show_default=True,
     help="LED D intensity for electrolysis (0–100 %).",
 )
 @click.option(
     "--sparge-duration-seconds",
-    default=config.getfloat("electropioreactor.config", "sparge_duration_seconds", fallback=10.0),
+    default=lambda: config.getfloat("electropioreactor.config", "sparge_duration_seconds", fallback=10.0),
     type=float,
     show_default=True,
     help="How long to open the CO₂ solenoid each cycle (seconds).",
 )
 @click.option(
     "--sparge-interval-minutes",
-    default=config.getfloat("electropioreactor.config", "sparge_interval_minutes", fallback=60.0),
+    default=lambda: config.getfloat("electropioreactor.config", "sparge_interval_minutes", fallback=60.0),
     type=float,
     show_default=True,
     help="How often to sparge (minutes).",
