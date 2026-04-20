@@ -4,30 +4,41 @@ job_name: electropioreactor
 display: true
 source: app
 description: >
-  Drives electrolysis (LED D) at a user-defined power level and periodically
-  opens the CO2 solenoid for a user-defined duration. Electrolysis is paused
-  during each sparge and resumed immediately afterwards.
+  Drives electrolysis via LED channel D and periodically sparges CO2 via a
+  solenoid on PWM channel 4. Connect your electrode pair to LED channel D and
+  your CO2 solenoid to PWM channel 4. Electrolysis is paused during each
+  sparge cycle and resumed immediately afterwards.
 published_settings:
   - key: electrolysis_power
     unit: "%"
     label: Electrolysis Power
-    description: Intensity of LED D for electrolysis (0-100%). Set to 0 to disable.
+    description: >
+      Power level for electrolysis as a percentage (0-100%) of LED channel D
+      full power. Connect your electrode pair to LED channel D. Set to 0 to
+      disable electrolysis while keeping CO2 sparging active.
     type: numeric
     display: true
   - key: sparge_duration_seconds
     unit: s
     label: Sparging Duration
-    description: How long the CO2 solenoid is opened during each sparging cycle.
+    description: >
+      How long (in seconds) the CO2 solenoid on PWM channel 4 is held open
+      during each sparging cycle. Electrolysis is paused for this duration.
     type: numeric
     display: true
   - key: sparge_interval_minutes
     unit: min
     label: Sparging Interval
-    description: How often a sparging cycle occurs.
+    description: >
+      How often (in minutes) a CO2 sparging cycle occurs. For example, enter
+      60 to sparge once per hour, or 1 to sparge every minute for testing.
     type: numeric
     display: true
   - key: reset_to_defaults
     label: Reset to Defaults
-    description: Reset all settings to the values in config.ini.
+    description: >
+      Toggle on to reset Electrolysis Power, Sparging Duration, and Sparging
+      Interval to the values defined in config.ini. The toggle resets itself
+      automatically after applying.
     type: boolean
     display: true

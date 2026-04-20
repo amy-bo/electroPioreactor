@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import configparser
+import os
 import threading
+from pathlib import Path
 
 import click
 from pioreactor.actions.led_intensity import led_intensity
@@ -14,10 +17,12 @@ from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
 __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
-__plugin_version__ = "0.3.0"
+__plugin_version__ = "0.4.0"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
 __plugin_homepage__ = "https://github.com/amybo-org/pioreactor-electropioreactor-plugin"
+
+_CONFIG_SECTION = "electropioreactor.config"
 
 
 class ElectroPioreactor(BackgroundJob):
@@ -76,14 +81,17 @@ class ElectroPioreactor(BackgroundJob):
 
     def set_electrolysis_power(self, value: float) -> None:
         self.electrolysis_power = self._clamp_power(value)
+        self._save_config("electrolysis_power", self.electrolysis_power)
         if not self._is_sparging:
             self._set_led_d(self.electrolysis_power)
 
     def set_sparge_duration_seconds(self, value: float) -> None:
         self.sparge_duration_seconds = self._positive(value, "sparge_duration_seconds")
+        self._save_config("sparge_duration_seconds", self.sparge_duration_seconds)
 
     def set_sparge_interval_minutes(self, value: float) -> None:
         self.sparge_interval_minutes = self._positive(value, "sparge_interval_minutes")
+        self._save_config("sparge_interval_minutes", self.sparge_interval_minutes)
         if not self._is_sparging:
             self._schedule_next_sparge()
 
@@ -91,16 +99,17 @@ class ElectroPioreactor(BackgroundJob):
         if not value:
             return
         self.logger.info("Resetting all settings to config.ini defaults.")
+        self._clear_unit_config()
         self.set_electrolysis_power(
-            config.getfloat("electropioreactor.config", "electrolysis_power", fallback=2.5)
+            config.getfloat(_CONFIG_SECTION, "electrolysis_power", fallback=2.5)
         )
         self.set_sparge_duration_seconds(
-            config.getfloat("electropioreactor.config", "sparge_duration_seconds", fallback=10.0)
+            config.getfloat(_CONFIG_SECTION, "sparge_duration_seconds", fallback=10.0)
         )
         self.set_sparge_interval_minutes(
-            config.getfloat("electropioreactor.config", "sparge_interval_minutes", fallback=60.0)
+            config.getfloat(_CONFIG_SECTION, "sparge_interval_minutes", fallback=60.0)
         )
-        self.reset_to_defaults = False  # toggle back so the button appears un-pressed
+        self.reset_to_defaults = False
 
     # ── sparging cycle ───────────────────────────────────────────────────────
 
@@ -171,6 +180,35 @@ class ElectroPioreactor(BackgroundJob):
             self._stop_timer.cancel()
             self._stop_timer = None
 
+    def _unit_config_path(self) -> Path:
+        return Path(os.environ["DOT_PIOREACTOR"]) / "unit_config.ini"
+
+    def _save_config(self, key: str, value: float) -> None:
+        """Persist a setting to unit_config.ini so the Advanced tab reflects it."""
+        try:
+            path = self._unit_config_path()
+            parser = configparser.ConfigParser()
+            parser.read(path)
+            if not parser.has_section(_CONFIG_SECTION):
+                parser.add_section(_CONFIG_SECTION)
+            parser.set(_CONFIG_SECTION, key, str(value))
+            with open(path, "w") as fh:
+                parser.write(fh)
+        except Exception as e:
+            self.logger.warning(f"Could not persist {key} to unit_config.ini: {e}")
+
+    def _clear_unit_config(self) -> None:
+        """Remove our section from unit_config.ini so base config.ini defaults take effect."""
+        try:
+            path = self._unit_config_path()
+            parser = configparser.ConfigParser()
+            parser.read(path)
+            parser.remove_section(_CONFIG_SECTION)
+            with open(path, "w") as fh:
+                parser.write(fh)
+        except Exception as e:
+            self.logger.warning(f"Could not clear unit_config.ini: {e}")
+
     @staticmethod
     def _clamp_power(value: float) -> float:
         v = float(value)
@@ -189,27 +227,27 @@ class ElectroPioreactor(BackgroundJob):
 
 
 # ── CLI entry point ──────────────────────────────────────────────────────────
-# IMPORTANT: defaults must be lambdas so they are evaluated at invocation time,
-# after Pioreactor has applied any --config-override values from the Advanced panel.
+# Defaults are lambdas so they are evaluated at invocation time, after
+# Pioreactor has applied any --config-override values from the Advanced panel.
 
 @run.command(name="electropioreactor", help=__plugin_summary__)
 @click.option(
     "--electrolysis-power",
-    default=lambda: config.getfloat("electropioreactor.config", "electrolysis_power", fallback=2.5),
+    default=lambda: config.getfloat(_CONFIG_SECTION, "electrolysis_power", fallback=2.5),
     type=float,
     show_default=True,
     help="LED D intensity for electrolysis (0–100 %).",
 )
 @click.option(
     "--sparge-duration-seconds",
-    default=lambda: config.getfloat("electropioreactor.config", "sparge_duration_seconds", fallback=10.0),
+    default=lambda: config.getfloat(_CONFIG_SECTION, "sparge_duration_seconds", fallback=10.0),
     type=float,
     show_default=True,
     help="How long to open the CO₂ solenoid each cycle (seconds).",
 )
 @click.option(
     "--sparge-interval-minutes",
-    default=lambda: config.getfloat("electropioreactor.config", "sparge_interval_minutes", fallback=60.0),
+    default=lambda: config.getfloat(_CONFIG_SECTION, "sparge_interval_minutes", fallback=60.0),
     type=float,
     show_default=True,
     help="How often to sparge (minutes).",
