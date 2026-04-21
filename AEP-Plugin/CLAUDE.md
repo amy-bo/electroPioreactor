@@ -32,6 +32,7 @@ install off a local checkout is convenient:
 
 ## Status
 
-Persistence is working end-to-end as of v0.5.2 — verified on-device. See **[TODO.md](TODO.md)**
-for the verification notes, the one remaining UX pitfall (stale React state if the parent
-page doesn't remount), and the atomic-write detail.
+Persistence is **still broken** on-device as of 2026-04-21 despite the v0.5.2/0.5.3 fixes.
+The earlier "verified working" note was wrong — the device was running v0.5.0 during that
+"verification." See **[TODO.md](TODO.md)** for the honest status and the next
+on-device debugging step (which layer — file / API / MQTT / React — actually disagrees).
