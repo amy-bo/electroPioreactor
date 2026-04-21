@@ -4,7 +4,7 @@ A [Pioreactor](https://pioreactor.com) community plugin for the **[electroPiorea
 
 Provides a single background job, **electroPioreactor**, that:
 
-- Drives electrolysis (via LED channel D) at a user-defined power level (0–100 %).
+- Drives electrolysis (via LED channel D) at a user-defined power level (0–10 %, clamped at runtime to protect the electrodes).
 - Sparges CO₂ by periodically opening a CO₂ solenoid (PWM channel 4 relay) for a user-defined duration, at a user-defined interval in minutes.
 - Automatically pauses electrolysis (LED D → 0 %) for the duration of each sparge and resumes it immediately after.
 
