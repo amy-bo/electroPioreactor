@@ -1,0 +1,18 @@
+{
+  "os_list": [
+    {
+      "name": "electroPioreactor OS (placeholder — no release built yet)",
+      "description": "Pioreactor OS with the electroPioreactor plugin pre-installed. Supports electrolysis via LED channel D and CO2 sparging via PWM channel 4.",
+      "url": "",
+      "extract_size": 0,
+      "extract_sha256": "",
+      "image_download_size": 0,
+      "release_date": "1970-01-01",
+      "devices": [
+        "pi3-32bit",
+        "pi4-32bit",
+        "pi4-64bit"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+---
+# Ansible playbook to configure a Pioreactor Raspberry Pi as an electroPioreactor.
+#
+# Prerequisites:
+#   - Target host already runs the official Pioreactor image (Raspberry Pi OS).
+#   - SSH access to the 'pioreactor' user (password or key).
+#
+# Usage:
+#   ansible-playbook -i <pi-ip>, -u pioreactor electropioreactor.yml --ask-pass
+#
+# Or against a local inventory file:
+#   ansible-playbook -i inventory.ini -u pioreactor electropioreactor.yml
+
+- name: Configure electroPioreactor plugin
+  hosts: all
+  become: true
+
+  vars:
+    pioreactor_venv: /opt/pioreactor/venv
+    pioreactor_home: /home/pioreactor/.pioreactor
+    plugin_repo: https://github.com/amy-bo/electroPioreactor.git
+    plugin_version: AEP-Plugin   # pin to a tag or commit SHA for reproducible builds
+    config_section: electropioreactor.config
+
+  tasks:
+
+    # ── Plugin installation ──────────────────────────────────────────────────
+
+    - name: Install git (needed to clone plugin)
+      apt:
+        name: git
+        state: present
+        update_cache: true
+
+    - name: Clone electropioreactor plugin
+      git:
+        repo: "{{ plugin_repo }}"
+        dest: /opt/electropioreactor-plugin
+        version: "{{ plugin_version }}"
+        force: true
+
+    - name: Install plugin into Pioreactor venv
+      pip:
+        name: /opt/electropioreactor-plugin/AEP-Plugin
+        executable: "{{ pioreactor_venv }}/bin/pip"
+        state: latest
+        editable: false
+
+    # ── YAML job descriptor ──────────────────────────────────────────────────
+
+    - name: Ensure UI jobs directory exists
+      file:
+        path: "{{ pioreactor_home }}/ui/contrib/jobs"
+        state: directory
+        owner: pioreactor
+        group: pioreactor
+        mode: "0755"
+
+    - name: Deploy UI job YAML
+      copy:
+        src: /opt/electropioreactor-plugin/AEP-Plugin/pioreactor_electropioreactor_plugin/ui/contrib/jobs/electropioreactor.yaml
+        dest: "{{ pioreactor_home }}/ui/contrib/jobs/20_electropioreactor.yaml"
+        remote_src: true
+        owner: pioreactor
+        group: pioreactor
+        mode: "0644"
+
+    # ── config.ini additions ─────────────────────────────────────────────────
+
+    - name: Add PWM relay mapping (channel 4 → relay)
+      ini_file:
+        path: "{{ pioreactor_home }}/config.ini"
+        section: PWM
+        option: "4"
+        value: relay
+        backup: true
+
+    - name: Set default electrolysis_power
+      ini_file:
+        path: "{{ pioreactor_home }}/config.ini"
+        section: "{{ config_section }}"
+        option: electrolysis_power
+        value: "2.5"
+
+    - name: Set default sparge_duration_seconds
+      ini_file:
+        path: "{{ pioreactor_home }}/config.ini"
+        section: "{{ config_section }}"
+        option: sparge_duration_seconds
+        value: "10.0"
+
+    - name: Set default sparge_interval_minutes
+      ini_file:
+        path: "{{ pioreactor_home }}/config.ini"
+        section: "{{ config_section }}"
+        option: sparge_interval_minutes
+        value: "60.0"
+
+    - name: Ensure config.ini is owned by pioreactor
+      file:
+        path: "{{ pioreactor_home }}/config.ini"
+        owner: pioreactor
+        group: pioreactor
+
+    # ── Restart UI to pick up new YAML ───────────────────────────────────────
+
+    - name: Restart Pioreactor web app
+      systemd:
+        name: lighttpd
+        state: restarted
+      ignore_errors: true   # older images may use a different service name

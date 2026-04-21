@@ -1,0 +1,203 @@
+name: Build electroPioreactor OS image
+
+on:
+  workflow_dispatch:
+    inputs:
+      pioreactor_version:
+        description: "Pioreactor CustoPiZer release tag (e.g. 26.4.3, or 'latest')"
+        required: true
+        default: "latest"
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.tag.outputs.tag }}
+      image_filename: ${{ steps.names.outputs.image_filename }}
+
+    steps:
+      - name: Checkout plugin repo
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        # CustoPiZer zip is ~940 MB, img unzipped ~5 GB — default GHA runners are tight
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc "$AGENT_TOOLSDIRECTORY"
+          df -h
+
+      # ── Resolve Pioreactor base image ──────────────────────────────────────
+
+      - name: Resolve Pioreactor CustoPiZer release tag
+        id: pioreactor_tag
+        run: |
+          REQ='${{ github.event.inputs.pioreactor_version }}'
+          if [ -z "$REQ" ] || [ "$REQ" = "latest" ]; then
+            TAG=$(curl -sfL https://api.github.com/repos/Pioreactor/CustoPiZer/releases/latest | jq -r .tag_name)
+          else
+            TAG="$REQ"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Pioreactor base version: $TAG"
+
+      - name: Download & extract Pioreactor base image
+        id: download
+        run: |
+          TAG="${{ steps.pioreactor_tag.outputs.tag }}"
+          URL="https://github.com/Pioreactor/CustoPiZer/releases/download/${TAG}/pioreactor_leader_worker.zip"
+          echo "Downloading $URL"
+          curl -L --fail -o base.zip "$URL"
+          unzip -q base.zip
+          IMG=$(ls pioreactor_leader_worker*.img 2>/dev/null | head -1)
+          if [ -z "$IMG" ]; then
+            echo "No .img file found after unzip" >&2
+            ls -la
+            exit 1
+          fi
+          mv "$IMG" pioreactor-base.img
+          rm -f base.zip
+          echo "base_img=pioreactor-base.img" >> "$GITHUB_OUTPUT"
+          ls -lh pioreactor-base.img
+
+      # ── Customise ──────────────────────────────────────────────────────────
+
+      - name: Install QEMU and dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y qemu-user-static binfmt-support python3
+
+      - name: Register binfmt handlers
+        run: sudo update-binfmts --enable qemu-arm || true
+
+      - name: Determine output image name
+        id: names
+        run: |
+          PLUGIN_VER=$(grep '__plugin_version__' AEP-Plugin/pioreactor_electropioreactor_plugin/electropioreactor.py | grep -oP '"\K[^"]+')
+          FILENAME="electropioreactor-os-${PLUGIN_VER}.img"
+          echo "image_filename=$FILENAME" >> "$GITHUB_OUTPUT"
+          echo "plugin_version=$PLUGIN_VER" >> "$GITHUB_OUTPUT"
+
+      - name: Customise image
+        run: |
+          sudo bash electropioreactor-image/scripts/customize-image.sh \
+            "${{ steps.download.outputs.base_img }}" \
+            "${{ steps.names.outputs.image_filename }}" \
+            "$GITHUB_WORKSPACE/AEP-Plugin"
+
+      - name: Compress image
+        run: |
+          xz -T0 -9 "${{ steps.names.outputs.image_filename }}"
+
+      # ── Compute metadata ───────────────────────────────────────────────────
+
+      - name: Compute checksums and sizes
+        id: meta
+        run: |
+          XZ_FILE="${{ steps.names.outputs.image_filename }}.xz"
+          SHA256=$(sha256sum "$XZ_FILE" | awk '{print $1}')
+          COMPRESSED_SIZE=$(stat -c%s "$XZ_FILE")
+          EXTRACT_SIZE=$(xz --robot --list "$XZ_FILE" | awk '/^totals/{print $5}')
+          echo "sha256=$SHA256"              >> "$GITHUB_OUTPUT"
+          echo "compressed_size=$COMPRESSED_SIZE" >> "$GITHUB_OUTPUT"
+          echo "extract_size=$EXTRACT_SIZE"  >> "$GITHUB_OUTPUT"
+
+      # ── Release ───────────────────────────────────────────────────────────
+
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            TAG="v${{ steps.names.outputs.plugin_version }}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release and upload image
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "electroPioreactor OS ${{ steps.tag.outputs.tag }}"
+          body: |
+            electroPioreactor OS based on Pioreactor ${{ steps.pioreactor_tag.outputs.tag }}.
+
+            **Hardware connections:**
+            - Electrode pair → LED channel D
+            - CO₂ solenoid → PWM channel 4
+
+            **Flash with Raspberry Pi Imager:**
+            Use the custom URL: `https://amy-bo.github.io/electroPioreactor/os-list.json`
+          files: "${{ steps.names.outputs.image_filename }}.xz"
+          generate_release_notes: false
+
+      # ── Update os-list.json on main ───────────────────────────────────────
+
+      - name: Checkout main for docs update
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main-checkout
+
+      - name: Update os-list.json on main
+        run: |
+          RELEASE_DATE=$(date -u +%Y-%m-%d)
+          IMAGE_URL="https://github.com/amy-bo/electroPioreactor/releases/download/${{ steps.tag.outputs.tag }}/${{ steps.names.outputs.image_filename }}.xz"
+
+          python3 - <<PYEOF
+          import json, os
+          data = {
+            "os_list": [
+              {
+                "name": "electroPioreactor OS ${{ steps.tag.outputs.tag }}",
+                "description": "Pioreactor OS with the electroPioreactor plugin pre-installed. Electrode pair on LED channel D, CO2 solenoid on PWM channel 4.",
+                "url": "${IMAGE_URL}",
+                "extract_size": ${{ steps.meta.outputs.extract_size }},
+                "extract_sha256": "${{ steps.meta.outputs.sha256 }}",
+                "image_download_size": ${{ steps.meta.outputs.compressed_size }},
+                "release_date": "${RELEASE_DATE}",
+                "devices": ["pi3-32bit", "pi4-32bit", "pi4-64bit"]
+              }
+            ]
+          }
+          out = os.path.join("main-checkout", "electropioreactor-image", "docs", "os-list.json")
+          with open(out, "w") as fh:
+              json.dump(data, fh, indent=2)
+              fh.write("\n")
+          PYEOF
+
+      - name: Commit updated os-list.json
+        run: |
+          cd main-checkout
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add electropioreactor-image/docs/os-list.json
+          git diff --cached --quiet || git commit -m "chore: update os-list.json for ${{ steps.tag.outputs.tag }}"
+          git push origin main
+
+  pages:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Checkout main (with updated os-list.json)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: electropioreactor-image/docs/
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
