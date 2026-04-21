@@ -241,13 +241,15 @@ class ElectroPioreactor(BackgroundJob):
             except Exception as e:
                 self.logger.warning(f"Could not clear {path.name}: {e}")
 
+    MAX_ELECTROLYSIS_POWER = 10.0
+
     @staticmethod
     def _clamp_power(value: float) -> float:
         v = float(value)
         if v < 0.0:
             return 0.0
-        if v > 100.0:
-            return 100.0
+        if v > ElectroPioreactor.MAX_ELECTROLYSIS_POWER:
+            return ElectroPioreactor.MAX_ELECTROLYSIS_POWER
         return v
 
     @staticmethod
@@ -268,7 +270,7 @@ class ElectroPioreactor(BackgroundJob):
     default=lambda: config.getfloat(_CONFIG_SECTION, "electrolysis_power", fallback=2.5),
     type=float,
     show_default=True,
-    help="LED D intensity for electrolysis (0–100 %).",
+    help="LED D intensity for electrolysis (0–10 %).",
 )
 @click.option(
     "--sparge-duration-seconds",

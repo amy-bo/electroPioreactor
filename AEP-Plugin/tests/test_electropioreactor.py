@@ -33,11 +33,14 @@ class TestValidators:
     def test_clamp_power_below_zero(self):
         assert ElectroPioreactor._clamp_power(-5) == 0.0
 
-    def test_clamp_power_above_100(self):
-        assert ElectroPioreactor._clamp_power(200) == 100.0
+    def test_clamp_power_above_max(self):
+        assert ElectroPioreactor._clamp_power(200) == 10.0
+
+    def test_clamp_power_at_max(self):
+        assert ElectroPioreactor._clamp_power(10.0) == 10.0
 
     def test_clamp_power_in_range(self):
-        assert ElectroPioreactor._clamp_power(42.5) == 42.5
+        assert ElectroPioreactor._clamp_power(4.25) == 4.25
 
     def test_positive_rejects_zero(self):
         with pytest.raises(ValueError):
@@ -56,19 +59,19 @@ class TestValidators:
 class TestSetters:
     def test_set_electrolysis_power_while_sparging_skips_led(self, job):
         job._is_sparging = True
-        job.set_electrolysis_power(50.0)
-        assert job.electrolysis_power == 50.0
+        job.set_electrolysis_power(5.0)
+        assert job.electrolysis_power == 5.0
         led_intensity.assert_not_called()
 
     def test_set_electrolysis_power_while_not_sparging_updates_led(self, job):
         job._is_sparging = False
-        job.set_electrolysis_power(10.0)
-        led_intensity.assert_called_once_with({"D": 10.0}, unit="unit", experiment="exp")
+        job.set_electrolysis_power(7.0)
+        led_intensity.assert_called_once_with({"D": 7.0}, unit="unit", experiment="exp")
 
-    def test_set_electrolysis_power_clamped_to_100(self, job):
+    def test_set_electrolysis_power_clamped_to_max(self, job):
         job._is_sparging = False
         job.set_electrolysis_power(999.0)
-        assert job.electrolysis_power == 100.0
+        assert job.electrolysis_power == 10.0
 
     def test_set_electrolysis_power_clamped_to_0(self, job):
         job._is_sparging = False
@@ -181,9 +184,9 @@ class TestResetToDefaults:
         )
 
     def test_reset_false_is_noop(self, job):
-        job.set_electrolysis_power(50.0)
+        job.set_electrolysis_power(5.0)
         job.set_reset_to_defaults(False)
-        assert job.electrolysis_power == 50.0
+        assert job.electrolysis_power == 5.0
 
     def test_reset_to_defaults_not_in_published_settings(self):
         assert "reset_to_defaults" not in ElectroPioreactor.published_settings

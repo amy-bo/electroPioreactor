@@ -13,10 +13,13 @@ published_settings:
     unit: "%"
     label: Electrolysis Power
     description: >
-      Power level for electrolysis as a percentage (0-100%) of LED channel D
-      full power. Connect your electrode pair to LED channel D. Set to 0 to
-      disable electrolysis while keeping CO2 sparging active.
+      Power level for electrolysis as a percentage (0-10%) of LED channel D
+      full power. Values above 10 are clamped to 10 at runtime. Connect your
+      electrode pair to LED channel D. Set to 0 to disable electrolysis while
+      keeping CO2 sparging active.
     type: numeric
+    min: 0
+    max: 10
     display: true
   - key: sparge_duration_seconds
     unit: s

@@ -82,7 +82,7 @@ Add the following to `~/.pioreactor/config.ini`:
 4=relay
 
 [electropioreactor.config]
-electrolysis_power=2.5        ; LED D intensity (%)
+electrolysis_power=2.5        ; LED D intensity (0–10 %, clamped at runtime)
 sparge_duration_seconds=10.0  ; solenoid open time per cycle (s)
 sparge_interval_minutes=60.0  ; cycle frequency (min)
 ```
