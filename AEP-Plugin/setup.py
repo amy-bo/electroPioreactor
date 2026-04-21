@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name="pioreactor-electropioreactor-plugin",
-    version="0.5.0",
+    version="0.5.2",
     license="MIT",
     license_files=("LICENSE.txt",),
     description="Electrolysis and CO₂ sparging control for electroPioreactors.",

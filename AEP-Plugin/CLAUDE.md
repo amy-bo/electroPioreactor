@@ -37,8 +37,8 @@ cd /home/pioreactor/electropioreactor-plugin && git pull
 
 SSH: `pioreactor@pio01.local`, password: `raspberry`
 
-## Outstanding issues
+## Status
 
-See **[TODO.md](TODO.md)** for a detailed write-up of the settings persistence problem,
-everything that has been investigated, everything that has been tried and failed, and
-the most likely remaining causes.
+Persistence is working end-to-end as of v0.5.2 — verified on-device. See **[TODO.md](TODO.md)**
+for the verification notes, the one remaining UX pitfall (stale React state if the parent
+page doesn't remount), and the atomic-write detail.

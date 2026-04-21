@@ -17,7 +17,7 @@ from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
 __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
-__plugin_version__ = "0.5.1"
+__plugin_version__ = "0.5.2"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
 __plugin_homepage__ = "https://github.com/amybo-org/pioreactor-electropioreactor-plugin"
@@ -192,6 +192,16 @@ class ElectroPioreactor(BackgroundJob):
         dot = Path(os.environ["DOT_PIOREACTOR"])
         return [dot / f"config_{self.unit}.ini", dot / "unit_config.ini"]
 
+    def _atomic_write(self, path: Path, parser: configparser.ConfigParser) -> None:
+        # Write to a tempfile in the same directory, then os.replace so an
+        # interrupted write (power loss, kernel panic) can't truncate the file.
+        tmp = path.with_suffix(path.suffix + ".tmp")
+        with open(tmp, "w") as fh:
+            parser.write(fh)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp, path)
+
     def _save_all_config(self) -> None:
         """Write all three current values to both config files in one pass."""
         for path in self._config_paths():
@@ -203,8 +213,7 @@ class ElectroPioreactor(BackgroundJob):
                 parser.set(_CONFIG_SECTION, "electrolysis_power", str(self.electrolysis_power))
                 parser.set(_CONFIG_SECTION, "sparge_duration_seconds", str(self.sparge_duration_seconds))
                 parser.set(_CONFIG_SECTION, "sparge_interval_minutes", str(self.sparge_interval_minutes))
-                with open(path, "w") as fh:
-                    parser.write(fh)
+                self._atomic_write(path, parser)
             except Exception as e:
                 self.logger.warning(f"Could not persist settings to {path.name}: {e}")
 
@@ -217,8 +226,7 @@ class ElectroPioreactor(BackgroundJob):
                 if not parser.has_section(_CONFIG_SECTION):
                     parser.add_section(_CONFIG_SECTION)
                 parser.set(_CONFIG_SECTION, key, str(value))
-                with open(path, "w") as fh:
-                    parser.write(fh)
+                self._atomic_write(path, parser)
             except Exception as e:
                 self.logger.warning(f"Could not persist {key} to {path.name}: {e}")
 
@@ -229,8 +237,7 @@ class ElectroPioreactor(BackgroundJob):
                 parser = configparser.ConfigParser()
                 parser.read(path)
                 parser.remove_section(_CONFIG_SECTION)
-                with open(path, "w") as fh:
-                    parser.write(fh)
+                self._atomic_write(path, parser)
             except Exception as e:
                 self.logger.warning(f"Could not clear {path.name}: {e}")
 
