@@ -1,6 +1,6 @@
 # electroPioreactor-plugin
 
-A [Pioreactor](https://pioreactor.com) community plugin for the **[electroPioreactor](https://electroPioreactor.org)** — any Pioreactor fitted with an electrode pair driven by LED D and a CO₂ solenoid driven by PWM channel 4.
+A [Pioreactor](https://pioreactor.com) community plugin for the **[electroPioreactor](https://electroPioreactor.org)** - any Pioreactor fitted with an electrode pair driven by LED D and a CO₂ solenoid driven by PWM channel 4.
 
 Provides a single background job, **electroPioreactor**, that:
 
@@ -17,20 +17,6 @@ All three user-defined parameters are editable live from the Pioreactor web inte
 - CO₂ supply (e.g. SodaStream) ideally with a needle valve for flow control.
 
 ## Installation
-
-### Option A — from PyPI (future)
-
-Once the plugin is published to PyPI, installation will be a one-liner:
-
-```bash
-pio plugin install pioreactor-electropioreactor-plugin
-```
-
-Or on the whole cluster:
-
-```bash
-pios plugin install pioreactor-electropioreactor-plugin
-```
 
 ### Option B — from GitHub (current)
 
@@ -61,11 +47,25 @@ sudo systemctl restart lighttpd
 
 Hard-refresh the browser and the **electroPioreactor** job will appear under *Activities*.
 
-### Option C — pre-built OS image
+### Option A — from PyPI (future)
+
+Once the plugin is published to PyPI, installation will be a one-liner:
+
+```bash
+pio plugin install pioreactor-electropioreactor-plugin
+```
+
+Or on the whole cluster:
+
+```bash
+pios plugin install pioreactor-electropioreactor-plugin
+```
+
+### Option C — pre-built OS image (future)
 
 A Raspberry Pi OS image with the plugin pre-installed and pre-configured is published from the `electroPioreactorOS` branch of this repo. See `electropioreactor-image/README.md` on that branch, or flash via Raspberry Pi Imager using the custom URL `https://amy-bo.github.io/electroPioreactor/os-list.json` (available after the OS branch is merged and the first release is cut).
 
-### Local development (off-device)
+### Option D — local development (off-device)
 
 ```bash
 git clone https://github.com/amy-bo/electroPioreactor.git
