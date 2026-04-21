@@ -20,7 +20,7 @@ __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreac
 __plugin_version__ = "0.5.2"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
-__plugin_homepage__ = "https://github.com/amybo-org/pioreactor-electropioreactor-plugin"
+__plugin_homepage__ = "https://github.com/amy-bo/electroPioreactor"
 
 _CONFIG_SECTION = "electropioreactor.config"
 

@@ -14,7 +14,7 @@ setup(
     long_description_content_type="text/markdown",
     author="Martin Currie",
     author_email="martin@amybo.org",
-    url="https://github.com/amybo-org/pioreactor-electropioreactor-plugin",
+    url="https://github.com/amy-bo/electroPioreactor",
     packages=find_packages(),
     include_package_data=True,
     install_requires=[],

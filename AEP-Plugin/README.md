@@ -14,18 +14,57 @@ All three user-defined parameters are editable live from the Pioreactor web inte
 
 - Pioreactor with an electrode pair wired to **LED channel D**.
 - CO₂ solenoid valve wired to **PWM channel 4**.
-- CO₂ supply (e.g. SodaStream) ideally with needle valve for flow control. See the [AEP0.1.1 assembly guide](https://github.com/amybo-org/AsepticElectroPioreactor) for one reference build.
+- CO₂ supply (e.g. SodaStream) ideally with needle valve for flow control.
 
 ## Installation
 
-```
-pio plugin install pioreactor-electropioreactor-plugin
+The plugin is not on PyPI. Install from GitHub into the Pioreactor venv:
+
+```bash
+ssh pioreactor@<your-pioreactor>.local
+cd ~
+git clone https://github.com/amy-bo/electroPioreactor.git
+git -C electroPioreactor checkout AEP-Plugin
+/opt/pioreactor/venv/bin/pip install ./electroPioreactor/AEP-Plugin
 ```
 
-Or on the whole cluster:
+Then deploy the UI job descriptor so the job appears in the **Activities** panel:
 
+```bash
+PLUGIN=/opt/pioreactor/venv/lib/python3.*/site-packages/pioreactor_electropioreactor_plugin
+mkdir -p ~/.pioreactor/ui/contrib/jobs
+cp $PLUGIN/ui/contrib/jobs/electropioreactor.yaml ~/.pioreactor/ui/contrib/jobs/20_electropioreactor.yaml
 ```
-pios plugin install pioreactor-electropioreactor-plugin
+
+Finally add the PWM-4 relay mapping and default config values to `~/.pioreactor/config.ini`:
+
+```ini
+[PWM]
+4=relay
+
+[electropioreactor.config]
+electrolysis_power=2.5       ; LED D intensity (%)
+sparge_duration_seconds=10.0 ; solenoid open time per cycle (s)
+sparge_interval_minutes=60.0 ; cycle frequency (min)
+```
+
+Restart `lighttpd` (`sudo systemctl restart lighttpd`) so the web UI picks up the
+new job descriptor, then hard-refresh the browser.
+
+### Pre-built OS image (alternative)
+
+A Raspberry Pi OS image with the plugin pre-installed and pre-configured is
+published from the `electroPioreactorOS` branch of this repo. See
+`electropioreactor-image/README.md` on that branch, or flash via Raspberry Pi
+Imager using the custom URL `https://amy-bo.github.io/electroPioreactor/os-list.json`
+(available after the OS branch is merged and the first release is cut).
+
+### Local development (off-device)
+
+```bash
+git clone https://github.com/amy-bo/electroPioreactor.git
+cd electroPioreactor/AEP-Plugin
+python3 -m pytest tests/        # 25 tests, runs without a Pi
 ```
 
 ## Configuration
@@ -57,4 +96,4 @@ pio run electropioreactor --electrolysis-power 2.5 --sparge-duration-seconds 10 
 
 ## Contributing
 
-Issues and pull requests welcome at <https://github.com/amybo-org/pioreactor-electropioreactor-plugin>.
+Issues and pull requests welcome at <https://github.com/amy-bo/electroPioreactor>.

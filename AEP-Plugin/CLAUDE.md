@@ -21,21 +21,14 @@ python3 -m pytest tests/        # all tests run off-device; no Pi needed
 Tests use a conftest that stubs the entire `pioreactor` package.
 `DOT_PIOREACTOR` is set to `/tmp` in conftest so file-write code doesn't error.
 
-## Device setup (pio01)
+## Device install
 
-Plugin is installed as an editable install in the Pioreactor venv:
-
-```bash
-/opt/pioreactor/venv/bin/pip install -e /home/pioreactor/electropioreactor-plugin/AEP-Plugin
-```
-
-To update after a push:
+End-user install steps are in `README.md`. For development, an editable
+install off a local checkout is convenient:
 
 ```bash
-cd /home/pioreactor/electropioreactor-plugin && git pull
+/opt/pioreactor/venv/bin/pip install -e /path/to/electroPioreactor/AEP-Plugin
 ```
-
-SSH: `pioreactor@pio01.local`, password: `raspberry`
 
 ## Status
 
