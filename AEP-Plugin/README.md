@@ -7,8 +7,20 @@ Provides a single background job, **electroPioreactor**, that:
 - Drives electrolysis (via LED channel D) at a user-defined power level (0–10 %, clamped at runtime to protect the electrodes).
 - Sparges CO₂ by periodically opening a CO₂ solenoid (PWM channel 4 relay) for a user-defined duration, at a user-defined interval in minutes.
 - Automatically pauses electrolysis (LED D → 0 %) for the duration of each sparge and resumes it immediately after.
+- Pauses the `od_reading` job for the duration of the sparge plus a user-defined settle window, so OD samples aren't contaminated by bubbles.
 
-All three user-defined parameters are editable live from the Pioreactor web interface.
+All four user-defined parameters are editable live from the Pioreactor web interface.
+
+### OD pausing
+
+`od_pause_after_sparge_seconds` (default `5.0`) is the number of seconds **after the CO₂ solenoid closes** before OD reading resumes — i.e. the bubble-clearance window. The total OD pause window is `sparge_duration_seconds + od_pause_after_sparge_seconds`, measured from sparge start.
+
+- **Positive** → pause OD for the full sparge plus N seconds of settle time. Typical.
+- **Zero** → resume OD the instant the solenoid closes.
+- **Negative** → resume OD part-way through the sparge (OD continues through the tail end of sparging).
+- **≤ −`sparge_duration_seconds`** → total pause ≤ 0; OD is not paused at all. Use a large negative (e.g. `-99999`) to disable the feature entirely.
+
+Pause/resume is done by publishing `JobState.SLEEPING`/`READY` to `od_reading`'s `$state/set` topic. If `od_reading` isn't running, the publish is a no-op.
 
 ## Hardware requirements
 
@@ -70,7 +82,7 @@ A Raspberry Pi OS image with the plugin pre-installed and pre-configured is publ
 ```bash
 git clone https://github.com/amy-bo/electroPioreactor.git
 cd electroPioreactor/AEP-Plugin
-python3 -m pytest tests/        # 25 tests, runs without a Pi
+python3 -m pytest tests/        # 41 tests, runs without a Pi
 ```
 
 ## Configuration
@@ -82,16 +94,19 @@ Add the following to `~/.pioreactor/config.ini`:
 4=relay
 
 [electropioreactor.config]
-electrolysis_power=2.5        ; LED D intensity (0–10 %, clamped at runtime)
-sparge_duration_seconds=10.0  ; solenoid open time per cycle (s)
-sparge_interval_minutes=60.0  ; cycle frequency (min)
+electrolysis_power=2.5              ; LED D intensity (0–10 %, clamped at runtime)
+sparge_duration_seconds=10.0        ; solenoid open time per cycle (s)
+sparge_interval_minutes=60.0        ; cycle frequency (min)
+od_pause_after_sparge_seconds=5.0   ; OD settle window after sparge ends (s); negative allowed
 ```
 
 Adjust these values in the Pioreactor **Configuration** page, or change them live via the **Settings** panel on the *Manage* screen while the job is running.
 
+`od_pause_after_sparge_seconds` can be edited live, but the new value only takes effect on the **next** sparge cycle — an in-flight OD pause uses the value that was set when that sparge began.
+
 ## Starting the job
 
-Via the web interface: open the **Activities** tab on the *Manage* screen and start **electroPioreactor**. All three parameters can then be adjusted live from the **Settings** panel without restarting the job.
+Via the web interface: open the **Activities** tab on the *Manage* screen and start **electroPioreactor**. All four parameters can then be adjusted live from the **Settings** panel without restarting the job.
 
 Via CLI:
 
@@ -99,8 +114,19 @@ Via CLI:
 pio run electropioreactor \
     --electrolysis-power 2.5 \
     --sparge-duration-seconds 10 \
-    --sparge-interval-minutes 60
+    --sparge-interval-minutes 60 \
+    --od-pause-after-sparge-seconds 5
 ```
+
+## Known issues
+
+### Advanced modal may show stale values after Start/Stop
+
+**If** you change a setting in the Advanced modal, Start the job, then Stop it, the modal may re-open showing the previous value instead of the new one. Files, API, and MQTT all appear to agree under the hood; the leading suspect is stale React state in the UI.
+
+**Workaround:** hard-refresh the browser (Ctrl/Cmd+Shift+R) **before** editing any electroPioreactor setting, and again after Start/Stop to confirm what the UI is reading. If the refreshed value is still wrong, the issue isn't UI-only — check `config_<unit>.ini` and `unit_config.ini` on the Pi against what you typed, since those are what the job actually starts with.
+
+Root cause is still being investigated as of 2026-04-21; see `TODO.md` for the current debugging plan.
 
 ## Contributing
 

@@ -86,3 +86,26 @@ _upwm.PWM = MagicMock(side_effect=lambda *a, **kw: MagicMock())  # fresh unspec'
 _wai = _mod("pioreactor.whoami")
 _wai.get_unit_name = MagicMock(return_value="unit")
 _wai.get_assigned_experiment_name = MagicMock(return_value="exp")
+
+
+# ── pubsub ────────────────────────────────────────────────────────────────────
+_ps = _mod("pioreactor.pubsub")
+_ps.publish = MagicMock()
+_ps.QOS = types.SimpleNamespace(AT_LEAST_ONCE=1, AT_MOST_ONCE=0, EXACTLY_ONCE=2)
+
+
+# ── states ────────────────────────────────────────────────────────────────────
+class _JobState:
+    def __init__(self, name: str) -> None:
+        self._name = name
+
+    def to_bytes(self) -> bytes:
+        return self._name.encode()
+
+
+_states = _mod("pioreactor.states")
+_states.JobState = types.SimpleNamespace(
+    SLEEPING=_JobState("sleeping"),
+    READY=_JobState("ready"),
+    DISCONNECTED=_JobState("disconnected"),
+)

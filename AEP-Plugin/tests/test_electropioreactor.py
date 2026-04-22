@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, patch
 
 from pioreactor_electropioreactor_plugin.electropioreactor import ElectroPioreactor
 from pioreactor.actions.led_intensity import led_intensity
+from pioreactor.pubsub import publish as mqtt_publish
 
 
 @pytest.fixture
@@ -24,6 +25,7 @@ def job():
         # clear init noise so assertions in tests start clean
         led_intensity.reset_mock()
         inst._pwm.reset_mock()
+        mqtt_publish.reset_mock()
         yield inst
 
 
@@ -190,3 +192,115 @@ class TestResetToDefaults:
 
     def test_reset_to_defaults_not_in_published_settings(self):
         assert "reset_to_defaults" not in ElectroPioreactor.published_settings
+
+
+# ── OD pause during sparge ────────────────────────────────────────────────────
+
+def _od_state_payloads(unit="unit", experiment="exp"):
+    topic = f"pioreactor/{unit}/{experiment}/od_reading/$state/set"
+    return [
+        call.args[1].decode() if isinstance(call.args[1], (bytes, bytearray)) else str(call.args[1])
+        for call in mqtt_publish.call_args_list
+        if call.args and call.args[0] == topic
+    ]
+
+
+class TestODPause:
+    def test_default_value_is_5s(self, job):
+        assert job.od_pause_after_sparge_seconds == 5.0
+
+    def test_od_pause_in_published_settings(self):
+        assert "od_pause_after_sparge_seconds" in ElectroPioreactor.published_settings
+
+    def test_setter_accepts_negative(self, job):
+        job.set_od_pause_after_sparge_seconds(-30.0)
+        assert job.od_pause_after_sparge_seconds == -30.0
+
+    def test_setter_accepts_zero(self, job):
+        job.set_od_pause_after_sparge_seconds(0.0)
+        assert job.od_pause_after_sparge_seconds == 0.0
+
+    def test_begin_sparge_publishes_sleeping(self, job):
+        job.state = job.READY
+        job.sparge_duration_seconds = 10.0
+        job.od_pause_after_sparge_seconds = 5.0
+        job._begin_sparge()
+        payloads = _od_state_payloads()
+        assert "sleeping" in payloads
+        assert job._od_paused is True
+
+    def test_begin_sparge_skips_pause_when_total_is_zero(self, job):
+        """delay == -sparge_duration → total pause == 0 → don't touch od_reading at all."""
+        job.state = job.READY
+        job.sparge_duration_seconds = 10.0
+        job.od_pause_after_sparge_seconds = -10.0
+        job._begin_sparge()
+        assert _od_state_payloads() == []
+        assert job._od_paused is False
+
+    def test_begin_sparge_skips_pause_when_total_is_negative(self, job):
+        job.state = job.READY
+        job.sparge_duration_seconds = 10.0
+        job.od_pause_after_sparge_seconds = -60.0
+        job._begin_sparge()
+        assert _od_state_payloads() == []
+
+    def test_resume_timer_scheduled_at_total_pause(self, job):
+        job.state = job.READY
+        job.sparge_duration_seconds = 10.0
+        job.od_pause_after_sparge_seconds = 5.0
+        with patch("threading.Timer") as timer_cls:
+            timer_cls.side_effect = lambda *a, **kw: MagicMock()
+            job._begin_sparge()
+            # two timers scheduled: stop at 10s, resume at 15s
+            delays = [c.args[0] for c in timer_cls.call_args_list]
+            assert 10.0 in delays
+            assert 15.0 in delays
+
+    def test_resume_timer_scheduled_during_sparge_for_negative_delay(self, job):
+        """delay = -3 with duration 10 → resume at t=7 (while sparge still running)."""
+        job.state = job.READY
+        job.sparge_duration_seconds = 10.0
+        job.od_pause_after_sparge_seconds = -3.0
+        with patch("threading.Timer") as timer_cls:
+            timer_cls.side_effect = lambda *a, **kw: MagicMock()
+            job._begin_sparge()
+            delays = [c.args[0] for c in timer_cls.call_args_list]
+            assert 7.0 in delays
+
+    def test_resume_od_reading_publishes_ready(self, job):
+        job._od_paused = True
+        job._resume_od_reading()
+        assert "ready" in _od_state_payloads()
+        assert job._od_paused is False
+
+    def test_resume_od_reading_noop_when_not_paused(self, job):
+        job._od_paused = False
+        job._resume_od_reading()
+        assert _od_state_payloads() == []
+
+    def test_sleeping_resumes_od(self, job):
+        job._od_paused = True
+        job.on_ready_to_sleeping()
+        assert "ready" in _od_state_payloads()
+        assert job._od_paused is False
+
+    def test_disconnect_resumes_od(self, job):
+        job._od_paused = True
+        job.on_disconnected()
+        assert "ready" in _od_state_payloads()
+
+    def test_cancel_timers_includes_od_resume(self, job):
+        t = MagicMock()
+        job._od_resume_timer = t
+        job._cancel_timers()
+        t.cancel.assert_called_once()
+        assert job._od_resume_timer is None
+
+    def test_reset_to_defaults_resets_od_pause(self, job):
+        job.set_od_pause_after_sparge_seconds(42.0)
+        job.set_reset_to_defaults(True)
+        from pioreactor.config import config
+        assert job.od_pause_after_sparge_seconds == config.getfloat(
+            "electropioreactor.config", "od_pause_after_sparge_seconds", fallback=5.0
+        )

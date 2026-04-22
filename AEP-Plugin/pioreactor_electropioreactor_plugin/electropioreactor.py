@@ -12,12 +12,15 @@ from pioreactor.background_jobs.base import BackgroundJob
 from pioreactor.cli.run import run
 from pioreactor.config import config
 from pioreactor.hardware import PWM_TO_PIN
+from pioreactor.pubsub import QOS
+from pioreactor.pubsub import publish
+from pioreactor.states import JobState
 from pioreactor.utils.pwm import PWM
 from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
 __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
-__plugin_version__ = "0.5.3"
+__plugin_version__ = "0.6.0"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
 __plugin_homepage__ = "https://github.com/amy-bo/electroPioreactor"
@@ -41,6 +44,7 @@ class ElectroPioreactor(BackgroundJob):
         "electrolysis_power": {"datatype": "float", "settable": True},
         "sparge_duration_seconds": {"datatype": "float", "settable": True},
         "sparge_interval_minutes": {"datatype": "float", "settable": True},
+        "od_pause_after_sparge_seconds": {"datatype": "float", "settable": True},
         # reset_to_defaults is intentionally NOT in published_settings — Pioreactor
         # would otherwise store and replay the last True value on every restart,
         # firing a reset 2 seconds after each start. It is in the YAML for UI display
@@ -54,15 +58,19 @@ class ElectroPioreactor(BackgroundJob):
         electrolysis_power: float = 2.5,
         sparge_duration_seconds: float = 10.0,
         sparge_interval_minutes: float = 60.0,
+        od_pause_after_sparge_seconds: float = 5.0,
     ) -> None:
         super().__init__(unit=unit, experiment=experiment)
         self.electrolysis_power = self._clamp_power(electrolysis_power)
         self.sparge_duration_seconds = self._positive(sparge_duration_seconds, "sparge_duration_seconds")
         self.sparge_interval_minutes = self._positive(sparge_interval_minutes, "sparge_interval_minutes")
+        self.od_pause_after_sparge_seconds = float(od_pause_after_sparge_seconds)
         self.reset_to_defaults = False
         self._is_sparging = False
+        self._od_paused = False
         self._sparge_timer: threading.Timer | None = None
         self._stop_timer: threading.Timer | None = None
+        self._od_resume_timer: threading.Timer | None = None
 
         pwm_channel = config.get("PWM_reverse", "relay")
         self._pwm = PWM(
@@ -101,6 +109,10 @@ class ElectroPioreactor(BackgroundJob):
         if not self._is_sparging:
             self._schedule_next_sparge()
 
+    def set_od_pause_after_sparge_seconds(self, value: float) -> None:
+        self.od_pause_after_sparge_seconds = float(value)
+        self._save_config("od_pause_after_sparge_seconds", self.od_pause_after_sparge_seconds)
+
     def set_reset_to_defaults(self, value: bool) -> None:
         if not value:
             return
@@ -114,6 +126,9 @@ class ElectroPioreactor(BackgroundJob):
         )
         self.set_sparge_interval_minutes(
             config.getfloat(_CONFIG_SECTION, "sparge_interval_minutes", fallback=60.0)
+        )
+        self.set_od_pause_after_sparge_seconds(
+            config.getfloat(_CONFIG_SECTION, "od_pause_after_sparge_seconds", fallback=5.0)
         )
 
     # ── sparging cycle ───────────────────────────────────────────────────────
@@ -142,6 +157,15 @@ class ElectroPioreactor(BackgroundJob):
         self._stop_timer.daemon = True
         self._stop_timer.start()
 
+        # OD pause window: duration + user-defined offset, measured from sparge start.
+        # A sufficiently negative offset (<= -sparge_duration) means "never pause OD".
+        total_od_pause = self.sparge_duration_seconds + self.od_pause_after_sparge_seconds
+        if total_od_pause > 0:
+            self._pause_od_reading()
+            self._od_resume_timer = threading.Timer(total_od_pause, self._resume_od_reading)
+            self._od_resume_timer.daemon = True
+            self._od_resume_timer.start()
+
     def _end_sparge(self) -> None:
         self._pwm.change_duty_cycle(0.0)
         self._is_sparging = False
@@ -149,6 +173,25 @@ class ElectroPioreactor(BackgroundJob):
             self._set_led_d(self.electrolysis_power)
             self.logger.debug("CO₂ sparging complete; electrolysis resumed")
             self._schedule_next_sparge()
+
+    def _pause_od_reading(self) -> None:
+        topic = f"pioreactor/{self.unit}/{self.experiment}/od_reading/$state/set"
+        try:
+            publish(topic, JobState.SLEEPING.to_bytes(), qos=QOS.AT_LEAST_ONCE)
+            self._od_paused = True
+        except Exception as e:
+            self.logger.warning(f"Could not pause od_reading: {e}")
+
+    def _resume_od_reading(self) -> None:
+        if not self._od_paused:
+            return
+        topic = f"pioreactor/{self.unit}/{self.experiment}/od_reading/$state/set"
+        try:
+            publish(topic, JobState.READY.to_bytes(), qos=QOS.AT_LEAST_ONCE)
+        except Exception as e:
+            self.logger.warning(f"Could not resume od_reading: {e}")
+        finally:
+            self._od_paused = False
 
     # ── lifecycle hooks ──────────────────────────────────────────────────────
 
@@ -158,6 +201,7 @@ class ElectroPioreactor(BackgroundJob):
         self._pwm.change_duty_cycle(0.0)
         self._set_led_d(0.0)
         self._is_sparging = False
+        self._resume_od_reading()
 
     def on_sleeping_to_ready(self) -> None:
         super().on_sleeping_to_ready()
@@ -171,6 +215,7 @@ class ElectroPioreactor(BackgroundJob):
         self._pwm.change_duty_cycle(0.0)
         self._pwm.clean_up()
         self._set_led_d(0.0)
+        self._resume_od_reading()
 
     # ── helpers ──────────────────────────────────────────────────────────────
 
@@ -184,6 +229,9 @@ class ElectroPioreactor(BackgroundJob):
         if self._stop_timer is not None:
             self._stop_timer.cancel()
             self._stop_timer = None
+        if self._od_resume_timer is not None:
+            self._od_resume_timer.cancel()
+            self._od_resume_timer = None
 
     def _config_paths(self) -> list[Path]:
         # The web UI reads config.ini + config_<unit>.ini (e.g. config_pio01.ini).
@@ -213,6 +261,7 @@ class ElectroPioreactor(BackgroundJob):
                 parser.set(_CONFIG_SECTION, "electrolysis_power", str(self.electrolysis_power))
                 parser.set(_CONFIG_SECTION, "sparge_duration_seconds", str(self.sparge_duration_seconds))
                 parser.set(_CONFIG_SECTION, "sparge_interval_minutes", str(self.sparge_interval_minutes))
+                parser.set(_CONFIG_SECTION, "od_pause_after_sparge_seconds", str(self.od_pause_after_sparge_seconds))
                 self._atomic_write(path, parser)
             except Exception as e:
                 self.logger.warning(f"Could not persist settings to {path.name}: {e}")
@@ -286,10 +335,19 @@ class ElectroPioreactor(BackgroundJob):
     show_default=True,
     help="How often to sparge (minutes).",
 )
+@click.option(
+    "--od-pause-after-sparge-seconds",
+    default=lambda: config.getfloat(_CONFIG_SECTION, "od_pause_after_sparge_seconds", fallback=5.0),
+    type=float,
+    show_default=True,
+    help="Seconds after sparge ends before OD reading resumes. Negative values "
+         "resume OD during the sparge; values ≤ −sparge_duration disable OD pausing.",
+)
 def click_electropioreactor(
     electrolysis_power: float,
     sparge_duration_seconds: float,
     sparge_interval_minutes: float,
+    od_pause_after_sparge_seconds: float,
 ) -> None:
     unit = get_unit_name()
     experiment = get_assigned_experiment_name(unit)
@@ -299,5 +357,6 @@ def click_electropioreactor(
         electrolysis_power=electrolysis_power,
         sparge_duration_seconds=sparge_duration_seconds,
         sparge_interval_minutes=sparge_interval_minutes,
+        od_pause_after_sparge_seconds=od_pause_after_sparge_seconds,
     )
     job.block_until_disconnected()
