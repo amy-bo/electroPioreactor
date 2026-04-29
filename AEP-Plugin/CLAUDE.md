@@ -32,7 +32,10 @@ install off a local checkout is convenient:
 
 ## Status
 
-Persistence is **still broken** on-device as of 2026-04-21 despite the v0.5.2/0.5.3 fixes.
-The earlier "verified working" note was wrong — the device was running v0.5.0 during that
-"verification." See **[TODO.md](TODO.md)** for the honest status and the next
-on-device debugging step (which layer — file / API / MQTT / React — actually disagrees).
+Data-layer persistence is **fixed in v0.6.1** (2026-04-29). Root cause was missing
+`persist: True` on `published_settings`, which made Pioreactor's `BackgroundJob._clear_caches`
+wipe MQTT retained + SQLite rows on every Stop. Verified end-to-end on-device.
+
+The Advanced modal still requires a hard-refresh (Cmd+Shift+R) after Stop because
+Pioreactor's React frontend doesn't re-fetch settings on the disconnected
+transition. Hardening that is the current open task — see **[TODO.md](TODO.md)**.

@@ -120,13 +120,11 @@ pio run electropioreactor \
 
 ## Known issues
 
-### Advanced modal may show stale values after Start/Stop
+### Advanced modal: hard-refresh after Stop
 
-**If** you change a setting in the Advanced modal, Start the job, then Stop it, the modal may re-open showing the previous value instead of the new one. Files, API, and MQTT all appear to agree under the hood; the leading suspect is stale React state in the UI.
+After you Start and then Stop the job, re-opening the Advanced modal in the **same browser tab** may show the values from before the run. The data underneath the modal is correct (config files, MQTT retained, and the Pioreactor metadata DB all agree on what you typed) — Pioreactor's React frontend just doesn't re-fetch when the job transitions to disconnected. **Hard-refresh the tab (Ctrl/Cmd+Shift+R)** and the modal will show the right values.
 
-**Workaround:** hard-refresh the browser (Ctrl/Cmd+Shift+R) **before** editing any electroPioreactor setting, and again after Start/Stop to confirm what the UI is reading. If the refreshed value is still wrong, the issue isn't UI-only — check `config_<unit>.ini` and `unit_config.ini` on the Pi against what you typed, since those are what the job actually starts with.
-
-Root cause is still being investigated as of 2026-04-21; see `TODO.md` for the current debugging plan.
+This is an upstream Pioreactor frontend issue, not the plugin. The data-layer persistence bug (where Stop used to wipe values from MQTT and SQLite, leaving the modal genuinely empty) was fixed in v0.6.1.
 
 ## Contributing
 
