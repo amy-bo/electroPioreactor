@@ -40,11 +40,16 @@ class ElectroPioreactor(BackgroundJob):
 
     job_name = "electropioreactor"
 
+    # `persist: True` keeps MQTT-retained values and the SQLite metadata-DB row
+    # alive across job stops. Without it, BackgroundJob._clear_caches publishes
+    # None to every retained topic on shutdown, leaving the Advanced modal with
+    # nothing to read on remount and no fallback (precedent: dosing_automation's
+    # alt_media_throughput / media_throughput).
     published_settings = {
-        "electrolysis_power": {"datatype": "float", "settable": True},
-        "sparge_duration_seconds": {"datatype": "float", "settable": True},
-        "sparge_interval_minutes": {"datatype": "float", "settable": True},
-        "od_pause_after_sparge_seconds": {"datatype": "float", "settable": True},
+        "electrolysis_power": {"datatype": "float", "settable": True, "persist": True},
+        "sparge_duration_seconds": {"datatype": "float", "settable": True, "persist": True},
+        "sparge_interval_minutes": {"datatype": "float", "settable": True, "persist": True},
+        "od_pause_after_sparge_seconds": {"datatype": "float", "settable": True, "persist": True},
         # reset_to_defaults is intentionally NOT in published_settings — Pioreactor
         # would otherwise store and replay the last True value on every restart,
         # firing a reset 2 seconds after each start. It is in the YAML for UI display

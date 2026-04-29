@@ -193,6 +193,17 @@ class TestResetToDefaults:
     def test_reset_to_defaults_not_in_published_settings(self):
         assert "reset_to_defaults" not in ElectroPioreactor.published_settings
 
+    def test_all_published_settings_have_persist_true(self):
+        # Without persist=True, BackgroundJob._clear_caches publishes None to
+        # each retained MQTT topic on shutdown, which leaves the Advanced modal
+        # showing stale values until hard-refresh. See electropioreactor.py
+        # for the comment block above published_settings.
+        for setting, props in ElectroPioreactor.published_settings.items():
+            assert props.get("persist") is True, (
+                f"{setting!r} must declare persist=True so its MQTT-retained "
+                f"value survives job stop"
+            )
+
 
 # ── OD pause during sparge ────────────────────────────────────────────────────
 
