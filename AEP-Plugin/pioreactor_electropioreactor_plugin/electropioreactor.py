@@ -180,9 +180,14 @@ class ElectroPioreactor(BackgroundJob):
             self._schedule_next_sparge()
 
     def _pause_od_reading(self) -> None:
+        # JobState is a StrEnum on-device — its members ARE strings; .encode()
+        # turns them into the bytes paho-mqtt expects. (Earlier code used
+        # .to_bytes(), which doesn't exist on str subclasses and threw on every
+        # sparge cycle. Off-device tests passed because conftest stubbed JobState
+        # with its own .to_bytes(); see conftest fix in same commit.)
         topic = f"pioreactor/{self.unit}/{self.experiment}/od_reading/$state/set"
         try:
-            publish(topic, JobState.SLEEPING.to_bytes(), qos=QOS.AT_LEAST_ONCE)
+            publish(topic, JobState.SLEEPING.encode(), qos=QOS.AT_LEAST_ONCE)
             self._od_paused = True
         except Exception as e:
             self.logger.warning(f"Could not pause od_reading: {e}")
@@ -192,7 +197,7 @@ class ElectroPioreactor(BackgroundJob):
             return
         topic = f"pioreactor/{self.unit}/{self.experiment}/od_reading/$state/set"
         try:
-            publish(topic, JobState.READY.to_bytes(), qos=QOS.AT_LEAST_ONCE)
+            publish(topic, JobState.READY.encode(), qos=QOS.AT_LEAST_ONCE)
         except Exception as e:
             self.logger.warning(f"Could not resume od_reading: {e}")
         finally:

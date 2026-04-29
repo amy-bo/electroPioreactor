@@ -95,12 +95,13 @@ _ps.QOS = types.SimpleNamespace(AT_LEAST_ONCE=1, AT_MOST_ONCE=0, EXACTLY_ONCE=2)
 
 
 # ── states ────────────────────────────────────────────────────────────────────
-class _JobState:
-    def __init__(self, name: str) -> None:
-        self._name = name
-
-    def to_bytes(self) -> bytes:
-        return self._name.encode()
+# Real Pioreactor JobState is a str-subclass enum (StrEnum). The plugin relies
+# on str.encode() to produce the bytes paho-mqtt wants; an earlier stub here
+# defined a custom .to_bytes() method that masked a real on-device bug. Stub
+# now mirrors the upstream str-subclass shape so off-device tests fail the
+# same way on-device would.
+class _JobState(str):
+    pass
 
 
 _states = _mod("pioreactor.states")
