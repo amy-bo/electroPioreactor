@@ -67,6 +67,11 @@ class ElectroPioreactor(BackgroundJob):
     ) -> None:
         super().__init__(unit=unit, experiment=experiment)
         self.electrolysis_power = self._clamp_power(electrolysis_power)
+        if self.electrolysis_power != float(electrolysis_power):
+            self.logger.info(
+                f"electrolysis_power was clamped from {electrolysis_power} to "
+                f"{self.electrolysis_power} (allowed range 0–{self.MAX_ELECTROLYSIS_POWER})."
+            )
         self.sparge_duration_seconds = self._positive(sparge_duration_seconds, "sparge_duration_seconds")
         self.sparge_interval_minutes = self._positive(sparge_interval_minutes, "sparge_interval_minutes")
         self.od_pause_after_sparge_seconds = float(od_pause_after_sparge_seconds)
@@ -135,6 +140,9 @@ class ElectroPioreactor(BackgroundJob):
         self.set_od_pause_after_sparge_seconds(
             config.getfloat(_CONFIG_SECTION, "od_pause_after_sparge_seconds", fallback=5.0)
         )
+        # Snap the toggle back so the YAML claim ("resets itself automatically
+        # after applying") matches the in-memory state.
+        self.reset_to_defaults = False
 
     # ── sparging cycle ───────────────────────────────────────────────────────
 
@@ -207,11 +215,14 @@ class ElectroPioreactor(BackgroundJob):
 
     def on_ready_to_sleeping(self) -> None:
         super().on_ready_to_sleeping()
-        self._cancel_timers()
-        self._pwm.change_duty_cycle(0.0)
-        self._set_led_d(0.0)
         self._is_sparging = False
-        self._resume_od_reading()
+        # Each step is independently safed: a failure in one (e.g. PWM throws)
+        # must not skip the others, otherwise the LED can stay on or od_reading
+        # can stay paused.
+        self._safe("cancel timers", self._cancel_timers)
+        self._safe("close solenoid", self._pwm.change_duty_cycle, 0.0)
+        self._safe("turn off LED D", self._set_led_d, 0.0)
+        self._safe("resume od_reading", self._resume_od_reading)
 
     def on_sleeping_to_ready(self) -> None:
         super().on_sleeping_to_ready()
@@ -221,13 +232,22 @@ class ElectroPioreactor(BackgroundJob):
 
     def on_disconnected(self) -> None:
         super().on_disconnected()
-        self._cancel_timers()
-        self._pwm.change_duty_cycle(0.0)
-        self._pwm.clean_up()
-        self._set_led_d(0.0)
-        self._resume_od_reading()
+        self._is_sparging = False
+        self._safe("cancel timers", self._cancel_timers)
+        self._safe("close solenoid", self._pwm.change_duty_cycle, 0.0)
+        self._safe("clean up PWM", self._pwm.clean_up)
+        self._safe("turn off LED D", self._set_led_d, 0.0)
+        self._safe("resume od_reading", self._resume_od_reading)
 
     # ── helpers ──────────────────────────────────────────────────────────────
+
+    def _safe(self, what: str, fn, *args, **kwargs) -> None:
+        """Call `fn(*args, **kwargs)` and log-and-swallow any exception so
+        subsequent shutdown steps still run (LED off, OD resume, etc.)."""
+        try:
+            fn(*args, **kwargs)
+        except Exception as e:
+            self.logger.warning(f"Failed to {what} during cleanup: {e}")
 
     def _set_led_d(self, intensity: float) -> None:
         led_intensity({"D": intensity}, unit=self.unit, experiment=self.experiment)

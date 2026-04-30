@@ -137,6 +137,23 @@ class TestSparging:
         assert not job._is_sparging
         led_intensity.assert_not_called()
 
+    def test_set_sparge_duration_does_not_affect_in_flight_sparge(self, job):
+        # Documented invariant (see electropioreactor.yaml description for
+        # sparge_duration_seconds): mid-sparge changes apply to the next cycle,
+        # not the in-flight one. A user who shortens the duration mid-sparge
+        # does NOT see the current sparge end early. Pinning this here so a
+        # future "fix" doesn't silently change the user-facing behaviour
+        # without updating the YAML description too.
+        job.state = job.READY
+        job.sparge_duration_seconds = 60.0
+        job._begin_sparge()
+        in_flight_stop_timer = job._stop_timer
+
+        job.set_sparge_duration_seconds(2.0)
+
+        assert job._stop_timer is in_flight_stop_timer
+        in_flight_stop_timer.cancel.assert_not_called()
+
 
 # ── lifecycle ─────────────────────────────────────────────────────────────────
 
@@ -189,6 +206,11 @@ class TestResetToDefaults:
         job.set_electrolysis_power(5.0)
         job.set_reset_to_defaults(False)
         assert job.electrolysis_power == 5.0
+
+    def test_reset_clears_the_toggle_after_applying(self, job):
+        job.reset_to_defaults = True  # would normally arrive via __setattr__
+        job.set_reset_to_defaults(True)
+        assert job.reset_to_defaults is False
 
     def test_reset_to_defaults_not_in_published_settings(self):
         assert "reset_to_defaults" not in ElectroPioreactor.published_settings
@@ -315,3 +337,46 @@ class TestODPause:
         assert job.od_pause_after_sparge_seconds == config.getfloat(
             "electropioreactor.config", "od_pause_after_sparge_seconds", fallback=5.0
         )
+
+
+# ── persistence smoke ─────────────────────────────────────────────────────────
+
+class TestPersistence:
+    """End-to-end check that setter -> _save_config -> file actually writes.
+
+    The other tests heavily mock; this one exercises the real configparser +
+    atomic-write path so a regression that breaks file persistence (e.g. an
+    accidental no-op refactor of _save_config) is caught off-device.
+    """
+
+    def test_set_electrolysis_power_writes_to_both_config_files(self, job, tmp_path, monkeypatch):
+        import configparser
+        monkeypatch.setenv("DOT_PIOREACTOR", str(tmp_path))
+
+        job.set_electrolysis_power(7.5)
+
+        for fname in ("config_unit.ini", "unit_config.ini"):
+            path = tmp_path / fname
+            assert path.exists(), f"{fname} should have been created"
+            parsed = configparser.ConfigParser()
+            parsed.read(path)
+            assert parsed.get("electropioreactor.config", "electrolysis_power") == "7.5"
+
+    def test_save_all_config_writes_every_setting(self, job, tmp_path, monkeypatch):
+        import configparser
+        monkeypatch.setenv("DOT_PIOREACTOR", str(tmp_path))
+        job.electrolysis_power = 3.25
+        job.sparge_duration_seconds = 11.0
+        job.sparge_interval_minutes = 12.5
+        job.od_pause_after_sparge_seconds = -1.0
+
+        job._save_all_config()
+
+        path = tmp_path / "config_unit.ini"
+        parsed = configparser.ConfigParser()
+        parsed.read(path)
+        section = parsed["electropioreactor.config"]
+        assert section["electrolysis_power"] == "3.25"
+        assert section["sparge_duration_seconds"] == "11.0"
+        assert section["sparge_interval_minutes"] == "12.5"
+        assert section["od_pause_after_sparge_seconds"] == "-1.0"
