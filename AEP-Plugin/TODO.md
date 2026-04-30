@@ -1,5 +1,46 @@
 # electroPioreactor Plugin — Status
 
+## v0.6.2 (2026-04-30) — polish pass
+
+After the v0.6.1 root-cause fix, a Superpowers code review surfaced a list
+of pre-existing rough edges. v0.6.2 addresses them in a single focused
+release:
+
+- **CI**: added `.github/workflows/aep-plugin-tests.yml` running `pytest tests/`
+  on push and PR. Pre-v0.6.2 the suite had never been executed by a machine.
+- **YAML input validation**: `sparge_duration_seconds` and
+  `sparge_interval_minutes` now declare `min: 0.01` so the UI rejects values
+  the runtime would silently swallow as `ValueError`. `step: 0.1` on the
+  three `seconds` fields gives the spinner sensible increments.
+- **Hardened shutdown**: `on_disconnected` and `on_ready_to_sleeping` now
+  run each cleanup step (cancel timers, close solenoid, off LED, resume
+  od_reading) under a `_safe()` wrapper so a failure in one step doesn't
+  skip the others.
+- **Init-time clamp logging**: when `__init__` clamps `electrolysis_power`
+  to the `[0, 10]` range, it now logs the original-and-clamped values
+  instead of silently overwriting the user's input.
+- **Reset toggle self-clears**: `set_reset_to_defaults` now sets
+  `self.reset_to_defaults = False` at the end so the YAML's "resets itself
+  automatically after applying" claim matches in-memory state.
+- **In-flight sparge invariant pinned**: a new test asserts that mid-sparge
+  changes to `sparge_duration_seconds` apply to the next cycle, not the
+  in-flight one (matching the YAML description). A future "fix" that
+  silently changes this user-facing behaviour now fails CI.
+- **Packaging**: `click` moved from `extras_require['dev']` (where it was
+  miscategorised) to `install_requires`. `requirements-dev.txt` deleted —
+  duplicated `extras_require['dev']`, single source of truth now.
+  `__init__.py` exports `ElectroPioreactor` for clean downstream imports.
+- **Docs**: README "41 tests" claim removed (was stale); install
+  instructions use `pip install -e ".[dev]"` instead of pointing at the
+  removed `requirements-dev.txt`.
+- **Persistence smoke test**: new `TestPersistence` class exercises the
+  real configparser + atomic-write path so a regression that breaks
+  setter-to-disk persistence is caught off-device.
+
+46 tests pass off-device (verified on Pi venv).
+
+---
+
 ## v0.6.1 (2026-04-29) — data-layer persistence fixed
 
 ### What was actually wrong

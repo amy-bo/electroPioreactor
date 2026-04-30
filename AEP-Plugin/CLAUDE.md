@@ -32,10 +32,12 @@ install off a local checkout is convenient:
 
 ## Status
 
-Data-layer persistence is **fixed in v0.6.1** (2026-04-29). Root cause was missing
-`persist: True` on `published_settings`, which made Pioreactor's `BackgroundJob._clear_caches`
-wipe MQTT retained + SQLite rows on every Stop. Verified end-to-end on-device.
+Data-layer persistence was fixed in **v0.6.1** (2026-04-29) by adding
+`persist: True` to all four `published_settings`. **v0.6.2** (2026-04-30) is
+a polish pass over the whole plugin: hardened shutdown cleanup, YAML input
+validation, init-time clamp logging, in-flight sparge-duration test pinning
+the documented behaviour, packaging hygiene, and a CI workflow.
 
-The Advanced modal still requires a hard-refresh (Cmd+Shift+R) after Stop because
-Pioreactor's React frontend doesn't re-fetch settings on the disconnected
-transition. Hardening that is the current open task — see **[TODO.md](TODO.md)**.
+The Advanced modal hard-refresh symptom is being fixed upstream in the
+Pioreactor React frontend (separate PR, single-file change to
+`AdvancedConfigDialog.jsx`). v0.6.2 of this plugin is independent of that PR.

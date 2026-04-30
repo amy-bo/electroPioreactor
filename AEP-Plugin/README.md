@@ -82,7 +82,8 @@ A Raspberry Pi OS image with the plugin pre-installed and pre-configured is publ
 ```bash
 git clone https://github.com/amy-bo/electroPioreactor.git
 cd electroPioreactor/AEP-Plugin
-python3 -m pytest tests/        # 41 tests, runs without a Pi
+pip install -e ".[dev]"
+pytest tests/                   # off-device, no Pi needed
 ```
 
 ## Configuration
