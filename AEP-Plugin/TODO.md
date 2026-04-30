@@ -74,20 +74,21 @@ silently by try/except, but spammed the log). Switched to `.encode()`. Off-devic
 tests previously passed because `conftest.py` stubbed `JobState` with its own
 `.to_bytes()`; that stub was wrong and is now a `str` subclass to mirror upstream.
 
-## Known issue: hard-refresh after Stop
+## Pioreactor version compatibility
 
-The Pioreactor frontend (React) does **not** re-fetch settings when the job
-transitions to disconnected. With the data layer correctly populated by v0.6.1,
-hard-refreshing the browser tab (Cmd+Shift+R) after Stop shows the right values.
-Without hard-refresh, the modal continues to show whatever it had cached in
-local React state at the moment of Stop.
+The Pioreactor frontend (React) bug that caused the Advanced modal to require
+a hard-refresh after Stop was fixed upstream in
+[Pioreactor/pioreactor#615](https://github.com/Pioreactor/pioreactor/pull/615),
+merged 2026-04-30. The fix lands in **Pioreactor 26.4.5+**; the latest tagged
+release at the time of writing was 26.4.4 (2026-04-23).
 
-This is upstream Pioreactor frontend behaviour. Investigation underway to
-identify whether the plugin can publish a signal that triggers re-render
-without a frontend patch.
+**Users on 26.4.5 or later** see the modal display fresh values on every
+re-open with no extra action.
 
-**Workaround for users:** hard-refresh (Cmd+Shift+R) after Stop if you want to
-re-open the Advanced modal and see current values.
+**Users on 26.4.4 or earlier** need to hard-refresh the browser tab
+(Ctrl/Cmd+Shift+R) after Stop to see current values. The plugin's data layer
+(config files, MQTT retained, SQLite metadata DB) is correct in both cases —
+the symptom is purely React component state.
 
 ## Reset toggle
 

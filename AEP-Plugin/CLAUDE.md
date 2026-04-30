@@ -38,6 +38,8 @@ a polish pass over the whole plugin: hardened shutdown cleanup, YAML input
 validation, init-time clamp logging, in-flight sparge-duration test pinning
 the documented behaviour, packaging hygiene, and a CI workflow.
 
-The Advanced modal hard-refresh symptom is being fixed upstream in the
-Pioreactor React frontend (separate PR, single-file change to
-`AdvancedConfigDialog.jsx`). v0.6.2 of this plugin is independent of that PR.
+The Advanced modal hard-refresh symptom was fixed upstream in
+[Pioreactor/pioreactor#615](https://github.com/Pioreactor/pioreactor/pull/615)
+(merged 2026-04-30, will ship in 26.4.5). v0.6.2 of this plugin is independent
+of that PR; users on Pioreactor 26.4.4 or earlier still need the hard-refresh
+workaround documented in `README.md`.

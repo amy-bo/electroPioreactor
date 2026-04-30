@@ -119,13 +119,13 @@ pio run electropioreactor \
     --od-pause-after-sparge-seconds 5
 ```
 
-## Known issues
+## Pioreactor version compatibility
 
-### Advanced modal: hard-refresh after Stop
+This plugin requires **Pioreactor 26.4.5 or later** for full-fidelity Advanced-modal behaviour.
 
-After you Start and then Stop the job, re-opening the Advanced modal in the **same browser tab** may show the values from before the run. The data underneath the modal is correct (config files, MQTT retained, and the Pioreactor metadata DB all agree on what you typed) — Pioreactor's React frontend just doesn't re-fetch when the job transitions to disconnected. **Hard-refresh the tab (Ctrl/Cmd+Shift+R)** and the modal will show the right values.
+On Pioreactor 26.4.4 and earlier, after you Start and then Stop the job, re-opening the Advanced modal in the same browser tab may show the values from before the run — the data underneath is correct, but Pioreactor's React frontend doesn't re-fetch when the job transitions to disconnected. Workaround on those versions: hard-refresh the tab (Ctrl/Cmd+Shift+R).
 
-This is an upstream Pioreactor frontend issue, not the plugin. The data-layer persistence bug (where Stop used to wipe values from MQTT and SQLite, leaving the modal genuinely empty) was fixed in v0.6.1.
+This is fixed upstream in Pioreactor 26.4.5+ via [Pioreactor/pioreactor#615](https://github.com/Pioreactor/pioreactor/pull/615). The plugin's own data-layer persistence bug (which made the same scenario actually *wipe* values from MQTT/SQLite, not just appear stale) was fixed in v0.6.1.
 
 ## Contributing
 
