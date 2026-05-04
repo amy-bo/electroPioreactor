@@ -1,6 +1,6 @@
 # electroPioreactor-plugin
 
-A [Pioreactor](https://pioreactor.com) community plugin for the **[electroPioreactor](https://electroPioreactor.org)** - any Pioreactor fitted with an electrode pair driven by LED D and a CO₂ solenoid driven by PWM channel 4.
+A [Pioreactor](https://pioreactor.com) community plugin for the **[electroPioreactor](https://electroPioreactor.org)** – any Pioreactor fitted with an electrode pair driven by LED D and a CO₂ solenoid driven by PWM channel 4.
 
 Provides a single background job, **electroPioreactor**, that:
 
@@ -13,7 +13,7 @@ All four user-defined parameters are editable live from the Pioreactor web inter
 
 ### OD pausing
 
-`od_pause_after_sparge_seconds` (default `5.0`) is the number of seconds **after the CO₂ solenoid closes** before OD reading resumes — i.e. the bubble-clearance window. The total OD pause window is `sparge_duration_seconds + od_pause_after_sparge_seconds`, measured from sparge start.
+`od_pause_after_sparge_seconds` (default `5.0`) is the number of seconds **after the CO₂ solenoid closes** before OD reading resumes – the bubble-clearance window. The total OD pause window is `sparge_duration_seconds + od_pause_after_sparge_seconds`, measured from sparge start.
 
 - **Positive** → pause OD for the full sparge plus N seconds of settle time. Typical.
 - **Zero** → resume OD the instant the solenoid closes.
@@ -30,12 +30,43 @@ Pause/resume is done by publishing `JobState.SLEEPING`/`READY` to `od_reading`'s
 
 ## Installation
 
-### Option B — from GitHub (current)
+End-to-end fresh setup, designed to be followed verbatim from start to finish. Skip step 1 if your Pioreactor is already imaged and reachable on its network.
 
-The plugin is not on PyPI yet. Install from source into the Pioreactor venv:
+### 1. (Optional) Flash a fresh Pioreactor image
+
+> ⚠️ **Warning**
+> Flashing wipes the SD card. Only do this if you are starting from scratch and have **no data on the unit you want to keep** – any experiments, calibrations, or local config on the SD card will be lost.
+
+On your Mac/Windows/Linux machine, install [Raspberry Pi Imager](https://www.raspberrypi.com/software/), then:
+
+1. Open Pi Imager.
+2. Choose Device → **Raspberry Pi Zero 2 W** (or whichever Pi model is in your unit).
+3. Choose OS → click the gear / app-options icon and set **Custom URL** to:
+   `https://pioreactor.com/imager/os-list.json`
+4. Choose OS → from the list that loads, pick **Pioreactor Leader + Worker** at the latest available version.
+5. Choose Storage → your SD card.
+6. Click **Next**, then **Edit Settings** when prompted to apply OS customisation:
+   - **Hostname**: `<unit-name>` (e.g. `ed04`).
+   - **Username**: `pioreactor` (Pioreactor hardcodes this; do not change).
+   - **Password**: set and confirm a password you'll remember.
+   - **Locale**: your timezone, your keyboard layout (e.g. London / Europe/London / gb).
+   - **Wireless LAN**: enable, then set **SSID** + **Password** to your Wi-Fi credentials. Leave "Hidden SSID" off unless your network is hidden.
+   - **Services** tab → **Enable SSH** → **Use password authentication**.
+7. Click **Save**, then **Yes** to write.
+
+When the write finishes, eject the card, plug it into the Pi (HAT attached if applicable), and power up. Wait ~90 seconds for first-boot provisioning.
+
+> ℹ️ **The Pioreactor image is headless by design.** A connected monitor will stay blank even on a fully working unit (HDMI output, ACT LED, and boot splash are all disabled in `/boot/firmware/config.txt`). Verify boot via:
+>
+> - `ping <hostname>.local` from a device on the same Wi-Fi
+> - Browser → `http://<hostname>.local/` – the Pioreactor lighttpd web UI loads unauthenticated when ready
+
+Once the web UI loads, complete the onboarding flow in the browser (pick your Pioreactor model number / version).
+
+### 2. SSH in and install the plugin
 
 ```bash
-ssh pioreactor@<your-pioreactor>.local
+ssh pioreactor@<hostname>.local
 cd ~
 sudo apt update && sudo apt install -y git
 git clone https://github.com/amy-bo/electroPioreactor.git
@@ -43,16 +74,48 @@ git -C electroPioreactor checkout AEP-Plugin
 /opt/pioreactor/venv/bin/pip install ./electroPioreactor/AEP-Plugin
 ```
 
-Deploy the UI job descriptor so the job appears in the **Activities** panel:
+### 3. Apply the version-specific frontend patch
+
+Check which Pioreactor version your unit is running:
 
 ```bash
-PLUGIN=/opt/pioreactor/venv/lib/python3.*/site-packages/pioreactor_electropioreactor_plugin
-mkdir -p ~/.pioreactor/plugins/ui/jobs
-cp $PLUGIN/ui/contrib/jobs/electropioreactor.yaml \
-   ~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
+/opt/pioreactor/venv/bin/pio version
 ```
 
-Add the PWM-4 relay mapping and default values to `~/.pioreactor/config.ini` (idempotent – re-runs are safe; existing keys are preserved):
+#### If the output is `26.4.5` or later
+
+The plugin's Advanced modal works out of the box on these versions. **Skip to step 4.**
+
+#### If the output is `26.4.4` or earlier
+
+The plugin's Advanced modal needs Pioreactor [PR #615](https://github.com/Pioreactor/pioreactor/pull/615) (merged to master 2026-04-30, will ship in 26.4.5). Hot-patch the running frontend with a pre-built bundle from this repo:
+
+```bash
+PIO_STATIC=$(/opt/pioreactor/venv/bin/python -c "import pioreactor.web, os; print(os.path.join(os.path.dirname(pioreactor.web.__file__), 'static'))")
+sudo cp -a "$PIO_STATIC" "${PIO_STATIC}.pre-pr615.bak"
+sudo rm -rf "$PIO_STATIC"
+sudo tar -xzf ~/electroPioreactor/AEP-Plugin/transitional/pioreactor-static-pr615.tar.gz -C "$(dirname "$PIO_STATIC")"
+sudo chown -R pioreactor:pioreactor "$PIO_STATIC"
+```
+
+The original bundle is preserved at `${PIO_STATIC}.pre-pr615.bak`. To revert later:
+
+```bash
+PIO_STATIC=$(/opt/pioreactor/venv/bin/python -c "import pioreactor.web, os; print(os.path.join(os.path.dirname(pioreactor.web.__file__), 'static'))")
+sudo rm -rf "$PIO_STATIC" && sudo mv "${PIO_STATIC}.pre-pr615.bak" "$PIO_STATIC" && sudo systemctl restart lighttpd
+```
+
+### 4. Deploy the UI job descriptor
+
+```bash
+PLUGIN=$(/opt/pioreactor/venv/bin/python -c "import pioreactor_electropioreactor_plugin, os; print(os.path.dirname(pioreactor_electropioreactor_plugin.__file__))")
+mkdir -p ~/.pioreactor/plugins/ui/jobs
+cp "$PLUGIN/ui/contrib/jobs/electropioreactor.yaml" ~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
+```
+
+### 5. Patch `config.ini` (idempotent)
+
+Adds `[PWM] 4=relay` and the four `[electropioreactor.config]` defaults. Re-runs are safe; existing keys are preserved.
 
 ```bash
 /opt/pioreactor/venv/bin/python <<'PY'
@@ -76,15 +139,32 @@ with open(path, "w") as f:
 PY
 ```
 
-See **Configuration** below for what these values mean. Restart `lighttpd` so the web UI picks up the new job descriptor:
+See **Configuration** below for what these values mean.
+
+### 6. Restart `lighttpd`
 
 ```bash
 sudo systemctl restart lighttpd
 ```
 
-Hard-refresh the browser and the **electroPioreactor** job will appear under *Activities*.
+### 7. Verify
 
-### Option A — from PyPI (future)
+```bash
+DOT_PIOREACTOR=/home/pioreactor/.pioreactor /opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep electro
+ls -la ~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
+curl -s http://localhost/unit_api/jobs/descriptors | python3 -c "import sys,json; print('electropioreactor' in [j['job_name'] for j in json.load(sys.stdin)])"
+```
+
+Expected output:
+- `pioreactor-electropioreactor-plugin==0.6.5` (or later) from `pio plugins list`
+- The YAML file present, owned by `pioreactor:www-data`
+- `True` from the descriptor check
+
+Then in your browser, hard-refresh `http://<hostname>.local/` (Ctrl/Cmd+Shift+R), navigate to **Pioreactors → `<hostname>` → Manage**, and **electroPioreactor** should appear under **Activities**.
+
+## Other installation methods
+
+### From PyPI (future)
 
 Once the plugin is published to PyPI, installation will be a one-liner:
 
@@ -98,11 +178,11 @@ Or on the whole cluster:
 pios plugin install pioreactor-electropioreactor-plugin
 ```
 
-### Option C — pre-built OS image (future)
+### Pre-built OS image (future)
 
 A Raspberry Pi OS image with the plugin pre-installed and pre-configured is published from the `electroPioreactorOS` branch of this repo. See `electropioreactor-image/README.md` on that branch, or flash via Raspberry Pi Imager using the custom URL `https://amy-bo.github.io/electroPioreactor/os-list.json` (available after the OS branch is merged and the first release is cut).
 
-### Option D — local development (off-device)
+### Local development (off-device)
 
 ```bash
 git clone https://github.com/amy-bo/electroPioreactor.git
@@ -113,7 +193,7 @@ pytest tests/                   # off-device, no Pi needed
 
 ## Configuration
 
-Add the following to `~/.pioreactor/config.ini`:
+The install flow above writes the following to `~/.pioreactor/config.ini`:
 
 ```ini
 [PWM]
@@ -128,7 +208,7 @@ od_pause_after_sparge_seconds=5.0   ; OD settle window after sparge ends (s); ne
 
 Adjust these values in the Pioreactor **Configuration** page, or change them live via the **Settings** panel on the *Manage* screen while the job is running.
 
-`od_pause_after_sparge_seconds` can be edited live, but the new value only takes effect on the **next** sparge cycle — an in-flight OD pause uses the value that was set when that sparge began.
+`od_pause_after_sparge_seconds` can be edited live, but the new value only takes effect on the **next** sparge cycle – an in-flight OD pause uses the value that was set when that sparge began.
 
 ## Starting the job
 
@@ -146,11 +226,9 @@ pio run electropioreactor \
 
 ## Pioreactor version compatibility
 
-This plugin requires **Pioreactor 26.4.5 or later** for full-fidelity Advanced-modal behaviour.
+This plugin's Advanced modal depends on Pioreactor [PR #615](https://github.com/Pioreactor/pioreactor/pull/615) (merged to master 2026-04-30, will ship in **26.4.5**) for the modal to re-fetch from disk on open after a Stop. On 26.4.4 and earlier, the install flow above hot-patches the running frontend with a pre-built bundle (step 3) so the behaviour is consistent across versions. The plugin's own data-layer persistence bug (which made the same scenario actually *wipe* values from MQTT/SQLite, not just appear stale) was fixed in v0.6.1.
 
-On Pioreactor 26.4.4 and earlier, after you Start and then Stop the job, re-opening the Advanced modal in the same browser tab may show the values from before the run — the data underneath is correct, but Pioreactor's React frontend doesn't re-fetch when the job transitions to disconnected. Workaround on those versions: hard-refresh the tab (Ctrl/Cmd+Shift+R).
-
-This is fixed upstream in Pioreactor 26.4.5+ via [Pioreactor/pioreactor#615](https://github.com/Pioreactor/pioreactor/pull/615). The plugin's own data-layer persistence bug (which made the same scenario actually *wipe* values from MQTT/SQLite, not just appear stale) was fixed in v0.6.1.
+Once 26.4.5 ships and you upgrade, you can revert the hot-patch (revert command shown in step 3) – the upgraded Pioreactor frontend will include PR #615 natively.
 
 ## Contributing
 
