@@ -8,3 +8,4 @@ __pycache__/
 *.dng
 *.afphoto
 .claude/settings.local.json
+MCTests/
