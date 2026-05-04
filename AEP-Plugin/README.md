@@ -37,22 +37,26 @@ End-to-end fresh setup, designed to be followed verbatim from start to finish. S
 > ⚠️ **Warning**
 > Flashing wipes the SD card. Only do this if you are starting from scratch and have **no data on the unit you want to keep** – any experiments, calibrations, or local config on the SD card will be lost.
 
+Follow [Pioreactor's official software-installation guide](https://docs.pioreactor.com/user-guide/software-set-up). The steps below mirror that doc; the **Content Repository** must be set BEFORE choosing a device, because it's what makes the Pioreactor OS list appear later.
+
 On your Mac/Windows/Linux machine, install [Raspberry Pi Imager](https://www.raspberrypi.com/software/), then:
 
 1. Open Pi Imager.
-2. Choose Device → **Raspberry Pi Zero 2 W** (or whichever Pi model is in your unit).
-3. Choose OS → click the gear / app-options icon and set **Custom URL** to:
-   `https://pioreactor.com/imager/os-list.json`
-4. Choose OS → from the list that loads, pick **Pioreactor Leader + Worker** at the latest available version.
-5. Choose Storage → your SD card.
-6. Click **Next**, then **Edit Settings** when prompted to apply OS customisation:
+2. Click **App Options** (the gear icon, top-right of the main window).
+3. Click **Edit** next to **Content Repository**.
+4. Choose **Use Custom URL** and paste `https://pioreactor.com/imager/os-list.json`.
+5. Click **Apply & restart**. Pi Imager will close and re-open.
+6. Click **Choose Device** → pick your Pi model (Raspberry Pi Zero 2 W for current ed04 hardware).
+7. Click **Choose OS** → **Pioreactor** → pick the latest version on the list → **Leader + Worker**.
+8. Click **Choose Storage** → your SD card.
+9. Click **Next**, then **Edit Settings** when prompted to apply OS customisation:
    - **Hostname**: `<unit-name>` (e.g. `ed04`).
-   - **Username**: `pioreactor` (Pioreactor hardcodes this; do not change).
-   - **Password**: set and confirm a password you'll remember.
-   - **Locale**: your timezone, your keyboard layout (e.g. London / Europe/London / gb).
-   - **Wireless LAN**: enable, then set **SSID** + **Password** to your Wi-Fi credentials. Leave "Hidden SSID" off unless your network is hidden.
-   - **Services** tab → **Enable SSH** → **Use password authentication**.
-7. Click **Save**, then **Yes** to write.
+   - **Username**: `pioreactor` (do not change – the Pioreactor image hardcodes this username and other plugin install paths assume it).
+   - **Password**: pick one. Pioreactor's docs default to `raspberry`; choose something stronger for any unit that will run real experiments.
+   - **Locale**: your time zone, your keyboard layout.
+   - **Wireless LAN**: enable, set **SSID** + **Password** to your Wi-Fi credentials. Leave "Hidden SSID" off unless your network is hidden.
+   - **Services** tab → enable **SSH** → use **password authentication**.
+10. Click **Save**, then **Yes** to write. Writing takes a few minutes.
 
 When the write finishes, eject the card, plug it into the Pi (HAT attached if applicable), and power up. Wait ~90 seconds for first-boot provisioning.
 
