@@ -18,8 +18,6 @@ published_settings:
       electrode pair to LED channel D. Set to 0 to disable electrolysis while
       keeping CO2 sparging active.
     type: numeric
-    min: 0
-    max: 10
     display: true
   - key: sparge_duration_seconds
     unit: s
@@ -29,8 +27,6 @@ published_settings:
       during each sparging cycle. Electrolysis is paused for this duration.
       Mid-sparge changes apply to the next cycle, not the in-flight one.
     type: numeric
-    min: 0.01
-    step: 0.1
     display: true
   - key: sparge_interval_minutes
     unit: min
@@ -39,20 +35,17 @@ published_settings:
       How often (in minutes) a CO2 sparging cycle occurs. For example, enter
       60 to sparge once per hour, or 1 to sparge every minute for testing.
     type: numeric
-    min: 0.01
-    step: 0.1
     display: true
   - key: od_pause_after_sparge_seconds
     unit: s
     label: OD Pause After Sparge
     description: >
       How long (in seconds) after the CO2 solenoid closes before OD reading
-      resumes — i.e. the bubble-clearance window. Negative values resume OD
+      resumes – i.e. the bubble-clearance window. Negative values resume OD
       reading before the sparge ends (OD continues partway through or right
       through sparging). A value less than or equal to the negative of the
       sparging duration disables OD pausing entirely.
     type: numeric
-    step: 0.1
     display: true
   - key: reset_to_defaults
     label: Reset to Defaults

@@ -47,9 +47,9 @@ Deploy the UI job descriptor so the job appears in the **Activities** panel:
 
 ```bash
 PLUGIN=/opt/pioreactor/venv/lib/python3.*/site-packages/pioreactor_electropioreactor_plugin
-mkdir -p ~/.pioreactor/ui/contrib/jobs
+mkdir -p ~/.pioreactor/plugins/ui/jobs
 cp $PLUGIN/ui/contrib/jobs/electropioreactor.yaml \
-   ~/.pioreactor/ui/contrib/jobs/20_electropioreactor.yaml
+   ~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
 ```
 
 Add the PWM-4 relay mapping and default values to `~/.pioreactor/config.ini` (idempotent – re-runs are safe; existing keys are preserved):
