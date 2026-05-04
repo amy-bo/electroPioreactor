@@ -19,7 +19,7 @@ from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
 __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
-__plugin_version__ = "0.6.4"
+__plugin_version__ = "0.6.5"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
 __plugin_homepage__ = "https://github.com/amy-bo/electroPioreactor"
@@ -65,6 +65,17 @@ class ElectroPioreactor(BackgroundJob):
         od_pause_after_sparge_seconds: float = 5.0,
     ) -> None:
         super().__init__(unit=unit, experiment=experiment)
+        # Timer/state attrs go BEFORE any validator that can raise.
+        # BackgroundJob's exception-cleanup path calls _cancel_timers, which
+        # reads these attrs; if a validator below raises before they exist,
+        # cleanup masks the real ValueError with an AttributeError.
+        self._is_sparging = False
+        self._od_paused = False
+        self._sparge_timer: threading.Timer | None = None
+        self._stop_timer: threading.Timer | None = None
+        self._od_resume_timer: threading.Timer | None = None
+        self.reset_to_defaults = False
+
         self.electrolysis_power = self._clamp_power(electrolysis_power)
         if self.electrolysis_power != float(electrolysis_power):
             self.logger.info(
@@ -74,12 +85,6 @@ class ElectroPioreactor(BackgroundJob):
         self.sparge_duration_seconds = self._positive(sparge_duration_seconds, "sparge_duration_seconds")
         self.sparge_interval_minutes = self._positive(sparge_interval_minutes, "sparge_interval_minutes")
         self.od_pause_after_sparge_seconds = float(od_pause_after_sparge_seconds)
-        self.reset_to_defaults = False
-        self._is_sparging = False
-        self._od_paused = False
-        self._sparge_timer: threading.Timer | None = None
-        self._stop_timer: threading.Timer | None = None
-        self._od_resume_timer: threading.Timer | None = None
 
         pwm_channel = config.get("PWM_reverse", "relay")
         # Deferred: PWM_TO_PIN is a lazy resolver that touches DOT_PIOREACTOR env var.
