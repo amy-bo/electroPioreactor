@@ -11,7 +11,6 @@ from pioreactor.actions.led_intensity import led_intensity
 from pioreactor.background_jobs.base import BackgroundJob
 from pioreactor.cli.run import run
 from pioreactor.config import config
-from pioreactor.hardware import PWM_TO_PIN
 from pioreactor.pubsub import QOS
 from pioreactor.pubsub import publish
 from pioreactor.states import JobState
@@ -20,7 +19,7 @@ from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
 __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
-__plugin_version__ = "0.6.2"
+__plugin_version__ = "0.6.3"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
 __plugin_homepage__ = "https://github.com/amy-bo/electroPioreactor"
@@ -83,6 +82,8 @@ class ElectroPioreactor(BackgroundJob):
         self._od_resume_timer: threading.Timer | None = None
 
         pwm_channel = config.get("PWM_reverse", "relay")
+        # Deferred: PWM_TO_PIN is a lazy resolver that touches DOT_PIOREACTOR env var.
+        from pioreactor.hardware import PWM_TO_PIN
         self._pwm = PWM(
             PWM_TO_PIN[pwm_channel],
             hz=16,
