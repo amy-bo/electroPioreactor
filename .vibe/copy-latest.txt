@@ -1,0 +1,134 @@
+1. PIP NAME
+   pioreactor-electropioreactor-plugin
+
+   Note: NOT yet published to PyPI, so `pio plugins install
+   <name>` won't work. Install from git URL (see #2).
+
+2. SOURCE
+   git+https://github.com/amy-bo/electroPioreactor.git@AEP-Plugin#subdirectory=AEP-Plugin
+
+   The repo has a top-level `AEP-Plugin/` subdir containing the
+   actual setuptools project. Branch `AEP-Plugin` (the project
+   has no `main`/`master` branch with the plugin). Latest
+   commit is `ba16708` (v0.6.2 + docs).
+
+3. PREREQUISITES
+   Python deps:
+     `click` (declared in install_requires; usually transitively
+     present in any Pioreactor venv anyway)
+
+   config.ini sections to add (BEFORE first run of the job):
+     [PWM]
+     4=relay
+
+     [electropioreactor.config]
+     electrolysis_power=2.5
+     sparge_duration_seconds=10.0
+     sparge_interval_minutes=60.0
+     od_pause_after_sparge_seconds=5.0
+
+   UI YAML deploy (BEFORE first browser visit):
+     cp <pkg>/ui/contrib/jobs/electropioreactor.yaml \
+        ~/.pioreactor/ui/contrib/jobs/20_electropioreactor.yaml
+     sudo systemctl restart lighttpd
+
+   Calibrations: none required.
+
+   GPIO/I2C claims: drives PWM channel 4 (mapped to "relay" in
+   config) for the CO2 solenoid, and uses Pioreactor's
+   `led_intensity` action on LED channel D for electrolysis. No
+   raw GPIO or I2C claims; goes through Pioreactor's PWM helper
+   (uses GPIO 12 internally) and the LED action.
+
+   Debian packages: none beyond what the Pioreactor base image
+   already ships.
+
+4. INSTALL WITHOUT HARDWARE
+   `pip install` succeeds with no hardware attached.
+   `pio run electropioreactor` runs cleanly with no electrodes
+   or solenoid wired (PWM channel 4 toggles into open air, LED
+   D modulates with nothing on it). The plugin will FAIL TO
+   IMPORT only if `[PWM]` is missing the `4=relay` mapping,
+   because `__init__` does `config.get("PWM_reverse", "relay")`
+   which raises if not configured. So config.ini step is
+   essential, hardware presence is not.
+
+5. INSTALL VIA SSH (paste-ready, idempotent)
+
+   ssh pioreactor@ed04.local 'bash -se' <<'INSTALL'
+   set -ex
+
+   /opt/pioreactor/venv/bin/pip install --upgrade \
+     'git+https://github.com/amy-bo/electroPioreactor.git@AEP-Plugin#subdirectory=AEP-Plugin'
+
+   PLUGIN_DIR=$(/opt/pioreactor/venv/bin/pip show pioreactor-electropioreactor-plugin \
+                 | awk '/^Location:/{print $2}')/pioreactor_electropioreactor_plugin
+   mkdir -p ~/.pioreactor/ui/contrib/jobs
+   cp "$PLUGIN_DIR/ui/contrib/jobs/electropioreactor.yaml" \
+      ~/.pioreactor/ui/contrib/jobs/20_electropioreactor.yaml
+
+   /opt/pioreactor/venv/bin/python <<'PY'
+   import configparser
+   path = "/home/pioreactor/.pioreactor/config.ini"
+   p = configparser.ConfigParser()
+   p.read([path])
+   if "PWM" not in p: p.add_section("PWM")
+   p["PWM"]["4"] = "relay"
+   sec = "electropioreactor.config"
+   if sec not in p: p.add_section(sec)
+   for k, v in {
+       "electrolysis_power": "2.5",
+       "sparge_duration_seconds": "10.0",
+       "sparge_interval_minutes": "60.0",
+       "od_pause_after_sparge_seconds": "5.0",
+   }.items():
+       p[sec].setdefault(k, v)
+   with open(path, "w") as f:
+       p.write(f)
+   PY
+
+   sudo systemctl restart lighttpd
+   INSTALL
+
+   Repeat with `ed05.local` for the second unit.
+
+6. VERIFY (paste-ready)
+
+   ssh pioreactor@ed04.local 'bash -se' <<'VERIFY'
+   echo "--- pip ---"
+   /opt/pioreactor/venv/bin/pip show pioreactor-electropioreactor-plugin \
+     | grep -E "^(Name|Version|Location)"
+
+   echo
+   echo "--- import + invariants ---"
+   DOT_PIOREACTOR=/home/pioreactor/.pioreactor \
+   /opt/pioreactor/venv/bin/python <<'PY'
+   from pioreactor_electropioreactor_plugin.electropioreactor import (
+       ElectroPioreactor, __plugin_version__
+   )
+   print("plugin version :", __plugin_version__)
+   print("persist on all :", all(p.get("persist") is True
+       for p in ElectroPioreactor.published_settings.values()))
+   PY
+
+   echo
+   echo "--- UI YAML ---"
+   ls -la ~/.pioreactor/ui/contrib/jobs/20_electropioreactor.yaml
+
+   echo
+   echo "--- config.ini sections ---"
+   awk '/^\[(PWM|electropioreactor)/{p=1; print; next} /^\[/{p=0} p' \
+     ~/.pioreactor/config.ini
+
+   echo
+   echo "--- pio plugins list (sanity) ---"
+   /opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep -i electro
+   VERIFY
+
+   Expected:
+     plugin version : 0.6.2
+     persist on all : True
+     UI YAML present, owned by pioreactor:pioreactor
+     [PWM] has 4=relay
+     [electropioreactor.config] has all four keys
+     `pio plugins list` shows `electropioreactor` in the table
