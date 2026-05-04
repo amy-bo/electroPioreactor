@@ -37,6 +37,7 @@ The plugin is not on PyPI yet. Install from source into the Pioreactor venv:
 ```bash
 ssh pioreactor@<your-pioreactor>.local
 cd ~
+sudo apt update && sudo apt install -y git
 git clone https://github.com/amy-bo/electroPioreactor.git
 git -C electroPioreactor checkout AEP-Plugin
 /opt/pioreactor/venv/bin/pip install ./electroPioreactor/AEP-Plugin
@@ -51,7 +52,31 @@ cp $PLUGIN/ui/contrib/jobs/electropioreactor.yaml \
    ~/.pioreactor/ui/contrib/jobs/20_electropioreactor.yaml
 ```
 
-Add the PWM-4 relay mapping and default values to `~/.pioreactor/config.ini` (see **Configuration** below), then restart `lighttpd` so the web UI picks up the new job descriptor:
+Add the PWM-4 relay mapping and default values to `~/.pioreactor/config.ini` (idempotent – re-runs are safe; existing keys are preserved):
+
+```bash
+/opt/pioreactor/venv/bin/python <<'PY'
+import configparser
+path = "/home/pioreactor/.pioreactor/config.ini"
+p = configparser.ConfigParser()
+p.read([path])
+if "PWM" not in p: p.add_section("PWM")
+p["PWM"]["4"] = "relay"
+sec = "electropioreactor.config"
+if sec not in p: p.add_section(sec)
+for k, v in {
+    "electrolysis_power": "2.5",
+    "sparge_duration_seconds": "10.0",
+    "sparge_interval_minutes": "60.0",
+    "od_pause_after_sparge_seconds": "5.0",
+}.items():
+    p[sec].setdefault(k, v)
+with open(path, "w") as f:
+    p.write(f)
+PY
+```
+
+See **Configuration** below for what these values mean. Restart `lighttpd` so the web UI picks up the new job descriptor:
 
 ```bash
 sudo systemctl restart lighttpd
