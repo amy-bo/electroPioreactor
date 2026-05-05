@@ -71,14 +71,33 @@ In a browser, navigate to `http://<hostname>.local` (e.g. `http://ed04.local`) �
 
 ### 2. SSH in and install the plugin
 
+**On your Mac/Windows/Linux shell**, open the SSH session:
+
 ```bash
 ssh pioreactor@<hostname>.local
+```
+
+Type `yes` to accept the host fingerprint on first connect, then enter the password you set in step 1.
+
+> ⚠️ **Wait for the SSH prompt** (`pioreactor@<hostname>:~$`) **before pasting the next block.** If you paste the SSH command and the post-SSH commands together, the post-SSH lines get eaten by SSH's `yes/no?` and `password:` prompts and silently fail to run.
+
+**Inside the SSH session on the Pi**, paste:
+
+```bash
 cd ~
 sudo apt update && sudo apt install -y git
 git clone https://github.com/amy-bo/electroPioreactor.git
 git -C electroPioreactor checkout AEP-Plugin
 /opt/pioreactor/venv/bin/pip install ./electroPioreactor/AEP-Plugin
 ```
+
+Confirm the plugin actually installed before moving on – it's the load-bearing prerequisite for steps 3 onwards:
+
+```bash
+/opt/pioreactor/venv/bin/pip show pioreactor-electropioreactor-plugin | grep Version
+```
+
+Expect `Version: 0.6.5` (or later). If you get nothing, the install didn't run – re-paste the previous block.
 
 ### 3. Apply the version-specific frontend patch
 
