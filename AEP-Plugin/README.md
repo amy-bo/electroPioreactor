@@ -44,7 +44,11 @@ On your Mac/Windows/Linux machine, install [Raspberry Pi Imager](https://www.ras
 1. Open Pi Imager.
 2. Immediately click **App Options**.
 3. Click **Edit** next to **Content Repository**.
-4. Choose **Use Custom URL** and paste `https://pioreactor.com/imager/os-list.json`.
+4. Choose **Use Custom URL** and paste:
+
+   ```
+   https://pioreactor.com/imager/os-list.json
+   ```
 5. Click **Apply & restart**. Pi Imager closes and re-opens; the Pioreactor OS list will not appear in the picker until you've done this.
 6. Choose your RPi model and click **Next** (Raspberry Pi Zero 2 W for current ed04 hardware).
 7. Choose the operating system **Pioreactor** and click **Next**.
