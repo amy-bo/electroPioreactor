@@ -1,5 +1,53 @@
 # electroPioreactor Plugin — Status
 
+## v0.6.5 (2026-05-04) — init ordering, no more masked ValueErrors
+
+Moved timer/state attribute initialisation (`_sparge_timer`, `_stop_timer`,
+`_od_resume_timer`, `_is_sparging`, `_od_paused`, `reset_to_defaults`) to
+the top of `__init__`, before any validator that can raise. Without this,
+a non-positive `sparge_duration_seconds` from the Advanced modal triggered
+`_positive` to raise `ValueError`, BackgroundJob's exception cleanup then
+called `_cancel_timers`, and the user saw
+
+```
+Failed to cancel timers during cleanup: 'ElectroPioreactor' object has no
+attribute '_sparge_timer'
+```
+
+instead of the actual validation error. The cleanup path is now safe
+regardless of which subsequent line in `__init__` fails.
+
+## v0.6.4 (2026-05-04) — YAML schema + plugin install path
+
+Two fixes that together let the UI actually render the plugin in
+**Activities** on current Pioreactor:
+
+- **YAML schema**. Pioreactor's `BackgroundJobDescriptor` /
+  `PublishedSettingsDescriptor` use `forbid_unknown_fields=True` and only
+  allow `key, type, display, description, default, unit, label, editable`.
+  v0.6.2 added `min` / `max` / `step` to `published_settings` for UI input
+  validation; current Pioreactor rejects the file silently
+  (validation error logged via `report_error`, descriptor dropped). Stripped
+  those fields. Range enforcement still happens at runtime in the job
+  (`_clamp_power`, `_positive`).
+- **Install target path**. Pioreactor's
+  `web/utils.py:load_background_job_descriptors` scans
+  `~/.pioreactor/ui/jobs/` (built-ins) and
+  `~/.pioreactor/plugins/ui/jobs/` (plugin descriptors). The legacy
+  `~/.pioreactor/ui/contrib/jobs/` is no longer scanned. README install
+  step updated to deploy to the correct path.
+
+## v0.6.3 (2026-05-04) — defer hardware import
+
+`from pioreactor.hardware import PWM_TO_PIN` at module level fired
+Pioreactor's `__getattr__` deprecation lazy-resolver, which calls
+`get_pwm_to_pin_map()` and `Path(environ["DOT_PIOREACTOR"])` on access.
+That broke `pio plugins list` from interactive shells (Pioreactor sets
+`DOT_PIOREACTOR` via systemd / `/etc/pioreactor.env`, not
+`/etc/environment`). Moved the import inside
+`ElectroPioreactor.__init__`. Module imports cleanly regardless of env
+state; instantiation still requires `DOT_PIOREACTOR`, which is correct.
+
 ## v0.6.2 (2026-04-30) — polish pass
 
 After the v0.6.1 root-cause fix, a Superpowers code review surfaced a list
@@ -85,10 +133,14 @@ release at the time of writing was 26.4.4 (2026-04-23).
 **Users on 26.4.5 or later** see the modal display fresh values on every
 re-open with no extra action.
 
-**Users on 26.4.4 or earlier** need to hard-refresh the browser tab
-(Ctrl/Cmd+Shift+R) after Stop to see current values. The plugin's data layer
-(config files, MQTT retained, SQLite metadata DB) is correct in both cases —
-the symptom is purely React component state.
+**Users on 26.4.4 or earlier**: the README install flow (step 3) hot-patches
+`pioreactor.web.static` with a pre-built bundle from
+`AEP-Plugin/transitional/pioreactor-static-pr615.tar.gz` so the modal also
+re-fetches on open. The hot-patch is reversible (the original bundle is
+preserved at `pioreactor.web.static.pre-pr615.bak`). After upgrading to
+26.4.5+, revert the hot-patch and the upstream-included PR #615 takes over.
+The plugin's data layer (config files, MQTT retained, SQLite metadata DB)
+is correct on both versions; the symptom was purely React component state.
 
 ## Reset toggle
 
@@ -116,8 +168,9 @@ On device (`pio01`):
 
 ```
 /home/pioreactor/.pioreactor/config.ini                        — global baseline
-/home/pioreactor/.pioreactor/config_pio01.ini                  — plugin-written, read by web API
+/home/pioreactor/.pioreactor/config_<unit>.ini                  — plugin-written, read by web API
 /home/pioreactor/.pioreactor/unit_config.ini                   — plugin-written, read by job process
-/home/pioreactor/.pioreactor/ui/contrib/jobs/20_electropioreactor.yaml
+/home/pioreactor/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml   — UI descriptor (current path; was ui/contrib/jobs/ pre-v0.6.4)
 /opt/pioreactor/venv/lib/python3.13/site-packages/pioreactor_electropioreactor_plugin/
+/opt/pioreactor/venv/lib/python3.13/site-packages/pioreactor/web/static/                — Pioreactor frontend; on 26.4.4 or earlier the README install step 3 hot-patches this with PR #615
 ```
