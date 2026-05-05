@@ -79,7 +79,7 @@ ssh pioreactor@<hostname>.local
 
 Type `yes` to accept the host fingerprint on first connect, then enter the password you set in step 1.
 
-**Inside the SSH session on the Pi**, paste each block below one at a time. Wait for each command to finish (the prompt returns) before pasting the next:
+**Inside the SSH session on the Pi**:
 
 ```bash
 cd ~
@@ -156,8 +156,6 @@ sudo systemctl restart lighttpd
 ```
 
 ### 7. Verify
-
-Paste each block one at a time:
 
 ```bash
 DOT_PIOREACTOR=/home/pioreactor/.pioreactor /opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep electro
