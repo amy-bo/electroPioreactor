@@ -79,19 +79,31 @@ ssh pioreactor@<hostname>.local
 
 Type `yes` to accept the host fingerprint on first connect, then enter the password you set in step 1.
 
-**Inside the SSH session on the Pi**, paste each line below one at a time. Wait for each command to finish (the prompt returns) before pasting the next:
+**Inside the SSH session on the Pi**, paste each block below one at a time. Wait for each command to finish (the prompt returns) before pasting the next:
 
-`cd ~`
+```bash
+cd ~
+```
 
-`sudo apt update && sudo apt install -y git`
+```bash
+sudo apt update && sudo apt install -y git
+```
 
-`git clone https://github.com/amy-bo/electroPioreactor.git`
+```bash
+git clone https://github.com/amy-bo/electroPioreactor.git
+```
 
-`git -C electroPioreactor checkout AEP-Plugin`
+```bash
+git -C electroPioreactor checkout AEP-Plugin
+```
 
-`/opt/pioreactor/venv/bin/pip install ./electroPioreactor/AEP-Plugin`
+```bash
+/opt/pioreactor/venv/bin/pip install ./electroPioreactor/AEP-Plugin
+```
 
-`/opt/pioreactor/venv/bin/pip show pioreactor-electropioreactor-plugin | grep Version`
+```bash
+/opt/pioreactor/venv/bin/pip show pioreactor-electropioreactor-plugin | grep Version
+```
 
 The last line should print `Version: 0.6.5` (or later).
 
@@ -99,7 +111,9 @@ The last line should print `Version: 0.6.5` (or later).
 
 Check which Pioreactor version your unit is running:
 
-`/opt/pioreactor/venv/bin/pio version`
+```bash
+/opt/pioreactor/venv/bin/pio version
+```
 
 #### If the output is `26.4.5` or later
 
@@ -107,39 +121,55 @@ The plugin's Advanced modal works out of the box on these versions. **Skip to st
 
 #### If the output is `26.4.4` or earlier
 
-The plugin's Advanced modal needs Pioreactor [PR #615](https://github.com/Pioreactor/pioreactor/pull/615) (merged to master 2026-04-30, will ship in 26.4.5). Hot-patch the running frontend with a pre-built bundle from this repo. Paste each line below one at a time:
+The plugin's Advanced modal needs Pioreactor [PR #615](https://github.com/Pioreactor/pioreactor/pull/615) (merged to master 2026-04-30, will ship in 26.4.5). Hot-patch the running frontend with a pre-built bundle from this repo:
 
-`bash ~/electroPioreactor/AEP-Plugin/scripts/apply-pr615-patch.sh`
+```bash
+bash ~/electroPioreactor/AEP-Plugin/scripts/apply-pr615-patch.sh
+```
 
 The original bundle is preserved at `<pioreactor.web.static>.pre-pr615.bak`. To revert after you upgrade to 26.4.5+:
 
-`bash ~/electroPioreactor/AEP-Plugin/scripts/revert-pr615-patch.sh`
+```bash
+bash ~/electroPioreactor/AEP-Plugin/scripts/revert-pr615-patch.sh
+```
 
 ### 4. Deploy the UI job descriptor
 
-`bash ~/electroPioreactor/AEP-Plugin/scripts/deploy-ui-yaml.sh`
+```bash
+bash ~/electroPioreactor/AEP-Plugin/scripts/deploy-ui-yaml.sh
+```
 
 ### 5. Patch `config.ini` (idempotent)
 
 Adds `[PWM] 4=relay` and the four `[electropioreactor.config]` defaults. Re-runs are safe; existing keys are preserved.
 
-`/opt/pioreactor/venv/bin/python ~/electroPioreactor/AEP-Plugin/scripts/patch-config-ini.py`
+```bash
+/opt/pioreactor/venv/bin/python ~/electroPioreactor/AEP-Plugin/scripts/patch-config-ini.py
+```
 
 See **Configuration** below for what these values mean.
 
 ### 6. Restart `lighttpd`
 
-`sudo systemctl restart lighttpd`
+```bash
+sudo systemctl restart lighttpd
+```
 
 ### 7. Verify
 
-Paste each line one at a time:
+Paste each block one at a time:
 
-`DOT_PIOREACTOR=/home/pioreactor/.pioreactor /opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep electro`
+```bash
+DOT_PIOREACTOR=/home/pioreactor/.pioreactor /opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep electro
+```
 
-`ls -la ~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml`
+```bash
+ls -la ~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
+```
 
-`curl -s http://localhost/unit_api/jobs/descriptors | python3 -c "import sys,json; print('electropioreactor' in [j['job_name'] for j in json.load(sys.stdin)])"`
+```bash
+curl -s http://localhost/unit_api/jobs/descriptors | python3 -c "import sys,json; print('electropioreactor' in [j['job_name'] for j in json.load(sys.stdin)])"
+```
 
 Expected:
 - `pioreactor-electropioreactor-plugin==0.6.5` (or later) from `pio plugins list`
