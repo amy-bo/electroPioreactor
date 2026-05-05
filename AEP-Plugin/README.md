@@ -124,7 +124,7 @@ The plugin's Advanced modal works out of the box on these versions. **Skip to st
 The plugin's Advanced modal needs Pioreactor [PR #615](https://github.com/Pioreactor/pioreactor/pull/615) (merged to master 2026-04-30, will ship in 26.4.5). Hot-patch the running frontend with a pre-built bundle from this repo:
 
 ```bash
-bash ~/electroPioreactor/AEP-Plugin/scripts/apply-pr615-patch.sh
+bash /home/pioreactor/electroPioreactor/AEP-Plugin/scripts/apply-pr615-patch.sh
 ```
 
 The original bundle is preserved at `<pioreactor.web.static>.pre-pr615.bak` so you can revert later (see *Pioreactor version compatibility* near the end of this README).
@@ -132,7 +132,7 @@ The original bundle is preserved at `<pioreactor.web.static>.pre-pr615.bak` so y
 ### 4. Deploy the UI job descriptor
 
 ```bash
-bash ~/electroPioreactor/AEP-Plugin/scripts/deploy-ui-yaml.sh
+bash /home/pioreactor/electroPioreactor/AEP-Plugin/scripts/deploy-ui-yaml.sh
 ```
 
 ### 5. Patch `config.ini` (idempotent)
@@ -140,7 +140,7 @@ bash ~/electroPioreactor/AEP-Plugin/scripts/deploy-ui-yaml.sh
 Adds `[PWM] 4=relay` and the four `[electropioreactor.config]` defaults. Re-runs are safe; existing keys are preserved.
 
 ```bash
-/opt/pioreactor/venv/bin/python ~/electroPioreactor/AEP-Plugin/scripts/patch-config-ini.py
+/opt/pioreactor/venv/bin/python /home/pioreactor/electroPioreactor/AEP-Plugin/scripts/patch-config-ini.py
 ```
 
 See **Configuration** below for what these values mean.
@@ -158,7 +158,7 @@ DOT_PIOREACTOR=/home/pioreactor/.pioreactor /opt/pioreactor/venv/bin/pio plugins
 ```
 
 ```bash
-ls -la ~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
+ls -la /home/pioreactor/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
 ```
 
 ```bash
@@ -241,7 +241,7 @@ This plugin's Advanced modal depends on Pioreactor [PR #615](https://github.com/
 Once 26.4.5 ships and you upgrade, you can revert the hot-patch – the upgraded Pioreactor frontend will include PR #615 natively. From an SSH session on the unit:
 
 ```bash
-bash ~/electroPioreactor/AEP-Plugin/scripts/revert-pr615-patch.sh
+bash /home/pioreactor/electroPioreactor/AEP-Plugin/scripts/revert-pr615-patch.sh
 ```
 
 ## Contributing
