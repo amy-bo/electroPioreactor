@@ -30,7 +30,7 @@ Pause/resume is done by publishing `JobState.SLEEPING`/`READY` to `od_reading`'s
 
 ## Installation
 
-End-to-end fresh setup, designed to be followed verbatim from start to finish. Skip step 1 if your Pioreactor is already imaged and reachable on its network.
+Skip step 1 if your Pioreactor is already imaged and reachable on its network.
 
 ### 1. (Optional) Flash a fresh Pioreactor image
 
@@ -41,7 +41,7 @@ Follow [Pioreactor's official software-installation guide](https://docs.pioreact
 
 On your Mac/Windows/Linux machine, install [Raspberry Pi Imager](https://www.raspberrypi.com/software/), then:
 
-1. Open Pi Imager.
+1. Open Raspberry Pi Imager.
 2. Immediately click **App Options**.
 3. Click **Edit** next to **Content Repository**.
 4. Choose **Use Custom URL** and paste:
@@ -49,22 +49,19 @@ On your Mac/Windows/Linux machine, install [Raspberry Pi Imager](https://www.ras
    ```
    https://pioreactor.com/imager/os-list.json
    ```
-5. Click **Apply & restart**. Pi Imager closes and re-opens; the Pioreactor OS list will not appear in the picker until you've done this.
+5. Click **Apply & restart**.
 6. Choose your RPi model and click **Next** (Raspberry Pi Zero 2 W for current ed04 hardware).
-7. Choose the operating system **Pioreactor** and click **Next**.
-8. Choose the **latest** OS on the list (at the top) and click **Next**.
+7. Choose the operating system **Pioreactor**
+8. Choose the **latest** OS on the list (at the top)
 9. Choose **Leader + Worker** and click **Next**. (Use **Worker** instead if this unit will join an existing cluster as a worker only; **Leader** if you want a leader that doesn't itself run experiments. For a stand-alone unit like ed04, pick Leader + Worker.)
 10. Insert your microSD card and select it as your **Storage** device.
 11. Input a unique hostname for this unit (e.g. `ed04`). **Do not use `pioreactor` or `raspberrypi`** – those names are reserved and will break mDNS resolution. Click **Next**.
 12. Change localization preferences (time zone, keyboard layout) and click **Next**.
-13. Check **Set username and password** and enter:
-    - **Username**: `pioreactor` (do not change – the Pioreactor image hardcodes this username and several plugin install paths assume it).
-    - **Password**: Pioreactor's docs use `raspberry`; pick something stronger for any unit that will run real experiments.
-
-    Click **Next**.
-14. Enter your **SSID** and **Wi-Fi password** (optional if using Ethernet). Click **Next**.
-15. Confirm **Enable SSH** is active and **Use password authentication** is selected. Click **Next**.
-16. Click **Write** to begin imaging. Accept any permission prompts. Writing takes up to 5 minutes.
+13. enter **Username**: `pioreactor` (do not change – the Pioreactor image hardcodes this username and several plugin install paths assume it).
+14. enter **Password**: Pioreactor's docs use `raspberry`; pick something stronger for any unit that will run real experiments. Enter password again and click **Next**.
+15. Enter your **SSID** and **WiFi password** (optional if using Ethernet - note Raspberry Pi Zero's do not have Ethernet so WiFi is required). Click **Next**.
+16. Confirm **Enable SSH** is active and **Use password authentication** is selected. Click **Next**.
+17. Click **Write** to begin imaging. Accept any permission prompts. Writing takes up to 5 minutes.
 
 When the write finishes, eject the card and insert it into the Raspberry Pi (HAT attached, power unplugged). The microSD slot is on the PWM side. Plug power in; after a few minutes the Pioreactor HAT will briefly blink a blue LED to indicate first-boot is complete.
 
