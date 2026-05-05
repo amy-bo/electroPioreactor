@@ -154,21 +154,26 @@ sudo systemctl restart lighttpd
 ### 7. Verify
 
 ```bash
-DOT_PIOREACTOR=/home/pioreactor/.pioreactor /opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep electro
+export DOT_PIOREACTOR=/home/pioreactor/.pioreactor
 ```
+
+```bash
+/opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep electro
+```
+
+Expected: `pioreactor-electropioreactor-plugin==0.6.5` (or later).
 
 ```bash
 ls -la /home/pioreactor/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
 ```
 
+Expected: file present, owned by `pioreactor:www-data`.
+
 ```bash
-curl -s http://localhost/unit_api/jobs/descriptors | python3 -c "import sys,json; print('electropioreactor' in [j['job_name'] for j in json.load(sys.stdin)])"
+curl -s http://localhost/unit_api/jobs/descriptors | grep -c electropioreactor
 ```
 
-Expected:
-- `pioreactor-electropioreactor-plugin==0.6.5` (or later) from `pio plugins list`
-- The YAML file present, owned by `pioreactor:www-data`
-- `True` from the descriptor check
+Expected: `1`.
 
 Then in your browser, hard-refresh `http://<hostname>.local/` (Ctrl/Cmd+Shift+R), navigate to **Pioreactors → `<hostname>` → Manage**, and **electroPioreactor** should appear under **Activities**.
 
