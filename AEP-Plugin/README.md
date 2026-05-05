@@ -127,11 +127,7 @@ The plugin's Advanced modal needs Pioreactor [PR #615](https://github.com/Piorea
 bash ~/electroPioreactor/AEP-Plugin/scripts/apply-pr615-patch.sh
 ```
 
-The original bundle is preserved at `<pioreactor.web.static>.pre-pr615.bak`. To revert after you upgrade to 26.4.5+:
-
-```bash
-bash ~/electroPioreactor/AEP-Plugin/scripts/revert-pr615-patch.sh
-```
+The original bundle is preserved at `<pioreactor.web.static>.pre-pr615.bak` so you can revert later (see *Pioreactor version compatibility* near the end of this README).
 
 ### 4. Deploy the UI job descriptor
 
@@ -242,7 +238,11 @@ pio run electropioreactor \
 
 This plugin's Advanced modal depends on Pioreactor [PR #615](https://github.com/Pioreactor/pioreactor/pull/615) (merged to master 2026-04-30, will ship in **26.4.5**) for the modal to re-fetch from disk on open after a Stop. On 26.4.4 and earlier, the install flow above hot-patches the running frontend with a pre-built bundle (step 3) so the behaviour is consistent across versions. The plugin's own data-layer persistence bug (which made the same scenario actually *wipe* values from MQTT/SQLite, not just appear stale) was fixed in v0.6.1.
 
-Once 26.4.5 ships and you upgrade, you can revert the hot-patch (revert command shown in step 3) – the upgraded Pioreactor frontend will include PR #615 natively.
+Once 26.4.5 ships and you upgrade, you can revert the hot-patch – the upgraded Pioreactor frontend will include PR #615 natively. From an SSH session on the unit:
+
+```bash
+bash ~/electroPioreactor/AEP-Plugin/scripts/revert-pr615-patch.sh
+```
 
 ## Contributing
 
