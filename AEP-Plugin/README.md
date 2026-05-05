@@ -79,31 +79,27 @@ ssh pioreactor@<hostname>.local
 
 Type `yes` to accept the host fingerprint on first connect, then enter the password you set in step 1.
 
-**Inside the SSH session on the Pi**, paste:
+**Inside the SSH session on the Pi**, paste each line below one at a time. Wait for each command to finish (the prompt returns) before pasting the next:
 
-```bash
-cd ~
-sudo apt update && sudo apt install -y git
-git clone https://github.com/amy-bo/electroPioreactor.git
-git -C electroPioreactor checkout AEP-Plugin
-/opt/pioreactor/venv/bin/pip install ./electroPioreactor/AEP-Plugin
-```
+`cd ~`
 
-Confirm the plugin actually installed before moving on – it's the load-bearing prerequisite for steps 3 onwards:
+`sudo apt update && sudo apt install -y git`
 
-```bash
-/opt/pioreactor/venv/bin/pip show pioreactor-electropioreactor-plugin | grep Version
-```
+`git clone https://github.com/amy-bo/electroPioreactor.git`
 
-Expect `Version: 0.6.5` (or later). If you get nothing, the install didn't run – re-paste the previous block.
+`git -C electroPioreactor checkout AEP-Plugin`
+
+`/opt/pioreactor/venv/bin/pip install ./electroPioreactor/AEP-Plugin`
+
+`/opt/pioreactor/venv/bin/pip show pioreactor-electropioreactor-plugin | grep Version`
+
+The last line should print `Version: 0.6.5` (or later).
 
 ### 3. Apply the version-specific frontend patch
 
 Check which Pioreactor version your unit is running:
 
-```bash
-/opt/pioreactor/venv/bin/pio version
-```
+`/opt/pioreactor/venv/bin/pio version`
 
 #### If the output is `26.4.5` or later
 
@@ -111,74 +107,41 @@ The plugin's Advanced modal works out of the box on these versions. **Skip to st
 
 #### If the output is `26.4.4` or earlier
 
-The plugin's Advanced modal needs Pioreactor [PR #615](https://github.com/Pioreactor/pioreactor/pull/615) (merged to master 2026-04-30, will ship in 26.4.5). Hot-patch the running frontend with a pre-built bundle from this repo:
+The plugin's Advanced modal needs Pioreactor [PR #615](https://github.com/Pioreactor/pioreactor/pull/615) (merged to master 2026-04-30, will ship in 26.4.5). Hot-patch the running frontend with a pre-built bundle from this repo. Paste each line below one at a time:
 
-```bash
-PIO_STATIC=$(/opt/pioreactor/venv/bin/python -c "import pioreactor.web, os; print(os.path.join(os.path.dirname(pioreactor.web.__file__), 'static'))")
-sudo cp -a "$PIO_STATIC" "${PIO_STATIC}.pre-pr615.bak"
-sudo rm -rf "$PIO_STATIC"
-sudo tar -xzf ~/electroPioreactor/AEP-Plugin/transitional/pioreactor-static-pr615.tar.gz -C "$(dirname "$PIO_STATIC")"
-sudo chown -R pioreactor:pioreactor "$PIO_STATIC"
-```
+`bash ~/electroPioreactor/AEP-Plugin/scripts/apply-pr615-patch.sh`
 
-The original bundle is preserved at `${PIO_STATIC}.pre-pr615.bak`. To revert later:
+The original bundle is preserved at `<pioreactor.web.static>.pre-pr615.bak`. To revert after you upgrade to 26.4.5+:
 
-```bash
-PIO_STATIC=$(/opt/pioreactor/venv/bin/python -c "import pioreactor.web, os; print(os.path.join(os.path.dirname(pioreactor.web.__file__), 'static'))")
-sudo rm -rf "$PIO_STATIC" && sudo mv "${PIO_STATIC}.pre-pr615.bak" "$PIO_STATIC" && sudo systemctl restart lighttpd
-```
+`bash ~/electroPioreactor/AEP-Plugin/scripts/revert-pr615-patch.sh`
 
 ### 4. Deploy the UI job descriptor
 
-```bash
-PLUGIN=$(/opt/pioreactor/venv/bin/python -c "import pioreactor_electropioreactor_plugin, os; print(os.path.dirname(pioreactor_electropioreactor_plugin.__file__))")
-mkdir -p ~/.pioreactor/plugins/ui/jobs
-cp "$PLUGIN/ui/contrib/jobs/electropioreactor.yaml" ~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
-```
+`bash ~/electroPioreactor/AEP-Plugin/scripts/deploy-ui-yaml.sh`
 
 ### 5. Patch `config.ini` (idempotent)
 
 Adds `[PWM] 4=relay` and the four `[electropioreactor.config]` defaults. Re-runs are safe; existing keys are preserved.
 
-```bash
-/opt/pioreactor/venv/bin/python <<'PY'
-import configparser
-path = "/home/pioreactor/.pioreactor/config.ini"
-p = configparser.ConfigParser()
-p.read([path])
-if "PWM" not in p: p.add_section("PWM")
-p["PWM"]["4"] = "relay"
-sec = "electropioreactor.config"
-if sec not in p: p.add_section(sec)
-for k, v in {
-    "electrolysis_power": "2.5",
-    "sparge_duration_seconds": "10.0",
-    "sparge_interval_minutes": "60.0",
-    "od_pause_after_sparge_seconds": "5.0",
-}.items():
-    p[sec].setdefault(k, v)
-with open(path, "w") as f:
-    p.write(f)
-PY
-```
+`/opt/pioreactor/venv/bin/python ~/electroPioreactor/AEP-Plugin/scripts/patch-config-ini.py`
 
 See **Configuration** below for what these values mean.
 
 ### 6. Restart `lighttpd`
 
-```bash
-sudo systemctl restart lighttpd
-```
+`sudo systemctl restart lighttpd`
 
 ### 7. Verify
 
-```bash
-DOT_PIOREACTOR=/home/pioreactor/.pioreactor /opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep electro
-ls -la ~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
-curl -s http://localhost/unit_api/jobs/descriptors | python3 -c "import sys,json; print('electropioreactor' in [j['job_name'] for j in json.load(sys.stdin)])"
-```
+Paste each line one at a time:
 
-Expected output:
+`DOT_PIOREACTOR=/home/pioreactor/.pioreactor /opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep electro`
+
+`ls -la ~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml`
+
+`curl -s http://localhost/unit_api/jobs/descriptors | python3 -c "import sys,json; print('electropioreactor' in [j['job_name'] for j in json.load(sys.stdin)])"`
+
+Expected:
 - `pioreactor-electropioreactor-plugin==0.6.5` (or later) from `pio plugins list`
 - The YAML file present, owned by `pioreactor:www-data`
 - `True` from the descriptor check
