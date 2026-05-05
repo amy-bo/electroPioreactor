@@ -37,35 +37,36 @@ End-to-end fresh setup, designed to be followed verbatim from start to finish. S
 > ⚠️ **Warning**
 > Flashing wipes the SD card. Only do this if you are starting from scratch and have **no data on the unit you want to keep** – any experiments, calibrations, or local config on the SD card will be lost.
 
-Follow [Pioreactor's official software-installation guide](https://docs.pioreactor.com/user-guide/software-set-up). The steps below mirror that doc; the **Content Repository** must be set BEFORE choosing a device, because it's what makes the Pioreactor OS list appear later.
+Follow [Pioreactor's official software-installation guide](https://docs.pioreactor.com/user-guide/software-set-up). The steps below mirror that doc verbatim; if Pi Imager's UI changes, that page is the source of truth.
 
 On your Mac/Windows/Linux machine, install [Raspberry Pi Imager](https://www.raspberrypi.com/software/), then:
 
 1. Open Pi Imager.
-2. Click **App Options** (the gear icon, top-right of the main window).
+2. Immediately click **App Options**.
 3. Click **Edit** next to **Content Repository**.
 4. Choose **Use Custom URL** and paste `https://pioreactor.com/imager/os-list.json`.
-5. Click **Apply & restart**. Pi Imager will close and re-open.
-6. Click **Choose Device** → pick your Pi model (Raspberry Pi Zero 2 W for current ed04 hardware).
-7. Click **Choose OS** → **Pioreactor** → pick the latest version on the list → **Leader + Worker**.
-8. Click **Choose Storage** → your SD card.
-9. Click **Next**, then **Edit Settings** when prompted to apply OS customisation:
-   - **Hostname**: `<unit-name>` (e.g. `ed04`).
-   - **Username**: `pioreactor` (do not change – the Pioreactor image hardcodes this username and other plugin install paths assume it).
-   - **Password**: pick one. Pioreactor's docs default to `raspberry`; choose something stronger for any unit that will run real experiments.
-   - **Locale**: your time zone, your keyboard layout.
-   - **Wireless LAN**: enable, set **SSID** + **Password** to your Wi-Fi credentials. Leave "Hidden SSID" off unless your network is hidden.
-   - **Services** tab → enable **SSH** → use **password authentication**.
-10. Click **Save**, then **Yes** to write. Writing takes a few minutes.
+5. Click **Apply & restart**. Pi Imager closes and re-opens; the Pioreactor OS list will not appear in the picker until you've done this.
+6. Choose your RPi model and click **Next** (Raspberry Pi Zero 2 W for current ed04 hardware).
+7. Choose the operating system **Pioreactor** and click **Next**.
+8. Choose the **latest** OS on the list (at the top) and click **Next**.
+9. Choose **Leader + Worker** and click **Next**. (Use **Worker** instead if this unit will join an existing cluster as a worker only; **Leader** if you want a leader that doesn't itself run experiments. For a stand-alone unit like ed04, pick Leader + Worker.)
+10. Insert your microSD card and select it as your **Storage** device.
+11. Input a unique hostname for this unit (e.g. `ed04`). **Do not use `pioreactor` or `raspberrypi`** – those names are reserved and will break mDNS resolution. Click **Next**.
+12. Change localization preferences (time zone, keyboard layout) and click **Next**.
+13. Check **Set username and password** and enter:
+    - **Username**: `pioreactor` (do not change – the Pioreactor image hardcodes this username and several plugin install paths assume it).
+    - **Password**: Pioreactor's docs use `raspberry`; pick something stronger for any unit that will run real experiments.
 
-When the write finishes, eject the card, plug it into the Pi (HAT attached if applicable), and power up. Wait ~90 seconds for first-boot provisioning.
+    Click **Next**.
+14. Enter your **SSID** and **Wi-Fi password** (optional if using Ethernet). Click **Next**.
+15. Confirm **Enable SSH** is active and **Use password authentication** is selected. Click **Next**.
+16. Click **Write** to begin imaging. Accept any permission prompts. Writing takes up to 5 minutes.
 
-> ℹ️ **The Pioreactor image is headless by design.** A connected monitor will stay blank even on a fully working unit (HDMI output, ACT LED, and boot splash are all disabled in `/boot/firmware/config.txt`). Verify boot via:
->
-> - `ping <hostname>.local` from a device on the same Wi-Fi
-> - Browser → `http://<hostname>.local/` – the Pioreactor lighttpd web UI loads unauthenticated when ready
+When the write finishes, eject the card and insert it into the Raspberry Pi (HAT attached, power unplugged). The microSD slot is on the PWM side. Plug power in; after a few minutes the Pioreactor HAT will briefly blink a blue LED to indicate first-boot is complete.
 
-Once the web UI loads, complete the onboarding flow in the browser (pick your Pioreactor model number / version).
+In a browser, navigate to `http://<hostname>.local` (e.g. `http://ed04.local`) – the Pioreactor lighttpd web UI loads unauthenticated when ready. When the UI loads you'll be prompted by an **Update Pioreactor model** dialog: select the correct model and hardware version, then click **Save**.
+
+> ℹ️ **The Pioreactor image is headless by design.** A connected monitor will stay blank even on a fully working unit (HDMI output, ACT LED, and boot splash are all disabled in `/boot/firmware/config.txt`). Don't troubleshoot from screen output – verify boot via the brief blue LED flash, by `ping <hostname>.local` from another device on the same network, or by the web UI loading.
 
 ### 2. SSH in and install the plugin
 
