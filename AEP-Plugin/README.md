@@ -79,8 +79,6 @@ ssh pioreactor@<hostname>.local
 
 Type `yes` to accept the host fingerprint on first connect, then enter the password you set in step 1.
 
-> ⚠️ **Wait for the SSH prompt** (`pioreactor@<hostname>:~$`) **before pasting the next block.** If you paste the SSH command and the post-SSH commands together, the post-SSH lines get eaten by SSH's `yes/no?` and `password:` prompts and silently fail to run.
-
 **Inside the SSH session on the Pi**, paste:
 
 ```bash
