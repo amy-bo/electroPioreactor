@@ -2,7 +2,7 @@
 
 Three things to calibrate per unit before any experiment: peristaltic pumps, CO₂ flow rate, and electrolysis (V across electrodes and I through electrodes at 2.5 % LED D). Run on ed04 and ed05 in turn.
 
-Pre-requisite: both units assembled per [Assembly.md](Assembly.md), bicarbonate-filled, and reachable on the network.
+Pre-requisite: both units assembled per [Assembly](Assembly-EdMSc26.md), bicarbonate-filled, and reachable on the network.
 
 ## 1. Peristaltic pumps
 
@@ -17,7 +17,7 @@ Record on the unit's calibration sheet: date, balance ID, who ran the calibratio
 
 ## 2. CO₂ flow rate (needle valve only)
 
-The FZone regulator has a fixed, non-adjustable outlet pressure. The only variable you control on the gas side is the needle-valve opening. Your target flow rate is the value Martin recorded during [PreTransport](PreTransportCheck.md#fzone-leak-check), which matches AEP0.1.1's ODL setup for comparability.
+The FZone regulator has a fixed, non-adjustable outlet pressure. The only variable you control on the gas side is the needle-valve opening. Your target flow rate is the value Martin recorded during [PreTransport](PreTransportCheck-EdMSc26.md#fzone-leak-check), which matches AEP0.1.1's ODL setup for comparability.
 
 1. Confirm the SodaStream is open (Martin will have done this on arrival).
 2. Run a 1/16" tubing line from one of the vial's exhaust luer locks to a measuring cylinder inverted in a water bath. Plug the other exhaust luer with a luer plug.
@@ -31,7 +31,7 @@ If you cannot get to the target flow within sensible needle-valve travel, the pr
 
 ## 3. Electrolysis (V and I at 2.5 % LED D)
 
-Confirm each unit produces electrolysis numbers matching what Martin recorded on the bench during [PreTransport](PreTransportCheck.md#wet-electrolysis-used-electrodes-and-fresh-anode-on-ed04-after-arrival).
+Confirm each unit produces electrolysis numbers matching what Martin recorded on the bench during [PreTransport](PreTransportCheck-EdMSc26.md#3-wet-electrolysis).
 
 1. With the bicarbonate-filled vial seated in the Pioreactor, set LED channel D to **2.5 %** in the web UI.
 2. Within 30 s you should see bubbles on both electrodes. The cathode (stainless steel, black lead) should bubble at roughly twice the rate of the anode (Pt-plated Ti, red lead). This is the H₂:O₂ molar 2:1 ratio you would expect.

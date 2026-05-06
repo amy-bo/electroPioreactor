@@ -27,7 +27,7 @@ For ed04:
 
 1. Unwrap the bagged Pt-plated Ti anode. Avoid touching the platinised section.
 2. Insert the anode and the stainless-steel cathode into their o-rings in the Vial Cap, half-way, with a twisting motion to avoid dislodging the o-rings.
-3. Push each electrode fully into its captive-nut [Electrode Top Stop](../../../Components/ElectrodeTopStop).
+3. Push each electrode fully into its captive-nut [Electrode Top Stop](../Components/ElectrodeTopStop).
 4. Tighten the **red** electrode cable onto the Pt-plated Ti **anode** ring crimp using the M3 bolt through the captive nut.
 5. Tighten the **black** electrode cable onto the stainless-steel **cathode** ring crimp using the M3 bolt through the captive nut.
    - Polarity matters. Reversing red and black dissolves the platinum coating into solution within minutes.
