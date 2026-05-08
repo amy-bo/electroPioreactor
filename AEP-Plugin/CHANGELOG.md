@@ -1,4 +1,38 @@
-# electroPioreactor Plugin — Status
+# electroPioreactor Plugin — Changelog
+
+## v0.6.6 (2026-05-08) — PR-16 review feedback (Gerrit)
+
+Cleanup pass addressing the inline comments on PR #16. No behaviour change
+for the running plugin; minimum supported Pioreactor version bumped to
+**26.5.0**.
+
+- **Drop the PR #615 tarball-patch flow.** Pioreactor 26.5.0 (released
+  2026-05-07) ships PR #615 natively, so the transitional hot-patch is
+  obsolete. Removed `scripts/apply-pr615-patch.sh`,
+  `scripts/revert-pr615-patch.sh`, `transitional/pioreactor-static-pr615.tar.gz`,
+  and the README "step 3" section. README "Pioreactor version compatibility"
+  now states the 26.5.0 minimum and points users at `pio update`.
+- **`patch-config-ini.py` no longer silently overwrites `[PWM] 4`.** If the
+  channel is already mapped to a non-`relay` label, the script refuses with
+  a non-zero exit and a clear remediation message instead of clobbering the
+  user's wiring.
+- **Repository hygiene.** `.claude/` and `.vibe/` added to `.gitignore`;
+  `.claude/settings.local.json` and `.vibe/copy-latest.txt` removed from
+  version control. `pi02-setup-notes.md` (development notes specific to one
+  unit) removed from the repo.
+- **`TODO.md` → `CHANGELOG.md`.** Naming reflects what the file actually
+  is.
+
+### Deferred to v0.7
+
+Gerrit also flagged that the LED channel is hardcoded to `D` and the YAML
+descriptions point specifically at PWM `4`. PWM is in fact already
+configurable via Pioreactor's `[PWM] N = relay` label indirection (see
+`pioreactor_electropioreactor_plugin/electropioreactor.py:89`). Making the
+LED side equivalently configurable, and updating the YAML descriptions to
+match, is the v0.7 work. Branch:
+[`configurable-led-channel`](https://github.com/amy-bo/electroPioreactor/tree/configurable-led-channel)
+(spec at `AEP-Plugin/v0.7-SPEC.md`).
 
 ## v0.6.5 (2026-05-04) — init ordering, no more masked ValueErrors
 

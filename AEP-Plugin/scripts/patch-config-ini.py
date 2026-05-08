@@ -25,6 +25,16 @@ def main() -> int:
 
     if "PWM" not in p:
         p.add_section("PWM")
+    existing = p["PWM"].get("4")
+    if existing not in (None, "relay"):
+        print(
+            f"refusing to overwrite [PWM] 4 = {existing!r} in {PATH}; "
+            f"electroPioreactor needs [PWM] 4 = relay. "
+            f"Free PWM 4 (or wire the solenoid to a different channel and "
+            f"adjust this script) before re-running.",
+            file=sys.stderr,
+        )
+        return 1
     p["PWM"]["4"] = "relay"
 
     sec = "electropioreactor.config"

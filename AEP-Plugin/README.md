@@ -105,37 +105,15 @@ git -C electroPioreactor checkout AEP-Plugin
 /opt/pioreactor/venv/bin/pip show pioreactor-electropioreactor-plugin | grep Version
 ```
 
-The last line should print `Version: 0.6.5` (or later).
+The last line should print `Version: 0.6.6` (or later).
 
-### 3. Apply the version-specific frontend patch
-
-Check which Pioreactor version your unit is running:
-
-```bash
-/opt/pioreactor/venv/bin/pio version
-```
-
-#### If the output is `26.4.5` or later
-
-The plugin's Advanced modal works out of the box on these versions. **Skip to step 4.**
-
-#### If the output is `26.4.4` or earlier
-
-The plugin's Advanced modal needs Pioreactor [PR #615](https://github.com/Pioreactor/pioreactor/pull/615) (merged to master 2026-04-30, will ship in 26.4.5). Hot-patch the running frontend with a pre-built bundle from this repo:
-
-```bash
-bash /home/pioreactor/electroPioreactor/AEP-Plugin/scripts/apply-pr615-patch.sh
-```
-
-The original bundle is preserved at `<pioreactor.web.static>.pre-pr615.bak` so you can revert later (see *Pioreactor version compatibility* near the end of this README).
-
-### 4. Deploy the UI job descriptor
+### 3. Deploy the UI job descriptor
 
 ```bash
 bash /home/pioreactor/electroPioreactor/AEP-Plugin/scripts/deploy-ui-yaml.sh
 ```
 
-### 5. Patch `config.ini` (idempotent)
+### 4. Patch `config.ini` (idempotent)
 
 Adds `[PWM] 4=relay` and the four `[electropioreactor.config]` defaults. Re-runs are safe; existing keys are preserved.
 
@@ -145,13 +123,13 @@ Adds `[PWM] 4=relay` and the four `[electropioreactor.config]` defaults. Re-runs
 
 See **Configuration** below for what these values mean.
 
-### 6. Restart `lighttpd`
+### 5. Restart `lighttpd`
 
 ```bash
 sudo systemctl restart lighttpd
 ```
 
-### 7. Verify
+### 6. Verify
 
 ```bash
 export DOT_PIOREACTOR=/home/pioreactor/.pioreactor
@@ -161,7 +139,7 @@ export DOT_PIOREACTOR=/home/pioreactor/.pioreactor
 /opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep electro
 ```
 
-Expected: `pioreactor-electropioreactor-plugin==0.6.5` (or later).
+Expected: `pioreactor-electropioreactor-plugin==0.6.6` (or later).
 
 ```bash
 ls -la /home/pioreactor/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
@@ -241,13 +219,9 @@ pio run electropioreactor \
 
 ## Pioreactor version compatibility
 
-This plugin's Advanced modal depends on Pioreactor [PR #615](https://github.com/Pioreactor/pioreactor/pull/615) (merged to master 2026-04-30, will ship in **26.4.5**) for the modal to re-fetch from disk on open after a Stop. On 26.4.4 and earlier, the install flow above hot-patches the running frontend with a pre-built bundle (step 3) so the behaviour is consistent across versions. The plugin's own data-layer persistence bug (which made the same scenario actually *wipe* values from MQTT/SQLite, not just appear stale) was fixed in v0.6.1.
+Requires **Pioreactor ≥ 26.5.0** (released 2026-05-07). Earlier releases lack [PR #615](https://github.com/Pioreactor/pioreactor/pull/615) (merged 2026-04-30), without which the plugin's Advanced modal would need a hard-refresh after each Stop to display fresh values. The plugin's own data-layer persistence bug (which actually *wiped* values from MQTT/SQLite) was fixed in v0.6.1.
 
-Once 26.4.5 ships and you upgrade, you can revert the hot-patch – the upgraded Pioreactor frontend will include PR #615 natively. From an SSH session on the unit:
-
-```bash
-bash /home/pioreactor/electroPioreactor/AEP-Plugin/scripts/revert-pr615-patch.sh
-```
+If your unit is on an older Pioreactor, run `pio update` before installing this plugin.
 
 ## Contributing
 
