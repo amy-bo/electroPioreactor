@@ -19,7 +19,7 @@ from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
 __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
-__plugin_version__ = "0.6.6"
+__plugin_version__ = "0.7.0"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
 __plugin_homepage__ = "https://github.com/amy-bo/electroPioreactor"
@@ -31,10 +31,16 @@ class ElectroPioreactor(BackgroundJob):
     """
     Single background job for electroPioreactors.
 
-    Drives electrolysis via LED channel D at a user-defined power level, and
-    periodically opens a CO₂ solenoid (PWM channel 4) for a user-defined
-    duration every user-defined interval. Electrolysis is paused for the
-    duration of each sparge and resumed immediately after.
+    Drives electrolysis via the configured LED channel at a user-defined
+    power level, and periodically opens a CO₂ solenoid (on the configured
+    PWM channel) for a user-defined duration every user-defined interval.
+    Electrolysis is paused for the duration of each sparge and resumed
+    immediately after.
+
+    The LED channel is set via `[electropioreactor.config] led_channel` in
+    `config.ini` (default `D`, must be one of `A`, `B`, `C`, `D`). The PWM
+    channel is set via Pioreactor's standard `[PWM] N = relay` label
+    indirection in `config.ini` (default `4`).
     """
 
     job_name = "electropioreactor"
@@ -63,6 +69,7 @@ class ElectroPioreactor(BackgroundJob):
         sparge_duration_seconds: float = 10.0,
         sparge_interval_minutes: float = 60.0,
         od_pause_after_sparge_seconds: float = 5.0,
+        led_channel: str = "D",
     ) -> None:
         super().__init__(unit=unit, experiment=experiment)
         # Timer/state attrs go BEFORE any validator that can raise.
@@ -75,6 +82,8 @@ class ElectroPioreactor(BackgroundJob):
         self._stop_timer: threading.Timer | None = None
         self._od_resume_timer: threading.Timer | None = None
         self.reset_to_defaults = False
+
+        self._led_channel = self._validate_led_channel(led_channel)
 
         self.electrolysis_power = self._clamp_power(electrolysis_power)
         if self.electrolysis_power != float(electrolysis_power):
@@ -104,7 +113,7 @@ class ElectroPioreactor(BackgroundJob):
         # replay) so the Advanced tab always shows what the job actually started with.
         self._save_all_config()
         self._pwm.start(0.0)
-        self._set_led_d(self.electrolysis_power)
+        self._set_led(self.electrolysis_power)
         self._schedule_next_sparge()
 
     # ── settings setters ────────────────────────────────────────────────────
@@ -113,7 +122,7 @@ class ElectroPioreactor(BackgroundJob):
         self.electrolysis_power = self._clamp_power(value)
         self._save_config("electrolysis_power", self.electrolysis_power)
         if not self._is_sparging:
-            self._set_led_d(self.electrolysis_power)
+            self._set_led(self.electrolysis_power)
 
     def set_sparge_duration_seconds(self, value: float) -> None:
         self.sparge_duration_seconds = self._positive(value, "sparge_duration_seconds")
@@ -169,7 +178,7 @@ class ElectroPioreactor(BackgroundJob):
         self.logger.info(
             f"Sparging CO₂ for {self.sparge_duration_seconds:.0f}s (electrolysis paused)"
         )
-        self._set_led_d(0.0)
+        self._set_led(0.0)
         self._pwm.change_duty_cycle(100.0)
 
         self._stop_timer = threading.Timer(self.sparge_duration_seconds, self._end_sparge)
@@ -189,7 +198,7 @@ class ElectroPioreactor(BackgroundJob):
         self._pwm.change_duty_cycle(0.0)
         self._is_sparging = False
         if self.state == self.READY:
-            self._set_led_d(self.electrolysis_power)
+            self._set_led(self.electrolysis_power)
             self.logger.debug("CO₂ sparging complete; electrolysis resumed")
             self._schedule_next_sparge()
 
@@ -227,13 +236,13 @@ class ElectroPioreactor(BackgroundJob):
         # can stay paused.
         self._safe("cancel timers", self._cancel_timers)
         self._safe("close solenoid", self._pwm.change_duty_cycle, 0.0)
-        self._safe("turn off LED D", self._set_led_d, 0.0)
+        self._safe("turn off LED", self._set_led, 0.0)
         self._safe("resume od_reading", self._resume_od_reading)
 
     def on_sleeping_to_ready(self) -> None:
         super().on_sleeping_to_ready()
         self._is_sparging = False
-        self._set_led_d(self.electrolysis_power)
+        self._set_led(self.electrolysis_power)
         self._schedule_next_sparge()
 
     def on_disconnected(self) -> None:
@@ -242,7 +251,7 @@ class ElectroPioreactor(BackgroundJob):
         self._safe("cancel timers", self._cancel_timers)
         self._safe("close solenoid", self._pwm.change_duty_cycle, 0.0)
         self._safe("clean up PWM", self._pwm.clean_up)
-        self._safe("turn off LED D", self._set_led_d, 0.0)
+        self._safe("turn off LED", self._set_led, 0.0)
         self._safe("resume od_reading", self._resume_od_reading)
 
     # ── helpers ──────────────────────────────────────────────────────────────
@@ -255,8 +264,8 @@ class ElectroPioreactor(BackgroundJob):
         except Exception as e:
             self.logger.warning(f"Failed to {what} during cleanup: {e}")
 
-    def _set_led_d(self, intensity: float) -> None:
-        led_intensity({"D": intensity}, unit=self.unit, experiment=self.experiment)
+    def _set_led(self, intensity: float) -> None:
+        led_intensity({self._led_channel: intensity}, unit=self.unit, experiment=self.experiment)
 
     def _cancel_timers(self) -> None:
         if self._sparge_timer is not None:
@@ -344,6 +353,18 @@ class ElectroPioreactor(BackgroundJob):
             raise ValueError(f"{name} must be > 0 (got {v})")
         return v
 
+    VALID_LED_CHANNELS = ("A", "B", "C", "D")
+
+    @classmethod
+    def _validate_led_channel(cls, value: str) -> str:
+        v = str(value).strip().upper()
+        if v not in cls.VALID_LED_CHANNELS:
+            raise ValueError(
+                f"led_channel must be one of {', '.join(cls.VALID_LED_CHANNELS)} "
+                f"(got {value!r})"
+            )
+        return v
+
 
 # ── CLI entry point ──────────────────────────────────────────────────────────
 # Defaults are lambdas so they are evaluated at invocation time, after
@@ -355,7 +376,15 @@ class ElectroPioreactor(BackgroundJob):
     default=lambda: config.getfloat(_CONFIG_SECTION, "electrolysis_power", fallback=2.5),
     type=float,
     show_default=True,
-    help="LED D intensity for electrolysis (0–10 %).",
+    help="Electrolysis power as a percentage (0–10 %) of full LED intensity "
+         "on the configured channel.",
+)
+@click.option(
+    "--led-channel",
+    default=lambda: config.get(_CONFIG_SECTION, "led_channel", fallback="D"),
+    type=str,
+    show_default=True,
+    help="LED channel driving electrolysis. One of A, B, C, D.",
 )
 @click.option(
     "--sparge-duration-seconds",
@@ -384,6 +413,7 @@ def click_electropioreactor(
     sparge_duration_seconds: float,
     sparge_interval_minutes: float,
     od_pause_after_sparge_seconds: float,
+    led_channel: str,
 ) -> None:
     unit = get_unit_name()
     experiment = get_assigned_experiment_name(unit)
@@ -394,5 +424,6 @@ def click_electropioreactor(
         sparge_duration_seconds=sparge_duration_seconds,
         sparge_interval_minutes=sparge_interval_minutes,
         od_pause_after_sparge_seconds=od_pause_after_sparge_seconds,
+        led_channel=led_channel,
     )
     job.block_until_disconnected()

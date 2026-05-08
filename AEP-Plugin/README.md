@@ -1,12 +1,12 @@
 # electroPioreactor-plugin
 
-A [Pioreactor](https://pioreactor.com) community plugin for the **[electroPioreactor](https://electroPioreactor.org)** – any Pioreactor fitted with an electrode pair driven by LED D and a CO₂ solenoid driven by PWM channel 4.
+A [Pioreactor](https://pioreactor.com) community plugin for the **[electroPioreactor](https://electroPioreactor.org)** – any Pioreactor fitted with an electrode pair on a configurable LED channel and a CO₂ solenoid on a configurable PWM channel.
 
 Provides a single background job, **electroPioreactor**, that:
 
-- Drives electrolysis (via LED channel D) at a user-defined power level (0–10 %, clamped at runtime to protect the electrodes).
-- Sparges CO₂ by periodically opening a CO₂ solenoid (PWM channel 4 relay) for a user-defined duration, at a user-defined interval in minutes.
-- Automatically pauses electrolysis (LED D → 0 %) for the duration of each sparge and resumes it immediately after.
+- Drives electrolysis (via a configurable LED channel, default `D`) at a user-defined power level (0–10 %, clamped at runtime to protect the electrodes).
+- Sparges CO₂ by periodically opening a CO₂ solenoid (on a configurable PWM channel, default `4`, via the relay label) for a user-defined duration, at a user-defined interval in minutes.
+- Automatically pauses electrolysis (LED → 0 %) for the duration of each sparge and resumes it immediately after.
 - Pauses the `od_reading` job for the duration of the sparge plus a user-defined settle window, so OD samples aren't contaminated by bubbles.
 
 All four user-defined parameters are editable live from the Pioreactor web interface.
@@ -22,11 +22,13 @@ All four user-defined parameters are editable live from the Pioreactor web inter
 
 Pause/resume is done by publishing `JobState.SLEEPING`/`READY` to `od_reading`'s `$state/set` topic. If `od_reading` isn't running, the publish is a no-op.
 
-## Hardware requirements
+## Hardware connections
 
-- Pioreactor with an electrode pair wired to **LED channel D**.
-- CO₂ solenoid valve wired to **PWM channel 4**.
+- Pioreactor with an electrode pair wired to one of the four LED channels (`A`, `B`, `C`, or `D`). Default `D`. Set the channel via `[electropioreactor.config] led_channel = <X>` in `~/.pioreactor/config.ini`.
+- CO₂ solenoid valve wired to one of the four PWM channels (`1`, `2`, `3`, or `4`). Default `4`. Set the channel via Pioreactor's standard `[PWM] N = relay` label indirection in `~/.pioreactor/config.ini` – e.g. `[PWM] 1 = relay` to drive the solenoid on PWM 1.
 - CO₂ supply (e.g. SodaStream) ideally with a needle valve for flow control.
+
+The default channels (`D` and `4`) are the original electroPioreactor wiring. Pick different channels only if those defaults clash with another job or plugin running on the same unit.
 
 ## Installation
 
@@ -105,7 +107,7 @@ git -C electroPioreactor checkout AEP-Plugin
 /opt/pioreactor/venv/bin/pip show pioreactor-electropioreactor-plugin | grep Version
 ```
 
-The last line should print `Version: 0.6.6` (or later).
+The last line should print `Version: 0.7.0` (or later).
 
 ### 3. Deploy the UI job descriptor
 
@@ -139,7 +141,7 @@ export DOT_PIOREACTOR=/home/pioreactor/.pioreactor
 /opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep electro
 ```
 
-Expected: `pioreactor-electropioreactor-plugin==0.6.6` (or later).
+Expected: `pioreactor-electropioreactor-plugin==0.7.0` (or later).
 
 ```bash
 ls -la /home/pioreactor/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
@@ -190,13 +192,14 @@ The install flow above writes the following to `~/.pioreactor/config.ini`:
 
 ```ini
 [PWM]
-4=relay
+4=relay                             ; PWM channel for CO₂ solenoid (1, 2, 3, or 4)
 
 [electropioreactor.config]
-electrolysis_power=2.5              ; LED D intensity (0–10 %, clamped at runtime)
+electrolysis_power=2.5              ; LED intensity (0–10 %, clamped at runtime)
 sparge_duration_seconds=10.0        ; solenoid open time per cycle (s)
 sparge_interval_minutes=60.0        ; cycle frequency (min)
 od_pause_after_sparge_seconds=5.0   ; OD settle window after sparge ends (s); negative allowed
+led_channel=D                       ; LED channel for electrolysis (A, B, C, or D)
 ```
 
 Adjust these values in the Pioreactor **Configuration** page, or change them live via the **Settings** panel on the *Manage* screen while the job is running.
@@ -214,7 +217,8 @@ pio run electropioreactor \
     --electrolysis-power 2.5 \
     --sparge-duration-seconds 10 \
     --sparge-interval-minutes 60 \
-    --od-pause-after-sparge-seconds 5
+    --od-pause-after-sparge-seconds 5 \
+    --led-channel D
 ```
 
 ## Pioreactor version compatibility

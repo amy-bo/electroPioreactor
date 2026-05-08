@@ -56,6 +56,70 @@ class TestValidators:
         assert ElectroPioreactor._positive(0.5, "x") == 0.5
 
 
+# ── LED channel selection (v0.7) ──────────────────────────────────────────────
+
+class TestLEDChannel:
+    def test_default_channel_is_d(self):
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            inst = ElectroPioreactor(unit="unit", experiment="exp")
+            assert inst._led_channel == "D"
+
+    def test_valid_channel_b_routes_to_b(self):
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            inst = ElectroPioreactor(unit="unit", experiment="exp", led_channel="B")
+            inst.on_init_to_ready()
+            led_intensity.reset_mock()
+            inst.set_electrolysis_power(7.0)
+            led_intensity.assert_called_once_with(
+                {"B": 7.0}, unit="unit", experiment="exp"
+            )
+
+    def test_lowercase_channel_normalised(self):
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            inst = ElectroPioreactor(unit="unit", experiment="exp", led_channel="b")
+            assert inst._led_channel == "B"
+
+    def test_invalid_channel_raises_at_init(self):
+        with pytest.raises(ValueError, match="led_channel"):
+            with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+                ElectroPioreactor(unit="unit", experiment="exp", led_channel="Z")
+
+    def test_empty_channel_raises(self):
+        with pytest.raises(ValueError, match="led_channel"):
+            with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+                ElectroPioreactor(unit="unit", experiment="exp", led_channel="")
+
+    def test_validate_unit_accepts_all_valid(self):
+        for ch in ("A", "B", "C", "D", "a", "b", "c", "d"):
+            assert ElectroPioreactor._validate_led_channel(ch) == ch.upper()
+
+    def test_validate_unit_rejects_invalid(self):
+        with pytest.raises(ValueError, match="led_channel"):
+            ElectroPioreactor._validate_led_channel("X")
+        with pytest.raises(ValueError, match="led_channel"):
+            ElectroPioreactor._validate_led_channel("AB")
+
+    def test_sparge_kills_then_resumes_on_configured_channel(self):
+        """begin_sparge → LED off (channel C); end_sparge → LED back on (channel C)."""
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            inst = ElectroPioreactor(
+                unit="unit", experiment="exp",
+                led_channel="C", electrolysis_power=4.5,
+            )
+            inst.on_init_to_ready()
+            inst.state = inst.READY
+            led_intensity.reset_mock()
+
+            inst._begin_sparge()
+            assert {"C": 0.0} in [c.args[0] for c in led_intensity.call_args_list]
+
+            led_intensity.reset_mock()
+            inst._end_sparge()
+            led_intensity.assert_called_with(
+                {"C": 4.5}, unit="unit", experiment="exp"
+            )
+
+
 # ── settings setters ──────────────────────────────────────────────────────────
 
 class TestSetters:

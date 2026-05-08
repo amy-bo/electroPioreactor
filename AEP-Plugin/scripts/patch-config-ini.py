@@ -16,6 +16,7 @@ DEFAULTS = {
     "sparge_duration_seconds": "10.0",
     "sparge_interval_minutes": "60.0",
     "od_pause_after_sparge_seconds": "5.0",
+    "led_channel": "D",
 }
 
 

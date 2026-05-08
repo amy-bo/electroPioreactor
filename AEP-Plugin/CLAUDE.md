@@ -33,14 +33,12 @@ earlier in the session does NOT carry. Each actuation needs its own yes.
 
 ## What this plugin does
 
-Drives electrolysis via LED channel D and periodically opens a CO₂ solenoid on PWM channel 4.
-Electrolysis is paused during each sparge. All three settings are user-configurable at runtime
-via the Pioreactor Advanced modal.
+Drives electrolysis via the configured LED channel and periodically opens a CO₂ solenoid on the configured PWM channel. Electrolysis is paused during each sparge. The four numeric runtime parameters are user-configurable via the Pioreactor Advanced modal; the LED and PWM channel bindings are set in `config.ini` and read once at job init (channels are hardware bindings, not runtime-switchable).
 
 ## Hardware connections
 
-- Electrode pair → LED channel D
-- CO₂ solenoid → PWM channel 4
+- Electrode pair → LED channel set by `[electropioreactor.config] led_channel` in `config.ini` (default `D`, must be `A`, `B`, `C`, or `D`).
+- CO₂ solenoid → PWM channel set by the standard `[PWM] N = relay` label indirection in `config.ini` (default `4`).
 
 ## Development setup
 
@@ -81,10 +79,17 @@ install off a local checkout is convenient:
   the top of `__init__`, before any validator that can raise, so cleanup
   on a validator failure doesn't `AttributeError` on `_sparge_timer` and
   mask the real `ValueError`.
+- **v0.6.6** (2026-05-08) – PR-16 review feedback: drop the PR #615
+  tarball-patch flow (Pioreactor 26.5.0 ships PR #615 natively); harden
+  `patch-config-ini.py` against PWM 4 collision; gitignore hygiene;
+  rename `TODO.md` → `CHANGELOG.md`. No runtime behaviour change.
+- **v0.7.0** (2026-05-08) – LED channel configurable via
+  `[electropioreactor.config] led_channel` (default `D`, validated against
+  `A`/`B`/`C`/`D` at init). PWM channel was already configurable via the
+  standard `[PWM] N = relay` indirection. New `--led-channel` CLI option.
 
 The Advanced modal hard-refresh symptom was fixed upstream in
 [Pioreactor/pioreactor#615](https://github.com/Pioreactor/pioreactor/pull/615)
-(merged 2026-04-30, will ship in 26.4.5). On Pioreactor 26.4.4 or earlier,
-the README's install path applies a pre-built static-bundle hot-patch from
-`AEP-Plugin/transitional/pioreactor-static-pr615.tar.gz` so the plugin's
-Advanced modal works without a hard-refresh on those versions too.
+and ships in Pioreactor 26.5.0+ (released 2026-05-07). v0.6.6 dropped
+the transitional tarball-patch flow that supported pre-26.5.0 versions;
+the plugin now requires Pioreactor ≥ 26.5.0.

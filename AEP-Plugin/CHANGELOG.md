@@ -1,5 +1,58 @@
 # electroPioreactor Plugin — Changelog
 
+## v0.7.0 (2026-05-08) — configurable LED channel
+
+Closes Gerrit's outstanding suggestion from PR #16 review: LED and PWM
+channels should not be hardcoded. PWM was in fact already configurable via
+Pioreactor's `[PWM] N = relay` label indirection (the plugin reads it
+through `config.get("PWM_reverse", "relay")` at `electropioreactor.py:89`).
+The LED side is now equivalently configurable.
+
+- **`[electropioreactor.config] led_channel`** added to the config schema.
+  Default `D` for backwards compatibility with existing 0.6.x users. Valid
+  values are `A`, `B`, `C`, `D`. Lowercase is normalised. An invalid value
+  raises `ValueError` at job init, surfacing through Pioreactor's standard
+  job-start error path before any hardware is touched.
+- **Plugin code**. `_set_led_d` is renamed to `_set_led` and reads the
+  cached `self._led_channel` (set once in `__init__`). All seven call
+  sites updated. The two `_safe("turn off LED D", ...)` cleanup hooks now
+  read `_safe("turn off LED", ...)`.
+- **CLI**. New `--led-channel` option on `pio run electropioreactor`,
+  defaulting from `config.get(_CONFIG_SECTION, "led_channel", fallback="D")`.
+  Existing CLI invocations keep working unchanged.
+- **YAML descriptor**. `electropioreactor.yaml` descriptions no longer
+  hardcode "channel D" / "channel 4" – they say "the configured LED
+  channel" / "the configured PWM channel" and the top-level description
+  documents the indirection mechanism.
+- **`additional_config.ini`** and **`scripts/patch-config-ini.py`** include
+  `led_channel = D` so first-time installs get the explicit default
+  written to disk.
+- **README** has a new `Hardware connections` section documenting LED
+  channel selection (`led_channel`) and PWM channel selection (the
+  existing `[PWM] N = relay` indirection). The `pio run electropioreactor`
+  CLI example now shows `--led-channel D`.
+- **Tests**. New `TestLEDChannel` class with 8 tests: default channel,
+  valid non-default routing (`B`), case normalisation, invalid channel
+  raises, empty channel raises, the validator unit-tested directly,
+  sparge cycle confirmed to use the configured channel for both off-and-
+  on transitions.
+
+The `_validate_led_channel` classmethod surfaces the rule in one place so
+a future channel-set change (e.g. extra channels on a hardware variant)
+is a single-line edit.
+
+### Out of scope for v0.7
+
+- Per-experiment override via `unit_config.ini` for the LED channel:
+  technically possible (the `set_*` setters wouldn't apply because the
+  channel is read once at init, but a unit-config override at job start
+  would work). Kept out of v0.7 to keep the surface small. File a v0.8
+  task if a user actually needs it.
+- Runtime channel switching via the Advanced modal: not supported.
+  Channels are hardware bindings; switching at runtime would require
+  teardown and re-init of the LED/PWM subsystems. Not worth the
+  complexity, and exposing it via the modal would be footgun-prone.
+
 ## v0.6.6 (2026-05-08) — PR-16 review feedback (Gerrit)
 
 Cleanup pass addressing the inline comments on PR #16. No behaviour change
