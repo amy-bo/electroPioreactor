@@ -1,0 +1,87 @@
+From 22905a2c4488d2bba17d84a3e70121381b8122d6 Mon Sep 17 00:00:00 2001
+From: Martin Currie <martin@amybo.org>
+Date: Wed, 29 Apr 2026 23:58:35 +0000
+Subject: [PATCH] fix(ui): refetch unit config when AdvancedConfigDialog opens
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The Advanced settings dialog read its values exclusively from the
+`config` prop passed in by the parent (Pioreactor.jsx), which in turn
+fetches `/api/config/units/${unit}` exactly once on mount via a
+`useEffect(..., [unit])` and never re-runs on subsequent state changes.
+
+Any write to `config_<unit>.ini` that happens between the initial mount
+and the user re-opening the dialog is therefore invisible to the dialog
+until the user hard-refreshes the page.
+
+The most common way this manifests is a plugin that persists its
+running settings to `config_<unit>.ini` — e.g. an `_save_all_config`
+or equivalent in `on_init_to_ready` — so that the next run can read
+them back. After Start → Stop, the on-disk config has the user's
+last-typed values, but the dialog still displays the values it had
+fetched at page load.
+
+This change moves the source of truth for the dialog's initial state
+from the parent prop to a fresh fetch keyed on `open`. The fetch
+result is restricted to `data[unit][${jobName}.config]` to match the
+dialog's existing semantics, with a fall-through to the prop on fetch
+error so behaviour is at least no worse than before in offline /
+broken-network conditions.
+
+Verified on a Pioreactor v26.3.0 install: typing new values in the
+dialog → Start → Stop → reopen now displays the typed values without
+a hard refresh. Two consecutive reproductions both preserved the
+typed values exactly.
+---
+ .../src/components/AdvancedConfigDialog.jsx   | 33 +++++++++++++++----
+ 1 file changed, 27 insertions(+), 6 deletions(-)
+
+diff --git a/frontend/src/components/AdvancedConfigDialog.jsx b/frontend/src/components/AdvancedConfigDialog.jsx
+index 08f975d..d0688ec 100644
+--- a/frontend/src/components/AdvancedConfigDialog.jsx
++++ b/frontend/src/components/AdvancedConfigDialog.jsx
+@@ -26,13 +26,34 @@ function AdvancedConfigDialog({ open, onFinished, jobName, displayName, unit, ex
+   const [original, setOriginal] = useState({});          // immutable reference
+   const [snackbarOpen, setSnackbarOpen] = useState(false);
+ 
+-  // Reset dialog state every time it is opened or config changes
++  // Reset dialog state every time it is opened. Re-fetch the unit's config
++  // from the API rather than trusting the parent's `config` prop, since the
++  // parent (Pioreactor.jsx) fetches `/api/config/units/${unit}` once on mount
++  // and never refreshes that state. Any write to `config_<unit>.ini` that
++  // happens between the initial mount and the user re-opening this dialog —
++  // for example a job's own persistence step writing back its current
++  // settings on Stop — is otherwise invisible until a hard browser refresh.
++  // Falls back to the prop on fetch error so the dialog still functions
++  // offline / under network failure.
+   useEffect(() => {
+-    if (open) {
+-      setValues(config);
+-      setOriginal(config);
+-    }
+-  }, [open, config]);
++    if (!open) return;
++    let cancelled = false;
++    fetch(`/api/config/units/${unit}`)
++      .then((r) => (r.ok ? r.json() : null))
++      .then((data) => {
++        if (cancelled) return;
++        const fresh = data?.[unit]?.[`${jobName}.config`];
++        const next = fresh ?? config;
++        setValues(next);
++        setOriginal(next);
++      })
++      .catch(() => {
++        if (cancelled) return;
++        setValues(config);
++        setOriginal(config);
++      });
++    return () => { cancelled = true; };
++  }, [open, unit, jobName, config]);
+ 
+   const handleClose = () => onFinished();
+ 
+-- 
+2.39.5
+
