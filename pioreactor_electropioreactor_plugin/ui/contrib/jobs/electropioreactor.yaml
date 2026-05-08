@@ -1,0 +1,57 @@
+---
+display_name: electroPioreactor
+job_name: electropioreactor
+display: true
+source: app
+description: >
+  Drives electrolysis via LED channel D and periodically sparges CO2 via a
+  solenoid on PWM channel 4. Connect your electrode pair to LED channel D and
+  your CO2 solenoid to PWM channel 4. Electrolysis is paused during each
+  sparge cycle and resumed immediately afterwards.
+published_settings:
+  - key: electrolysis_power
+    unit: "%"
+    label: Electrolysis Power
+    description: >
+      Power level for electrolysis as a percentage (0-10%) of LED channel D
+      full power. Values above 10 are clamped to 10 at runtime. Connect your
+      electrode pair to LED channel D. Set to 0 to disable electrolysis while
+      keeping CO2 sparging active.
+    type: numeric
+    display: true
+  - key: sparge_duration_seconds
+    unit: s
+    label: Sparging Duration
+    description: >
+      How long (in seconds) the CO2 solenoid on PWM channel 4 is held open
+      during each sparging cycle. Electrolysis is paused for this duration.
+      Mid-sparge changes apply to the next cycle, not the in-flight one.
+    type: numeric
+    display: true
+  - key: sparge_interval_minutes
+    unit: min
+    label: Sparging Interval
+    description: >
+      How often (in minutes) a CO2 sparging cycle occurs. For example, enter
+      60 to sparge once per hour, or 1 to sparge every minute for testing.
+    type: numeric
+    display: true
+  - key: od_pause_after_sparge_seconds
+    unit: s
+    label: OD Pause After Sparge
+    description: >
+      How long (in seconds) after the CO2 solenoid closes before OD reading
+      resumes – i.e. the bubble-clearance window. Negative values resume OD
+      reading before the sparge ends (OD continues partway through or right
+      through sparging). A value less than or equal to the negative of the
+      sparging duration disables OD pausing entirely.
+    type: numeric
+    display: true
+  - key: reset_to_defaults
+    label: Reset to Defaults
+    description: >
+      Toggle on to reset Electrolysis Power, Sparging Duration, Sparging
+      Interval, and OD Pause After Sparge to the values defined in config.ini.
+      The toggle resets itself automatically after applying.
+    type: boolean
+    display: true

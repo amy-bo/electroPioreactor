@@ -1,0 +1,2 @@
+recursive-include pioreactor_electropioreactor_plugin/ui *.yaml
+include pioreactor_electropioreactor_plugin/additional_config.ini
