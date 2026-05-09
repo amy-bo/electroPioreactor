@@ -18,6 +18,12 @@ Run on ed05, then swap pio01's RPi 4B for the new RPi Zero 2W, insert ed04's TF,
 - [ ] ed04: Web UI reachable at http://ed04.local/
 - [ ] ed05: Activity dashboard updates live (local MQTT broker up)
 - [ ] ed04: Activity dashboard updates live (local MQTT broker up)
+- [ ] ed05: `amybo` + own-hotspot fallback configured via nmcli (autoconnect-priority 20 / 0)
+- [ ] ed04: `amybo` + own-hotspot fallback configured via nmcli (autoconnect-priority 20 / 0)
+- [ ] ed05: `amybo` off → falls back to own hotspot within ~60 s, SSH via 10.42.0.1 works
+- [ ] ed04: `amybo` off → falls back to own hotspot within ~60 s, SSH via 10.42.0.1 works
+- [ ] ed05: `amybo` back on → rejoins, SSH via ed05.local works
+- [ ] ed04: `amybo` back on → rejoins, SSH via ed04.local works
 
 ### 2. Stirring
 
@@ -91,6 +97,7 @@ FZone has cylinder and outlet gauges, so a glance at the outlet gauge during a q
 - [ ] Solenoid + needle valve + regulator stack kept assembled; SodaStream **detached** for transport
 - [ ] ed04's spare bagged anode kept sealed in its bag
 - [ ] PSUs, ethernet, multimeter, balance, cryo gloves (for SodaStream re-attach), bicarbonate solution in the shared kit box
+- [ ] microSD reader (already owned, bring it for on-site recovery if `amybo` fallback misbehaves)
 
 ## On arrival (Edinburgh, Martin)
 
