@@ -1,53 +1,69 @@
 # MEP Pre-Transport Check (ed04, ed05)
 
-Bench checks Martin runs in Coventry the week before transport to Edinburgh, so that on arrival the only remaining steps are: media fill, the bagged-anode install on ed04, and (for both units) a SodaStream attach.
+Bench checks Martin runs in Newmilns the week before transport to Edinburgh, so that on arrival the only remaining steps are: media fill, the bagged-anode install on ed04, and (for both units) a SodaStream attach.
 
-Two MEP0.02 units in scope: **ed04** and **ed05**. ed01–ed03 are Bingqiao's. ed04 will receive the bagged Pt-plated Ti anode at Edinburgh; ed05 has all the newest other parts and its electrodes are already installed and will not change.
+Two MEP0.02 units in scope: **ed04** and **ed05** each set up as solo leader-workers. ed01–ed03 are Bingqiao's, already in active use in Chris French lab. ed04 will receive the new RPi Zero 2W once ed05 confirmed working then the bagged Pt-plated Ti anode at Edinburgh; ed05 has all the newest other parts and its electrodes are already installed and will not change.
 
 The values Martin records below are the references students will compare their own measurements to during [Calibration.md](Calibration.md). Each "**Record:**" line is a deliberate action, not just a tick.
 
-## Bench tests (per unit)
+## Bench tests
 
-Run on ed04, then repeat on ed05. Don't transport a unit with an unticked row.
+Run on ed05, then swap pio01's RPi 4B for the new RPi Zero 2W, insert ed04's TF, and repeat on ed04. Each check below has paired ed05 and ed04 boxes so you can tick per unit. Don't transport a unit with an unticked row.
 
 ### 1. Boot and network
 
-- [ ] Power on, Pi boots within ~90 s
-- [ ] Web UI reachable at `http://ed04.local/` (resp. `http://ed05.local/`)
-- [ ] Unit appears in cluster, MQTT online
+- [x] ed05: Power on, Pi boots within ~90 s - 35s
+- [ ] ed04: Power on, Pi boots within ~90 s
+- [ ] ed05: Web UI reachable at http://ed05.local/
+- [ ] ed04: Web UI reachable at http://ed04.local/
+- [ ] ed05: Activity dashboard updates live (local MQTT broker up)
+- [ ] ed04: Activity dashboard updates live (local MQTT broker up)
 
 ### 2. Stirring
 
-- [ ] Stirring starts from web UI, fan spins, no rattle
-- [ ] Stops cleanly
+- [ ] ed05: Stirring starts from web UI, fan spins, no rattle
+- [ ] ed04: Stirring starts from web UI, fan spins, no rattle
+- [ ] ed05: Stops cleanly
+- [ ] ed04: Stops cleanly
 
-### 3. Wet electrolysis
+### 3. Solenoid (CO₂ relay on PWM 4)
 
-ed04 bench-tests with whatever electrodes are currently installed; those get swapped for the bagged fresh anode at Edinburgh, and a new reference V and I recorded then. ed05's installed electrodes are the experiment set and don't change.
+- [ ] ed05: With CO₂ cylinder open and needle valve cracked, manual relay-on produces a visible bubble stream into the vial via the entry filter
+- [ ] ed04: With CO₂ cylinder open and needle valve cracked, manual relay-on produces a visible bubble stream into the vial via the entry filter
+- [ ] ed05: Solenoid clicks audibly on each toggle
+- [ ] ed04: Solenoid clicks audibly on each toggle
+- [ ] ed05: Closes cleanly with no continued bubbling
+- [ ] ed04: Closes cleanly with no continued bubbling
 
-- [ ] Vial filled with bicarbonate solution, electrodes at standard depth
-- [ ] LED D set to **2.5 %**
-- [ ] Bubbles visible on both electrodes within 30 s; cathode bubble rate roughly twice anode rate
+### 4. Wet electrolysis
+
+ed05 bench-tests with its own installed electrodes (the experiment set, not changing). Those electrodes are then moved to ed04 for its bench test and returned to ed05 afterwards. ed04 is left with the bagged fresh Pt-plated Ti anode at Edinburgh, where a new reference V and I are recorded.
+
+- [ ] ed05: Vial filled with bicarbonate solution, electrodes at standard depth
+- [ ] ed04: Vial filled with bicarbonate solution, electrodes at standard depth
+- [ ] ed05: LED D set to **2.5 %**
+- [ ] ed04: LED D set to **2.5 %**
+- [ ] ed05: Bubbles visible on both electrodes within 30 s; cathode bubble rate roughly twice anode rate
+- [ ] ed04: Bubbles visible on both electrodes within 30 s; cathode bubble rate roughly twice anode rate
 - [ ] **Record (ed05 only):** V across electrodes ____ V, I through electrodes ____ mA. This is the reference for [Calibration § 3](Calibration.md#3-electrolysis-v-and-i-at-25--led-d).
 - [ ] **Record (ed04, sanity only):** V ____ V, I ____ mA. Student reference for ed04 is set on arrival post-anode-swap.
-- [ ] LED D back to 0 % at end of test
+- [ ] ed05: LED D back to 0 % at end of test
+- [ ] ed04: LED D back to 0 % at end of test
 
-### 4. Pumps
+### 5. Pumps
 
-- [ ] Media pump (PWM 3) ticks forwards on a manual dose, fluid moves through
-- [ ] Waste pump (PWM 2) ticks forwards on a manual dose, fluid moves through
-- [ ] Both stop cleanly
+- [ ] ed05: Media pump (PWM 3) ticks forwards on a manual dose, fluid moves through
+- [ ] ed04: Media pump (PWM 3) ticks forwards on a manual dose, fluid moves through
+- [ ] ed05: Waste pump (PWM 2) ticks forwards on a manual dose, fluid moves through
+- [ ] ed04: Waste pump (PWM 2) ticks forwards on a manual dose, fluid moves through
+- [ ] ed05: Both stop cleanly
+- [ ] ed04: Both stop cleanly
 
-### 5. Solenoid (CO₂ relay on PWM 4)
 
-- [ ] With CO₂ cylinder open and needle valve cracked, manual relay-on produces a visible bubble stream into the vial via the entry filter
-- [ ] Bubble rate varies smoothly when the PWM duty is stepped (10 %, 50 %, 100 %)
-- [ ] Solenoid clicks audibly on each toggle
-- [ ] Closes cleanly with no continued bubbling
 
-## FZone leak check
+## Solenoid leak check
 
-All three threaded ports around the FZone solenoid (regulator side, needle-valve side, blanking-plug side) were sealed with **Loctite 577 anaerobic thread sealant** for the first time on 2026-04-30. Cure is well past. Two checks below.
+All three threaded ports around the HPcontrols solenoid (regulator side, needle-valve side, blanking-plug side) were sealed with **Loctite 577 anaerobic thread sealant** for the first time on 2026-04-30. Cure is well past. Two checks below.
 
 ### A. Baseline flow comparison vs AEP0.1.1's ODL setup
 
@@ -61,9 +77,10 @@ The AEP0.1.1 reference uses the [Premium ODL SodaStream regulator](../Components
 
 ### B. Pressure-decay (snoop + rate-stability)
 
-FZone has no usable outlet gauge, so the test is soapy water plus rate-stability over time.
+FZone has cylinder and outlet gauges, so a glance at the outlet gauge during a quiescent period is the first tell. The two checks below are the more sensitive follow-ups for the slow leaks Loctite-577 might still let through: snoop with soapy water, then watch flow-rate stability over 30 min.
 
 - [ ] Cylinder open, needle valve closed downstream of solenoid, solenoid open
+- [ ] Outlet gauge holds steady for 60 s with the needle valve closed: ed05 ____ , ed04 ____ (any drop = leak upstream of the needle valve)
 - [ ] Paint soapy water onto each Loctite-577 joint; observe per joint for 60 s, no new bubbles = pass
 - [ ] Open needle valve to a steady bubble rate into a water bath; record initial bubbles per minute, leave 30 min, recount
 - [ ] Cylinder closed at end of test, system bled down before pack
@@ -79,6 +96,6 @@ FZone has no usable outlet gauge, so the test is soapy water plus rate-stability
 
 1. Tighten each unit's SodaStream onto its FZone regulator (cryo gloves on for the swift tighten).
 2. **ed04 only:** unbag the fresh Pt-plated Ti anode, install through the captive-nut [Electrode Top Stop](../Components/ElectrodeTopStop) following [Assembly § Electrodes](Assembly-EdMSc26.md#electrodes-ed04-only--fresh-anode), set down to standard depth.
-3. **ed04 only:** re-run [wet electrolysis](#3-wet-electrolysis) at 2.5 % LED D. **Record:** new V ____ V, new I ____ mA. This is the student reference for ed04 (the bench numbers above were for the now-removed test electrodes).
+3. **ed04 only:** re-run [wet electrolysis](#4-wet-electrolysis) at 2.5 % LED D. **Record:** new V ____ V, new I ____ mA. This is the student reference for ed04 (the bench numbers above were for the now-removed test electrodes).
 4. Fill media bottles, prime media and waste pumps.
 5. Hand off to students for [Assembly](Assembly-EdMSc26.md) → [Operation](Operation.md) → [Calibration](Calibration.md).
