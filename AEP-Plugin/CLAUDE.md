@@ -1,5 +1,19 @@
 # electroPioreactor Plugin — Developer Context
 
+## Session-start: surface pending v0.7 test actions
+
+`v0.7.0` (configurable LED channel) was implemented and committed on
+`configurable-led-channel` (commit `d5bb20d`). Off-device pytest passed
+54/54. Manual test items remain open in `AEP-Plugin/TODO.md` under
+`## Open` – Path 2 (on-device install + sanity, no actuation) and
+Path 3 (live actuation test, requires per-action permission).
+
+At the start of any new vibe session in this repo, read
+`AEP-Plugin/TODO.md`, surface any unchecked `[ ]` v0.7 items briefly to
+Martin, and ask whether he wants to pick them up before starting other
+work. Once an item is done, move it to `CHANGELOG.md` (under v0.7.0) and
+mark or remove the TODO line.
+
 ## Safety: do NOT actuate live hardware without explicit per-action permission
 
 This plugin runs a real electrochemical bioreactor. Starting `electropioreactor`
