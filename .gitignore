@@ -9,3 +9,4 @@ __pycache__/
 *.afphoto
 .claude/settings.local.json
 MCTests/
+MixedElectroPioreactor/CHANGELOG.md
