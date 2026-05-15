@@ -290,10 +290,6 @@ class ElectroPioreactor(BackgroundJob):
         """Write all three current values to both config files in one pass."""
         for path in self._config_paths():
             try:
-                # ConfigParserMod is Pioreactor's case-preserving subclass
-                # (optionxform = str). Default ConfigParser would silently
-                # lower-case existing keys (A→a, Kp→kp) on round-trip and
-                # break Pioreactor's case-sensitive lookups.
                 parser = ConfigParserMod()
                 parser.read(path)
                 if not parser.has_section(_CONFIG_SECTION):
@@ -310,10 +306,6 @@ class ElectroPioreactor(BackgroundJob):
         """Persist a single setting to both config files (used by runtime setters)."""
         for path in self._config_paths():
             try:
-                # ConfigParserMod is Pioreactor's case-preserving subclass
-                # (optionxform = str). Default ConfigParser would silently
-                # lower-case existing keys (A→a, Kp→kp) on round-trip and
-                # break Pioreactor's case-sensitive lookups.
                 parser = ConfigParserMod()
                 parser.read(path)
                 if not parser.has_section(_CONFIG_SECTION):
@@ -327,10 +319,6 @@ class ElectroPioreactor(BackgroundJob):
         """Remove our section from both config files so config.ini defaults take effect."""
         for path in self._config_paths():
             try:
-                # ConfigParserMod is Pioreactor's case-preserving subclass
-                # (optionxform = str). Default ConfigParser would silently
-                # lower-case existing keys (A→a, Kp→kp) on round-trip and
-                # break Pioreactor's case-sensitive lookups.
                 parser = ConfigParserMod()
                 parser.read(path)
                 parser.remove_section(_CONFIG_SECTION)

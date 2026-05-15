@@ -2,17 +2,10 @@
 """Idempotently add [PWM] 4=relay and the four [electropioreactor.config]
 defaults to ~/.pioreactor/config.ini. Re-runs preserve any existing values.
 
-Self-healing (added v0.6.7): pre-v0.6.7 versions of this script used a
-default `configparser.ConfigParser()`, which silently lower-cased every
-key on round-trip — turning the upstream Pioreactor template's `[leds]`
-entries (A/B/C/D) into a/b/c/d, and the PID gains (Kp/Ki/Kd) under
-`[stirring.pid]`, `[dosing_automation.pid_morbidostat]`, and
-`[temperature_automation.thermostat]` into kp/ki/kd. Pioreactor itself
-uses `ConfigParserMod` (optionxform = str) and looks those keys up
-case-sensitively, so the corruption silently broke OD reading
-(channel-label resolution in `[leds]`) and every PID-controlled job on
-each unit that ran the buggy script. This version uses
-`ConfigParserMod` AND repairs already-corrupted files on the next run.
+Uses pioreactor.config.ConfigParserMod (the case-preserving subclass
+Pioreactor itself uses) rather than configparser.ConfigParser(), so
+existing keys in the file – including uppercase ones in [leds] and
+the [*.pid] sections – survive the round-trip unchanged.
 """
 from __future__ import annotations
 
@@ -32,45 +25,10 @@ DEFAULTS = {
     "od_pause_after_sparge_seconds": "5.0",
 }
 
-# Sections + keys whose canonical case Pioreactor looks up case-sensitively.
-# `[leds]` uses LETTER keys (A/B/C/D) — these are the LED-channel labels
-# that appeared as `a = IR` etc. on units patched by pre-v0.6.7 versions.
-# `[od_config.photodiode_channel]` upstream uses NUMERIC keys (1/2/3/4),
-# which have no case — it's NOT a target for this repair.
-# PID gains (Kp/Ki/Kd) live under varied section names — we don't filter
-# by section name; iterating every section and repairing any kp/ki/kd we
-# find is safe and covers them all.
-_LEDS_SECTION = "leds"
-_LEDS_KEYS = {"a": "A", "b": "B", "c": "C", "d": "D"}
-_PID_KEYS = {"kp": "Kp", "ki": "Ki", "kd": "Kd"}
-
-
-def _repair_lowercased_keys(p: ConfigParserMod) -> list[str]:
-    """Restore canonical case for keys that a prior buggy run lower-cased.
-    Returns a list of human-readable repair descriptions for logging."""
-    repairs: list[str] = []
-
-    def _repair(section: str, mapping: dict[str, str]) -> None:
-        if not p.has_section(section):
-            return
-        for lower, canonical in mapping.items():
-            if p.has_option(section, lower) and not p.has_option(section, canonical):
-                p[section][canonical] = p[section][lower]
-                p.remove_option(section, lower)
-                repairs.append(f"[{section}] {lower} -> {canonical}")
-
-    _repair(_LEDS_SECTION, _LEDS_KEYS)
-    for sec in p.sections():
-        _repair(sec, _PID_KEYS)
-
-    return repairs
-
 
 def main() -> int:
     p = ConfigParserMod()
     p.read([PATH])
-
-    repairs = _repair_lowercased_keys(p)
 
     if "PWM" not in p:
         p.add_section("PWM")
@@ -96,10 +54,6 @@ def main() -> int:
         p.write(f)
 
     print(f"Patched: {PATH}")
-    if repairs:
-        print("Repaired lower-cased keys (left over from a pre-v0.6.7 run):")
-        for line in repairs:
-            print(f"  {line}")
     return 0
 
 

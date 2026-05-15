@@ -11,11 +11,8 @@ gains (Kp/Ki/Kd) under `[stirring.pid]`,
 `[temperature_automation.thermostat]`, all of which Pioreactor looks up
 case-sensitively.
 
-These tests pin the post-fix behaviour:
-
-  1. A round-trip preserves uppercase keys.
-  2. If a previous buggy run already lower-cased the keys, re-running
-     repairs them.
+These tests pin the post-fix behaviour: a round-trip through the script
+preserves uppercase keys instead of folding them to lowercase.
 
 NOTE on section scope: upstream `[od_config.photodiode_channel]` uses
 *numeric* keys (1=REF, 2=90, …) — not letter keys. So letter-key
@@ -166,111 +163,3 @@ class TestCasePreservation:
         mod = _load_patch_module()
         assert mod.main() == 1
         assert "refusing to overwrite [PWM] 4" in capsys.readouterr().err
-
-
-# ── self-healing: repair an already-corrupted file ───────────────────────────
-
-
-class TestSelfHealing:
-    """Units patched by the buggy version of this script have a config.ini
-    with lowercase a/b/c/d in [leds] and lowercase kp/ki/kd in every PID
-    section. Re-running the fixed script must repair those keys to their
-    canonical case so case-sensitive lookups in Pioreactor (e.g.
-    config['stirring.pid']['Kp']) start hitting again."""
-
-    def _seed_corrupted(self, p: Path) -> None:
-        p.write_text(
-            "[leds]\n"
-            "a = IR\n"
-            "b = \n"
-            "c = \n"
-            "d = \n"
-            "\n"
-            "[od_config.photodiode_channel]\n"
-            "1 = REF\n"
-            "2 = 90\n"
-            "\n"
-            "[dosing_automation.pid_morbidostat]\n"
-            "kp = 1\n"
-            "ki = 0\n"
-            "kd = 0\n"
-            "\n"
-            "[stirring.pid]\n"
-            "kp = 0.005\n"
-            "ki = 0.0\n"
-            "kd = 0.0\n",
-            encoding="utf-8",
-        )
-
-    def test_lowercase_leds_keys_get_repaired(self, tmp_path, monkeypatch):
-        cfg = tmp_path / "config.ini"
-        self._seed_corrupted(cfg)
-        monkeypatch.setenv("DOT_PIOREACTOR", str(tmp_path))
-
-        mod = _load_patch_module()
-        assert mod.main() == 0
-
-        parsed = _read_preserving_case(cfg)
-        keys = list(parsed["leds"].keys())
-        for ch in ("A", "B", "C", "D"):
-            assert ch in keys, f"missing canonical {ch}: {keys}"
-            assert ch.lower() not in keys, f"stale lowercase {ch.lower()}: {keys}"
-        assert parsed["leds"]["A"] == "IR"
-
-    def test_lowercase_pid_keys_get_repaired_in_all_section_flavours(
-        self, tmp_path, monkeypatch
-    ):
-        # Covers both upstream PID section-name flavours we know about:
-        #   - dotted-with-prefix:   dosing_automation.pid_morbidostat
-        #   - dotted-with-suffix:   stirring.pid
-        # Matcher must repair both without a section-name allow-list.
-        cfg = tmp_path / "config.ini"
-        self._seed_corrupted(cfg)
-        monkeypatch.setenv("DOT_PIOREACTOR", str(tmp_path))
-
-        mod = _load_patch_module()
-        assert mod.main() == 0
-
-        parsed = _read_preserving_case(cfg)
-        for section in ("dosing_automation.pid_morbidostat", "stirring.pid"):
-            keys = list(parsed[section].keys())
-            assert "Kp" in keys and "kp" not in keys, f"{section}: {keys}"
-            assert "Ki" in keys and "ki" not in keys, f"{section}: {keys}"
-            assert "Kd" in keys and "kd" not in keys, f"{section}: {keys}"
-        assert parsed["dosing_automation.pid_morbidostat"]["Kp"] == "1"
-        assert parsed["stirring.pid"]["Kp"] == "0.005"
-
-    def test_photodiode_numeric_keys_untouched_during_repair(
-        self, tmp_path, monkeypatch
-    ):
-        # The repair must NOT touch [od_config.photodiode_channel] —
-        # its keys are numeric, not letters, and have no case-sensitivity
-        # bug. Targeting it would be both pointless and risky.
-        cfg = tmp_path / "config.ini"
-        self._seed_corrupted(cfg)
-        monkeypatch.setenv("DOT_PIOREACTOR", str(tmp_path))
-
-        mod = _load_patch_module()
-        assert mod.main() == 0
-
-        parsed = _read_preserving_case(cfg)
-        assert parsed["od_config.photodiode_channel"]["1"] == "REF"
-        assert parsed["od_config.photodiode_channel"]["2"] == "90"
-
-    def test_repair_preserves_existing_uppercase(self, tmp_path, monkeypatch):
-        # Idempotent: clean file in, clean file out.
-        cfg = tmp_path / "config.ini"
-        cfg.write_text(
-            "[leds]\n"
-            "A = IR\n"
-            "B = \n",
-            encoding="utf-8",
-        )
-        monkeypatch.setenv("DOT_PIOREACTOR", str(tmp_path))
-
-        mod = _load_patch_module()
-        assert mod.main() == 0
-
-        parsed = _read_preserving_case(cfg)
-        assert parsed["leds"]["A"] == "IR"
-        assert "a" not in parsed["leds"].keys()

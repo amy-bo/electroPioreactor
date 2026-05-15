@@ -31,25 +31,22 @@ All four ConfigParser sites now use `pioreactor.config.ConfigParserMod`
 machinery). The conftest stub now provides `ConfigParserMod` so off-device
 tests still load the plugin.
 
-### Self-healing
-
-`scripts/patch-config-ini.py` now repairs already-corrupted files on the
-next run: lowercase a/b/c/d under `[leds]` get renamed to A/B/C/D, and
-lowercase kp/ki/kd in **any** section get renamed to Kp/Ki/Kd (real
-upstream PID section names vary — `[stirring.pid]`,
-`[dosing_automation.pid_morbidostat]`,
-`[temperature_automation.thermostat]` — so the matcher iterates every
-section rather than filtering by name). Idempotent — repeat runs on a
-clean file are no-ops. Logged on stdout when a repair fires.
-
 The PWM-4 guard from v0.6.6 is preserved (test pinned).
 
 ### Tests
 
-`tests/test_patch_config_ini.py` (new, 9 tests) pins both
-case-preservation on round-trip and self-healing of a previously-corrupted
-file, asserts the photodiode numeric-key section is left alone, and pins
-the PWM-4 guard. Existing 46 tests still pass — total 55 pass off-device.
+`tests/test_patch_config_ini.py` (new, 5 tests) pins case-preservation on
+round-trip across `[leds]` letter keys, `[od_config.photodiode_channel]`
+numeric keys, and the three upstream PID-gain sections, plus the PWM-4
+guard. Existing 46 tests still pass — total 51 pass off-device.
+
+### Note on already-corrupted units
+
+A pre-v0.6.7 install of this script will have lower-cased keys in
+`~/.pioreactor/config.ini` on whichever unit it ran on. v0.6.7 prevents
+new occurrences but does not retroactively repair such files — only
+Martin's own dev unit hit this in practice and it was hand-corrected
+before release, so no repair pass is shipped.
 
 ## v0.6.6 (2026-05-08) — PR-16 review feedback (Gerrit)
 
