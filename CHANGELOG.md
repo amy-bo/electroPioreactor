@@ -1,5 +1,53 @@
 # electroPioreactor Plugin — Changelog
 
+## v0.6.7 (2026-05-10) — preserve key case in config.ini writes
+
+Pre-v0.6.7 the plugin used a default `configparser.ConfigParser()` in
+three runtime writers (`_save_all_config`, `_save_config`,
+`_clear_unit_config`) and in the install-time
+`scripts/patch-config-ini.py`. Default `ConfigParser` calls
+`optionxform = str.lower` on every key as it parses, so a write-after-read
+silently lower-cased every existing key in `~/.pioreactor/config.ini` —
+including the `[leds]` LED-channel labels (A/B/C/D), and PID gains
+(Kp/Ki/Kd) in `[stirring.pid]`,
+`[dosing_automation.pid_morbidostat]`, and
+`[temperature_automation.thermostat]`. Pioreactor itself uses
+`ConfigParserMod` (`optionxform = str`) and looks all of those keys up
+case-sensitively, so the corruption hard-failed every PID-controlled job
+and broke the LED-label resolution OD reading depends on.
+
+(Note on scope: `[od_config.photodiode_channel]` upstream uses **numeric**
+keys 1/2/3/4, not letter keys, so it has no case-sensitivity bug. Letter-
+key corruption appears in `[leds]`, not in the photodiode-channel section.
+A first attempt at this fix on a feature branch wrongly targeted
+photodiode_channel; the parallel `vibe pioreactor` session caught the
+mismatch by inspecting an actual ed05 config.ini against the upstream
+template before deploying.)
+
+### Fix
+
+All four ConfigParser sites now use `pioreactor.config.ConfigParserMod`
+(case-preserving — the same class Pioreactor uses for its own config
+machinery). The conftest stub now provides `ConfigParserMod` so off-device
+tests still load the plugin.
+
+The PWM-4 guard from v0.6.6 is preserved (test pinned).
+
+### Tests
+
+`tests/test_patch_config_ini.py` (new, 5 tests) pins case-preservation on
+round-trip across `[leds]` letter keys, `[od_config.photodiode_channel]`
+numeric keys, and the three upstream PID-gain sections, plus the PWM-4
+guard. Existing 46 tests still pass — total 51 pass off-device.
+
+### Note on already-corrupted units
+
+A pre-v0.6.7 install of this script will have lower-cased keys in
+`~/.pioreactor/config.ini` on whichever unit it ran on. v0.6.7 prevents
+new occurrences but does not retroactively repair such files — only
+Martin's own dev unit hit this in practice and it was hand-corrected
+before release, so no repair pass is shipped.
+
 ## v0.6.6 (2026-05-08) — PR-16 review feedback (Gerrit)
 
 Cleanup pass addressing the inline comments on PR #16. No behaviour change

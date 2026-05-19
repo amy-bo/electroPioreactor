@@ -5,6 +5,7 @@ Inject stub modules for the pioreactor package so tests can run off-device.
 All pioreactor imports are satisfied by lightweight fakes; only the logic
 inside ElectroPioreactor itself is exercised.
 """
+import configparser
 import os
 import sys
 import types
@@ -70,6 +71,16 @@ _mock_config = MagicMock()
 _mock_config.get.return_value = "4"                          # PWM_reverse → channel "4"
 _mock_config.getfloat.side_effect = lambda s, k, **kw: kw.get("fallback", 0.0)
 _cfg.config = _mock_config
+
+
+# Mirror of the upstream pioreactor.config.ConfigParserMod — keeps key case
+# on read/write (optionxform = str). Provided here so the plugin's
+# `from pioreactor.config import ConfigParserMod` resolves under the stub.
+class _StubConfigParserMod(configparser.ConfigParser):
+    optionxform = staticmethod(str)
+
+
+_cfg.ConfigParserMod = _StubConfigParserMod
 
 
 # ── hardware ──────────────────────────────────────────────────────────────────

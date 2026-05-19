@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 """Idempotently add [PWM] 4=relay and the four [electropioreactor.config]
-defaults to ~/.pioreactor/config.ini. Re-runs preserve any existing values."""
+defaults to ~/.pioreactor/config.ini. Re-runs preserve any existing values.
+
+Uses pioreactor.config.ConfigParserMod (the case-preserving subclass
+Pioreactor itself uses) rather than configparser.ConfigParser(), so
+existing keys in the file – including uppercase ones in [leds] and
+the [*.pid] sections – survive the round-trip unchanged.
+"""
 from __future__ import annotations
 
-import configparser
 import os
 import sys
 from pathlib import Path
+
+from pioreactor.config import ConfigParserMod
 
 DOT = os.environ.get("DOT_PIOREACTOR", str(Path.home() / ".pioreactor"))
 PATH = Path(DOT) / "config.ini"
@@ -20,7 +27,7 @@ DEFAULTS = {
 
 
 def main() -> int:
-    p = configparser.ConfigParser()
+    p = ConfigParserMod()
     p.read([PATH])
 
     if "PWM" not in p:
