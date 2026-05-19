@@ -10,7 +10,7 @@ import click
 from pioreactor.actions.led_intensity import led_intensity
 from pioreactor.background_jobs.base import BackgroundJob
 from pioreactor.cli.run import run
-from pioreactor.config import config
+from pioreactor.config import config, ConfigParserMod
 from pioreactor.pubsub import QOS
 from pioreactor.pubsub import publish
 from pioreactor.states import JobState
@@ -19,7 +19,7 @@ from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
 __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
-__plugin_version__ = "0.6.6"
+__plugin_version__ = "0.6.7"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
 __plugin_homepage__ = "https://github.com/amy-bo/electroPioreactor"
@@ -290,7 +290,7 @@ class ElectroPioreactor(BackgroundJob):
         """Write all three current values to both config files in one pass."""
         for path in self._config_paths():
             try:
-                parser = configparser.ConfigParser()
+                parser = ConfigParserMod()
                 parser.read(path)
                 if not parser.has_section(_CONFIG_SECTION):
                     parser.add_section(_CONFIG_SECTION)
@@ -306,7 +306,7 @@ class ElectroPioreactor(BackgroundJob):
         """Persist a single setting to both config files (used by runtime setters)."""
         for path in self._config_paths():
             try:
-                parser = configparser.ConfigParser()
+                parser = ConfigParserMod()
                 parser.read(path)
                 if not parser.has_section(_CONFIG_SECTION):
                     parser.add_section(_CONFIG_SECTION)
@@ -319,7 +319,7 @@ class ElectroPioreactor(BackgroundJob):
         """Remove our section from both config files so config.ini defaults take effect."""
         for path in self._config_paths():
             try:
-                parser = configparser.ConfigParser()
+                parser = ConfigParserMod()
                 parser.read(path)
                 parser.remove_section(_CONFIG_SECTION)
                 self._atomic_write(path, parser)
