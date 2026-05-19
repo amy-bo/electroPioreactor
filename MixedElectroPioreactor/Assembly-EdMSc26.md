@@ -16,13 +16,13 @@ The CARMA AEP0.1.1 instructions call for cryogenic gloves when tightening a Soda
 
 1. Setup a mobile phone hotspot with SSID AMYBO and password raspberry.
 2. Place the dovetail raft on the bench with dovetails to front and left.
-3. Familiarise yourself with the raft.  At the rear we have the SodaStream cylinder with the right angle pin screw adapter on top, the CO₂ regulator is on top of this, it's left dial shows the SodaStream pressure (advanced warning that you're running out of CO2) and the right dial showing the pressure reaching the solenoid.  The solenoid is, attached to the right of the regulator with a lead connecting to PWM4, the needle valve comes out of the front of the solenoid.  In front of the SodaStream Cylinder we have the product container left of media container, with their respective peristaltic pumps in front of them, then the electroPioreactor at the very front.
+3. Familiarise yourself with the raft.  At the rear we have the SodaStream cylinder with the right angle pin screw adapter on top, the CO₂ regulator is on top and to the front of this, it's left dial shows the SodaStream pressure (advanced warning that you're running out of CO2) and the right dial shows the pressure reaching the solenoid.  The solenoid is attached to the right of the regulator, with a lead connecting to PWM4, the needle valve comes out of the front of the solenoid.  In front of the SodaStream Cylinder we have the product container to the left of the media container, with their respective peristaltic pumps in front of them, then the electroPioreactor at the very front.
 5. Connect the black 12 V PSU to the Pioreactor HAT's barrel jack connector and the white 5V Raspberry Pi PSU to the micro-USB socket on the Raspberry Pi (the frontmost socket on the bottom PCB if the Pioreactor Logo is facing you. The electroPioreactor should boot within ~90 s.
 6. From a laptop connected to the mobile phone hotspot, open `http://ed04.local/` (or `http://ed05.local/`). Confirm the unit appears in the cluster view.
 
 ## Vial and PWM connections (both units)
 
-1. Add bicarbonate solution (or your prepared MC02 medium) to the vial.
+1. Add 2M bicarbonate solution (or [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media) medium) to the vial.
 2. Screw the Vial Cap fully onto the vial.
 5. Seat the vial in the Pioreactor.
 
@@ -32,7 +32,7 @@ Once both units are assembled, vials seated, and reachable on the network, move 
 
 ## Electrodes (ed04 only – fresh anode)
 
-ed05 has its Platinum Plated Ti anode and Stainless Steel cathode already installed; ed04 has some low grade graphite electrodes installed, these should be used for testing purposes only - sodium bicarbonate is recommended instead of MC01 for these graphite electrodes, as MC01 corroded them more rapidly.
+ed05 has its Platinum Plated Ti anode and Stainless Steel cathode already installed; ed04 has some low grade graphite electrodes installed, these should be used for testing purposes only - sodium bicarbonate is recommended instead of [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media) for these graphite electrodes, as [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media) corroded them more rapidly.
 
 Once you are confident in operation and ready to install ed04's Platinum Plated Ti anode and Stainless Steel cathode
 
