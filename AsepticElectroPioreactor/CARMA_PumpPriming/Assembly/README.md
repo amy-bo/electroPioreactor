@@ -105,10 +105,10 @@
    ```
    [PWM]
    # map the PWM channels to externals.
-   # hardware PWM are available on channels 2 & 4.
+   # hardware PWM are available on channels 1 & 3.
    1=stirring
-   2=media
-   3=waste
+   2=waste
+   3=media
    4=relay
    5=heating
    ```
