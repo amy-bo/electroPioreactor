@@ -2,15 +2,13 @@
 
 You will assemble two MEP0.3 units: **ed04** and **ed05**. Both arrive with microSDs flashed and the FZone-HPControl CO₂ regulator-solenoid stack pre-built by Martin.
 
-ed04 is the unit that gets a **bagged Pt-plated Ti anode** which you can unwrap and instal once you are comfortable using ed05. ed05 has all the newest other parts; its electrodes are already installed from bench testing.
+ed04 is the unit that gets a **bagged Pt-plated Ti anode** and stainless steel cathode which you can unwrap and instal once you are comfortable using ed05. ed05 has all the newest other parts; its electrodes are already installed from bench testing.
 
 ## PPE
 
 - Eye / face protection
 - Lab coat
 - Gloves for media handling
-
-The CARMA AEP0.1.1 instructions call for cryogenic gloves when tightening a SodaStream against a bare cylinder; on these MEPs the SodaStream is attached via a right-angle adapter with SodaStream-pin-screw by fully unscrewing this, no CO₂ should leak when changing cylinders.  Screw it fully in, so you see the regulator dials rise, when using the electroPioreactors.
 
 ## Layout
 
