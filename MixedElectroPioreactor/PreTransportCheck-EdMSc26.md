@@ -6,6 +6,10 @@ Two MEP0.02 units in scope: **ed04** and **ed05** each set up as solo leader-wor
 
 The values Martin records below are the references students will compare their own measurements to during [Calibration.md](Calibration.md). Each "**Record:**" line is a deliberate action, not just a tick.
 
+## Why incomplete?
+
+Martin was first unable to locate both magnetic fleas.  Then he couldn’t find two vials large enough to sit tightly within the Pioreactor 1.1 vial o-ring (were the original v1.0 vials narrower?) so he decided to devise a means of tubing all overflow into a central centrifuge tube then into a central GL45 flask.  Then each unit dramatically failed self-tests, this was eventually diagnosed to be an issue with the electroPioreactor plugin changing case of the config file.  One of the TopStop screws was overtightened, causing the PCCF TopStop to break.  By the time these issues were resolved and the following checked items were done, it was 7am.
+
 ## Bench tests
 
 Run on ed05, then swap pio01's RPi 4B for the new RPi Zero 2W, insert ed04's TF, and repeat on ed04. Each check below has paired ed05 and ed04 boxes so you can tick per unit. Don't transport a unit with an unticked row.
@@ -13,59 +17,57 @@ Run on ed05, then swap pio01's RPi 4B for the new RPi Zero 2W, insert ed04's TF,
 ### 1. Boot and network
 
 - [x] ed05: Power on, Pi boots within ~90 s - 35s
-- [ ] ed04: Power on, Pi boots within ~90 s
-- [ ] ed05: Web UI reachable at http://ed05.local/
-- [ ] ed04: Web UI reachable at http://ed04.local/
-- [ ] ed05: Activity dashboard updates live (local MQTT broker up)
-- [ ] ed04: Activity dashboard updates live (local MQTT broker up)
-- [ ] ed05: `amybo` + own-hotspot fallback configured via nmcli (autoconnect-priority 20 / 0)
-- [ ] ed04: `amybo` + own-hotspot fallback configured via nmcli (autoconnect-priority 20 / 0)
-- [ ] ed05: `amybo` off → falls back to own hotspot within ~60 s, SSH via 10.42.0.1 works
-- [ ] ed04: `amybo` off → falls back to own hotspot within ~60 s, SSH via 10.42.0.1 works
-- [ ] ed05: `amybo` back on → rejoins, SSH via ed05.local works
-- [ ] ed04: `amybo` back on → rejoins, SSH via ed04.local works
+- [x] ed04: Power on, Pi boots within ~90 s
+- [x] ed05: Web UI reachable at http://ed05.local/
+- [x] ed04: Web UI reachable at http://ed04.local/
+- [x] ed05: Activity dashboard updates live (local MQTT broker up)
+- [x] ed04: Activity dashboard updates live (local MQTT broker up)
+- [x] ed05: `amybo` + own-hotspot fallback configured via nmcli (autoconnect-priority 20 / 0)
+- [x] ed04: `amybo` + own-hotspot fallback configured via nmcli (autoconnect-priority 20 / 0)
+- [x] ed05: `amybo` off → falls back to own hotspot within ~60 s, SSH via 10.42.0.1 works
+- [x] ed04: `amybo` off → falls back to own hotspot within ~60 s, SSH via 10.42.0.1 works
+- [x] ed05: `amybo` back on → rejoins, SSH via ed05.local works
+- [x] ed04: `amybo` back on → rejoins, SSH via ed04.local works
 
 ### 2. Stirring
 
-- [ ] ed05: Stirring starts from web UI, fan spins, no rattle
-- [ ] ed04: Stirring starts from web UI, fan spins, no rattle
-- [ ] ed05: Stops cleanly
-- [ ] ed04: Stops cleanly
+- [x] ed05: Stirring starts from web UI, fan spins, no rattle
+- [x] ed04: Stirring starts from web UI, fan spins, no rattle
+- [x] ed05: Stops cleanly
+- [x] ed04: Stops cleanly
 
 ### 3. Solenoid (CO₂ relay on PWM 4)
 
-- [ ] ed05: With CO₂ cylinder open and needle valve cracked, manual relay-on produces a visible bubble stream into the vial via the entry filter
-- [ ] ed04: With CO₂ cylinder open and needle valve cracked, manual relay-on produces a visible bubble stream into the vial via the entry filter
-- [ ] ed05: Solenoid clicks audibly on each toggle
-- [ ] ed04: Solenoid clicks audibly on each toggle
-- [ ] ed05: Closes cleanly with no continued bubbling
-- [ ] ed04: Closes cleanly with no continued bubbling
+- [x] ed05: With CO₂ cylinder open and needle valve cracked, manual relay-on produces a visible bubble stream into the vial via the entry filter
+- [x] ed04: With CO₂ cylinder open and needle valve cracked, manual relay-on produces a visible bubble stream into the vial via the entry filter
+- [x] ed05: Solenoid clicks audibly on each toggle
+- [x] ed04: Solenoid clicks audibly on each toggle
+- [x] ed05: Closes cleanly with no continued bubbling
+- [x] ed04: Closes cleanly with no continued bubbling
 
 ### 4. Wet electrolysis
 
 ed05 bench-tests with its own installed electrodes (the experiment set, not changing). Those electrodes are then moved to ed04 for its bench test and returned to ed05 afterwards. ed04 is left with the bagged fresh Pt-plated Ti anode at Edinburgh, where a new reference V and I are recorded.
 
-- [ ] ed05: Vial filled with bicarbonate solution, electrodes at standard depth
-- [ ] ed04: Vial filled with bicarbonate solution, electrodes at standard depth
-- [ ] ed05: LED D set to **2.5 %**
-- [ ] ed04: LED D set to **2.5 %**
-- [ ] ed05: Bubbles visible on both electrodes within 30 s; cathode bubble rate roughly twice anode rate
-- [ ] ed04: Bubbles visible on both electrodes within 30 s; cathode bubble rate roughly twice anode rate
+- [x] ed05: Vial filled with bicarbonate solution, electrodes at standard depth
+- [x] ed04: Vial filled with bicarbonate solution, electrodes at standard depth
+- [x] ed05: LED D set to **2.5 %**
+- [x] ed04: LED D set to **2.5 %**
+- [x] ed05: Bubbles visible on both electrodes within 30 s; cathode bubble rate roughly twice anode rate
+- [x] ed04: Bubbles visible on both electrodes within 30 s; cathode bubble rate roughly twice anode rate
 - [ ] **Record (ed05 only):** V across electrodes ____ V, I through electrodes ____ mA. This is the reference for [Calibration § 3](Calibration.md#3-electrolysis-v-and-i-at-25--led-d).
 - [ ] **Record (ed04, sanity only):** V ____ V, I ____ mA. Student reference for ed04 is set on arrival post-anode-swap.
-- [ ] ed05: LED D back to 0 % at end of test
-- [ ] ed04: LED D back to 0 % at end of test
+- [x] ed05: LED D back to 0 % at end of test
+- [x] ed04: LED D back to 0 % at end of test
 
 ### 5. Pumps
 
-- [ ] ed05: Media pump (PWM 3) ticks forwards on a manual dose, fluid moves through
-- [ ] ed04: Media pump (PWM 3) ticks forwards on a manual dose, fluid moves through
-- [ ] ed05: Waste pump (PWM 2) ticks forwards on a manual dose, fluid moves through
-- [ ] ed04: Waste pump (PWM 2) ticks forwards on a manual dose, fluid moves through
-- [ ] ed05: Both stop cleanly
-- [ ] ed04: Both stop cleanly
-
-
+- [x] ed05: Media pump (PWM 3) ticks forwards on a manual dose, fluid moves through
+- [x] ed04: Media pump (PWM 3) ticks forwards on a manual dose, fluid moves through
+- [x] ed05: Waste pump (PWM 2) ticks forwards on a manual dose, fluid moves through
+- [x] ed04: Waste pump (PWM 2) ticks forwards on a manual dose, fluid moves through
+- [x] ed05: Both stop cleanly
+- [x] ed04: Both stop cleanly
 
 ## Solenoid leak check
 
@@ -93,16 +95,16 @@ FZone has cylinder and outlet gauges, so a glance at the outlet gauge during a q
 
 ## Pack and transport
 
-- [ ] Vial drained, rinsed, dried, packed inside Pioreactor
-- [ ] Solenoid + needle valve + regulator stack kept assembled; SodaStream **detached** for transport
-- [ ] ed04's spare bagged anode kept sealed in its bag
-- [ ] PSUs, ethernet, multimeter, balance, cryo gloves (for SodaStream re-attach), bicarbonate solution in the shared kit box
-- [ ] microSD reader (already owned, bring it for on-site recovery if `amybo` fallback misbehaves)
+- [x] Vial drained, rinsed, dried, packed inside Pioreactor
+- [x] Solenoid + needle valve + regulator stack kept assembled; SodaStream **detached** for transport
+- [x] ed04's spare bagged anode kept sealed in its bag
+- [x] PSUs, multimeter, balance, bicarbonate solution in the kit box
+- [x] microSD reader (already owned in laptop case for on-site recovery if `amybo` fallback misbehaves)
 
 ## On arrival (Edinburgh, Martin)
 
-1. Tighten each unit's SodaStream onto its FZone regulator (cryo gloves on for the swift tighten).
-2. **ed04 only:** unbag the fresh Pt-plated Ti anode, install through the captive-nut [Electrode Top Stop](../Components/ElectrodeTopStop) following [Assembly § Electrodes](Assembly-EdMSc26.md#electrodes-ed04-only--fresh-anode), set down to standard depth.
-3. **ed04 only:** re-run [wet electrolysis](#4-wet-electrolysis) at 2.5 % LED D. **Record:** new V ____ V, new I ____ mA. This is the student reference for ed04 (the bench numbers above were for the now-removed test electrodes).
-4. Fill media bottles, prime media and waste pumps.
-5. Hand off to students for [Assembly](Assembly-EdMSc26.md) → [Operation](Operation.md) → [Calibration](Calibration.md).
+- [x] Tighten each unit's SodaStream onto its FZone regulator (cryo gloves on for the swift tighten).
+- [ ] **ed04 only:** unbag the fresh Pt-plated Ti anode, install through the captive-nut [Electrode Top Stop](../Components/ElectrodeTopStop) following [Assembly § Electrodes](Assembly-EdMSc26.md#electrodes-ed04-only--fresh-anode), set down to standard depth.
+- [ ]  **ed04 only:** re-run [wet electrolysis](#4-wet-electrolysis) at 2.5 % LED D. **Record:** new V ____ V, new I ____ mA. This is the student reference for ed04 (the bench numbers above were for the now-removed test electrodes).
+- [ ]  Fill media bottles, prime media and waste pumps.
+- [x]  Hand off to students for [Assembly](Assembly-EdMSc26.md) → [Operation](Operation.md) → [Calibration](Calibration.md).
