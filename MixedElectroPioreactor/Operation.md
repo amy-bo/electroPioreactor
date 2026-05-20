@@ -1,6 +1,6 @@
 # MEP Operation (Edinburgh MSc)
 
- You can run the pioreactor in three main operating modes: **Fed batch**, **chemostat**, and **turbidostat**. All three use the same hardware: stirring on PWM 1, product/waste on PWM 2, media on PWM 3, CO₂ relay on PWM 4, electrolysis on LED D at 2.5 %.
+You can run the pioreactor in three main operating modes: **Fed batch**, **chemostat**, and **turbidostat**. All three use the same hardware: stirring on PWM 1, product/waste on PWM 2, media on PWM 3, CO₂ relay on PWM 4, electrolysis on LED D at 2.5 %.
 
 This doc is read as a walkthrough first (the theory of what you're about to do), then executed as a procedure later in the day if time allows. Actual execution requires both units calibrated per [Calibration.md](Calibration.md): pumps calibrated, CO₂ flow and electrolysis Voltage and Current.
 
@@ -49,15 +49,15 @@ A chemostat continuously dilutes the culture at a fixed rate. Cells either grow 
 
 ## 3. Turbidostat
 
-A turbidostat holds OD at a target by triggering media andproduct/waste pulses whenever OD exceeds threshold.
+A turbidostat holds OD at a target by triggering media and product/waste pulses whenever OD exceeds threshold.
 
 1. Set up as for chemostat, through inoculation and seating.
 2. Configure the **dosing automation**:
    1. Mode: turbidostat
    2. OD target: e.g. 0.5 (set in agreement with Martin for the anode/medium/strain combination)
-   3. Volume per dose: e.g. 0.5 ml (will be matched on theproduct/waste side)
+   3. Volume per dose: e.g. 0.5 ml (will be matched on the product/waste side)
 3. Start the standard job set (stirring, OD, electrolysis, sparge profile) and the turbidostat dosing automation.
-4. The unit pulses media +product/waste whenever OD crosses the target. OD trace becomes a sawtooth around the target.
+4. The unit pulses media + product/waste whenever OD crosses the target. OD trace becomes a sawtooth around the target.
 5. End and strip down as for batch.
 
 ## Records to hand back to Martin
