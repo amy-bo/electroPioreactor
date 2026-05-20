@@ -55,7 +55,7 @@ ed05 bench-tests with its own installed electrodes (the experiment set, not chan
 - [x] ed04: LED D set to **2.5 %**
 - [x] ed05: Bubbles visible on both electrodes within 30 s; cathode bubble rate roughly twice anode rate
 - [x] ed04: Bubbles visible on both electrodes within 30 s; cathode bubble rate roughly twice anode rate
-- [ ] **Record (ed05 only):** V across electrodes ____ V, I through electrodes ____ mA. This is the reference for [Calibration § 3](Calibration.md#3-electrolysis-v-and-i-at-25--led-d).
+- [ ] **Record (ed05 only):** V across electrodes ____ V, I through electrodes ____ mA. This is the reference for [Calibration § 6](Calibration.md#6-electrolysis-v-and-i-at-25--led-d).
 - [ ] **Record (ed04, sanity only):** V ____ V, I ____ mA. Student reference for ed04 is set on arrival post-anode-swap.
 - [x] ed05: LED D back to 0 % at end of test
 - [x] ed04: LED D back to 0 % at end of test
@@ -75,13 +75,13 @@ All three threaded ports around the HPcontrols solenoid (regulator side, needle-
 
 ### A. Baseline flow comparison vs AEP0.1.1's ODL setup
 
-The AEP0.1.1 reference uses the [Premium ODL SodaStream regulator](../Components/CO2%20transfer/Regulators.md) at 1 bar. FZone has a fixed, non-adjustable outlet pressure, so MEP flow is set by the needle valve alone. We want MEP flow comparable to ODL@1bar so the experiment regime ports across.
+The AEP0.1.1 reference uses the [Premium ODL SodaStream regulator](https://github.com/amy-bo/electroPioreactor/blob/main/Components/CO2%20transfer/Regulators.md) at 1 bar. FZone has a fixed, non-adjustable outlet pressure, so MEP flow is set by the needle valve alone. We want MEP flow comparable to ODL@1bar so the experiment regime ports across.
 
 - [ ] Connect ed04's FZone + solenoid + needle-valve stack to its SodaStream
 - [ ] With solenoid held open and needle valve cracked, time to fill a 100 ml inverted measuring cylinder over water: ed04 ____ s, ed05 ____ s
 - [ ] Repeat with AEP0.1.1's ODL stack (regulator at 1 bar): reference ____ s
-- [ ] **Record:** needle-valve setting (turns from fully closed) that makes each MEP fill comparably to the ODL reference: ed04 ____ turns, ed05 ____ turns. Target for [Calibration § 2](Calibration.md#2-co-flow-rate-needle-valve-only).
-- [ ] **Record:** ml CO₂ per second of solenoid-open at the target setting: ed04 ____ ml/s, ed05 ____ ml/s. Target for [Calibration § 2](Calibration.md#2-co-flow-rate-needle-valve-only).
+- [ ] **Record:** needle-valve setting (turns from fully closed) that makes each MEP fill comparably to the ODL reference: ed04 ____ turns, ed05 ____ turns. Target for [Calibration § 5](Calibration.md#5-co-flow-rate).
+- [ ] **Record:** ml CO₂ per second of solenoid-open at the target setting: ed04 ____ ml/s, ed05 ____ ml/s. Target for [Calibration § 5](Calibration.md#5-co-flow-rate).
 
 ### B. Pressure-decay (snoop + rate-stability)
 
@@ -104,7 +104,8 @@ FZone has cylinder and outlet gauges, so a glance at the outlet gauge during a q
 ## On arrival (Edinburgh, Martin)
 
 - [x] Tighten each unit's SodaStream onto its FZone regulator (cryo gloves on for the swift tighten).
-- [ ] **ed04 only:** unbag the fresh Pt-plated Ti anode, install through the captive-nut [Electrode Top Stop](../Components/ElectrodeTopStop) following [Assembly § Electrodes](Assembly-EdMSc26.md#electrodes-ed04-only--fresh-anode), set down to standard depth.
+- [ ] **ed04 only:** unbag the fresh Pt-plated Ti anode, install through the captive-nut [Electrode Top Stop](https://github.com/amy-bo/electroPioreactor/tree/main/Components/ElectrodeTopStop) following [Assembly § Electrodes](Assembly-EdMSc26.md#electrodes-ed04-only--fresh-anode), set down to standard depth.
 - [ ]  **ed04 only:** re-run [wet electrolysis](#4-wet-electrolysis) at 2.5 % LED D. **Record:** new V ____ V, new I ____ mA. This is the student reference for ed04 (the bench numbers above were for the now-removed test electrodes).
 - [ ]  Fill media bottles, prime media and waste pumps.
+- [ ]  If a unit needs the relay or electroPioreactor plugin reinstalled, click **Plugins** in the left nav rather than dropping to a shell (the CLI fallback is `pio plugins install <name-of-plugin> --source <location of .whl file>`).
 - [x]  Hand off to students for [Assembly](Assembly-EdMSc26.md) → [Operation](Operation.md) → [Calibration](Calibration.md).
