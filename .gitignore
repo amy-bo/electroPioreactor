@@ -10,3 +10,5 @@ __pycache__/
 .claude/settings.local.json
 MCTests/
 MixedElectroPioreactor/CHANGELOG.md
+.vss/
+private-notes/
