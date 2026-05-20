@@ -7,7 +7,7 @@ __pycache__/
 *.mp4
 *.dng
 *.afphoto
-.claude/settings.local.json
+.claude/
 MCTests/
 MixedElectroPioreactor/CHANGELOG.md
 .vss/
