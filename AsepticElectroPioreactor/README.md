@@ -9,7 +9,7 @@ In-culture electrolysis generates H₂ (at the cathode) and O₂ (at the anode) 
 - **Safe** – hydrogen and oxygen are produced only as needed, dissolved in the medium, rather than stored.
 - **Aseptic** – luer-lock 0.2 μm vent filters on entry/exhaust ports and a sealed vial cap allow defined monoculture work.
 - **Affordable** – built on the low-cost open Pioreactor platform, supplied in the UK by [LabCrafter](https://labcrafter.co.uk) and in the rest of the world by [Pioreactor](https://pioreactor.com).
-- **Automated** – turbidostat dosing, peristaltic media/product handling, and relay-driven intermittent CO₂ sparging all run from the Pioreactor UI using the [electroPioreactor plugin](https://github.com/amy-bo/electroPioreactor/tree/main/AEP-Plugin).
+- **Automated** – turbidostat dosing, peristaltic media/product handling, and relay-driven intermittent CO₂ sparging all run from the Pioreactor UI using the [electroPioreactor plugin](../AEP-Plugin).
 - **Open & reproducible** – parametric designs, BoM and assembly procedures are version-controlled here.
 
 Design criteria, applied in order: 
