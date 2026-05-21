@@ -37,7 +37,7 @@ ed05 has its Platinum Plated Ti anode and Stainless Steel cathode already instal
 
 Once you are confident in operation and ready to install ed04's Platinum Plated Ti anode and Stainless Steel cathode
 
-1. Use a 2.5mm Hex key to gently unscrew the screws on the [TopStop](https://github.com/amy-bo/electroPioreactor/tree/main/Components/ElectrodeTopStop) (with the red and black wires), then gently remove the top stop.
+1. Use a 2.5mm Hex key to gently unscrew the screws on the [TopStop](../Components/ElectrodeTopStop) (with the red and black wires), then gently remove the top stop.
 2. Unscrew the vial from the cap and disconnect the tubing (take a photo first so you can remember how to reconnect it).
 3. Very gently rotate the graphite electrodes up and out of the vial cap.
 4. Ensure the vial cap electrode o-rings are correctly seated in the vial cap and that they stay there throughout the next step.
