@@ -49,11 +49,12 @@ The FZone regulator has a fixed, non-adjustable outlet pressure. The only variab
 
 1. Confirm the SodaStream is open (the valve directly on top of it is fully down)
 2. Run a 1/16" tubing line from one of the vial's exhaust luer locks to a measuring cylinder inverted in a water bath. Plug the other exhaust luer with a luer plug or tie a knot in its line.
-3. From the web UI's relay activity tab, open the solenoid (relay on) for a fixed observation window.
-4. Record the volume of CO₂ collected.
-5. Compute flow rate (ml CO₂ per second of solenoid-open).
-6. Adjust the needle valve and repeat until you hit your target.
-7. Record needle-valve setting (turns from fully closed) on the unit's calibration sheet.
+3. Sparge CO2 into the water bath until it is saturated with CO2 (you could monitor for no further pH drop to determine saturation.)
+4. From the web UI's relay activity tab, open the solenoid (relay on) for a fixed time.
+5. Record the volume of CO₂ collected.
+6. Compute flow rate (ml CO₂ per second of solenoid-open).
+7. Adjust the needle valve and repeat until you hit your target.
+8. Record needle-valve setting (turns from fully closed) on the unit's calibration sheet.
 
 If you cannot get to the target flow within sensible needle-valve travel, the problem is one of: (a) needle-valve creep, (b) a kinked line, (c) a leak at one of the Loctite-577 joints. If you suspect (c) try pipetting washing-up liquid in water at the joints and watching for bubbles.
 
