@@ -1,3 +1,10 @@
+// GL45BottleHolder – Pioreactor dovetail GL45 bottle holder
+//
+// The upstream Duran holders (e.g. Printables 1058356) have lettering
+// cut into the four corners. Those recessed letter shapes trap residue
+// and are awkward to clean. This SCAD fills them with smooth pillars
+// while leaving the rest of the geometry untouched. The 0.25 L version
+// renders to GL45_holder_250ml.stl – that's the file to print.
 import("duran_holder_platform_center_0.25L.stl");
 
 module cover()  {
