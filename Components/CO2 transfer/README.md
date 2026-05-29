@@ -32,7 +32,7 @@
 1. Filter
 1. Sparge tubing
 
-## Recommended Option
+## Trialled Option (continuous sparging)
 1. SodaStream cylinder (procured locally by end-user)
 1. [Premium ODL Sodastream Regulator](https://brewkegtap.co.uk/products/premium-sodastream-regulator-made-in-italy?pr_prod_strat=e5_desc&pr_rec_id=2f3634a5a&pr_rec_pid=1342006853713&pr_ref_pid=1323950768209&pr_seq=uniform) £65
 1. [1/4" BSPT MALE x 1/8" BSPP FEMALE HEX REDUCING BUSH-RB-150-04-02](https://customfittings.com/products/bspt-male-bsp-female-hex-reducing-bush-rb-150-04-02) £3.76
@@ -41,7 +41,16 @@
 1. Tubing
 1. Filter
 1. Sparge tubing
+It was however found that intermittent sparging was preferred, and that the CO2 leakage with the [Premium ODL Sodastream Regulator](https://brewkegtap.co.uk/products/premium-sodastream-regulator-made-in-italy?pr_prod_strat=e5_desc&pr_rec_id=2f3634a5a&pr_rec_pid=1342006853713&pr_ref_pid=1323950768209&pr_seq=uniform) on SodaStream cylinder changeover was unacceptable so we moved to:
 
-Purchase under separate invoice if continuous sparging proves infeasible:
-1. [HP Control R23](https://hpcontrol.uk/elektrozawor-r23-1-8-cala-2-lub-3-drogowy-laczony-w-grupy.html) £11.29
-1. [Omega Variable Area Flowmeter](https://www.omega.co.uk/pptst/FLD.html) £142.12
+## Finalfolution
+1. SodaStream cylinder (procured locally by end-user)
+1. [Kegland Deluxe Sodastream Cylinder Adapter (with pin adjustment) (EU Thread) W21.8 male to TR21-4 female](https://kegland.eu/products/deluxe-sodastream-cylinder-adapter-with-pin-adjustment-eu-thread-w21-8-male-to-tr21-4-female) ~[£6 via AliExpress](https://www.aliexpress.com/item/1005005413860080.html)
+1. [Premium ODL Sodastream Regulator](https://brewkegtap.co.uk/products/premium-regulator-made-in-italy) £60
+1. 1/4" male to 1/8" male reducing hexagon nipple
+1. [HP Control R23](https://hpcontrol.uk/elektrozawor-r23-1-8-cala-2-lub-3-drogowy-laczony-w-grupy.html) - 12V DC £11.29
+1. 1/8" male blanking plug
+1. [CO2 Needle Valve For Regulator Or Solenoid](https://www.co2supermarket.co.uk/product/precision-co2-needle-valve-for-regulator-solenoid-564) £15.99
+1. Tubing
+1. 0.2μm 25mm dia hydrophobic filter
+1. Sparge tubing
