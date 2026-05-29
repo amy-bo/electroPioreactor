@@ -49,7 +49,7 @@ It was however found that intermittent sparging was preferred, and that the CO2 
 1. [Premium ODL Sodastream Regulator](https://brewkegtap.co.uk/products/premium-regulator-made-in-italy) £60
 1. 1/4" male to 1/8" male reducing hexagon nipple
 1. [HP Control R23](https://hpcontrol.uk/elektrozawor-r23-1-8-cala-2-lub-3-drogowy-laczony-w-grupy.html) - 12V DC £11.29
-1. 1/8" male blanking plug
+1. [1/8" male blanking plug](https://hpcontrol.uk/korek-1-8-cala-oring.html)
 1. [CO2 Needle Valve For Regulator Or Solenoid](https://www.co2supermarket.co.uk/product/precision-co2-needle-valve-for-regulator-solenoid-564) £15.99
 1. Tubing
 1. 0.2μm 25mm dia hydrophobic filter
