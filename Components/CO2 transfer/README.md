@@ -43,7 +43,7 @@
 1. Sparge tubing
 It was however found that intermittent sparging was preferred, and that the CO2 leakage with the [Premium ODL Sodastream Regulator](https://brewkegtap.co.uk/products/premium-sodastream-regulator-made-in-italy?pr_prod_strat=e5_desc&pr_rec_id=2f3634a5a&pr_rec_pid=1342006853713&pr_ref_pid=1323950768209&pr_seq=uniform) on SodaStream cylinder changeover was unacceptable so we moved to:
 
-## Final Solution
+## Current Solution (as of 29 May 2026)
 1. SodaStream cylinder (procured locally by end-user)
 1. [Kegland Deluxe Sodastream Cylinder Adapter (with pin adjustment) (EU Thread) W21.8 male to TR21-4 female](https://kegland.eu/products/deluxe-sodastream-cylinder-adapter-with-pin-adjustment-eu-thread-w21-8-male-to-tr21-4-female) ~[£6 via AliExpress](https://www.aliexpress.com/item/1005005413860080.html)
 1. [Premium ODL Sodastream Regulator](https://brewkegtap.co.uk/products/premium-regulator-made-in-italy) £60
