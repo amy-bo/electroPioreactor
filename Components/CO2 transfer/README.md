@@ -47,7 +47,7 @@ It was however found that intermittent sparging was preferred, and that the CO2 
 1. SodaStream cylinder (procured locally by end-user)
 1. [Kegland Deluxe Sodastream Cylinder Adapter (with pin adjustment) (EU Thread) W21.8 male to TR21-4 female](https://kegland.eu/products/deluxe-sodastream-cylinder-adapter-with-pin-adjustment-eu-thread-w21-8-male-to-tr21-4-female) ~[£6 via AliExpress](https://www.aliexpress.com/item/1005005413860080.html)
 1. [Premium ODL Sodastream Regulator](https://brewkegtap.co.uk/products/premium-regulator-made-in-italy) £60
-1. 1/4" male to 1/8" male reducing hexagon nipple
+1. [1/4" male to 1/8" male reducing hexagon nipple](https://www.bearingsrus.co.uk/rhn0402-1-4-bsp-x-1-8-bsp-male-male-reducing-hexagon-nipple) (or if you want to save on shipping you could order a [reducer]([url](https://hpcontrol.uk/redukcja-nierdzewna-gz-1-4-gw-1-8.html)) and [nipple]([url](https://hpcontrol.uk/nypel-nierdzewny-gz-1-8-gz-1-8.html)) with your solenoid, but this increases leak risk) 
 1. [HP Control R23](https://hpcontrol.uk/elektrozawor-r23-1-8-cala-2-lub-3-drogowy-laczony-w-grupy.html) - 12V DC £11.29
 1. [1/8" male blanking plug](https://hpcontrol.uk/korek-1-8-cala-oring.html)
 1. [CO2 Needle Valve For Regulator Or Solenoid](https://www.co2supermarket.co.uk/product/precision-co2-needle-valve-for-regulator-solenoid-564) £15.99
