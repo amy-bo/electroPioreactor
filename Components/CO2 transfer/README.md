@@ -41,6 +41,7 @@
 1. Tubing
 1. Filter
 1. Sparge tubing
+
 It was however found that intermittent sparging was preferred, and that the CO2 leakage with the [Premium ODL Sodastream Regulator](https://brewkegtap.co.uk/products/premium-sodastream-regulator-made-in-italy?pr_prod_strat=e5_desc&pr_rec_id=2f3634a5a&pr_rec_pid=1342006853713&pr_ref_pid=1323950768209&pr_seq=uniform) on SodaStream cylinder changeover was unacceptable so we moved to:
 
 ## Current Solution (as of 29 May 2026)
