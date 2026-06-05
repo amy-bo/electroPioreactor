@@ -27,26 +27,39 @@ Options (choices listed inline in the file):
 `part = "all" | "cap" | "column" | "septum"`,
 `port_style = "ports" | "open"`.
 
-The cap bore is a plain cylinder for fast, predictable rendering. **Production:**
-swap it for the GPI 24-400 BOSL2 thread block from the current
-`Components/Vial Cap/Vial Cap.scad` (marked in the file) — that part is unchanged.
+Requires BOSL2 (same as the current `Vial Cap.scad`) — the GPI 24-400 thread is
+the real one now.
 
 ## Design notes
 
+- **Thread + septum ridge.** Real GPI 24-400 internal thread (BOSL2, verbatim
+  from `Vial Cap.scad`). A small chamfered inward **ridge** under the seat keeps
+  the silicone septum from dropping out when the vial is removed.
 - **Poka-yoke** is the real Vial-Cap-S tab: a *constant-radius plateau* (outer
-  edge ~17 mm from centre, ~±28°) filleted into the cap, read off
-  `vial-cap-s.3mf` — not a circle stuck on the side.
-- **Ports** sit at the current cap's radius, `r = (cap_o_ring_id − port_dia)/2 ≈
-  7.785 mm`, inside the vial neck. Electrode holes use the *same* fit as the
-  column bore (no longer looser).
-- **Clamp** is the correct captive-nut stack, outside-in: Allen bolt → **outer
-  wall** → **non-rotating nut** (drops into a top-opening pocket, thin side along
-  the bolt) → **inner wall** → wire pinched on the electrode. Pushed to the top of
-  the column and rounded, with thicker PC-CF walls than the current part (which
-  Grace cracked by over-torquing).
-- **Open port style** keeps an x-spine that carries the electrodes and fully
-  surrounds the pegs, leaving two large septum windows.
-- **Pegs** have conical lead-in tips so they print support-free point-up.
+  edge ~17 mm from centre, ~±28°) filleted into the cap, read off `vial-cap-s.3mf`.
+- **Fits** (two parameters): `cap_fit` is a snug friction fit so the **cap** grips
+  the electrode; `insert_extra` is the additional clearance in the **column** for
+  easy insertion (the bolts do the holding there). Column bore = `cap_fit +
+  insert_extra`, so tuning `cap_fit` moves both together.
+- **Ports** at `r = (cap_o_ring_id − port_dia)/2 ≈ 7.785 mm`, inside the neck.
+- **Clamp** (outside-in): Allen bolt → **outer wall** → **non-rotating nut** (thin
+  side along the bolt) → **inner wall** → wire pinched on the electrode. Sits at
+  the top face so it lands on the bed when printed; the nut pocket opens
+  downward-in-use (upward-in-print) so there's no bridge. Robust PC-CF walls.
+- **Open port style** keeps a **full-width** x-spine that carries the electrodes
+  and fully surrounds the pegs, leaving two large septum windows with **rounded
+  corners** (no sharp dirt traps).
+- **Pegs** are plain, `top_th` deep, so they sit flush with the cap's inside
+  ceiling and don't push the septum.
+
+## Print check (no supports)
+
+Cap (closed-top-down): cavity opens up; thread, ports, peg holes all vertical;
+septum ridge is a ≤45° barb; tab is a vertical lobe. Column (flush-face-down,
+pegs up): bores vertical; clamp ears reach the bed; nut pocket and wire slot open
+upward-in-print; bolt holes teardropped. **Render-check** the BOSL2 thread, the
+ridge, and the `offset()` tab/windows when you open it — there's no OpenSCAD in
+the dev box to do it here.
 
 ## The design problem (and the one idea that reframed it)
 

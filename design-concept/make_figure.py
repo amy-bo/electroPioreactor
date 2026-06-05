@@ -54,7 +54,7 @@ def topview(cx,cy,style,title):
     g.circ(cx,cy,(18.7706/2)*s,stroke="#2a8f72",sw=1,dash="5 4")          # neck
     if style=="open":
         g.circ(cx,cy,(cap_R-2-1.5)*s,fill=SEPT,stroke="none",op=0.30)     # exposed septum field
-        g.rect(cx-9.3*s,cy-5*s,2*9.3*s,2*5*s,fill=CAP,stroke="#1f5fa0",sw=1.2) # x-spine keeps electrodes+pegs
+        g.rect(cx-cap_R*s,cy-5*s,2*cap_R*s,2*5*s,fill=CAP,stroke="#1f5fa0",sw=1.2,rx=6) # full-width x-spine
     else:
         g.circ(cx,cy,(cap_R-2)*s,fill=SEPT,stroke="none",op=0.18)
     # column bearing + rounded ears
@@ -68,7 +68,7 @@ def topview(cx,cy,style,title):
             r=math.radians(a); g.circ(cx+port_R*s*math.cos(r),cy-port_R*s*math.sin(r),port_rad*s,fill="#fff",stroke="#6a3da0",sw=1.4)
     for sgn in (-1,1): g.circ(cx+sgn*el_off*s,cy,el_d/2*s,fill=ELEC,stroke="#555",sw=1.3)
     for sgn in (-1,1): g.circ(cx,cy+sgn*peg_off*s,peg_r*s,fill=PEG,stroke="#7a4a08",sw=1.1)
-    note = "6 ports inside the neck (green)" if style=="ports" else "two large windows; pegs surrounded by the spine"
+    note = "6 ports inside the neck (green)" if style=="ports" else "full-width spine surrounds pegs; two large rounded windows"
     g.txt(cx,cy+tab_R*s+22,note,size=10.5,anchor="middle",fill="#444")
     g.txt(cx,cy+tab_R*s+38,"poka-yoke = constant-radius tab (from vial-cap-s.3mf)",size=10.5,anchor="middle",fill="#444")
 
@@ -123,11 +123,11 @@ g.txt(cx,bed+24,"cavity opens up; tab is a vertical lobe",size=10,anchor="middle
 cx=720; bedline(cx-150,cx+150); colh=24.7*11/2.2; endw=(el_off+5)*11
 g.rect(cx-endw,bed-colh,2*endw,colh,fill=CARR,stroke="#a06000",sw=1.5,rx=8)
 for hx in (-el_off,el_off): g.line(cx+hx*11,bed,cx+hx*11,bed-colh,stroke="#a06000",sw=1,dash="3 3")
-for sgn in (-1,1):  # conical pegs pointing up
+for sgn in (-1,1):  # pegs (short cylinders) pointing up, flush-depth = cap top thickness
     bxp=cx+sgn*peg_off*11
-    g.poly([(bxp-peg_r*11,bed-colh),(bxp+peg_r*11,bed-colh),(bxp+peg_r*11,bed-colh-3*11),(bxp,bed-colh-4.4*11),(bxp-peg_r*11,bed-colh-3*11)],fill=CARR,stroke="#a06000",sw=1.2)
-g.txt(cx,bed-colh-4.4*11-8,"COLUMN - flush face on bed, conical pegs up",size=12,anchor="middle",weight="bold")
-g.txt(cx,bed+24,"bores vertical; teardrop bolt holes; nut from top",size=10,anchor="middle",fill="#060")
+    g.rect(bxp-peg_r*11,bed-colh-2.5*11,2*peg_r*11,2.5*11,fill=CARR,stroke="#a06000",sw=1.2)
+g.txt(cx,bed-colh-2.5*11-8,"COLUMN - flush face on bed, pegs up",size=12,anchor="middle",weight="bold")
+g.txt(cx,bed+24,"bores vertical; teardrop holes; nut pocket opens at the bed (no bridge)",size=10,anchor="middle",fill="#060")
 
 out=(f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">'
      f'<rect width="{W}" height="{H}" fill="#fbfbfb"/>'+"".join(g.p)+"</svg>")
