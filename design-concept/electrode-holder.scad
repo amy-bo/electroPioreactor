@@ -62,12 +62,9 @@ peg_d = 3; peg_off = 2; peg_clear = 0.3; peg_h = top_th;   // flush with the cap
 bearing_r = el_d/2 + 1.8;
 m3_bolt   = 3.4; nut_af = 5.7; nut_th = 2.6; nut_ac = nut_af/cos(30);
 clamp_in  = 1.8; clamp_out = 2.2;          // robust PC-CF walls (Grace-proof)
-// 1-piece (open) build: open neck + 45deg roofs to the racetrack + supported poka-yoke
-cap_R       = cap_od/2;
-neck_open_d = T_nom;          // open neck bore (no closed top)
-roof_x      = 9;              // half-width of the front/back 45deg roofs
-poka_angle  = 0;              // poka-yoke tab side, deg (0 = +X; rotated 90 from the 2-piece -Y)
-tab_w       = 8;
+// 1-piece build
+cap_R   = cap_od/2;
+tab_dir = (pieces==1) ? 0 : -90;   // poka-yoke at +X for the 1-piece (so it rises with a side), -Y otherwise
 
 col_h  = el_len - insertion_depth - cap_h; // sets the insertion depth
 H_top  = cap_h + col_h;                     // electrode flush face
@@ -86,7 +83,7 @@ module racetrack(h,r) hull() for(s=[-1,1]) translate([s*el_off,0,0]) cylinder(r=
 
 module body2d() offset(r=tab_round) offset(r=-tab_round) union() {   // cap outline + filleted tab
   circle(d=cap_od, $fn=160);
-  rotate(-90) intersection() {
+  rotate(tab_dir) intersection() {
     circle(r=tab_R, $fn=160);
     polygon([[0,0],[tab_R*1.6*cos(-tab_halfangle),tab_R*1.6*sin(-tab_halfangle)],
              [tab_R*1.6,0],[tab_R*1.6*cos(tab_halfangle),tab_R*1.6*sin(tab_halfangle)]]);
@@ -166,53 +163,28 @@ module column() color(C_CARR) difference() {
 module vial() color(C_VIAL) translate([0,0,-38]) cylinder(d=cap_od-2*wall_t-1.2, h=38+sept_z+eps);
 module electrodes() color(C_STEEL) for(s=[-1,1]) translate([s*el_off,0,H_top-el_len]) cylinder(d=el_d,h=el_len);
 
-// ===== 1-piece (open neck) construction =====
-join_z = cap_h + (cap_R - 1 - bearing_r);   // where the 45deg roofs reach the racetrack
+// ===== 1-piece construction =====
+// Uses the REAL cap (set port_style="open") so the thread, septum seat and
+// septum-holding structure stay. The cap WALL (+ tab) is extruded up and kept
+// only inside a hull that runs from the cap rim (cap_h) up to the racetrack:
+// low (cap_h) at front/rear, rising at 45deg to high points that TIE INTO the
+// racetrack at the sides.
+z_join = cap_h + (cap_R - bearing_r);                 // 45deg at front/rear (~21)
+module rt_outline2d() hull() for(s=[-1,1]) translate([s*el_off,0]) circle(r=bearing_r, $fn=48);
 
-// ridge that retains the septum at the open top rim
-module septum_ridge_open() rotate_extrude($fn=140)
-  polygon([[sept_seat_d/2, cap_h-sept_t+0.05],
-           [ridge_id/2,    cap_h-sept_t-ridge_h/2],
-           [sept_seat_d/2, cap_h-sept_t-ridge_h]]);
-
-// cap as a threaded ring with a fully open neck (no closed top, no ports)
-module cap_ring() color(C_CAP) difference() {
-  union() {
-    cylinder(d=cap_od, h=cap_h);
-    rotate([0,0,poka_angle]) translate([cap_R-1,0,0]) cylinder(d=tab_w, h=cap_h);   // poka-yoke tab (rotated)
-    translate([0,0,pitch/2])
-      thread_helix(d=D_minor_int, pitch=pitch, turns=(cap_h-sept_t-pitch)/pitch,
-                   thread_depth=depth_rad, flank_angle=30, starts=starts,
-                   anchor=BOTTOM, lead_in=leadin_len, internal=true);
-    septum_ridge_open();
-  }
-  translate([0,0,-eps]) cylinder(d=neck_open_d, h=cap_h+2*eps);          // open neck
-  translate([0,0,cap_h-sept_t]) cylinder(d=sept_seat_d, h=sept_t+eps);   // septum seat at the rim
-}
-
-// Conical 45deg rise: two teepees under the side ears, joined.  Low (cap_h) at
-// front/rear, high under the ears (+-X). The cap wall is extruded up and kept
-// only where it falls inside this envelope.
-x_ear  = el_off + 3;     // teepee apexes sit under the top-stop ears (+-X)
-rise_r = 18;             // 45deg cone size (apex at cap_h + rise_r)
-
-module rise_envelope() union() {
-  cylinder(d=cap_od+2, h=cap_h);                                          // keep the full cap up to cap_h
-  hull() for (sx=[-1,1]) translate([sx*x_ear,0,cap_h]) cylinder(r1=rise_r, r2=0.1, h=rise_r);
-}
-
-module holder1() union() {
-  cap_ring();
-  // the vial cap, EXTRUDED UP, then cut to the conical rise (tab rides up with the side)
+module holder1() {
+  cap();                                              // real cap (thread + open spine + septum)
   color(C_CARR) intersection() {
-    linear_extrude(H_top) difference() {
-      union() { circle(d=cap_od, $fn=120);
-                rotate([0,0,poka_angle]) translate([cap_R-1,0]) circle(d=tab_w, $fn=48); }
-      circle(d=neck_open_d, $fn=120);
+    linear_extrude(H_top) {                           // the vial cap WALL + tab, extruded up
+      difference() { circle(d=cap_od,$fn=120); circle(d=cap_od-2*wall_t-1,$fn=120); }
+      rotate([0,0,tab_dir]) translate([cap_R-1,0]) circle(d=8,$fn=48);
     }
-    rise_envelope();
+    hull() {                                          // rim -> racetrack at 45deg (ties the rise in)
+      translate([0,0,cap_h-0.1]) linear_extrude(0.1) circle(d=cap_od,$fn=120);
+      translate([0,0,z_join])    linear_extrude(0.1) rt_outline2d();
+    }
   }
-  column();                                                              // racetrack + clamp ears
+  column();                                           // racetrack + clamp ears
 }
 
 // ---- assembly / views ----------------------------------------------
