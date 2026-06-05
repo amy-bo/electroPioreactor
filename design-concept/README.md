@@ -12,29 +12,41 @@ later. It is scratch — not the production part.
 
 ## Files
 
+One source file; iterations live in git history, not in `v2`/`v3` files.
+
 | File | What it is |
 |---|---|
-| `electrode-holder-v3.scad` | **The current concept.** Open in OpenSCAD; set `view` and `port_style`. |
-| `electrode-holder-v3-figure.png` | Top view (ports in the neck) + corrected clamp + print orientation. |
-| `vial-cap-redesign.scad` | **Production cap**, derived from the real `Vial Cap.scad` (thread/ribs/ports kept; O-rings → septum seat; pegs + poka-yoke added). Needs a render-check in OpenSCAD. |
+| `electrode-holder.scad` | **The design.** Cap + septum + column in one file. Options at the top. |
+| `electrode-holder-figure.png` | Top views (both port styles) + clamp cross-section + print orientation. |
 | `vial-cap-s.3mf` | Pioreactor Vial Cap S — the poka-yoke reference. |
 | `pokayoke-from-3mf.png` | Slices through that mesh, how the tab geometry was read off it. |
-| `electrode-holder-v2.scad` / `…-concept.scad` | Earlier concepts (v2, v1). Superseded — kept to show the progression. |
-| `make_*.py` | Generators for the figures (plain-stdlib SVG, no dependencies). |
+| `make_figure.py` | Generator for the figure (plain-stdlib SVG, no dependencies). |
 
-Open the concept SCAD and try: `view = "exploded" | "assembled" | "section" | "print"`,
-and `port_style = "ports" | "open"`.
+Options (choices listed inline in the file):
+`view = "exploded" | "assembled" | "section" | "print"`,
+`part = "all" | "cap" | "column" | "septum"`,
+`port_style = "ports" | "open"`.
 
-## Fixes from the v2 review
+The cap bore is a plain cylinder for fast, predictable rendering. **Production:**
+swap it for the GPI 24-400 BOSL2 thread block from the current
+`Components/Vial Cap/Vial Cap.scad` (marked in the file) — that part is unchanged.
 
-- **Poka-yoke** is an *additive rounded tab* on one side of the cap (read off
-  `vial-cap-s.3mf`), not the subtractive flat v2 had.
+## Design notes
+
+- **Poka-yoke** is the real Vial-Cap-S tab: a *constant-radius plateau* (outer
+  edge ~17 mm from centre, ~±28°) filleted into the cap, read off
+  `vial-cap-s.3mf` — not a circle stuck on the side.
 - **Ports** sit at the current cap's radius, `r = (cap_o_ring_id − port_dia)/2 ≈
-  7.785 mm`, inside the vial neck — v2 had them too far out.
-- **Clamp** is the correct stack, outside-in: Allen bolt → **outer wall** →
-  **captive nut** (drops into a top slot sized to its flats, so it can't rotate)
-  → **inner wall** (retains the nut) → wire pinched on the electrode. Walls are
-  thicker PC-CF than the current part, which Grace cracked by over-torquing.
+  7.785 mm`, inside the vial neck. Electrode holes use the *same* fit as the
+  column bore (no longer looser).
+- **Clamp** is the correct captive-nut stack, outside-in: Allen bolt → **outer
+  wall** → **non-rotating nut** (drops into a top-opening pocket, thin side along
+  the bolt) → **inner wall** → wire pinched on the electrode. Pushed to the top of
+  the column and rounded, with thicker PC-CF walls than the current part (which
+  Grace cracked by over-torquing).
+- **Open port style** keeps an x-spine that carries the electrodes and fully
+  surrounds the pegs, leaving two large septum windows.
+- **Pegs** have conical lead-in tips so they print support-free point-up.
 
 ## The design problem (and the one idea that reframed it)
 
