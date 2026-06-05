@@ -14,14 +14,27 @@ later. It is scratch — not the production part.
 
 | File | What it is |
 |---|---|
-| `electrode-holder-v2.scad` | **The concept.** Open in OpenSCAD; set `view` and `port_style`. |
-| `electrode-holder-v2-figure.png` | Top views (both port styles) + print-orientation proof. |
-| `electrode-holder-concept.scad` | First concept (v1). Superseded — kept to show the progression. |
-| `electrode-holder-concept.png` | v1 render (section / assembled / exploded idea). |
+| `electrode-holder-v3.scad` | **The current concept.** Open in OpenSCAD; set `view` and `port_style`. |
+| `electrode-holder-v3-figure.png` | Top view (ports in the neck) + corrected clamp + print orientation. |
+| `vial-cap-redesign.scad` | **Production cap**, derived from the real `Vial Cap.scad` (thread/ribs/ports kept; O-rings → septum seat; pegs + poka-yoke added). Needs a render-check in OpenSCAD. |
+| `vial-cap-s.3mf` | Pioreactor Vial Cap S — the poka-yoke reference. |
+| `pokayoke-from-3mf.png` | Slices through that mesh, how the tab geometry was read off it. |
+| `electrode-holder-v2.scad` / `…-concept.scad` | Earlier concepts (v2, v1). Superseded — kept to show the progression. |
 | `make_*.py` | Generators for the figures (plain-stdlib SVG, no dependencies). |
 
-Open the SCAD and try: `view = "exploded" | "assembled" | "section" | "print"`,
+Open the concept SCAD and try: `view = "exploded" | "assembled" | "section" | "print"`,
 and `port_style = "ports" | "open"`.
+
+## Fixes from the v2 review
+
+- **Poka-yoke** is an *additive rounded tab* on one side of the cap (read off
+  `vial-cap-s.3mf`), not the subtractive flat v2 had.
+- **Ports** sit at the current cap's radius, `r = (cap_o_ring_id − port_dia)/2 ≈
+  7.785 mm`, inside the vial neck — v2 had them too far out.
+- **Clamp** is the correct stack, outside-in: Allen bolt → **outer wall** →
+  **captive nut** (drops into a top slot sized to its flats, so it can't rotate)
+  → **inner wall** (retains the nut) → wire pinched on the electrode. Walls are
+  thicker PC-CF than the current part, which Grace cracked by over-torquing.
 
 ## The design problem (and the one idea that reframed it)
 
