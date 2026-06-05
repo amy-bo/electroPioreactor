@@ -50,12 +50,12 @@ ridge_id = 22.5; ridge_h = 1.6;            // inward lip that keeps the septum f
 cap_o_ring_id = 18.7706; port_d = 3.2; port_R = (cap_o_ring_id - port_d)/2;  // 7.785, in the neck
 port_angles = [60,90,120,240,270,300];
 // open septum field
-spine_hw = 5; R_open = cap_od/2 - wall_t - 1.5; win_round = 2.6;
+spine_hw = 4.65; R_open = cap_od/2 - wall_t - 1.0; win_round = 2.0;
 // poka-yoke tab (constant-radius plateau read off vial-cap-s.3mf)
 tab_R = 17; tab_halfangle = 26; tab_round = 2.5;
 
 // ---- registration pegs ---------------------------------------------
-peg_d = 3; peg_off = 3; peg_clear = 0.3; peg_h = top_th;   // flush with the cap inside ceiling
+peg_d = 3; peg_off = 2; peg_clear = 0.3; peg_h = top_th;   // flush with the cap inside ceiling
 
 // ---- column + clamp -------------------------------------------------
 bearing_r = el_d/2 + 1.8;
@@ -66,8 +66,8 @@ col_h  = el_len - insertion_depth - cap_h; // sets the insertion depth
 H_top  = cap_h + col_h;                     // electrode flush face
 xe     = el_off + col_bore/2;               // bore outer edge
 x_nut0 = xe + clamp_in; x_nut1 = x_nut0 + nut_th; x_out = x_nut1 + clamp_out;
-// the top stop's top face is ONE rounded rectangle (thick corners, no notches)
-clamp_h = 8; clamp_W = 2*(bearing_r+0.4); clamp_corner = 3;
+// the top stop's top face is ONE rounded rectangle (long faces flush with the racetrack)
+clamp_h = 8; clamp_W = 2*bearing_r; clamp_corner = 3;
 zc     = H_top - 4;                         // bolt axis, near the top face
 sept_z = cap_h - top_th - sept_t;
 
@@ -127,7 +127,7 @@ module cap() color(C_CAP) difference() {
     for (a=port_angles) rotate([0,0,a]) translate([port_R,0,-eps]) cylinder(d=port_d, h=cap_h+2*eps);
   else
     translate([0,0,cap_h-top_th-eps]) linear_extrude(top_th+2*eps)
-      offset(r=-win_round) offset(r=win_round) difference() {
+      offset(r=win_round) offset(r=-win_round) difference() {   // OPENING -> rounds the window's convex corners
         circle(r=R_open, $fn=140);
         square([2*cap_od, 2*spine_hw], center=true);   // spine spans the full width
       }

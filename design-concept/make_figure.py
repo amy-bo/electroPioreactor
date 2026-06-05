@@ -4,11 +4,11 @@ A: top (ports, real tab)  B: clamp cross-section (corrected nut)  C: top (open) 
 import math
 el_off=4.8; el_d=6; fit=0.3; bore_d=el_d+fit; cap_R=13.5
 port_R=(18.7706-3.2)/2; port_rad=1.6; port_angles=[60,90,120,240,270,300]
-bearing_r=el_d/2+1.8; peg_off=3; peg_r=1.5
+bearing_r=el_d/2+1.8; peg_off=2; peg_r=1.5
 xe=el_off+bore_d/2; clamp_in=1.8; nut_th=2.6; clamp_out=2.2
 x_nut0=xe+clamp_in; x_nut1=x_nut0+nut_th; x_out=x_nut1+clamp_out
 nut_af=5.7; nut_ac=nut_af/math.cos(math.radians(30))
-clamp_W=2*(el_d/2+1.8+0.4); clamp_corner=3
+clamp_W=2*(el_d/2+1.8); clamp_corner=3
 tab_R=17; tab_half=26
 
 class Svg:
@@ -55,8 +55,8 @@ def topview(cx,cy,style,title):
     g.circ(cx,cy,(18.7706/2)*s,stroke="#2a8f72",sw=1,dash="5 4")          # neck
     if style=="open":
         for sgn in (1,-1):
-            y0=cy-9.5*s if sgn>0 else cy+5*s
-            g.rect(cx-8.5*s,y0,17*s,4.5*s,fill=SEPT,stroke="#6a3da0",sw=1.3,op=0.55,rx=2.6*s)  # rounded windows
+            y0=cy-10.5*s if sgn>0 else cy+4.65*s
+            g.rect(cx-9*s,y0,18*s,5.85*s,fill=SEPT,stroke="#6a3da0",sw=1.3,op=0.55,rx=2.0*s)  # rounded windows
     else:
         g.circ(cx,cy,(cap_R-2)*s,fill=SEPT,stroke="none",op=0.18)
     # column = ONE rounded rectangle (the top-stop top face)
