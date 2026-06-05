@@ -62,8 +62,12 @@ peg_d = 3; peg_off = 2; peg_clear = 0.3; peg_h = top_th;   // flush with the cap
 bearing_r = el_d/2 + 1.8;
 m3_bolt   = 3.4; nut_af = 5.7; nut_th = 2.6; nut_ac = nut_af/cos(30);
 clamp_in  = 1.8; clamp_out = 2.2;          // robust PC-CF walls (Grace-proof)
-// 1-piece V-legs: splay from the top stop out to the cap rim (placed clear of the 6 ports)
-leg_angles = [45,135,225,315]; leg_d = 3;
+// 1-piece (open) build: open neck + 45deg roofs to the racetrack + supported poka-yoke
+cap_R       = cap_od/2;
+neck_open_d = T_nom;          // open neck bore (no closed top)
+roof_x      = 9;              // half-width of the front/back 45deg roofs
+poka_angle  = 0;              // poka-yoke tab side, deg (0 = +X; rotated 90 from the 2-piece -Y)
+tab_w       = 8;
 
 col_h  = el_len - insertion_depth - cap_h; // sets the insertion depth
 H_top  = cap_h + col_h;                     // electrode flush face
@@ -145,7 +149,7 @@ module column() color(C_CARR) difference() {
   union() {
     translate([0,0,cap_h]) racetrack(col_h, bearing_r);
     translate([0,0,H_top-clamp_h]) linear_extrude(clamp_h) clampband2d();   // single rounded-rect top
-    for (s=[-1,1]) translate([0,s*peg_off,cap_h]) rotate([180,0,0]) cylinder(d=peg_d, h=peg_h);
+    if (pieces==2) for (s=[-1,1]) translate([0,s*peg_off,cap_h]) rotate([180,0,0]) cylinder(d=peg_d, h=peg_h);  // pegs (2-piece only)
   }
   for (s=[-1,1]) translate([s*el_off,0,cap_h-eps]) cylinder(d=col_bore, h=col_h+2*eps);  // journal bores
   for (m=[0,1]) mirror([m,0,0]) {
@@ -162,18 +166,53 @@ module column() color(C_CARR) difference() {
 module vial() color(C_VIAL) translate([0,0,-38]) cylinder(d=cap_od-2*wall_t-1.2, h=38+sept_z+eps);
 module electrodes() color(C_STEEL) for(s=[-1,1]) translate([s*el_off,0,H_top-el_len]) cylinder(d=el_d,h=el_len);
 
-// 1-piece support leg: a strut that splays from the top stop down/out to the cap rim
-module vleg(a) hull() {
-  rotate([0,0,a]) translate([bearing_r-0.5, 0, H_top-3])    cylinder(d=leg_d,     h=3);
-  rotate([0,0,a]) translate([cap_od/2-2.5,  0, cap_h-0.1])  cylinder(d=leg_d+0.6, h=2);
+// ===== 1-piece (open neck) construction =====
+join_z = cap_h + (cap_R - 1 - bearing_r);   // where the 45deg roofs reach the racetrack
+
+// ridge that retains the septum at the open top rim
+module septum_ridge_open() rotate_extrude($fn=140)
+  polygon([[sept_seat_d/2, cap_h-sept_t+0.05],
+           [ridge_id/2,    cap_h-sept_t-ridge_h/2],
+           [sept_seat_d/2, cap_h-sept_t-ridge_h]]);
+
+// cap as a threaded ring with a fully open neck (no closed top, no ports)
+module cap_ring() color(C_CAP) difference() {
+  union() {
+    cylinder(d=cap_od, h=cap_h);
+    rotate([0,0,poka_angle]) translate([cap_R-1,0,0]) cylinder(d=tab_w, h=cap_h);   // poka-yoke tab (rotated)
+    translate([0,0,pitch/2])
+      thread_helix(d=D_minor_int, pitch=pitch, turns=(cap_h-sept_t-pitch)/pitch,
+                   thread_depth=depth_rad, flank_angle=30, starts=starts,
+                   anchor=BOTTOM, lead_in=leadin_len, internal=true);
+    septum_ridge_open();
+  }
+  translate([0,0,-eps]) cylinder(d=neck_open_d, h=cap_h+2*eps);          // open neck
+  translate([0,0,cap_h-sept_t]) cylinder(d=sept_seat_d, h=sept_t+eps);   // septum seat at the rim
 }
-module legs() color(C_CARR) for (a=leg_angles) vleg(a);
+
+// front/back 45deg roofs: cap rim -> racetrack, open underneath for angled needle access
+module roof45() color(C_CARR)
+  for (sy=[-1,1]) hull() {
+    translate([0, sy*(cap_R-1), cap_h])  cube([2*roof_x, 1.6, 1.6], center=true);
+    translate([0, sy*bearing_r, join_z]) cube([2*roof_x, 1.6, 1.6], center=true);
+  }
+
+// 45deg gusset so the rotated poka-yoke tab prints supported
+module poka_gusset() color(C_CAP)
+  rotate([0,0,poka_angle]) hull() {
+    translate([cap_R-1,   0, cap_h])  cube([1.6, tab_w, 1.6], center=true);
+    translate([bearing_r, 0, join_z]) cube([1.6, tab_w, 1.6], center=true);
+  }
+
+module holder1() { cap_ring(); column(); roof45(); poka_gusset(); }   // one printed piece
 
 // ---- assembly / views ----------------------------------------------
 e = (view=="exploded") ? 1 : 0;
-z_col = (pieces==1) ? 0 : e*42;            // in 1-piece the top stop is fused to the cap
 
-module holder() { cap(); translate([0,0,z_col]) column(); if (pieces==1) legs(); }
+module holder() {
+  if (pieces==1) holder1();                // open-neck single piece
+  else { cap(); translate([0,0,e*42]) column(); }
+}
 
 module assembly() {
   translate([0,0,-e*38]) vial();
