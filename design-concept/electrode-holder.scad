@@ -190,21 +190,30 @@ module cap_ring() color(C_CAP) difference() {
   translate([0,0,cap_h-sept_t]) cylinder(d=sept_seat_d, h=sept_t+eps);   // septum seat at the rim
 }
 
-// front/back 45deg roofs: cap rim -> racetrack, open underneath for angled needle access
-module roof45() color(C_CARR)
-  for (sy=[-1,1]) hull() {
-    translate([0, sy*(cap_R-1), cap_h])  cube([2*roof_x, 1.6, 1.6], center=true);
-    translate([0, sy*bearing_r, join_z]) cube([2*roof_x, 1.6, 1.6], center=true);
-  }
+// Conical 45deg rise: two teepees under the side ears, joined.  Low (cap_h) at
+// front/rear, high under the ears (+-X). The cap wall is extruded up and kept
+// only where it falls inside this envelope.
+x_ear  = el_off + 3;     // teepee apexes sit under the top-stop ears (+-X)
+rise_r = 18;             // 45deg cone size (apex at cap_h + rise_r)
 
-// 45deg gusset so the rotated poka-yoke tab prints supported
-module poka_gusset() color(C_CAP)
-  rotate([0,0,poka_angle]) hull() {
-    translate([cap_R-1,   0, cap_h])  cube([1.6, tab_w, 1.6], center=true);
-    translate([bearing_r, 0, join_z]) cube([1.6, tab_w, 1.6], center=true);
-  }
+module rise_envelope() union() {
+  cylinder(d=cap_od+2, h=cap_h);                                          // keep the full cap up to cap_h
+  hull() for (sx=[-1,1]) translate([sx*x_ear,0,cap_h]) cylinder(r1=rise_r, r2=0.1, h=rise_r);
+}
 
-module holder1() { cap_ring(); column(); roof45(); poka_gusset(); }   // one printed piece
+module holder1() union() {
+  cap_ring();
+  // the vial cap, EXTRUDED UP, then cut to the conical rise (tab rides up with the side)
+  color(C_CARR) intersection() {
+    linear_extrude(H_top) difference() {
+      union() { circle(d=cap_od, $fn=120);
+                rotate([0,0,poka_angle]) translate([cap_R-1,0]) circle(d=tab_w, $fn=48); }
+      circle(d=neck_open_d, $fn=120);
+    }
+    rise_envelope();
+  }
+  column();                                                              // racetrack + clamp ears
+}
 
 // ---- assembly / views ----------------------------------------------
 e = (view=="exploded") ? 1 : 0;
