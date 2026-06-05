@@ -8,6 +8,7 @@ bearing_r=el_d/2+1.8; peg_off=3; peg_r=1.5
 xe=el_off+bore_d/2; clamp_in=1.8; nut_th=2.6; clamp_out=2.2
 x_nut0=xe+clamp_in; x_nut1=x_nut0+nut_th; x_out=x_nut1+clamp_out
 nut_af=5.7; nut_ac=nut_af/math.cos(math.radians(30))
+clamp_W=2*(el_d/2+1.8+0.4); clamp_corner=3
 tab_R=17; tab_half=26
 
 class Svg:
@@ -53,16 +54,13 @@ def topview(cx,cy,style,title):
     g.poly(cap_outline(cx,cy),fill=CAP,stroke="#1f5fa0",sw=1.7)
     g.circ(cx,cy,(18.7706/2)*s,stroke="#2a8f72",sw=1,dash="5 4")          # neck
     if style=="open":
-        g.circ(cx,cy,(cap_R-2-1.5)*s,fill=SEPT,stroke="none",op=0.30)     # exposed septum field
-        g.rect(cx-cap_R*s,cy-5*s,2*cap_R*s,2*5*s,fill=CAP,stroke="#1f5fa0",sw=1.2,rx=6) # full-width x-spine
+        for sgn in (1,-1):
+            y0=cy-9.5*s if sgn>0 else cy+5*s
+            g.rect(cx-8.5*s,y0,17*s,4.5*s,fill=SEPT,stroke="#6a3da0",sw=1.3,op=0.55,rx=2.6*s)  # rounded windows
     else:
         g.circ(cx,cy,(cap_R-2)*s,fill=SEPT,stroke="none",op=0.18)
-    # column bearing + rounded ears
-    g.rect(cx-el_off*s,cy-bearing_r*s,2*el_off*s,2*bearing_r*s,fill=CARR,stroke="none",op=0.5)
-    for sgn in (-1,1):
-        g.circ(cx+sgn*el_off*s,cy,bearing_r*s,fill=CARR,stroke="#b06a10",sw=1,op=0.5)
-        g.rect(cx+(sgn>0 and xe*s or -x_out*s),cy-(nut_af/2+1.6)*s,(x_out-xe)*s,(nut_af+3.2)*s,
-               fill=CARR,stroke="#b06a10",sw=1,op=0.5,rx=6)
+    # column = ONE rounded rectangle (the top-stop top face)
+    g.rect(cx-x_out*s,cy-clamp_W/2*s,2*x_out*s,clamp_W*s,fill=CARR,stroke="#b06a10",sw=1.2,op=0.5,rx=clamp_corner*s)
     if style=="ports":
         for a in port_angles:
             r=math.radians(a); g.circ(cx+port_R*s*math.cos(r),cy-port_R*s*math.sin(r),port_rad*s,fill="#fff",stroke="#6a3da0",sw=1.4)
@@ -109,7 +107,7 @@ g.txt(ex,ey+5.4*sc+13,"open top = drops in, no bridge",size=10,anchor="middle",f
 
 # ----- Panel D: PRINT orientation -----
 py=905
-g.txt(470,py-2,"PRINT ORIENTATION  -  no supports (clamp at top => nut pocket opens at the bed)",size=14,weight="bold",anchor="middle")
+g.txt(470,py-2,"PRINT ORIENTATION  -  no supports (clamp band lands on the bed; nut pocket opens upward, no bridge)",size=14,weight="bold",anchor="middle")
 bed=py+200
 def bedline(x0,x1):
     g.line(x0,bed,x1,bed,stroke="#888",sw=2)
@@ -127,7 +125,7 @@ for sgn in (-1,1):  # pegs (short cylinders) pointing up, flush-depth = cap top 
     bxp=cx+sgn*peg_off*11
     g.rect(bxp-peg_r*11,bed-colh-2.5*11,2*peg_r*11,2.5*11,fill=CARR,stroke="#a06000",sw=1.2)
 g.txt(cx,bed-colh-2.5*11-8,"COLUMN - flush face on bed, pegs up",size=12,anchor="middle",weight="bold")
-g.txt(cx,bed+24,"bores vertical; teardrop holes; nut pocket opens at the bed (no bridge)",size=10,anchor="middle",fill="#060")
+g.txt(cx,bed+24,"bores vertical; teardrop holes; nut pocket opens upward in print (no bridge)",size=10,anchor="middle",fill="#060")
 
 out=(f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">'
      f'<rect width="{W}" height="{H}" fill="#fbfbfb"/>'+"".join(g.p)+"</svg>")

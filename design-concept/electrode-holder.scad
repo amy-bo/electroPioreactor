@@ -50,7 +50,7 @@ ridge_id = 22.5; ridge_h = 1.6;            // inward lip that keeps the septum f
 cap_o_ring_id = 18.7706; port_d = 3.2; port_R = (cap_o_ring_id - port_d)/2;  // 7.785, in the neck
 port_angles = [60,90,120,240,270,300];
 // open septum field
-spine_hw = 5; R_open = cap_od/2 - wall_t - 1.5; win_round = 1.6;
+spine_hw = 5; R_open = cap_od/2 - wall_t - 1.5; win_round = 2.6;
 // poka-yoke tab (constant-radius plateau read off vial-cap-s.3mf)
 tab_R = 17; tab_halfangle = 26; tab_round = 2.5;
 
@@ -66,7 +66,8 @@ col_h  = el_len - insertion_depth - cap_h; // sets the insertion depth
 H_top  = cap_h + col_h;                     // electrode flush face
 xe     = el_off + col_bore/2;               // bore outer edge
 x_nut0 = xe + clamp_in; x_nut1 = x_nut0 + nut_th; x_out = x_nut1 + clamp_out;
-ear_h  = 8; ear_hw = nut_af/2 + 1.6;
+// the top stop's top face is ONE rounded rectangle (thick corners, no notches)
+clamp_h = 8; clamp_W = 2*(bearing_r+0.4); clamp_corner = 3;
 zc     = H_top - 4;                         // bolt axis, near the top face
 sept_z = cap_h - top_th - sept_t;
 
@@ -95,11 +96,8 @@ module septum_ridge() rotate_extrude($fn=140)
            [ridge_id/2,    sept_z-ridge_h/2],
            [sept_seat_d/2, sept_z-ridge_h]]);
 
-// clamp ear: flat (flush) inner edge, rounded outer end - no rounding on the body join
-module ear2d() hull(){
-  translate([x_out-ear_hw,0]) circle(r=ear_hw,$fn=48);
-  translate([xe,-ear_hw]) square([0.1, 2*ear_hw]);
-}
+// the whole top-stop top face = one rounded rectangle
+module clampband2d() offset(r=clamp_corner) square([2*x_out-2*clamp_corner, clamp_W-2*clamp_corner], center=true);
 
 // ---- parts ----------------------------------------------------------
 module cap() color(C_CAP) difference() {
@@ -143,16 +141,16 @@ module septum() color(C_SEPT) translate([0,0,sept_z]) difference() {
 module column() color(C_CARR) difference() {
   union() {
     translate([0,0,cap_h]) racetrack(col_h, bearing_r);
-    translate([0,0,H_top-ear_h]) linear_extrude(ear_h) { ear2d(); mirror([1,0,0]) ear2d(); }
+    translate([0,0,H_top-clamp_h]) linear_extrude(clamp_h) clampband2d();   // single rounded-rect top
     for (s=[-1,1]) translate([0,s*peg_off,cap_h]) rotate([180,0,0]) cylinder(d=peg_d, h=peg_h);
   }
   for (s=[-1,1]) translate([s*el_off,0,cap_h-eps]) cylinder(d=col_bore, h=col_h+2*eps);  // journal bores
   for (m=[0,1]) mirror([m,0,0]) {
     // bolt clearance: teardrop from the outer face in to pinch the wire on the electrode
     translate([el_off+el_d/2-0.4, 0, zc]) teardrop_x(m3_bolt, x_out-(el_off+el_d/2)+0.9);
-    // captive nut: pocket opens at the ear BOTTOM (down-in-use = up-in-print, no bridge);
+    // captive nut: pocket opens at the band BOTTOM (down-in-use = up-in-print, no bridge);
     // width = across-flats so it can't rotate; inner+outer walls trap it along the bolt
-    translate([x_nut0, -nut_af/2, H_top-ear_h-eps]) cube([nut_th, nut_af, (zc+nut_ac/2)-(H_top-ear_h)+eps]);
+    translate([x_nut0, -nut_af/2, H_top-clamp_h-eps]) cube([nut_th, nut_af, (zc+nut_ac/2)-(H_top-clamp_h)+eps]);
     // wire guide slot, top face down to the bolt
     translate([el_off+el_d/2-0.4, -0.9, zc]) cube([1.5,1.8, H_top-zc+eps]);
   }
