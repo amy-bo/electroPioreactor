@@ -25,7 +25,8 @@ One source file; iterations live in git history, not in `v2`/`v3` files.
 Options (choices listed inline in the file):
 `view = "exploded" | "assembled" | "section" | "print"`,
 `part = "all" | "cap" | "column" | "septum"`,
-`port_style = "ports" | "open"`.
+`port_style = "ports" | "open"`,
+`pieces = 2 | 1`.
 
 Requires BOSL2 (same as the current `Vial Cap.scad`) — the GPI 24-400 thread is
 the real one now.
@@ -51,6 +52,12 @@ the real one now.
   corners** (no sharp dirt traps).
 - **Pegs** are plain, `top_th` deep, so they sit flush with the cap's inside
   ceiling and don't push the septum.
+- **1 vs 2 pieces** (`pieces`). `2` = separate cap + top stop (pegs register
+  them). `1` = the whole holder printed as one part: it prints **top-stop-down**,
+  and **V-legs** splay out from the top stop to the cap rim — they hold the wide
+  cap up at ≤45° (no supports) and sit clear of the ports so needles still reach
+  the septum between them. The leg count/positions (`leg_angles`) are a starting
+  point — print-test and tune the cap-disc bridging between legs.
 
 ## Print check (no supports)
 

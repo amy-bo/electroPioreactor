@@ -21,6 +21,7 @@ include <BOSL2/threading.scad>
 view       = "exploded";   // "exploded" | "assembled" | "section" | "print"
 part       = "all";        // "all" | "cap" | "column" | "septum"
 port_style = "ports";      // "ports" | "open"
+pieces     = 2;            // 2 = separate cap + top stop | 1 = one printed piece (V-legs to the cap)
 
 $fn = 72;
 eps = 0.05;
@@ -61,6 +62,8 @@ peg_d = 3; peg_off = 2; peg_clear = 0.3; peg_h = top_th;   // flush with the cap
 bearing_r = el_d/2 + 1.8;
 m3_bolt   = 3.4; nut_af = 5.7; nut_th = 2.6; nut_ac = nut_af/cos(30);
 clamp_in  = 1.8; clamp_out = 2.2;          // robust PC-CF walls (Grace-proof)
+// 1-piece V-legs: splay from the top stop out to the cap rim (placed clear of the 6 ports)
+leg_angles = [45,135,225,315]; leg_d = 3;
 
 col_h  = el_len - insertion_depth - cap_h; // sets the insertion depth
 H_top  = cap_h + col_h;                     // electrode flush face
@@ -159,14 +162,24 @@ module column() color(C_CARR) difference() {
 module vial() color(C_VIAL) translate([0,0,-38]) cylinder(d=cap_od-2*wall_t-1.2, h=38+sept_z+eps);
 module electrodes() color(C_STEEL) for(s=[-1,1]) translate([s*el_off,0,H_top-el_len]) cylinder(d=el_d,h=el_len);
 
+// 1-piece support leg: a strut that splays from the top stop down/out to the cap rim
+module vleg(a) hull() {
+  rotate([0,0,a]) translate([bearing_r-0.5, 0, H_top-3])    cylinder(d=leg_d,     h=3);
+  rotate([0,0,a]) translate([cap_od/2-2.5,  0, cap_h-0.1])  cylinder(d=leg_d+0.6, h=2);
+}
+module legs() color(C_CARR) for (a=leg_angles) vleg(a);
+
 // ---- assembly / views ----------------------------------------------
 e = (view=="exploded") ? 1 : 0;
+z_col = (pieces==1) ? 0 : e*42;            // in 1-piece the top stop is fused to the cap
+
+module holder() { cap(); translate([0,0,z_col]) column(); if (pieces==1) legs(); }
+
 module assembly() {
   translate([0,0,-e*38]) vial();
   translate([0,0,-e*17]) septum();
-  cap();
+  holder();
   translate([0,0,e*18]) electrodes();
-  translate([0,0,e*42]) column();
 }
 
 if (part=="cap") cap();
@@ -174,6 +187,9 @@ else if (part=="column") translate([0,0,-cap_h]) column();
 else if (part=="septum") translate([0,0,-sept_z]) septum();
 else if (view=="section") difference(){ assembly(); translate([-200,0,-200]) cube([400,200,400]); }
 else if (view=="print") {
-  translate([-18,0,cap_h]) rotate([180,0,0]) cap();      // closed-top on bed
-  translate([ 20,0,H_top]) rotate([180,0,0]) column();   // flush-face on bed, pegs up
+  if (pieces==1) translate([0,0,H_top]) rotate([180,0,0]) holder();   // whole holder, flush face on bed
+  else {
+    translate([-18,0,cap_h]) rotate([180,0,0]) cap();                 // closed-top on bed
+    translate([ 20,0,H_top]) rotate([180,0,0]) column();              // flush-face on bed, pegs up
+  }
 } else assembly();

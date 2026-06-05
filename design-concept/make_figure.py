@@ -34,7 +34,7 @@ class Svg:
         s.poly(pts,fill=fill,stroke=stroke,sw=sw)
 
 CAP="#cfe0f5"; CARR="#ffd9a0"; SEPT="#cdb6ec"; ELEC="#b9bcc2"; PEG="#d98a2b"; WIRE="#c0622a"; STEEL="#9aa0a8"
-g=Svg(); W,H=1000,1230; s=10.0
+g=Svg(); W,H=1000,1340; s=10.0
 
 def tab_radius(adeg):
     # constant-radius plateau at -90 with fillet shoulders
@@ -106,7 +106,7 @@ g.txt(ex,ey+5.4*sc,"flats vs slot walls = can't rotate;",size=10,anchor="middle"
 g.txt(ex,ey+5.4*sc+13,"open top = drops in, no bridge",size=10,anchor="middle",fill="#060")
 
 # ----- Panel D: PRINT orientation -----
-py=905
+py=1010
 g.txt(470,py-2,"PRINT ORIENTATION  -  no supports (clamp band lands on the bed; nut pocket opens upward, no bridge)",size=14,weight="bold",anchor="middle")
 bed=py+200
 def bedline(x0,x1):
@@ -126,6 +126,23 @@ for sgn in (-1,1):  # pegs (short cylinders) pointing up, flush-depth = cap top 
     g.rect(bxp-peg_r*11,bed-colh-2.5*11,2*peg_r*11,2.5*11,fill=CARR,stroke="#a06000",sw=1.2)
 g.txt(cx,bed-colh-2.5*11-8,"COLUMN - flush face on bed, pegs up",size=12,anchor="middle",weight="bold")
 g.txt(cx,bed+24,"bores vertical; teardrop holes; nut pocket opens upward in print (no bridge)",size=10,anchor="middle",fill="#060")
+
+# ----- 1-PIECE option (print orientation) -----
+ox=560; S2=6.0; cx2=ox+170
+g.txt(cx2, 612, "1-PIECE option  (print top-stop down)", size=14, anchor="middle", weight="bold")
+capz=628; b=832; capw=13.5*S2
+g.rect(cx2-capw, capz, 2*capw, 12*S2, fill=CAP, stroke="#1f5fa0", sw=1.4)
+g.rect(cx2-capw+2*S2, capz-0.5, 2*capw-4*S2, 9*S2, fill="white", stroke="#1f5fa0", sw=1)
+g.txt(cx2, capz+6.4*S2, "cap (mouth up)", size=10, anchor="middle", fill="#1f5fa0")
+g.line(cx2-150,b,cx2+150,b,stroke="#888",sw=2)
+for x in range(int(cx2-150),int(cx2+150),14): g.line(x,b,x-6,b+8,stroke="#bbb",sw=1)
+g.rect(cx2-14.6*S2, b-8*S2, 2*14.6*S2, 8*S2, fill=CARR, stroke="#a06000", sw=1.4, rx=3*S2)
+for sgn in (-1,1):
+    g.poly([(cx2+sgn*3*S2, b-8*S2),(cx2+sgn*6*S2, b-8*S2),
+            (cx2+sgn*capw, capz+12*S2),(cx2+sgn*(capw-3*S2), capz+12*S2)],
+           fill=CARR, stroke="#a06000", sw=1.2)
+g.txt(cx2, b+22, "legs splay &lt;=45 to hold the wide cap, no supports", size=10, anchor="middle", fill="#060")
+g.txt(cx2, b+36, "placed clear of the ports; needles reach between them", size=10, anchor="middle", fill="#444")
 
 out=(f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">'
      f'<rect width="{W}" height="{H}" fill="#fbfbfb"/>'+"".join(g.p)+"</svg>")
