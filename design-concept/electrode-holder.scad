@@ -52,8 +52,12 @@ cap_o_ring_id = 18.7706; port_d = 3.2; port_R = (cap_o_ring_id - port_d)/2;  // 
 port_angles = [60,90,120,240,270,300];
 // open septum field
 spine_hw = 4.65; R_open = cap_od/2 - wall_t - 1.0; win_round = 2.0;
-// poka-yoke tab (constant-radius plateau read off vial-cap-s.3mf)
-tab_R = 17; tab_halfangle = 26; tab_round = 2.5;
+// poka-yoke FLANGE (pushed-out chord section, assimilated from Gerrit's cap / vial-cap-s):
+// a chord-section of the cap is pushed straight out, so the outer edge keeps the cap
+// curvature, the sides are straight, and the grip ribs continue along it.
+flange_arc  = 93;       // deg - angular width of the pushed-out section
+flange_push = 3.5;      // mm - radial push
+tab_round   = 2.5;      // fillet at the flange/cap junction
 
 // ---- registration pegs ---------------------------------------------
 peg_d = 3; peg_off = 2; peg_clear = 0.3; peg_h = top_th;   // flush with the cap inside ceiling
@@ -65,6 +69,7 @@ clamp_in  = 1.8; clamp_out = 2.2;          // robust PC-CF walls (Grace-proof)
 // 1-piece build
 cap_R   = cap_od/2;
 tab_dir = (pieces==1) ? 0 : -90;   // poka-yoke at +X for the 1-piece (so it rises with a side), -Y otherwise
+flange_angle = tab_dir;            // Gerrit places the flange at 90 (between electrodes); we follow tab_dir
 
 col_h  = el_len - insertion_depth - cap_h; // sets the insertion depth
 H_top  = cap_h + col_h;                     // electrode flush face
@@ -81,12 +86,33 @@ C_STEEL=[0.72,0.74,0.78]; C_VIAL=[0.55,0.88,0.78,0.32];
 // ---- helpers --------------------------------------------------------
 module racetrack(h,r) hull() for(s=[-1,1]) translate([s*el_off,0,0]) cylinder(r=r,h=h);
 
-module body2d() offset(r=tab_round) offset(r=-tab_round) union() {   // cap outline + filleted tab
+// poka-yoke flange outline: a chord-section of the cap hull'd with itself pushed out
+module flange2d() {
+  R = cap_od/2; cd = R*cos(flange_arc/2);
+  rotate(flange_angle) hull() for (dx=[0, flange_push])
+    translate([dx,0]) intersection() {
+      circle(r=R, $fn=180);
+      translate([cd+R,0]) square([2*R, 4*R], center=true);
+    }
+}
+module body2d() offset(r=tab_round) offset(r=-tab_round) union() {   // cap outline + flange
   circle(d=cap_od, $fn=160);
-  rotate(tab_dir) intersection() {
-    circle(r=tab_R, $fn=160);
-    polygon([[0,0],[tab_R*1.6*cos(-tab_halfangle),tab_R*1.6*sin(-tab_halfangle)],
-             [tab_R*1.6,0],[tab_R*1.6*cos(tab_halfangle),tab_R*1.6*sin(tab_halfangle)]]);
+  flange2d();
+}
+// grip ribs continued along the pushed flange edge (arc + the two straight sides)
+module flange_ribs() {
+  R = cap_od/2; ha = flange_arc/2;
+  px = flange_push*cos(flange_angle); py = flange_push*sin(flange_angle);
+  rib_step = 360/ribs;
+  n_arc = max(1, floor(flange_arc/rib_step));
+  for (k=[0:n_arc]) {
+    th = flange_angle - ha + k*flange_arc/n_arc;
+    translate([R*cos(th)+px, R*sin(th)+py, 0]) cylinder(d=rib_d, h=cap_h);
+  }
+  n_side = max(1, round(flange_push/(rib_step*PI/180*R)));
+  for (s=[-1,1]) for (m=[0:n_side]) {
+    th = flange_angle + s*ha; t = m/n_side;
+    translate([R*cos(th)+t*px, R*sin(th)+t*py, 0]) cylinder(d=rib_d, h=cap_h);
   }
 }
 
@@ -109,7 +135,13 @@ module cap() color(C_CAP) difference() {
     difference() {                                   // body (with knurl) minus the core bore
       union() {
         linear_extrude(cap_h) body2d();
-        if (ribs>0) for (i=[0:ribs-1]) rotate([0,0,i*360/ribs]) translate([cap_od/2,0,0]) cylinder(d=rib_d,h=cap_h);
+        if (ribs>0) {
+          for (i=[0:ribs-1]) {                                  // body ribs, skipped in the flange sector
+            a = i*360/ribs; da = abs(((a-flange_angle+540)%360)-180);
+            if (da >= flange_arc/2) rotate([0,0,a]) translate([cap_od/2,0,0]) cylinder(d=rib_d,h=cap_h);
+          }
+          flange_ribs();                                        // ribs continued along the flange
+        }
       }
       translate([0,0,-eps]) cylinder(d=T_nom, h=cap_h-top_th-sept_t+eps);
     }
