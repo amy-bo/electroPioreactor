@@ -278,19 +278,26 @@ module wedge_solid() {
       translate([-cap_od, -cap_od-2.5, -50]) cube([2*cap_od, cap_od, 400]);
   }
 }
-// scoop: for each opening, loft from the opening's edge at the cap face UP to the ridge
-// where the funnel cone meets the wedge cutout (funnel_solid INTERSECT wedge_solid), and
-// clip the whole loft to the funnel. So the scoop face runs from the opening edge to that
-// ridge and stops there (the funnel bound = it can't cross the ridge to the outside).
+// a single 45deg plane through proj=R_open at the cap face (z=cap_h), tilted up toward
+// the `phi` direction. Solid = the near side { x*cos(phi)+y*sin(phi) - (z-cap_h) <= R_open }.
+module scoop_face(phi) {
+  rotate([0,0,phi]) translate([R_open,0,cap_h]) rotate([0,45,0])
+    translate([-400,-400,-400]) cube([400,800,800]);
+}
+// scoop: for each opening, ONE flat 45deg plane rising from the opening's front line at
+// the cap face, cut only in front of the opening (its angular sector) and only within the
+// funnel. No loft -> no horizontal face. The wedge (wedge_solid) is then cut as well.
 module opening_scoop() {
-  if (openings > 0) for (sy = (openings>=2) ? [1,-1] : [1])
+  if (openings > 0) for (sy = (openings>=2) ? [1,-1] : [1]) {
+    ca = (sy>0) ? 90 : 270;
+    half = max(1, 30 - asin((port_d/2 + min_wall)/((cap_o_ring_id-port_d)/2)));   // opening's angular half-width
     intersection() {
-      funnel_solid();
-      hull() {
-        translate([0,0,cap_h-eps]) linear_extrude(2*eps) opening_one2d(sy);   // line B: opening edge at the cap face
-        intersection() { funnel_solid(); wedge_solid(); }                      // line A region: the funnel-cone / wedge ridge
-      }
+      funnel_solid();                                                            // funnel material only
+      translate([0,0,-2]) linear_extrude(H_top+8)                                // the opening's angular sector, out to the rim
+        polygon([[0,0], 2*cap_od*[cos(ca-half),sin(ca-half)], 2*cap_od*[cos(ca+half),sin(ca+half)]]);
+      scoop_face(ca);                                                            // the 45deg plane rising from the front line
     }
+  }
 }
 
 module holder1() {
