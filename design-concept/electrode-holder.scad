@@ -18,13 +18,14 @@ include <BOSL2/std.scad>
 include <BOSL2/threading.scad>
 
 // ---- options (choices listed inline) --------------------------------
-view       = "assembled";  // "exploded" | "assembled" | "section" | "print"
+view       = "print";      // "exploded" | "assembled" | "section" | "print"
 part       = "all";        // "all" | "cap" | "column" | "septum"
 port_style = "ports";      // "ports" | "open"
 pieces     = 1;            // 2 = separate cap + top stop | 1 = one printed piece
-ribs       = "yes";        // "yes" | "no"  (grip ribs / knurling - "no" = smooth cap)
-openings   = 2;            // 0 | 1 (front) | 2 (front+rear) - big septum openings replacing the centre ports
+ribs       = "no";         // "yes" | "no"  (grip ribs / knurling - "no" = smooth cap)
+openings   = 1;            // 0 | 1 (front) | 2 (front+rear) - big septum openings replacing the centre ports
 min_wall   = 0.84;         // mm wall kept between an opening and any port (2 strands @ 0.42 line width, 0.4 nozzle - PC-CF min)
+opening_tilt = 90;         // deg - tilt of the opening wall above the cap (90 = vertical); pivots about the opening's front line on the cap top
 
 $fn = 72;
 eps = 0.05;
@@ -141,20 +142,29 @@ module port_holes2d() {
 
 // big septum openings that replace the centre port(s): expand to fill the open-window
 // region on that side, but stop min_wall short of every remaining port.
-module openings2d() {
-  if (openings > 0) {
-    R = (cap_o_ring_id - port_d)/2;
-    half = max(1, 30 - asin((port_d/2 + min_wall)/R));    // sector half-width: ring ports flank at +-30deg, kept min_wall clear
-    for (sy = (openings>=2) ? [1,-1] : [1]) {
-      ca = (sy>0) ? 90 : 270;                             // 90 front / 270 rear
-      offset(r=win_round) offset(r=-win_round)            // round the corners of the 4-sided opening
-      intersection() {
-        circle(r=R_open, $fn=140);                        // outer = cap-rim arc (the curved side)
-        translate([-cap_od, sy>0 ? spine_hw : -spine_hw-2*cap_od, 0]) square([2*cap_od, 2*cap_od]); // inner = spine line
-        polygon([[0,0], 2*R_open*[cos(ca-half),sin(ca-half)], 2*R_open*[cos(ca+half),sin(ca+half)]]);  // two straight sides, min_wall off the ports
-      }
-    }
+// one opening footprint (side sy): rounded 4-sided sector, kept min_wall off the ports
+module opening_one2d(sy) {
+  R = (cap_o_ring_id - port_d)/2;
+  half = max(1, 30 - asin((port_d/2 + min_wall)/R));      // sector half-width: ring ports flank at +-30deg
+  ca = (sy>0) ? 90 : 270;                                 // 90 front / 270 rear
+  offset(r=win_round) offset(r=-win_round)                // round the corners
+  intersection() {
+    circle(r=R_open, $fn=140);                            // outer = cap-rim arc (the curved side)
+    translate([-cap_od, sy>0 ? spine_hw : -spine_hw-2*cap_od, 0]) square([2*cap_od, 2*cap_od]); // inner = spine line
+    polygon([[0,0], 2*R_open*[cos(ca-half),sin(ca-half)], 2*R_open*[cos(ca+half),sin(ca+half)]]);  // two straight sides
   }
+}
+module openings2d() {
+  if (openings > 0) for (sy = (openings>=2) ? [1,-1] : [1]) opening_one2d(sy);
+}
+// the openings bored UP through the funnel, each tilted by opening_tilt: a shear in the
+// opening's radial direction, pivoting about z=cap_h (the cap top) - so at the cap face the
+// footprint is unchanged (the front line stays) and the wall leans above it. 90 = vertical.
+module opening_bore_tilted() {
+  k = cos(opening_tilt) / sin(opening_tilt);              // horizontal run per unit rise (0 at 90deg)
+  if (openings > 0) for (sy = (openings>=2) ? [1,-1] : [1])
+    multmatrix([[1,0,0,0],[0,1,sy*k,-sy*k*cap_h],[0,0,1,0],[0,0,0,1]])   // shear Y by sy*k*(z-cap_h)
+      translate([0,0,cap_h-eps]) linear_extrude(H_top-cap_h+5) opening_one2d(sy);
 }
 
 // teardrop hole, axis +X, apex toward -Z (= up in print -> self-supporting)
@@ -286,8 +296,12 @@ module holder1() {
         if (openings < 2)                                                       // 1 opening -> keep the rear solid
           translate([-cap_od, -cap_od-2.5, -50]) cube([2*cap_od, cap_od, 400]);
       }
-    // (2) septum access: bore straight up from each port (or the open windows)
-    translate([0,0,cap_h-top_th-eps]) linear_extrude(H_top-(cap_h-top_th)+5) ports2d();
+    // (2) septum access: circular ports straight up; openings tilted by opening_tilt
+    if (port_style=="ports") {
+      translate([0,0,cap_h-top_th-eps]) linear_extrude(H_top-(cap_h-top_th)+5) port_holes2d();
+      opening_bore_tilted();
+    } else
+      translate([0,0,cap_h-top_th-eps]) linear_extrude(H_top-(cap_h-top_th)+5) ports2d();
     // (3) keep the electrode path clear: the funnel/spine fills the bore line, so
     // bore the two electrode holes straight through it (ramp/spine only OUTSIDE the bores)
     for (s=[-1,1]) translate([s*el_off,0,-eps]) cylinder(d=col_bore, h=H_top+5, $fn=48);
