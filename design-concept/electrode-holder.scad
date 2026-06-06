@@ -62,9 +62,10 @@ spine_hw = 4.65; R_open = cap_od/2 - wall_t - 1.0; win_round = 2.0;
 // poka-yoke FLANGE (pushed-out chord section, assimilated from Gerrit's cap / vial-cap-s):
 // a chord-section of the cap is pushed straight out, so the outer edge keeps the cap
 // curvature, the sides are straight, and the grip ribs continue along it.
-flange_arc  = 93;       // deg - angular width of the pushed-out section
-flange_push = 3.5;      // mm - radial push
-tab_round   = 2.5;      // fillet at the flange/cap junction
+flange_arc   = 93;      // deg - angular width of the pushed-out section
+flange_push  = 3.5;     // mm - radial push
+flange_angle = 0;       // deg - ROTATE the poka-yoke around the cap (0 = +X side; 90 = front; -90 = rear; etc.)
+tab_round    = 2.5;     // fillet at the flange/cap junction
 
 // ---- registration pegs ---------------------------------------------
 peg_d = 3; peg_off = 2; peg_clear = 0.3; peg_h = top_th;   // flush with the cap inside ceiling
@@ -74,9 +75,7 @@ bearing_r = el_d/2 + 1.8;
 m3_bolt   = 3.4; nut_af = 5.7; nut_th = 2.6; nut_ac = nut_af/cos(30);
 clamp_in  = 1.8; clamp_out = 2.2;          // robust PC-CF walls (Grace-proof)
 // 1-piece build
-cap_R   = cap_od/2;
-tab_dir = (pieces==1) ? 0 : -90;   // poka-yoke at +X for the 1-piece (so it rises with a side), -Y otherwise
-flange_angle = tab_dir;            // Gerrit places the flange at 90 (between electrodes); we follow tab_dir
+cap_R   = cap_od/2;                // flange_angle (above) sets the poka-yoke position; 0 = +X rises with a side ramp
 
 col_h  = el_len - insertion_depth - cap_h; // sets the insertion depth
 H_top  = cap_h + col_h;                     // electrode flush face
