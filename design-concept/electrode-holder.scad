@@ -19,10 +19,12 @@ include <BOSL2/threading.scad>
 
 // ---- options (choices listed inline) --------------------------------
 view       = "print";      // "exploded" | "assembled" | "section" | "print"
-part       = "all";        // "all" | "cap" | "column" | "septum"
-port_style = "open";       // "ports" | "open"
+part       = "cap";        // "all" | "cap" | "column" | "septum"  (cap = see the openings)
+port_style = "ports";      // "ports" | "open"
 pieces     = 1;            // 2 = separate cap + top stop | 1 = one printed piece
 ribs       = "yes";        // "yes" | "no"  (grip ribs / knurling - "no" = smooth cap)
+openings   = 2;            // 0 | 1 (front) | 2 (front+rear) - big septum openings replacing the centre ports
+min_wall   = 0.84;         // mm wall kept between an opening and any port (2 strands @ 0.42 line width, 0.4 nozzle - PC-CF min)
 
 $fn = 72;
 eps = 0.05;
@@ -134,7 +136,23 @@ module port_holes2d() {
     }
   }
   if (n_ports > 4)
-    for (l=[0:n_ports-5]) rotate(90+l*180) translate([R,0]) circle(d=port_d,$fn=24);
+    for (l=[0:n_ports-5]) if (l >= openings)              // centre ports, skipped where an opening takes them
+      rotate(90+l*180) translate([R,0]) circle(d=port_d,$fn=24);
+}
+
+// big septum openings that replace the centre port(s): expand to fill the open-window
+// region on that side, but stop min_wall short of every remaining port.
+module openings2d() {
+  if (openings > 0)
+    for (sy = (openings>=2) ? [1,-1] : [1])
+      difference() {
+        offset(r=win_round) offset(r=-win_round)         // rounded window region on this side
+          intersection() {
+            circle(r=R_open, $fn=140);
+            translate([-cap_od, sy>0 ? spine_hw : -spine_hw-2*cap_od, 0]) square([2*cap_od, 2*cap_od]);
+          }
+        offset(r=min_wall) port_holes2d();               // leave exactly min_wall to each remaining port
+      }
 }
 
 // teardrop hole, axis +X, apex toward -Z (= up in print -> self-supporting)
@@ -181,7 +199,7 @@ module cap() color(C_CAP) difference() {
   if (pieces==2) for (s=[-1,1]) translate([0,s*peg_off,cap_h-top_th-eps]) cylinder(d=peg_d+peg_clear, h=top_th+2*eps);
   // ports OR an open septum field (full-width spine, rounded window corners)
   if (port_style=="ports")
-    translate([0,0,-eps]) linear_extrude(cap_h+2*eps) port_holes2d();
+    translate([0,0,-eps]) linear_extrude(cap_h+2*eps) { port_holes2d(); openings2d(); }
   else
     translate([0,0,cap_h-top_th-eps]) linear_extrude(top_th+2*eps)
       offset(r=win_round) offset(r=-win_round) difference() {   // OPENING -> rounds the window's convex corners
@@ -232,7 +250,7 @@ module rt_outline2d() hull() for(s=[-1,1]) translate([s*el_off,0]) circle(r=bear
 // the cap's port openings (matches cap()'s port_style) - used to bore straight up
 module ports2d() {
   if (port_style=="ports")
-    port_holes2d();
+    { port_holes2d(); openings2d(); }
   else
     offset(r=win_round) offset(r=-win_round) difference() {
       circle(r=R_open, $fn=140);
