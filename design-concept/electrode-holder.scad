@@ -163,17 +163,16 @@ module scoop_face(phi) {
   rotate([0,0,phi]) translate([R_open,0,cap_h]) rotate([0,45,0])
     translate([-400,-400,-400]) cube([400,800,800]);
 }
-// 3D scooped openings for the 1-piece: vertical (R_open) through the cap, then TWO flat
-// 45deg planes (one per flanking-port direction) take the outer side out to the rim.
-// They meet on the wedge centreline and are themselves 45deg, so they just touch the
-// wedge's 45deg faces with nothing below 45deg. (The mouth still follows the cap via the
-// sector's curved sides; the scoop faces are the two flat planes.)
+// 3D scooped openings for the 1-piece: vertical (R_open) through the cap, then ONE flat
+// 45deg plane takes the outer (curved) side radially out toward the rim. A single plane
+// (not two) means there is no concave valley to meet the wedge ridge below 45deg - it is
+// exactly 45deg (the gentlest printable slope) and a single surface, so nothing dips. The
+// mouth still follows the cap via the sector's curved sides.
 module openings3d() {
   if (openings > 0) for (sy = (openings>=2) ? [1,-1] : [1])
     intersection() {
       translate([0,0,-2]) linear_extrude(H_top+8) opening_sector2d(sy, cap_R);    // the sector, out to the rim
-      scoop_face((sy>0?90:270) - 30);                                              // plane toward one flanking port
-      scoop_face((sy>0?90:270) + 30);                                              // plane toward the other
+      scoop_face(sy>0 ? 90 : 270);                                                 // single 45deg plane, opens the outer side
     }
 }
 
