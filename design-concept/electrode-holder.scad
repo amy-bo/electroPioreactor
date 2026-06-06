@@ -176,6 +176,17 @@ funnel_h = 14;                                        // > cap_R-bearing_r (8.7)
 z_join   = cap_h + funnel_h;
 module rt_outline2d() hull() for(s=[-1,1]) translate([s*el_off,0]) circle(r=bearing_r, $fn=48);
 
+// the cap's port openings (matches cap()'s port_style) - used to bore straight up
+module ports2d() {
+  if (port_style=="ports")
+    for (a=port_angles) rotate([0,0,a]) translate([port_R,0]) circle(d=port_d, $fn=24);
+  else
+    offset(r=win_round) offset(r=-win_round) difference() {
+      circle(r=R_open, $fn=140);
+      square([2*cap_od, 2*spine_hw], center=true);
+    }
+}
+
 module holder1() {
   difference() {
     union() {
@@ -185,15 +196,16 @@ module holder1() {
         translate([0,0,z_join])     linear_extrude(0.1) rt_outline2d();
       }
     }
-    // Septum-access wedge: apex line on the SEPTUM OPENING (x=0, z=sept_z+sept_t),
-    // both faces rising up-and-out to the sides at 45deg -> exposes the septum from
-    // above, front & rear. BUT a 5mm-wide central spine (|y|<2.5) is left uncut, so
-    // the two conical halves stay tied to the racetrack and nothing hangs in mid-air.
+    // (1) structural wedge: apex line on the CAP SURFACE (x=0, z=cap_h), faces rising
+    // up-and-out to the sides at 45deg, with a 5mm central spine (|y|<2.5) left uncut
+    // so the two conical halves stay tied to the racetrack.
     difference() {
       rotate([90,0,0]) linear_extrude(height=cap_od*3, center=true)
-        polygon([[0,sept_z+sept_t],[60,sept_z+sept_t+60],[60,300],[-60,300],[-60,sept_z+sept_t+60]]);
+        polygon([[0,cap_h],[60,cap_h+60],[60,300],[-60,300],[-60,cap_h+60]]);
       translate([-cap_od, -2.5, -50]) cube([2*cap_od, 5, 400]);    // the 5mm spine stays
     }
+    // (2) septum access: bore straight up from each port (or the open windows)
+    translate([0,0,cap_h-top_th-eps]) linear_extrude(H_top-(cap_h-top_th)+5) ports2d();
   }
   column();                                           // re-added whole: fills the centre, untouched by the wedge
 }
