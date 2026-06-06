@@ -29,7 +29,8 @@ min_wall   = 0.84;         // mm wall kept between an opening and any port (2 st
 opening_tilt = 50;         // deg - tilt of the opening wall above the cap (90 = vertical); pivots about the opening's front line on the cap top
 layer_h    = 0.2;          // mm - PC-CF print layer height (set to your slicer's value)
 guides     = [0];          // ports to add a needle guide on (1-based port indices; [0] = none; e.g. [1] or [1,2,3])
-guide_h    = 5;            // mm - height of the guide section above the cap top
+guide_h    = 5;            // mm - height of the guide section (above the cap for part="cap"; below the top-stop face otherwise)
+guidexmin_wall = 2;        // guide clearance beyond a port hole, as a multiple of min_wall
 
 $fn = 72;
 eps = 0.05;
@@ -235,6 +236,39 @@ module guides_solid() {
   }
 }
 
+// 2D annular segment (centred on the origin) from angle a1 to a2
+module ann_seg(r_in, r_out, a1, a2) intersection() {
+  difference() { circle(r_out, $fn=160); circle(r_in, $fn=160); }
+  polygon(concat([[0,0]], [for (t=[a1:4:a2]) (r_out+1)*[cos(t),sin(t)]], [(r_out+1)*[cos(a2),sin(a2)]]));
+}
+// guides at the TOP-STOP top face (z=H_top), extending guide_h DOWN (= up from the bed when
+// printed top-stop-down). Ports near an opening -> a semicircle each (flat toward centre);
+// the rest (the uninterrupted back) -> one arc band centred on the ports' circle. Both clear
+// the holes by guidexmin_wall*min_wall; the port channels are bored through by holder1().
+function near_open(p) = let(og = concat(openings>=1 ? [90] : [], openings>=2 ? [270] : []))
+  len(og)>0 && min([for(o=og) abs(((atan2(p[1],p[0])-o+540)%360)-180)]) <= 45;
+module guides_topstop() {
+  pts = [for (g=guide_sel) guide_pts()[g-1]];
+  if (len(pts) > 0) {
+    gxw = guidexmin_wall * min_wall;
+    front = [for (p=pts) if (near_open(p)) p];
+    back  = [for (p=pts) if (!near_open(p)) p];
+    translate([0,0,H_top-guide_h]) linear_extrude(guide_h) {
+      if (len(back) > 0) {                                             // back: one arc band on the port circle
+        angs = [for (p=back) atan2(p[1],p[0])];
+        dth  = (port_d/2 + gxw)/port_R * 180/PI;
+        ann_seg(port_R - port_d/2 - gxw, port_R + port_d/2 + gxw, min(angs)-dth, max(angs)+dth);
+      }
+      for (p=front)                                                   // front: a semicircle each (flat toward centre)
+        translate([p[0],p[1]]) rotate(atan2(p[1],p[0]))
+          intersection() {
+            circle(r = port_d/2 + gxw, $fn=64);
+            translate([0, -port_d/2-gxw]) square([port_d+2*gxw, port_d+2*gxw]);
+          }
+    }
+  }
+}
+
 // ---- parts ----------------------------------------------------------
 module cap() color(C_CAP) difference() {
   union() {
@@ -257,7 +291,7 @@ module cap() color(C_CAP) difference() {
                    thread_depth=depth_rad, flank_angle=30, starts=starts,
                    anchor=BOTTOM, lead_in=leadin_len, internal=true);
     if (seal=="septum") septum_ridge();              // lip that retains the septum
-    color(C_CAP) guides_solid();                     // needle guide section on the cap top
+    if (part=="cap") color(C_CAP) guides_solid();    // cap-top guides only when viewing the cap alone
   }
   // smooth septum seat under the closed top (septum seal only)
   if (seal=="septum") translate([0,0,sept_z]) cylinder(d=sept_seat_d, h=sept_t+eps);
@@ -352,6 +386,7 @@ module holder1() {
         }
         translate([0,0,cap_h]) linear_extrude(z_join-cap_h+1) body2d();
       }
+      color(C_CARR) guides_topstop();                 // needle guides at the top-stop face (on the print bed)
     }
     // (1) septum-access wedge - only where there is an opening: apex line on the CAP
     // SURFACE (x=0, z=cap_h), faces rising up-and-out at 45deg, 5mm central spine left
