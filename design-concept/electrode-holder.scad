@@ -19,7 +19,7 @@ include <BOSL2/threading.scad>
 
 // ---- options (choices listed inline) --------------------------------
 view       = "print";      // "exploded" | "assembled" | "section" | "print"
-part       = "cap";        // "all" | "cap" | "column" | "septum"  (cap = see the openings)
+part       = "all";        // "all" | "cap" | "column" | "septum"  (all = see the scooped 1-piece)
 port_style = "ports";      // "ports" | "open"
 pieces     = 1;            // 2 = separate cap + top stop | 1 = one printed piece
 ribs       = "yes";        // "yes" | "no"  (grip ribs / knurling - "no" = smooth cap)
@@ -141,20 +141,32 @@ module port_holes2d() {
 
 // big septum openings that replace the centre port(s): expand to fill the open-window
 // region on that side, but stop min_wall short of every remaining port.
-module openings2d() {
-  if (openings > 0) {
-    R = (cap_o_ring_id - port_d)/2;
-    half = max(1, 30 - asin((port_d/2 + min_wall)/R));    // sector half-width: ring ports flank at +-30deg, kept min_wall clear
-    for (sy = (openings>=2) ? [1,-1] : [1]) {
-      ca = (sy>0) ? 90 : 270;                             // 90 front / 270 rear
-      offset(r=win_round) offset(r=-win_round)            // round the corners of the 4-sided opening
-      intersection() {
-        circle(r=R_open, $fn=140);                        // outer = cap-rim arc (the curved side)
-        translate([-cap_od, sy>0 ? spine_hw : -spine_hw-2*cap_od, 0]) square([2*cap_od, 2*cap_od]); // inner = spine line
-        polygon([[0,0], 2*R_open*[cos(ca-half),sin(ca-half)], 2*R_open*[cos(ca+half),sin(ca+half)]]);  // two straight sides, min_wall off the ports
-      }
-    }
+// one opening's 2D footprint: a rounded sector clipped to radius `extend`
+module opening_sector2d(sy, extend) {
+  R = (cap_o_ring_id - port_d)/2;
+  half = max(1, 30 - asin((port_d/2 + min_wall)/R));      // sector half-width: ring ports flank at +-30deg, kept min_wall clear
+  ca = (sy>0) ? 90 : 270;                                 // 90 front / 270 rear
+  offset(r=win_round) offset(r=-win_round)                // round the corners
+  intersection() {
+    circle(r=extend, $fn=140);
+    translate([-cap_od, sy>0 ? spine_hw : -spine_hw-2*cap_od, 0]) square([2*cap_od, 2*cap_od]);   // inner = spine line
+    polygon([[0,0], 2*extend*[cos(ca-half),sin(ca-half)], 2*extend*[cos(ca+half),sin(ca+half)]]); // two straight sides
   }
+}
+// openings clipped to the neck (R_open) - the vertical hole through the cap
+module openings2d() {
+  if (openings > 0) for (sy = (openings>=2) ? [1,-1] : [1]) opening_sector2d(sy, R_open);
+}
+// 3D scooped openings for the 1-piece: vertical (R_open) through the cap, then the
+// outer/curved side ramps OUT to the cap circumference (cap_R) at 45deg above the cap
+// top, scooping the funnel. (In print, top-down, that face goes down-and-in at 45deg.)
+module openings3d() {
+  if (openings > 0) for (sy = (openings>=2) ? [1,-1] : [1])
+    intersection() {
+      translate([0,0,-2]) linear_extrude(H_top+8) opening_sector2d(sy, cap_R);    // the sector, out to the rim
+      rotate_extrude($fn=160)                                                      // radial profile: R_open up to cap_h, then 45deg to cap_R
+        polygon([[0,-2],[R_open,-2],[R_open,cap_h],[cap_R,cap_h+(cap_R-R_open)],[cap_R,H_top+8],[0,H_top+8]]);
+    }
 }
 
 // teardrop hole, axis +X, apex toward -Z (= up in print -> self-supporting)
@@ -286,8 +298,13 @@ module holder1() {
         if (openings < 2)                                                       // 1 opening -> keep the rear solid
           translate([-cap_od, -cap_od-2.5, -50]) cube([2*cap_od, cap_od, 400]);
       }
-    // (2) septum access: bore straight up from each port (or the open windows)
-    translate([0,0,cap_h-top_th-eps]) linear_extrude(H_top-(cap_h-top_th)+5) ports2d();
+    // (2) septum access: circular ports bored straight up; openings scooped (outer
+    //     side ramps out to the rim at 45deg). Legacy "open" windows still go straight up.
+    if (port_style=="ports") {
+      translate([0,0,cap_h-top_th-eps]) linear_extrude(H_top-(cap_h-top_th)+5) port_holes2d();
+      openings3d();
+    } else
+      translate([0,0,cap_h-top_th-eps]) linear_extrude(H_top-(cap_h-top_th)+5) ports2d();
     // (3) keep the electrode path clear: the funnel/spine fills the bore line, so
     // bore the two electrode holes straight through it (ramp/spine only OUTSIDE the bores)
     for (s=[-1,1]) translate([s*el_off,0,-eps]) cylinder(d=col_bore, h=H_top+5, $fn=48);
