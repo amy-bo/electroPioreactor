@@ -33,7 +33,7 @@ eps = 0.05;
 electrodes      = 2;       // number of electrodes (0 or 2; the top-stop column is built for 2)
 el_d            = 6;       // electrode diameter
 n_ports         = 6;       // number of tube/needle ports (auto-placed clear of the electrodes)
-port_d          = 3.2;     // port diameter
+port_d          = 1.4;     // port diameter (OD of the 75mm needles)
 el_len          = 60;      // electrode length (L)
 el_off          = 4.8;     // offset from axis to each electrode
 insertion_depth = 23;      // g: protrusion below the cap bottom into the vial
@@ -135,24 +135,26 @@ module port_holes2d() {
       for (k=[0:2+ring_ports-1]) rotate(k*360/6) translate([R,0]) if (k==0||k==3) {} else circle(d=port_d,$fn=24);
     }
   }
-  if (n_ports > 4)
-    for (l=[0:n_ports-5]) if (l >= openings)              // centre ports, skipped where an opening takes them
-      rotate(90+l*180) translate([R,0]) circle(d=port_d,$fn=24);
+  n_centre = (n_ports > 4) ? min(n_ports-4, 2-openings) : 0;          // centre ports that still fit beside the opening(s)
+  for (k=[0:n_centre-1]) rotate(90+(openings+k)*180) translate([R,0]) circle(d=port_d,$fn=24);  // placed opposite the opening(s)
 }
 
 // big septum openings that replace the centre port(s): expand to fill the open-window
 // region on that side, but stop min_wall short of every remaining port.
 module openings2d() {
-  if (openings > 0)
-    for (sy = (openings>=2) ? [1,-1] : [1])
-      difference() {
-        offset(r=win_round) offset(r=-win_round)         // rounded window region on this side
-          intersection() {
-            circle(r=R_open, $fn=140);
-            translate([-cap_od, sy>0 ? spine_hw : -spine_hw-2*cap_od, 0]) square([2*cap_od, 2*cap_od]);
-          }
-        offset(r=min_wall) port_holes2d();               // leave exactly min_wall to each remaining port
+  if (openings > 0) {
+    R = (cap_o_ring_id - port_d)/2;
+    half = max(1, 30 - asin((port_d/2 + min_wall)/R));    // sector half-width: ring ports flank at +-30deg, kept min_wall clear
+    for (sy = (openings>=2) ? [1,-1] : [1]) {
+      ca = (sy>0) ? 90 : 270;                             // 90 front / 270 rear
+      offset(r=win_round) offset(r=-win_round)            // round the corners of the 4-sided opening
+      intersection() {
+        circle(r=R_open, $fn=140);                        // outer = cap-rim arc (the curved side)
+        translate([-cap_od, sy>0 ? spine_hw : -spine_hw-2*cap_od, 0]) square([2*cap_od, 2*cap_od]); // inner = spine line
+        polygon([[0,0], 2*R_open*[cos(ca-half),sin(ca-half)], 2*R_open*[cos(ca+half),sin(ca+half)]]);  // two straight sides, min_wall off the ports
       }
+    }
+  }
 }
 
 // teardrop hole, axis +X, apex toward -Z (= up in print -> self-supporting)
@@ -273,14 +275,17 @@ module holder1() {
         translate([0,0,cap_h]) linear_extrude(z_join-cap_h+1) body2d();
       }
     }
-    // (1) structural wedge: apex line on the CAP SURFACE (x=0, z=cap_h), faces rising
-    // up-and-out to the sides at 45deg, with a 5mm central spine (|y|<2.5) left uncut
-    // so the two conical halves stay tied to the racetrack.
-    difference() {
-      rotate([90,0,0]) linear_extrude(height=cap_od*3, center=true)
-        polygon([[0,cap_h],[60,cap_h+60],[60,300],[-60,300],[-60,cap_h+60]]);
-      translate([-cap_od, -2.5, -50]) cube([2*cap_od, 5, 400]);    // the 5mm spine stays
-    }
+    // (1) septum-access wedge - only where there is an opening: apex line on the CAP
+    // SURFACE (x=0, z=cap_h), faces rising up-and-out at 45deg, 5mm central spine left
+    // uncut. openings=0 -> no wedge; openings=1 -> front only; openings=2 -> front+rear.
+    if (openings > 0)
+      difference() {
+        rotate([90,0,0]) linear_extrude(height=cap_od*3, center=true)
+          polygon([[0,cap_h],[60,cap_h+60],[60,300],[-60,300],[-60,cap_h+60]]);
+        translate([-cap_od, -2.5, -50]) cube([2*cap_od, 5, 400]);              // the 5mm spine stays
+        if (openings < 2)                                                       // 1 opening -> keep the rear solid
+          translate([-cap_od, -cap_od-2.5, -50]) cube([2*cap_od, cap_od, 400]);
+      }
     // (2) septum access: bore straight up from each port (or the open windows)
     translate([0,0,cap_h-top_th-eps]) linear_extrude(H_top-(cap_h-top_th)+5) ports2d();
     // (3) keep the electrode path clear: the funnel/spine fills the bore line, so
