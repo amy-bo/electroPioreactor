@@ -18,8 +18,8 @@ include <BOSL2/std.scad>
 include <BOSL2/threading.scad>
 
 // ---- options (choices listed inline) --------------------------------
-view       = "print";      // "exploded" | "assembled" | "section" | "print"
-part       = "cap";        // "all" | "cap" | "column" | "septum"  (cap = see the openings)
+view       = "assembled";  // "exploded" | "assembled" | "section" | "print"
+part       = "all";        // "all" | "cap" | "column" | "septum"
 port_style = "ports";      // "ports" | "open"
 pieces     = 1;            // 2 = separate cap + top stop | 1 = one printed piece
 ribs       = "yes";        // "yes" | "no"  (grip ribs / knurling - "no" = smooth cap)
@@ -32,7 +32,7 @@ eps = 0.05;
 // ---- electrodes & ports (the original cap's key counts + sizes) -----
 electrodes      = 2;       // number of electrodes (0 or 2; the top-stop column is built for 2)
 el_d            = 6;       // electrode diameter
-n_ports         = 6;       // number of tube/needle ports (auto-placed clear of the electrodes)
+n_ports         = 5;       // number of tube/needle ports (auto-placed clear of the electrodes)
 port_d          = 1.4;     // port diameter (OD of the 75mm needles)
 el_len          = 60;      // electrode length (L)
 el_off          = 4.8;     // offset from axis to each electrode
