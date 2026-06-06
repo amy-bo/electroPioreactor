@@ -30,7 +30,7 @@ opening_tilt = 50;         // deg - tilt of the opening wall above the cap (90 =
 layer_h    = 0.2;          // mm - PC-CF print layer height (set to your slicer's value)
 guides     = [1,2,3,4,5];  // ports to add a needle guide on (1-based port indices; [0] = none; e.g. [1] or [1,2,3])
 guide_h    = 3;            // mm - height of the guide section (above the cap for part="cap"; below the top-stop face otherwise)
-guidexmin_wall = 2;        // guide clearance beyond a port hole, as a multiple of min_wall
+guidexmin_wall = 1;        // guide clearance beyond a port hole, as a multiple of min_wall
 
 $fn = 72;
 eps = 0.05;
@@ -250,17 +250,22 @@ module guides_topstop() {
     front = [for (p=pts) if (near_open(p)) p];
     back  = [for (p=pts) if (!near_open(p)) p];
     translate([0,0,H_top-guide_h]) linear_extrude(guide_h) {
-      if (len(back) > 0) {                                             // back: ONE half-disc from the centre
-        bis = atan2(lsum([for(p=back) p[1]]), lsum([for(p=back) p[0]]));
-        Rg  = port_R + port_d/2 + gxw;
-        rotate(bis) intersection() { circle(r=Rg, $fn=140); translate([0,-Rg]) square([Rg, 2*Rg]); }
+      if (len(back) > 0) {                                            // back: one semicircle, clipped to BEYOND the
+        bis = atan2(lsum([for(p=back) p[1]]), lsum([for(p=back) p[0]]));   // top-stop long edge (so it doesn't block
+        rotate(bis) intersection() {                                      // the electrodes/clamp, and seats on the edge)
+          circle(r = port_R + port_d/2 + gxw, $fn=140);
+          translate([clamp_W/2, -cap_od]) square([cap_od, 2*cap_od]);  // keep local x > clamp_W/2 (past the edge)
+        }
       }
-      for (p=front)                                                   // front: a semicircle each (flat toward centre)
-        translate([p[0],p[1]]) rotate(atan2(p[1],p[0]))
-          intersection() {
-            circle(r = port_d/2 + gxw, $fn=64);
-            translate([0, -port_d/2-gxw]) square([port_d+2*gxw, port_d+2*gxw]);
-          }
+      for (p=front) {                                                // front: a semicircle per port, seated on the
+        sy = (p[1] >= 0) ? 1 : -1;                                    // near long edge (flush, no longer floating)
+        ey = sy * clamp_W/2;
+        Rf = abs(p[1] - ey) + port_d/2 + gxw;
+        translate([p[0], ey]) intersection() {
+          circle(r=Rf, $fn=64);
+          translate([-Rf, sy>0 ? 0 : -Rf]) square([2*Rf, Rf]);       // the half bulging out toward the port
+        }
+      }
     }
   }
 }
