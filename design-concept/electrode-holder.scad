@@ -124,8 +124,8 @@ module cap() color(C_CAP) difference() {
   translate([0,0,sept_z]) cylinder(d=sept_seat_d, h=sept_t+eps);
   // electrode friction bore
   for (s=[-1,1]) translate([s*el_off,0,-eps]) cylinder(d=cap_bore, h=cap_h+2*eps);
-  // peg holes (through the closed top only)
-  for (s=[-1,1]) translate([0,s*peg_off,cap_h-top_th-eps]) cylinder(d=peg_d+peg_clear, h=top_th+2*eps);
+  // peg holes (through the closed top only) - 2-piece only; the 1-piece is fused, no pegs
+  if (pieces==2) for (s=[-1,1]) translate([0,s*peg_off,cap_h-top_th-eps]) cylinder(d=peg_d+peg_clear, h=top_th+2*eps);
   // ports OR an open septum field (full-width spine, rounded window corners)
   if (port_style=="ports")
     for (a=port_angles) rotate([0,0,a]) translate([port_R,0,-eps]) cylinder(d=port_d, h=cap_h+2*eps);
@@ -206,6 +206,9 @@ module holder1() {
     }
     // (2) septum access: bore straight up from each port (or the open windows)
     translate([0,0,cap_h-top_th-eps]) linear_extrude(H_top-(cap_h-top_th)+5) ports2d();
+    // (3) keep the electrode path clear: the funnel/spine fills the bore line, so
+    // bore the two electrode holes straight through it (ramp/spine only OUTSIDE the bores)
+    for (s=[-1,1]) translate([s*el_off,0,-eps]) cylinder(d=col_bore, h=H_top+5, $fn=48);
   }
   column();                                           // re-added whole: fills the centre, untouched by the wedge
 }
