@@ -141,20 +141,20 @@ module port_holes2d() {
 
 // big septum openings that replace the centre port(s): expand to fill the open-window
 // region on that side, but stop min_wall short of every remaining port.
-// one opening footprint (side sy): rounded 4-sided sector, kept min_wall off the ports
-module opening_one2d(sy) {
-  R = (cap_o_ring_id - port_d)/2;
-  half = max(1, 30 - asin((port_d/2 + min_wall)/R));      // sector half-width: ring ports flank at +-30deg
-  ca = (sy>0) ? 90 : 270;                                 // 90 front / 270 rear
-  offset(r=win_round) offset(r=-win_round)                // round the corners
-  intersection() {
-    circle(r=R_open, $fn=140);                            // outer = cap-rim arc (the curved side)
-    translate([-cap_od, sy>0 ? spine_hw : -spine_hw-2*cap_od, 0]) square([2*cap_od, 2*cap_od]); // inner = spine line
-    polygon([[0,0], 2*R_open*[cos(ca-half),sin(ca-half)], 2*R_open*[cos(ca+half),sin(ca+half)]]);  // two straight sides
-  }
-}
 module openings2d() {
-  if (openings > 0) for (sy = (openings>=2) ? [1,-1] : [1]) opening_one2d(sy);
+  if (openings > 0) {
+    R = (cap_o_ring_id - port_d)/2;
+    half = max(1, 30 - asin((port_d/2 + min_wall)/R));    // sector half-width: ring ports flank at +-30deg, kept min_wall clear
+    for (sy = (openings>=2) ? [1,-1] : [1]) {
+      ca = (sy>0) ? 90 : 270;                             // 90 front / 270 rear
+      offset(r=win_round) offset(r=-win_round)            // round the corners of the 4-sided opening
+      intersection() {
+        circle(r=R_open, $fn=140);                        // outer = cap-rim arc (the curved side)
+        translate([-cap_od, sy>0 ? spine_hw : -spine_hw-2*cap_od, 0]) square([2*cap_od, 2*cap_od]); // inner = spine line
+        polygon([[0,0], 2*R_open*[cos(ca-half),sin(ca-half)], 2*R_open*[cos(ca+half),sin(ca+half)]]);  // two straight sides, min_wall off the ports
+      }
+    }
+  }
 }
 
 // teardrop hole, axis +X, apex toward -Z (= up in print -> self-supporting)
@@ -260,60 +260,39 @@ module ports2d() {
     }
 }
 
-// the solid funnel (cap rim + poka-yoke -> racetrack, clipped to the cap footprint)
-module funnel_solid() intersection() {
-  hull() {
-    translate([0,0,cap_h-0.05]) linear_extrude(0.1) body2d();
-    translate([0,0,z_join])     linear_extrude(0.1) rt_outline2d();
-  }
-  translate([0,0,cap_h]) linear_extrude(z_join-cap_h+1) body2d();
-}
-// the septum-access wedge (gated on openings: 0 none / 1 front / 2 front+rear)
-module wedge_solid() {
-  if (openings > 0) difference() {
-    rotate([90,0,0]) linear_extrude(height=cap_od*3, center=true)
-      polygon([[0,cap_h],[60,cap_h+60],[60,300],[-60,300],[-60,cap_h+60]]);
-    translate([-cap_od, -2.5, -50]) cube([2*cap_od, 5, 400]);              // the 5mm spine stays
-    if (openings < 2)                                                       // 1 opening -> keep the rear solid
-      translate([-cap_od, -cap_od-2.5, -50]) cube([2*cap_od, cap_od, 400]);
-  }
-}
-// a single 45deg plane through proj=R_open at the cap face (z=cap_h), tilted up toward
-// the `phi` direction. Solid = the near side { x*cos(phi)+y*sin(phi) - (z-cap_h) <= R_open }.
-module scoop_face(phi) {
-  rotate([0,0,phi]) translate([R_open,0,cap_h]) rotate([0,45,0])
-    translate([-400,-400,-400]) cube([400,800,800]);
-}
-// scoop: for each opening, ONE flat 45deg plane rising from the opening's front line at
-// the cap face, cut only in front of the opening (its angular sector) and only within the
-// funnel. No loft -> no horizontal face. The wedge (wedge_solid) is then cut as well.
-module opening_scoop() {
-  if (openings > 0) for (sy = (openings>=2) ? [1,-1] : [1]) {
-    ca = (sy>0) ? 90 : 270;
-    half = max(1, 30 - asin((port_d/2 + min_wall)/((cap_o_ring_id-port_d)/2)));   // opening's angular half-width
-    intersection() {
-      funnel_solid();                                                            // funnel material only
-      translate([0,0,-2]) linear_extrude(H_top+8)                                // the opening's angular sector, out to the rim
-        polygon([[0,0], 2*cap_od*[cos(ca-half),sin(ca-half)], 2*cap_od*[cos(ca+half),sin(ca+half)]]);
-      scoop_face(ca);                                                            // the 45deg plane rising from the front line
-    }
-  }
-}
-
 module holder1() {
   difference() {
     union() {
       cap();                                          // real cap (thread + open spine + septum)
-      color(C_CARR) funnel_solid();
+      // solid funnel: cap rim (+poka-yoke) -> racetrack, then clipped to the cap/poka-yoke
+      // footprint extruded straight up, so the hull can't bulge out past the flange join
+      // (removes the overhang above where the poka-yoke meets the round cap).
+      color(C_CARR) intersection() {
+        hull() {
+          translate([0,0,cap_h-0.05]) linear_extrude(0.1) body2d();
+          translate([0,0,z_join])     linear_extrude(0.1) rt_outline2d();
+        }
+        translate([0,0,cap_h]) linear_extrude(z_join-cap_h+1) body2d();
+      }
     }
-    wedge_solid();                                    // (1) septum-access wedge
-    // (2) circular ports bored straight up through the funnel
-    translate([0,0,cap_h-top_th-eps]) linear_extrude(H_top-(cap_h-top_th)+5) port_holes2d();
-    opening_scoop();                                  // (2b) openings: scooped from edge to the funnel/wedge ridge
-    // (3) keep the electrode path clear through the funnel/spine
+    // (1) septum-access wedge - only where there is an opening: apex line on the CAP
+    // SURFACE (x=0, z=cap_h), faces rising up-and-out at 45deg, 5mm central spine left
+    // uncut. openings=0 -> no wedge; openings=1 -> front only; openings=2 -> front+rear.
+    if (openings > 0)
+      difference() {
+        rotate([90,0,0]) linear_extrude(height=cap_od*3, center=true)
+          polygon([[0,cap_h],[60,cap_h+60],[60,300],[-60,300],[-60,cap_h+60]]);
+        translate([-cap_od, -2.5, -50]) cube([2*cap_od, 5, 400]);              // the 5mm spine stays
+        if (openings < 2)                                                       // 1 opening -> keep the rear solid
+          translate([-cap_od, -cap_od-2.5, -50]) cube([2*cap_od, cap_od, 400]);
+      }
+    // (2) septum access: bore straight up from each port (or the open windows)
+    translate([0,0,cap_h-top_th-eps]) linear_extrude(H_top-(cap_h-top_th)+5) ports2d();
+    // (3) keep the electrode path clear: the funnel/spine fills the bore line, so
+    // bore the two electrode holes straight through it (ramp/spine only OUTSIDE the bores)
     for (s=[-1,1]) translate([s*el_off,0,-eps]) cylinder(d=col_bore, h=H_top+5, $fn=48);
   }
-  column();                                           // re-added whole: fills the centre
+  column();                                           // re-added whole: fills the centre, untouched by the wedge
 }
 
 // ---- assembly / views ----------------------------------------------
