@@ -165,24 +165,22 @@ module electrodes() color(C_STEEL) for(s=[-1,1]) translate([s*el_off,0,H_top-el_
 
 // ===== 1-piece construction =====
 // Uses the REAL cap (set port_style="open") so the thread, septum seat and
-// septum-holding structure stay. The cap WALL (+ tab) is extruded up and kept
-// only inside a hull that runs from the cap rim (cap_h) up to the racetrack:
-// low (cap_h) at front/rear, rising at 45deg to high points that TIE INTO the
-// racetrack at the sides.
-z_join = cap_h + (cap_R - bearing_r);                 // 45deg at front/rear (~21)
+// septum-holding structure stay.
+// The connector is now a SOLID funnel covering the FULL circumference: it runs
+// from the cap outline (incl. the poka-yoke) all the way down to the racetrack.
+// Every layer is a ring no bigger than the one below it (<=45deg overhang), so
+// NOTHING starts in mid-air - both sides and front/rear all land on the
+// racetrack. funnel_h is taller than the cap overhang so the slope is steeper
+// than 45deg everywhere (i.e. the connection starts lower down the print).
+funnel_h = 14;                                        // > cap_R-bearing_r (8.7) => steeper than 45deg
+z_join   = cap_h + funnel_h;
 module rt_outline2d() hull() for(s=[-1,1]) translate([s*el_off,0]) circle(r=bearing_r, $fn=48);
 
 module holder1() {
   cap();                                              // real cap (thread + open spine + septum)
-  color(C_CARR) intersection() {
-    linear_extrude(H_top) {                           // the vial cap WALL + tab, extruded up
-      difference() { circle(d=cap_od,$fn=120); circle(d=cap_od-2*wall_t-1,$fn=120); }
-      rotate([0,0,tab_dir]) translate([cap_R-1,0]) circle(d=8,$fn=48);
-    }
-    hull() {                                          // rim -> racetrack at 45deg (ties the rise in)
-      translate([0,0,cap_h-0.1]) linear_extrude(0.1) circle(d=cap_od,$fn=120);
-      translate([0,0,z_join])    linear_extrude(0.1) rt_outline2d();
-    }
+  color(C_CARR) hull() {                              // solid funnel: cap rim (+poka-yoke) -> racetrack
+    translate([0,0,cap_h-0.05]) linear_extrude(0.1) body2d();
+    translate([0,0,z_join])     linear_extrude(0.1) rt_outline2d();
   }
   column();                                           // racetrack + clamp ears
 }
