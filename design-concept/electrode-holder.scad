@@ -21,11 +21,12 @@ include <BOSL2/threading.scad>
 view       = "print";      // "exploded" | "assembled" | "section" | "print"
 part       = "all";        // "all" | "cap" | "column" | "septum"
 port_style = "ports";      // "ports" | "open"
+seal       = "septum";     // "septum" | "oring"  - oring reproduces the original Vial Cap.scad O-ring grooves
 pieces     = 1;            // 2 = separate cap + top stop | 1 = one printed piece
 ribs       = "no";         // "yes" | "no"  (grip ribs / knurling - "no" = smooth cap)
 openings   = 1;            // 0 | 1 (front) | 2 (front+rear) - big septum openings replacing the centre ports
 min_wall   = 0.84;         // mm wall kept between an opening and any port (2 strands @ 0.42 line width, 0.4 nozzle - PC-CF min)
-opening_tilt = 90;         // deg - tilt of the opening wall above the cap (90 = vertical); pivots about the opening's front line on the cap top
+opening_tilt = 50;         // deg - tilt of the opening wall above the cap (90 = vertical); pivots about the opening's front line on the cap top
 layer_h    = 0.2;          // mm - PC-CF print layer height (set to your slicer's value)
 
 $fn = 72;
@@ -55,6 +56,11 @@ D_maj_int = T_nom + dia_clear; depth_rad = 0.3*pitch; D_minor_int = D_maj_int - 
 // septum + retaining ridge (point 9)
 sept_t = 2.0; sept_d = 23.9; sept_seat_d = 24.2;
 ridge_id = 22.5; ridge_h = 1.6;            // inward lip that keeps the septum from dropping out
+// O-ring seal (only used when seal=="oring"; reproduces the original Vial Cap.scad)
+cap_o_ring_cs       = 1.7;   // mm - cap O-ring cross-section (dovetail groove in the bore wall)
+electrode_o_ring_cs = 2.5;   // mm - electrode O-ring cross-section
+electrode_cutout    = 1.0;   // mm - electrode port relief; also sets the electrode O-ring id
+electrode_o_ring_id = el_d - electrode_cutout/2 + electrode_o_ring_cs/2;
 // ports
 cap_o_ring_id = 18.7706; port_R = (cap_o_ring_id - port_d)/2;  // 7.785, in the neck
 // open septum field
@@ -64,7 +70,7 @@ spine_hw = 4.65; R_open = cap_od/2 - wall_t - 1.0; win_round = 2.0;
 // curvature, the sides are straight, and the grip ribs continue along it.
 flange_arc   = 93;      // deg - angular width of the pushed-out section
 flange_push  = 3.5;     // mm - radial push
-flange_angle = 0;       // deg - ROTATE the poka-yoke around the cap (0 = +X side; 90 = front; -90 = rear; etc.)
+flange_angle = 180;       // deg - ROTATE the poka-yoke around the cap (0 = +X side; 90 = front; -90 = rear; etc.)
 tab_round    = 2.5;     // fillet at the flange/cap junction
 
 // ---- registration pegs ---------------------------------------------
@@ -85,6 +91,7 @@ x_nut0 = xe + clamp_in; x_nut1 = x_nut0 + nut_th; x_out = x_nut1 + clamp_out;
 clamp_h = 8; clamp_W = 2*bearing_r; clamp_corner = 3;
 zc     = H_top - 4;                         // bolt axis, near the top face
 sept_z = cap_h - top_th - sept_t;
+bore_top = cap_h - top_th - (seal=="septum" ? sept_t : 0);   // bore ceiling: leave the septum slab only for the septum seal
 
 C_CAP=[0.78,0.87,0.97]; C_SEPT=[0.74,0.62,0.92]; C_CARR=[1,0.83,0.58];
 C_STEEL=[0.72,0.74,0.78]; C_VIAL=[0.55,0.88,0.78,0.32];
@@ -177,6 +184,12 @@ module septum_ridge() rotate_extrude($fn=140)
            [ridge_id/2,    sept_z-ridge_h/2],
            [sept_seat_d/2, sept_z-ridge_h]]);
 
+// O-ring dovetail profile (verbatim from Vial Cap.scad) - retains the O-ring in its groove
+module dovetail(top) {
+  bottom = top + 0.3; thickness = 1;
+  polygon(points=[[0,0],[bottom,0],[top+0.15,thickness],[0.15,thickness]]);
+}
+
 // the whole top-stop top face = one rounded rectangle
 module clampband2d() offset(r=clamp_corner) square([2*x_out-2*clamp_corner, clamp_W-2*clamp_corner], center=true);
 
@@ -194,19 +207,28 @@ module cap() color(C_CAP) difference() {
           flange_ribs();                                        // ribs continued along the flange
         }
       }
-      translate([0,0,-eps]) cylinder(d=T_nom, h=cap_h-top_th-sept_t+eps);
+      translate([0,0,-eps]) cylinder(d=T_nom, h=bore_top+eps);
     }
     // internal GPI thread (added back inside the bore)
     translate([0,0,pitch/2])
-      thread_helix(d=D_minor_int, pitch=pitch, turns=(cap_h-top_th-sept_t-pitch)/pitch,
+      thread_helix(d=D_minor_int, pitch=pitch, turns=(bore_top-pitch)/pitch,
                    thread_depth=depth_rad, flank_angle=30, starts=starts,
                    anchor=BOTTOM, lead_in=leadin_len, internal=true);
-    septum_ridge();                                  // lip that retains the septum
+    if (seal=="septum") septum_ridge();              // lip that retains the septum
   }
-  // smooth septum seat under the closed top
-  translate([0,0,sept_z]) cylinder(d=sept_seat_d, h=sept_t+eps);
-  // electrode friction bores (electrodes placed evenly, like the original)
-  if (electrodes>0) for (i=[0:electrodes-1]) rotate([0,0,i*360/electrodes]) translate([el_off,0,-eps]) cylinder(d=cap_bore, h=cap_h+2*eps);
+  // smooth septum seat under the closed top (septum seal only)
+  if (seal=="septum") translate([0,0,sept_z]) cylinder(d=sept_seat_d, h=sept_t+eps);
+  // cap O-ring groove in the bore wall, near the closed top (oring seal only)
+  if (seal=="oring")
+    translate([0,0,bore_top]) mirror([0,0,1]) rotate_extrude($fn=100)
+      translate([(cap_o_ring_id+cap_o_ring_cs)/2, 0, 0]) dovetail(cap_o_ring_cs);
+  // electrode bores (friction bore for septum; looser port + O-ring groove for oring)
+  if (electrodes>0) for (i=[0:electrodes-1]) rotate([0,0,i*360/electrodes]) translate([el_off,0,0]) {
+    translate([0,0,-eps]) cylinder(d = (seal=="oring") ? el_d+cap_fit+electrode_cutout : cap_bore, h=cap_h+2*eps);
+    if (seal=="oring")
+      translate([0,0,bore_top-electrode_o_ring_cs]) rotate_extrude($fn=100)
+        translate([electrode_o_ring_id/2, 0, 0]) circle(d=electrode_o_ring_cs, $fn=64);
+  }
   // peg holes (through the closed top only) - 2-piece only; the 1-piece is fused, no pegs
   if (pieces==2) for (s=[-1,1]) translate([0,s*peg_off,cap_h-top_th-eps]) cylinder(d=peg_d+peg_clear, h=top_th+2*eps);
   // ports OR an open septum field (full-width spine, rounded window corners)
@@ -319,7 +341,7 @@ module holder() {
 
 module assembly() {
   translate([0,0,-e*38]) vial();
-  translate([0,0,-e*17]) septum();
+  if (seal=="septum") translate([0,0,-e*17]) septum();   // no septum in oring mode
   holder();
   translate([0,0,e*18]) electrodes();
 }
