@@ -22,6 +22,7 @@ view       = "print";      // "exploded" | "assembled" | "section" | "print"
 part       = "all";        // "all" | "cap" | "column" | "septum"
 port_style = "open";       // "ports" | "open"
 pieces     = 1;            // 2 = separate cap + top stop | 1 = one printed piece
+ribs       = "yes";        // "yes" | "no"  (grip ribs / knurling - "no" = smooth cap)
 
 $fn = 72;
 eps = 0.05;
@@ -40,7 +41,7 @@ col_bore = el_d + cap_fit + insert_extra;  // easy-insert bore; total tracks cap
 
 // ---- cap ------------------------------------------------------------
 cap_od = 27; cap_h = 12.3; top_th = 2.5; wall_t = 2;
-ribs   = 84; rib_d = 0.856;
+rib_count = 84; rib_d = 0.856;   // number of grip ribs (when ribs=="yes")
 // GPI 24-400 thread (verbatim from Components/Vial Cap/Vial Cap.scad)
 T_nom = 24.30; dia_clear = 0.50; pitch = 25.4/8; starts = 1; leadin_len = 0.6*pitch;
 D_maj_int = T_nom + dia_clear; depth_rad = 0.3*pitch; D_minor_int = D_maj_int - 2*depth_rad;
@@ -103,7 +104,7 @@ module body2d() offset(r=tab_round) offset(r=-tab_round) union() {   // cap outl
 module flange_ribs() {
   R = cap_od/2; ha = flange_arc/2;
   px = flange_push*cos(flange_angle); py = flange_push*sin(flange_angle);
-  rib_step = 360/ribs;
+  rib_step = 360/rib_count;
   n_arc = max(1, floor(flange_arc/rib_step));
   for (k=[0:n_arc]) {
     th = flange_angle - ha + k*flange_arc/n_arc;
@@ -135,9 +136,9 @@ module cap() color(C_CAP) difference() {
     difference() {                                   // body (with knurl) minus the core bore
       union() {
         linear_extrude(cap_h) body2d();
-        if (ribs>0) {
-          for (i=[0:ribs-1]) {                                  // body ribs, skipped in the flange sector
-            a = i*360/ribs; da = abs(((a-flange_angle+540)%360)-180);
+        if (ribs=="yes" && rib_count>0) {
+          for (i=[0:rib_count-1]) {                             // body ribs, skipped in the flange sector
+            a = i*360/rib_count; da = abs(((a-flange_angle+540)%360)-180);
             if (da >= flange_arc/2) rotate([0,0,a]) translate([cap_od/2,0,0]) cylinder(d=rib_d,h=cap_h);
           }
           flange_ribs();                                        // ribs continued along the flange
@@ -223,9 +224,15 @@ module holder1() {
   difference() {
     union() {
       cap();                                          // real cap (thread + open spine + septum)
-      color(C_CARR) hull() {                          // solid funnel: cap rim (+poka-yoke) -> racetrack
-        translate([0,0,cap_h-0.05]) linear_extrude(0.1) body2d();
-        translate([0,0,z_join])     linear_extrude(0.1) rt_outline2d();
+      // solid funnel: cap rim (+poka-yoke) -> racetrack, then clipped to the cap/poka-yoke
+      // footprint extruded straight up, so the hull can't bulge out past the flange join
+      // (removes the overhang above where the poka-yoke meets the round cap).
+      color(C_CARR) intersection() {
+        hull() {
+          translate([0,0,cap_h-0.05]) linear_extrude(0.1) body2d();
+          translate([0,0,z_join])     linear_extrude(0.1) rt_outline2d();
+        }
+        translate([0,0,cap_h]) linear_extrude(z_join-cap_h+1) body2d();
       }
     }
     // (1) structural wedge: apex line on the CAP SURFACE (x=0, z=cap_h), faces rising
