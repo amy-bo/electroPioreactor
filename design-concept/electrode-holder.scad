@@ -185,11 +185,15 @@ module holder1() {
         translate([0,0,z_join])     linear_extrude(0.1) rt_outline2d();
       }
     }
-    // HUGE triangular wedges, front & rear: apex line on the cap lid (x=0, z=cap_h),
-    // both faces rising up-and-out to the SIDES at 45deg -> maximum septum access
-    // from above. (Removes everything where z-cap_h > |x|; the 45deg faces self-support.)
-    rotate([90,0,0]) linear_extrude(height=cap_od*3, center=true)
-      polygon([[0,cap_h],[60,cap_h+60],[60,cap_h+250],[-60,cap_h+250],[-60,cap_h+60]]);
+    // Septum-access wedge: apex line on the SEPTUM OPENING (x=0, z=sept_z+sept_t),
+    // both faces rising up-and-out to the sides at 45deg -> exposes the septum from
+    // above, front & rear. BUT a 5mm-wide central spine (|y|<2.5) is left uncut, so
+    // the two conical halves stay tied to the racetrack and nothing hangs in mid-air.
+    difference() {
+      rotate([90,0,0]) linear_extrude(height=cap_od*3, center=true)
+        polygon([[0,sept_z+sept_t],[60,sept_z+sept_t+60],[60,300],[-60,300],[-60,sept_z+sept_t+60]]);
+      translate([-cap_od, -2.5, -50]) cube([2*cap_od, 5, 400]);    // the 5mm spine stays
+    }
   }
   column();                                           // re-added whole: fills the centre, untouched by the wedge
 }
