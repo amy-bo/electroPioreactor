@@ -157,15 +157,23 @@ module opening_sector2d(sy, extend) {
 module openings2d() {
   if (openings > 0) for (sy = (openings>=2) ? [1,-1] : [1]) opening_sector2d(sy, R_open);
 }
-// 3D scooped openings for the 1-piece: vertical (R_open) through the cap, then the
-// outer/curved side ramps OUT to the cap circumference (cap_R) at 45deg above the cap
-// top, scooping the funnel. (In print, top-down, that face goes down-and-in at 45deg.)
+// one 45deg half-space, kept region = { x*cos(phi)+y*sin(phi) - (z-cap_h) <= R_open }
+// i.e. a plane through proj=R_open at the cap top, opening OUT at 45deg as z rises.
+module scoop_face(phi) {
+  rotate([0,0,phi]) translate([R_open,0,cap_h]) rotate([0,45,0])
+    translate([-400,-400,-400]) cube([400,800,800]);
+}
+// 3D scooped openings for the 1-piece: vertical (R_open) through the cap, then TWO flat
+// 45deg planes (one per flanking-port direction) take the outer side out to the rim.
+// They meet on the wedge centreline and are themselves 45deg, so they just touch the
+// wedge's 45deg faces with nothing below 45deg. (The mouth still follows the cap via the
+// sector's curved sides; the scoop faces are the two flat planes.)
 module openings3d() {
   if (openings > 0) for (sy = (openings>=2) ? [1,-1] : [1])
     intersection() {
       translate([0,0,-2]) linear_extrude(H_top+8) opening_sector2d(sy, cap_R);    // the sector, out to the rim
-      rotate_extrude($fn=160)                                                      // radial profile: R_open up to cap_h, then 45deg to cap_R
-        polygon([[0,-2],[R_open,-2],[R_open,cap_h],[cap_R,cap_h+(cap_R-R_open)],[cap_R,H_top+8],[0,H_top+8]]);
+      scoop_face((sy>0?90:270) - 30);                                              // plane toward one flanking port
+      scoop_face((sy>0?90:270) + 30);                                              // plane toward the other
     }
 }
 
