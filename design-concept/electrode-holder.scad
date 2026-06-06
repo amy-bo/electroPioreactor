@@ -26,6 +26,7 @@ ribs       = "no";         // "yes" | "no"  (grip ribs / knurling - "no" = smoot
 openings   = 1;            // 0 | 1 (front) | 2 (front+rear) - big septum openings replacing the centre ports
 min_wall   = 0.84;         // mm wall kept between an opening and any port (2 strands @ 0.42 line width, 0.4 nozzle - PC-CF min)
 opening_tilt = 90;         // deg - tilt of the opening wall above the cap (90 = vertical); pivots about the opening's front line on the cap top
+layer_h    = 0.2;          // mm - PC-CF print layer height (set to your slicer's value)
 
 $fn = 72;
 eps = 0.05;
@@ -46,7 +47,7 @@ cap_bore = el_d + cap_fit;                 // friction bore (also the lower bear
 col_bore = el_d + cap_fit + insert_extra;  // easy-insert bore; total tracks cap_fit
 
 // ---- cap ------------------------------------------------------------
-cap_od = 27; cap_h = 12.3; top_th = 2.5; wall_t = 2;
+cap_od = 27; cap_h = 12.3; top_th = 3*layer_h; wall_t = 2;   // closed top = 3 PC-CF layers
 rib_count = 84; rib_d = 0.856;   // number of grip ribs (when ribs=="yes")
 // GPI 24-400 thread (verbatim from Components/Vial Cap/Vial Cap.scad)
 T_nom = 24.30; dia_clear = 0.50; pitch = 25.4/8; starts = 1; leadin_len = 0.6*pitch;
