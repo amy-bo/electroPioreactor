@@ -28,6 +28,8 @@ openings   = 1;            // 0 | 1 (front) | 2 (front+rear) - big septum openin
 min_wall   = 0.84;         // mm wall kept between an opening and any port (2 strands @ 0.42 line width, 0.4 nozzle - PC-CF min)
 opening_tilt = 50;         // deg - tilt of the opening wall above the cap (90 = vertical); pivots about the opening's front line on the cap top
 layer_h    = 0.2;          // mm - PC-CF print layer height (set to your slicer's value)
+guides     = [0];          // ports to add a needle guide on (1-based port indices; [0] = none; e.g. [1] or [1,2,3])
+guide_h    = 5;            // mm - height of the guide section above the cap top
 
 $fn = 72;
 eps = 0.05;
@@ -48,7 +50,7 @@ cap_bore = el_d + cap_fit;                 // friction bore (also the lower bear
 col_bore = el_d + cap_fit + insert_extra;  // easy-insert bore; total tracks cap_fit
 
 // ---- cap ------------------------------------------------------------
-cap_od = 27; cap_h = 12.3; top_th = 3*layer_h; wall_t = 2;   // closed top = 3 PC-CF layers
+cap_od = 27; cap_h = 12.3; wall_t = 2;
 rib_count = 84; rib_d = 0.856;   // number of grip ribs (when ribs=="yes")
 // GPI 24-400 thread (verbatim from Components/Vial Cap/Vial Cap.scad)
 T_nom = 24.30; dia_clear = 0.50; pitch = 25.4/8; starts = 1; leadin_len = 0.6*pitch;
@@ -61,6 +63,10 @@ cap_o_ring_cs       = 1.7;   // mm - cap O-ring cross-section (dovetail groove i
 electrode_o_ring_cs = 2.5;   // mm - electrode O-ring cross-section
 electrode_cutout    = 1.0;   // mm - electrode port relief; also sets the electrode O-ring id
 electrode_o_ring_id = el_d - electrode_cutout/2 + electrode_o_ring_cs/2;
+// closed-top thickness depends on the seal: 3 PC-CF layers is plenty to hold the SEPTUM
+// down, but the O-RING needs a solid top to seat against, so in oring mode make the top
+// at least the cap O-ring cross-section + 2 layers (~2.5mm with defaults).
+top_th = (seal=="oring") ? max(cap_o_ring_cs + 4*layer_h, 3*layer_h) : 3*layer_h;
 // ports
 cap_o_ring_id = 18.7706; port_R = (cap_o_ring_id - port_d)/2;  // 7.785, in the neck
 // open septum field
@@ -193,6 +199,42 @@ module dovetail(top) {
 // the whole top-stop top face = one rounded rectangle
 module clampband2d() offset(r=clamp_corner) square([2*x_out-2*clamp_corner, clamp_W-2*clamp_corner], center=true);
 
+// ---- needle guides --------------------------------------------------
+function lsum(v,i=0) = i >= len(v) ? 0 : v[i] + lsum(v,i+1);
+// the tube/needle port centres, in the same order port_holes2d() places them (1-based
+// in `guides`). Assumes the standard layout (n_ports>=3, electrodes at 0/180).
+function guide_pts() = let(
+  R  = port_R,
+  rp = (n_ports < 4) ? n_ports : 4,
+  ring = [for (k=[0:2+rp-1]) if (k!=0 && k!=3) [R*cos(k*60), R*sin(k*60)]],
+  nc = (n_ports > 4) ? min(n_ports-4, 2-openings) : 0,
+  cen = (nc>0) ? [for (k=[0:nc-1]) [R*cos(90+(openings+k)*180), R*sin(90+(openings+k)*180)]] : []
+) concat(ring, cen);
+// guide section on the cap top: hemispherical-topped tower per individual port, OR one
+// semicircle (centred on the ports' layout centre) when the selected ports all sit on one
+// side. Either way it stands guide_h tall and clears the ports by min_wall. Port holes are
+// bored through it by cap()'s extended port cut.
+guide_sel = [for (g=guides) if (g>=1 && g<=len(guide_pts())) g];
+module guides_solid() {
+  pts = [for (g=guide_sel) guide_pts()[g-1]];
+  rg  = port_d/2 + min_wall;
+  if (len(pts) > 0) {
+    bis  = atan2(lsum([for(p=pts) p[1]]), lsum([for(p=pts) p[0]]));     // mean direction of the picks
+    span = (len(pts)<2) ? 0 : max([for(p=pts) abs(((atan2(p[1],p[0]) - bis + 540) % 360) - 180)]);
+    if (len(pts) > 1 && span <= 90)                                     // full set on one side -> semicircle
+      translate([0,0,cap_h]) linear_extrude(guide_h)
+        rotate(bis) intersection() {
+          circle(r = port_R + port_d/2 + min_wall, $fn=140);
+          translate([0,-cap_od]) square([cap_od, 2*cap_od]);            // keep the bisector half (x>=0)
+        }
+    else                                                                // individual ports -> domed towers
+      for (p=pts) translate([p[0],p[1],cap_h]) {
+        cylinder(r=rg, h=max(eps, guide_h-rg), $fn=48);
+        translate([0,0,max(0, guide_h-rg)]) sphere(r=rg, $fn=48);
+      }
+  }
+}
+
 // ---- parts ----------------------------------------------------------
 module cap() color(C_CAP) difference() {
   union() {
@@ -215,6 +257,7 @@ module cap() color(C_CAP) difference() {
                    thread_depth=depth_rad, flank_angle=30, starts=starts,
                    anchor=BOTTOM, lead_in=leadin_len, internal=true);
     if (seal=="septum") septum_ridge();              // lip that retains the septum
+    color(C_CAP) guides_solid();                     // needle guide section on the cap top
   }
   // smooth septum seat under the closed top (septum seal only)
   if (seal=="septum") translate([0,0,sept_z]) cylinder(d=sept_seat_d, h=sept_t+eps);
@@ -233,7 +276,10 @@ module cap() color(C_CAP) difference() {
   if (pieces==2) for (s=[-1,1]) translate([0,s*peg_off,cap_h-top_th-eps]) cylinder(d=peg_d+peg_clear, h=top_th+2*eps);
   // ports OR an open septum field (full-width spine, rounded window corners)
   if (port_style=="ports")
-    translate([0,0,-eps]) linear_extrude(cap_h+2*eps) { port_holes2d(); openings2d(); }
+    translate([0,0,-eps]) {
+      linear_extrude(cap_h + (len(guide_sel)>0 ? guide_h : 0) + 2*eps) port_holes2d();  // ports bored through any guide too
+      linear_extrude(cap_h+2*eps) openings2d();
+    }
   else
     translate([0,0,cap_h-top_th-eps]) linear_extrude(top_th+2*eps)
       offset(r=win_round) offset(r=-win_round) difference() {   // OPENING -> rounds the window's convex corners
