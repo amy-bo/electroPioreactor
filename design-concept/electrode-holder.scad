@@ -18,10 +18,10 @@ include <BOSL2/std.scad>
 include <BOSL2/threading.scad>
 
 // ---- options (choices listed inline) --------------------------------
-view       = "exploded";   // "exploded" | "assembled" | "section" | "print"
+view       = "print";      // "exploded" | "assembled" | "section" | "print"
 part       = "all";        // "all" | "cap" | "column" | "septum"
-port_style = "ports";      // "ports" | "open"
-pieces     = 2;            // 2 = separate cap + top stop | 1 = one printed piece (V-legs to the cap)
+port_style = "open";       // "ports" | "open"
+pieces     = 1;            // 2 = separate cap + top stop | 1 = one printed piece
 
 $fn = 72;
 eps = 0.05;
@@ -176,13 +176,19 @@ funnel_h = 14;                                        // > cap_R-bearing_r (8.7)
 z_join   = cap_h + funnel_h;
 module rt_outline2d() hull() for(s=[-1,1]) translate([s*el_off,0]) circle(r=bearing_r, $fn=48);
 
-module holder1() {
-  cap();                                              // real cap (thread + open spine + septum)
-  color(C_CARR) hull() {                              // solid funnel: cap rim (+poka-yoke) -> racetrack
-    translate([0,0,cap_h-0.05]) linear_extrude(0.1) body2d();
-    translate([0,0,z_join])     linear_extrude(0.1) rt_outline2d();
+module holder1() difference() {
+  union() {
+    cap();                                            // real cap (thread + open spine + septum)
+    color(C_CARR) hull() {                            // solid funnel: cap rim (+poka-yoke) -> racetrack
+      translate([0,0,cap_h-0.05]) linear_extrude(0.1) body2d();
+      translate([0,0,z_join])     linear_extrude(0.1) rt_outline2d();
+    }
+    column();                                         // racetrack + clamp ears
   }
-  column();                                           // racetrack + clamp ears
+  // 45deg sampling-needle channels, front & rear: reach the septum from outside,
+  // self-supporting (a 45deg hole's overhang is exactly the printable limit)
+  for (sy=[-1,1])
+    translate([0, sy*8, sept_z+sept_t]) rotate([sy*-45,0,0]) cylinder(d=4, h=22, $fn=24);
 }
 
 // ---- assembly / views ----------------------------------------------
