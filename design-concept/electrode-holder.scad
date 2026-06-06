@@ -176,19 +176,22 @@ funnel_h = 14;                                        // > cap_R-bearing_r (8.7)
 z_join   = cap_h + funnel_h;
 module rt_outline2d() hull() for(s=[-1,1]) translate([s*el_off,0]) circle(r=bearing_r, $fn=48);
 
-module holder1() difference() {
-  union() {
-    cap();                                            // real cap (thread + open spine + septum)
-    color(C_CARR) hull() {                            // solid funnel: cap rim (+poka-yoke) -> racetrack
-      translate([0,0,cap_h-0.05]) linear_extrude(0.1) body2d();
-      translate([0,0,z_join])     linear_extrude(0.1) rt_outline2d();
+module holder1() {
+  difference() {
+    union() {
+      cap();                                          // real cap (thread + open spine + septum)
+      color(C_CARR) hull() {                          // solid funnel: cap rim (+poka-yoke) -> racetrack
+        translate([0,0,cap_h-0.05]) linear_extrude(0.1) body2d();
+        translate([0,0,z_join])     linear_extrude(0.1) rt_outline2d();
+      }
     }
-    column();                                         // racetrack + clamp ears
+    // HUGE triangular wedges, front & rear: apex line on the cap lid (x=0, z=cap_h),
+    // both faces rising up-and-out to the SIDES at 45deg -> maximum septum access
+    // from above. (Removes everything where z-cap_h > |x|; the 45deg faces self-support.)
+    rotate([90,0,0]) linear_extrude(height=cap_od*3, center=true)
+      polygon([[0,cap_h],[60,cap_h+60],[60,cap_h+250],[-60,cap_h+250],[-60,cap_h+60]]);
   }
-  // 45deg sampling-needle channels, front & rear: reach the septum from outside,
-  // self-supporting (a 45deg hole's overhang is exactly the printable limit)
-  for (sy=[-1,1])
-    translate([0, sy*8, sept_z+sept_t]) rotate([sy*-45,0,0]) cylinder(d=4, h=22, $fn=24);
+  column();                                           // re-added whole: fills the centre, untouched by the wedge
 }
 
 // ---- assembly / views ----------------------------------------------
