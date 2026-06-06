@@ -27,8 +27,11 @@ ribs       = "yes";        // "yes" | "no"  (grip ribs / knurling - "no" = smoot
 $fn = 72;
 eps = 0.05;
 
-// ---- electrodes -----------------------------------------------------
+// ---- electrodes & ports (the original cap's key counts + sizes) -----
+electrodes      = 2;       // number of electrodes (0 or 2; the top-stop column is built for 2)
 el_d            = 6;       // electrode diameter
+n_ports         = 6;       // number of tube/needle ports (auto-placed clear of the electrodes)
+port_d          = 3.2;     // port diameter
 el_len          = 60;      // electrode length (L)
 el_off          = 4.8;     // offset from axis to each electrode
 insertion_depth = 23;      // g: protrusion below the cap bottom into the vial
@@ -49,8 +52,7 @@ D_maj_int = T_nom + dia_clear; depth_rad = 0.3*pitch; D_minor_int = D_maj_int - 
 sept_t = 2.0; sept_d = 23.9; sept_seat_d = 24.2;
 ridge_id = 22.5; ridge_h = 1.6;            // inward lip that keeps the septum from dropping out
 // ports
-cap_o_ring_id = 18.7706; port_d = 3.2; port_R = (cap_o_ring_id - port_d)/2;  // 7.785, in the neck
-port_angles = [60,90,120,240,270,300];
+cap_o_ring_id = 18.7706; port_R = (cap_o_ring_id - port_d)/2;  // 7.785, in the neck
 // open septum field
 spine_hw = 4.65; R_open = cap_od/2 - wall_t - 1.0; win_round = 2.0;
 // poka-yoke FLANGE (pushed-out chord section, assimilated from Gerrit's cap / vial-cap-s):
@@ -117,6 +119,24 @@ module flange_ribs() {
   }
 }
 
+// tube/needle port positions (2D), n_ports placed clear of the electrodes - the
+// original Vial Cap.scad placement logic
+module port_holes2d() {
+  R = (cap_o_ring_id - port_d)/2;
+  if (n_ports > 0) {
+    if (electrodes == 0 || el_off == 0)
+      for (i=[0:n_ports-1]) rotate(i*360/n_ports) translate([R,0]) circle(d=port_d,$fn=24);
+    else if (n_ports < 3)
+      for (j=[0:n_ports-1]) rotate(90+j*360/n_ports) translate([R,0]) circle(d=port_d,$fn=24);
+    else {
+      ring_ports = (n_ports < 4) ? n_ports : 4;
+      for (k=[0:2+ring_ports-1]) rotate(k*360/6) translate([R,0]) if (k==0||k==3) {} else circle(d=port_d,$fn=24);
+    }
+  }
+  if (n_ports > 4)
+    for (l=[0:n_ports-5]) rotate(90+l*180) translate([R,0]) circle(d=port_d,$fn=24);
+}
+
 // teardrop hole, axis +X, apex toward -Z (= up in print -> self-supporting)
 module teardrop_x(d,len){ r=d/2; hull(){ rotate([0,90,0]) cylinder(r=r,h=len);
   translate([0,0,-(r+0.8)]) rotate([0,90,0]) cylinder(r=0.01,h=len,$fn=6);} }
@@ -155,13 +175,13 @@ module cap() color(C_CAP) difference() {
   }
   // smooth septum seat under the closed top
   translate([0,0,sept_z]) cylinder(d=sept_seat_d, h=sept_t+eps);
-  // electrode friction bore
-  for (s=[-1,1]) translate([s*el_off,0,-eps]) cylinder(d=cap_bore, h=cap_h+2*eps);
+  // electrode friction bores (electrodes placed evenly, like the original)
+  if (electrodes>0) for (i=[0:electrodes-1]) rotate([0,0,i*360/electrodes]) translate([el_off,0,-eps]) cylinder(d=cap_bore, h=cap_h+2*eps);
   // peg holes (through the closed top only) - 2-piece only; the 1-piece is fused, no pegs
   if (pieces==2) for (s=[-1,1]) translate([0,s*peg_off,cap_h-top_th-eps]) cylinder(d=peg_d+peg_clear, h=top_th+2*eps);
   // ports OR an open septum field (full-width spine, rounded window corners)
   if (port_style=="ports")
-    for (a=port_angles) rotate([0,0,a]) translate([port_R,0,-eps]) cylinder(d=port_d, h=cap_h+2*eps);
+    translate([0,0,-eps]) linear_extrude(cap_h+2*eps) port_holes2d();
   else
     translate([0,0,cap_h-top_th-eps]) linear_extrude(top_th+2*eps)
       offset(r=win_round) offset(r=-win_round) difference() {   // OPENING -> rounds the window's convex corners
@@ -212,7 +232,7 @@ module rt_outline2d() hull() for(s=[-1,1]) translate([s*el_off,0]) circle(r=bear
 // the cap's port openings (matches cap()'s port_style) - used to bore straight up
 module ports2d() {
   if (port_style=="ports")
-    for (a=port_angles) rotate([0,0,a]) translate([port_R,0]) circle(d=port_d, $fn=24);
+    port_holes2d();
   else
     offset(r=win_round) offset(r=-win_round) difference() {
       circle(r=R_open, $fn=140);
