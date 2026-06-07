@@ -94,10 +94,6 @@ git clone https://github.com/amy-bo/electroPioreactor.git
 ```
 
 ```bash
-git -C electroPioreactor checkout AEP-Plugin
-```
-
-```bash
 /opt/pioreactor/venv/bin/pip install ./electroPioreactor/AEP-Plugin
 ```
 
