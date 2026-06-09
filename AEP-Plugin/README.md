@@ -69,6 +69,23 @@ In a browser, navigate to `http://<hostname>.local` (e.g. `http://ed04.local`) �
 
 > ℹ️ **The Pioreactor image is headless by design.** A connected monitor will stay blank even on a fully working unit (HDMI output, ACT LED, and boot splash are all disabled in `/boot/firmware/config.txt`). Don't troubleshoot from screen output – verify boot via the brief blue LED flash, by `ping <hostname>.local` from another device on the same network, or by the web UI loading.
 
+#### Reaching a unit with no router – local access point
+
+An electroPioreactor often runs where there's no usable Wi-Fi (a lab bench, a field site). A **leader** can broadcast its own access point so you reach the web UI directly from a phone or laptop, no router needed. Enable it by placing a file named `local_access_point` on the SD card's boot partition – and the file **must contain the two-letter Wi-Fi country code** (its first two characters are passed to `iw reg set`; an empty file leaves the access-point service unable to start):
+
+```bash
+# on the booted Pi (then reboot):
+echo GB | sudo tee /boot/firmware/local_access_point
+```
+
+```bash
+# or on the SD card from your computer before first boot
+# (the boot partition mounts as "bootfs"):
+echo GB > /Volumes/bootfs/local_access_point
+```
+
+After a reboot the unit broadcasts an AP whose SSID and password come from `config.ini`'s `[local_access_point]` section (defaults `pioreactor` / `raspberry`). Join that Wi-Fi and open `http://10.42.0.1`. To rename it, edit the `ssid=` under `[local_access_point]` and reboot.
+
 ### 2. SSH in and install the plugin
 
 **On your Mac/Windows/Linux shell**, open the SSH session:
