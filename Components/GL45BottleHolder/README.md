@@ -16,7 +16,7 @@ The upstream Duran holders (e.g. [Printables 1058356](https://www.printables.com
 
 ## Re-rendering / other sizes
 
-`GL45_holder.scad` is the source. Open it in OpenSCAD, set `bottle_ml` to `250`, `500` or `1000` (it's a Customizer dropdown), then render (F6) and export. The three STLs above are produced this way, so they stay in sync with the SCAD.
+`GL45_holder.scad` is the source. Open it in OpenSCAD, set `bottle_ml` to `250`, `500` or `1000`, then render and export. The three STLs above are produced this way, so they stay in sync with the SCAD.
 
 ## Files
 
