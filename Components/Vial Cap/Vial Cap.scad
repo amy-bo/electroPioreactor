@@ -30,16 +30,16 @@ opening_tilt = 50;         // deg - tilt of the opening wall above the cap (90 =
 layer_h    = 0.2;          // mm - PC-CF print layer height (set to your slicer's value)
 guides     = [1,2,3,4,5];  // ports to add a needle guide on (1-based port indices; [0] = none; e.g. [1] or [1,2,3])
 guide_h    = 3;            // mm - height of the guide section (above the cap for part="cap"; below the top-stop face otherwise)
-guidexmin_wall = 1;        // guide clearance beyond a port hole, as a multiple of min_wall
+guidexmin_wall = 2;        // guide clearance beyond a port hole, as a multiple of min_wall
 
 $fn = 72;
 eps = 0.05;
 
 // ---- electrodes & ports (the original cap's key counts + sizes) -----
 electrodes      = 2;       // number of electrodes (0 or 2; the top-stop column is built for 2)
-el_d            = 6;       // electrode diameter
+el_d            = 6.2;     // electrode diameter
 n_ports         = 5;       // number of tube/needle ports (auto-placed clear of the electrodes)
-port_d          = 1.4;     // port diameter (OD of the 75mm needles)
+port_d          = 2.2;     // port diameter (OD of the 75mm needles)
 el_len          = 60;      // electrode length (L)
 el_off          = 4.8;     // offset from axis to each electrode
 insertion_depth = 23;      // g: protrusion below the cap bottom into the vial
@@ -85,7 +85,7 @@ peg_d = 3; peg_off = 2; peg_clear = 0.3; peg_h = top_th;   // flush with the cap
 
 // ---- column + clamp -------------------------------------------------
 bearing_r = el_d/2 + 1.8;
-m3_bolt   = 3.4; nut_af = 5.7; nut_th = 2.6; nut_ac = nut_af/cos(30);
+m3_bolt   = 3.4; nut_af = 5.9; nut_th = 2.8; nut_ac = nut_af/cos(30);
 clamp_in  = 1.8; clamp_out = 2.2;          // robust PC-CF walls (Grace-proof)
 // 1-piece build
 cap_R   = cap_od/2;                // flange_angle (above) sets the poka-yoke position; 0 = +X rises with a side ramp
