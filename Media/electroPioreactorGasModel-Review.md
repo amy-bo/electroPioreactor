@@ -2,11 +2,11 @@
 
 This is the review and Phase 1.2 change record for the gas model (`electroPioreactorGasModel.xlsx`). It supersedes the ad-hoc review notes and is kept alongside the spreadsheet so the xlsx stays the reviewable artifact and this file is the audit trail.
 
-Provenance: the model began as `CO2.xlsx` (Claude for Excel extension, multi-sheet), was flattened and refined by hand through `electroPioreactor_model_phase1.xlsx`, `_1`, `_2`, and is now this single-sheet file. It originated in Claude Desktop (Opus 4.8) project *AMYBO In-culture electrolysis HOB cultivation*, chat *Electrobioreactor CO₂ dosing optimization*. Each prior version is preserved in git history on the `CO2-model` branch (`git show <sha>:Media/<name>`).
+Provenance is in git, not here: the version chain (`CO2.xlsx` → `electroPioreactor_model_phase1{,_1,_2}.xlsx` → this file) and its origin are recorded in the import-commit messages on the `CO2-model` branch (`git log`, `git show <sha>:Media/<name>`).
 
 ## What the model does
 
-It sizes CO₂ dosing and O₂ management for an aseptic electro-bioreactor growing *C. necator* on electrolytic H₂/O₂ plus dosed CO₂, in a Pioreactor vial. Every cell is a number, text, or a formula; each datum lives in its own named, sourced cell. Confidence is encoded by font colour (black = verified/handbook/defined; blue bold = assumption, input, or to-measure).
+It sizes CO₂ dosing and O₂ management for an aseptic electro-bioreactor growing *C. necator* on electrolytic H₂/O₂ plus dosed CO₂, in a Pioreactor vial. The agent-facing modelling rules (cell discipline, colour conventions, units) live in `Media/CLAUDE.md`. In brief: column-E fill = confidence (six levels, legend in the sheet); column-D font = input (blue) vs formula (black).
 
 ## First-pass review: the model is sound
 
@@ -37,5 +37,17 @@ All changes are backward-compatible at the current inputs (the headline numbers 
 - **Measure `etaF` (cathodic H₂ faradaic efficiency).** It is the dominant unknown and now drives the O₂ balance as well as H₂ yield. Gas collection over a known charge.
 - **The stripping verdict is best-case.** `strip_sparge` evaluates with bulk O₂ pinned at the ceiling (364 µM). The stated aim is to minimise dissolved O₂, where the driving force is smaller, so real stripping is worse than the 0.04 ratio shown. Combined with the cathodic sink now in the model, gas stripping looks like a minor O₂ pathway, not the main one. Worth stating as best-case on the cell.
 - **Sinter active pore count** (`n_pores_active`) is a data gap; measure or estimate to firm up the bubble regime and interfacial area for the sinter.
-- **Confidence legend mismatch.** The legend describes six confidence levels but only two are actually used (black and blue-bold), and the legend swatches themselves are not coloured. Either colour the swatches and use the full scale, or simplify the legend to the two levels in use. Not changed here as it is a presentation call, not a correctness one. Happy to do either.
-- **Sensitivity analysis** remains deferred per the model's own note. Once `etaF` and `n_pores_active` have measured values, a one-at-a-time sweep of those plus `Q_CO2`, duty cycle and `intensity` would be the natural next step.
+- **Input-vs-formula font convention** (blue = input, black = formula) is not yet applied rigorously across the sheet. Pending a decision on whether typed-in physical constants (Faraday, R, g, etc.) count as "input" (blue) or stay black; once decided, apply consistently and show the convention in the key. The section-10 additions already follow it.
+- **Sensitivity analysis** would establish which measurement matters most. `etaF` (D78) is the strongest candidate (it scales the whole biological throughput and now drives the cathodic O₂ sink), but a one-at-a-time sweep of it plus the consumption ratios, `n_pores_active`, `Q_CO2`, duty cycle and `intensity` is the way to actually rank them.
+
+## Phase 1.3 — vial dimensions checked against Pioreactor source
+
+Verified the AEP0.2 (40 mL) placeholders against Pioreactor's software (`core/pioreactor/models.py`) and docs. Key finding: the 40 mL vial is the **same diameter as the 20 mL** (the source inherits `reactor_diameter_mm` = 27.0 for both and overrides only capacity and fill volume — a taller vial, not a wider one).
+
+- `vial_OD_2` (D25): 28 → 27.48 (same diameter as the measured 20 mL; was a guess, now literature-supported). Measure to confirm.
+- `Vmax_2` (D29): 25 → 30 (Pioreactor recommends 10–30 mL working volume for the 40 mL vial).
+- `D_int_2` (D27): note updated — still a measure-it, but now flagged as ~double the 20 mL depth given the equal diameter.
+- Confirmed correct: `Vmax_1` (D28) = 16 (top of the 8–16 mL recommended range for the 20 mL).
+- Still genuine gaps (Pioreactor publishes neither wall, internal diameter, nor heights): `D_int_1`, `D_int_2`, `Vtot_1`, `Vtot_2`, `vial_wall`. Pioreactor's extra published figures for reference: max fill 18 mL (20 mL vial) and 36 mL (40 mL vial).
+
+Source: Pioreactor `models.py`, docs `prepare-vial-for-cultures`.
