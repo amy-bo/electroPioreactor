@@ -110,3 +110,30 @@ Recomputed every formula in 6–10 independently (Python, exact sheet formulas, 
 - **§8 carryover:** correctly uses the during-pulse (peak) velocity; 151× margin, robust.
 - **§9 verdict:** logic is sound. Now that `t_O2_ceiling` exists, the verdict could optionally reference the ~18 min timescale, but I left the verdict formula untouched.
 - **§10 (the Phase-1.2 additions):** all formulas re-verified; bubble-regime flag and the new diagnostics compute correctly.
+
+## Phase 1.5 — sections 11 & 12: surface-aeration O₂ path, stirring, dissolved CO₂ (2026-06-16)
+
+Built the missing mechanisms the logic pass exposed. All cells recomputed independently; all 167 defined names resolve; dropdowns and recalc intact.
+
+### §11 — O₂ removal via stirred surface to vented headspace (the likely-dominant path)
+The model previously removed O₂ only into rising CO₂ bubbles (~0.04× of need) and computed the free-surface area `interface_A` (§1B) without ever using it. §11 wires in the path that area was for: the stir bar renews the liquid surface, O₂ crosses into the headspace, and the CO₂ sparge flushes the headspace out the vent. Two legs:
+
+- **Mass-transfer leg (coarse):** `tip_speed` → surface-renewal frequency `s_renew` (coarse proxy = tip speed / vial ID) → `kL_surf` (Danckwerts) → `kLa_surf` ≈ 19 /h → `surf_strip`, giving **`surf_ratio` ≈ 6×** at ceiling driving force. That is ~150× the bubble path. Caveat: `kL_surf` rides the coarse `s_renew` proxy and is likely high-end (gold-flagged) — **measure kLa by gassing-out** to firm it up. Even if the proxy overestimates by 5×, the path still clears the surplus.
+- **Vent-capacity leg (robust, kL-independent):** `y_O2_vent` = the headspace O₂ mole fraction at which the vented CO₂ throughput carries the excess O₂ away = **4.4%**, which corresponds (`DO_vent_eq`) to a dissolved O₂ of only **~53 µM — 7× below the 364 µM ceiling**. So the gas throughput alone is comfortably able to remove the O₂ at a DO well under the inhibition limit; the only question is whether surface transfer is fast enough to feed it (the mass-transfer leg, which says yes with margin).
+- **Coupling caveat:** `hs_flush_time` ≈ 39 min — the headspace approaches its steady O₂ level over tens of minutes; the static cells approximate a coupled dynamic. Not fatal (it converges to the favourable low-DO state), but it's why this is Phase-1.5, not a closed result.
+
+**Headline reversal:** the earlier "gas stripping alone is insufficient (0.04×)" verdict was correct *only for the bubble path*. With the stirred surface + vented headspace included, O₂ removal is plausibly sufficient (`O2_removal_ratio` ≈ 6×, `t_O2_ceiling_rem` = "removal holds ceiling"). The separate-strip-gas idea from Phase 1.4 is withdrawn — unnecessary. The remaining real risk is the **lag/establishment** regime: `t_O2_ceiling_lag` = **6.2 min** (cells not yet consuming O₂, so the full net electrolytic O₂ accumulates), worst exactly when establishing growth — so the surface path needs to be working from the start, and low electrolysis current + cathodic O₂ reduction (low etaF) buy proportional time.
+
+Stirring is now an explicit input (`stir_rpm`, `stir_len`). It drives the surface path here; it also enhances bubble breakup/holdup (not quantified — would need vessel-specific constants).
+
+### §12 — dissolved CO₂ & carbon availability (+ pH)
+- `CO2_diss` ≈ **29 mM** dissolved during a sparge (Henry, Sander 2023 CO₂ constants), vs RuBisCO `Km_CO2` ~50 µM → **`CO2_carbon_margin` ≈ 590×**. Carbon is saturating for fixation during sparge (duty-averaged is lower but still far above Km). Confirms carbon is not the limiting factor — consistent with the 22× supply:demand but now expressed as the biologically meaningful dissolved concentration.
+- `pH_CO2_unbuf` ≈ **3.94** is the UNBUFFERED worst case (pure water saturated with CO₂). The Sydow (2017) phosphate medium (~36–108 mM) buffers pH near setpoint, so this is a lower bound, not the operating pH — proper pH needs the buffer model. Flagged in the cell. This is the lever that connects CO₂ over-dosing to lag (high pCO₂/low pH extends lag, Amer & Kim 2023): it argues for dosing CO₂ to need, not 22× over.
+
+### What lowers lag (your question)
+Lag is set by gas partial pressures, not the uptake ratio: keep O₂ partial pressure low (the §11 surface path + low current + cathodic ORR), keep CO₂ moderate not excessive (§12 — over-dosing drops pH and extends lag), and keep mixing good (stir-driven kLa correlates with shorter lag). The bio ratio itself is not the lag lever.
+
+### Caveats / follow-ups
+- `kL_surf` / `s_renew` are coarse — measure kLa by gassing-out to convert the 6× from "plausible" to "confirmed".
+- `Km_CO2` is order-of-magnitude; `pH_CO2_unbuf` is unbuffered worst-case (needs the Sydow buffer model for true pH).
+- The sensitivity script (`electroPioreactorGasModel-sensitivity.py`) models the bubble path only; the surface path is not yet in it.
