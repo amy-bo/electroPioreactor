@@ -153,3 +153,28 @@ The 6–10 pass exposed two error *classes* — a regime mistake (crediting stea
 **Minor — §2 volumetric gas rows.** Clarified that `V_H2_gen`/`V_O2_gen`/`V_gas_total` are an **abiotic** calibration (collect over water, no cells, to verify Gerrit's Law / etaF); with cells the H₂ and excess O₂ are consumed so you wouldn't collect them.
 
 **Net:** the model now treats all three gases consistently, and the lag regime is flagged wherever steady-state biology was silently assumed. The dominant remaining uncertainties are the same measurables: etaF, surface kLa (gassing-out), and — newly highlighted — whether H₂ can actually be delivered/consumed fast enough during establishment.
+
+## Phase 1.7 (CO2-model) — usability: verdict removed, flags tokenised, conditional formatting
+- Removed `sched_verdict` (§9): it scored **only bubble stripping**, so on the tube sparger it could never read "sufficient" (max ~0.9× even at 100% duty) and it ignored the §11 surface/headspace O₂ path that actually removes O₂. Misleading — superseded by §11 and the optimiser.
+- Long-sentence value cells → short tokens (`OK`/`RISK`/`Static`/`Dynamic`/`LOW`/`EXPLOSIVE`); full text kept in the E note. Column D narrowed (was forcing horizontal scroll).
+- Conditional formatting: traffic-light on tokens; red→green colour scales on the watch ratios (`O2_removal_ratio`, `surf_ratio`, `t_O2_ceiling`/`_lag`, `CO2_sd_ratio`, `We_orifice`, `O2_excess`).
+
+## Phase 2 (CO2-optimiser branch) — §14 optimal sparge schedule (absolute answer)
+For a given CO₂ flow the model now **computes** the pulse duration and interval, rather than leaving you to iterate. Mechanism:
+- **Two duty floors:** `duty_carbon` (CO₂ supply ≥ margin × fixation demand) and `duty_O2vent` (vented CO₂ throughput carries the worst-case **lag** net O₂ out at ≤ `target_DO_frac` × ceiling). `duty_opt` = the binding of the two.
+- **Frequency cap** `spg_int_max` = `target_DO_frac` × `t_O2_ceiling_lag`, so DO can't spike past target between flushes.
+- **Answer:** pulse at the solenoid floor (`spg_dur_opt`, shortest → smoothest → best OD windows), interval `spg_int_opt` from the optimal duty, capped by the frequency limit.
+- **`sched_mode` selector** (Manual / Optimal): Manual uses your typed `spg_dur_man`/`spg_int_man`; Optimal auto-applies the computed schedule. `spg_dur`/`spg_int` (§5) became mode-switched formulas — verified acyclic (the optimum depends only on Q_CO2, geometry and gas generation, never on the schedule it sets).
+
+**Default result** (Q=10 mL/min, target DO = 0.5 × ceiling): **0.5 s pulse every ~34 s**. The binding constraint is **O₂ venting, not carbon** — so the real lever is `target_DO_frac` (how close to the ceiling you let DO run), which trades O₂ margin against CO₂ dose / pH:
+
+| target_DO_frac | pulse | interval | CO₂ : demand |
+|---|---|---|---|
+| 0.3 | 0.5 s | 20 s | 33× |
+| 0.5 | 0.5 s | 34 s | 20× |
+| 0.7 | 0.5 s | 48 s | 14× |
+| 0.9 | 0.5 s | 61 s | 11× |
+
+So your manual 1 s / 1 min sits near the 0.5-target optimum; the gains are a shorter, more frequent pulse (smoother DO) and the ability to dial CO₂ down by accepting higher DO.
+
+**Accuracy limit (stated in the section, cell `kinetic_caveat`):** this optimises a **constraint proxy** — the least-dosing schedule that holds DO below the O₂ ceiling, keeps carbon non-limiting, and respects the solenoid floor and flush frequency. It is **not** a fitted growth model: no validated μ(dissolved-O₂, pH, dissolved-CO₂) or lag kinetics exist for *C. necator* under in-culture electrolysis. It gives the lag-**minimising direction**, not a biologically-exact optimum, and is further bounded by etaF (unmeasured), surface kL (coarse), and the unbuffered-pH simplification. Validate empirically.
