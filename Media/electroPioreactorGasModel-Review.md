@@ -178,3 +178,12 @@ For a given CO₂ flow the model now **computes** the pulse duration and interva
 So your manual 1 s / 1 min sits near the 0.5-target optimum; the gains are a shorter, more frequent pulse (smoother DO) and the ability to dial CO₂ down by accepting higher DO.
 
 **Accuracy limit (stated in the section, cell `kinetic_caveat`):** this optimises a **constraint proxy** — the least-dosing schedule that holds DO below the O₂ ceiling, keeps carbon non-limiting, and respects the solenoid floor and flush frequency. It is **not** a fitted growth model: no validated μ(dissolved-O₂, pH, dissolved-CO₂) or lag kinetics exist for *C. necator* under in-culture electrolysis. It gives the lag-**minimising direction**, not a biologically-exact optimum, and is further bounded by etaF (unmeasured), surface kL (coarse), and the unbuffered-pH simplification. Validate empirically.
+
+## Phase 1.8 (CO2-optimiser) — full audit pass
+Every cell re-checked for stale assumptions, self-flagellation, logic, arithmetic, links and citation accuracy.
+- **Arithmetic/logic/links:** all 14 sections recomputed independently — consistent, no errors. 189 names resolve, no out-of-range, **no circular references** (the mode-switched `spg_dur`/`spg_int` confirmed acyclic), selectors + `sched_mode` dropdown intact.
+- **Citation/data accuracy:** all literature values re-verified against sources and hold (F, R, M_CO2, σ, ρ, D_O2 fit, Henry O₂/CO₂/H₂ + T-coeffs, Mendelson, DURAN, Clary etaF, Ishizaki/Lu&Yu, Amer&Kim ceiling). **One factual error fixed:** §13 claimed "H₂ ~6× less soluble than O₂" — the Henry ratio is 1.67×, corrected to ~1.7×.
+- **Outdated assumption fixed:** `O2_ceil_uM` note said the DO floor is "set by stripping capacity" (pre-§11, bubble-only) → now "O₂-removal capacity (§11)".
+- **Self-flagellation / process notes removed** (kept the science): the "Audit: corrected from…/replaced…" lines on etaF/D_O2/O2_ceil, "was unused" (a_surf), "was implicitly… now explicit" (spg_len), "the verdict cell was removed" (sched_bal), "flow-dependence not modelled" → "valid in the quasi-static regime (see §10)".
+- **Stale link removed:** the old mis-citation URL (aem.02007-22) left on the §3 header rows.
+- **Minor:** dropped uncertain "form-II" RuBisCO qualifier; "~22×" → "~20×" (Optimal-mode default); fixed a `<12 h lag` attribution (Amer & Kim, not Ishizaki).
