@@ -136,4 +136,20 @@ Lag is set by gas partial pressures, not the uptake ratio: keep O₂ partial pre
 ### Caveats / follow-ups
 - `kL_surf` / `s_renew` are coarse — measure kLa by gassing-out to convert the 6× from "plausible" to "confirmed".
 - `Km_CO2` is order-of-magnitude; `pH_CO2_unbuf` is unbuffered worst-case (needs the Sydow buffer model for true pH).
-- The sensitivity script (`electroPioreactorGasModel-sensitivity.py`) models the bubble path only; the surface path is not yet in it.
+- The sensitivity script (`electroPioreactorGasModel-sensitivity.py`) now includes the surface path (synced phase 1.5); §13 H₂ availability is not in it (it's a fixed timescale, not an OAT output).
+
+## Re-review of sections 1–5, applying the 6–10 logic lenses (2026-06-16)
+
+The 6–10 pass exposed two error *classes* — a regime mistake (crediting steady-state biology during lag) and a whole omitted mechanism (surface aeration). I re-checked 1–5 for both. Both recur; one is significant. (My first 1–5 pass was arithmetic + assumptions, not this depth — so yes, it needed re-review.)
+
+**Arithmetic/units across 1–5: re-confirmed clean.** Geometry/displacement chain, electrolysis (Faraday), Henry/ceiling, CO₂ dosing — all dimensionally consistent, no errors. Selector error-by-design logic intact.
+
+**Regime error (same class as the O₂ lag miss) — §3.** The section assumes "cells consume 100% of evolved H₂", so `O2_cons`/`CO2_cons` are steady-growth values. During lag/establishment uptake ≈ 0, so they're overstated and the consumption-credited `O2_excess` understates the real lag surplus (which is the full net electrolytic O₂ — captured by `t_O2_ceiling_lag`, §11). Fixed: `H2_cons`/`O2_cons` notes now carry the lag caveat and cross-reference §11/§13.
+
+**Omitted mechanism (the H₂ analogue of the surface-aeration miss) — new §13.** §3 asserted 100% H₂ utilisation with no supporting mechanism. H₂ is barely soluble (`C_H2_sat` ≈ **0.77 mM**, ~6× less than O₂), yet it's evolved at `H2_turnover` ≈ **9× the saturable pool per hour**. So during lag (no uptake), dissolved H₂ saturates in `t_H2_sat` ≈ **6.5 min** — the same fast timescale as O₂ — and beyond that the evolved H₂ bubbles off: **(a)** lost energy (the cells' whole energy source), and **(b)** an explosive H₂+O₂ headspace (`H2_safety`: H₂ is flammable 4–94% in O₂). "100% consumed" therefore holds only once cells are growing fast enough to consume H₂ in near-real-time; it fails exactly during establishment. This is arguably *more* fundamental than CO₂ dosing for reaching growth — if H₂ isn't delivered, nothing grows. It reinforces the same prescription: **low electrolysis current during establishment** (lower H₂ and O₂ evolution rates → both gases consumable, headspace safer), ramp as OD climbs. §13 (H₂), §11 (O₂), §12 (CO₂) now give all three gases an availability/removal treatment.
+
+**Coupling — §5 ↔ §11/§12.** `CO2_supply` feeds §11's vent leg, but CO₂ must first saturate the liquid (~1 h at the current schedule) before it breaks through to the headspace to flush O₂ — so the vent leg is weak during the early/lag phase. Noted on `CO2_sd_ratio`, and the "before stripping use" wording was corrected (bubble stripping is negligible; the real O₂ route is surface→vent, §11) and the over-dosing point added.
+
+**Minor — §2 volumetric gas rows.** Clarified that `V_H2_gen`/`V_O2_gen`/`V_gas_total` are an **abiotic** calibration (collect over water, no cells, to verify Gerrit's Law / etaF); with cells the H₂ and excess O₂ are consumed so you wouldn't collect them.
+
+**Net:** the model now treats all three gases consistently, and the lag regime is flagged wherever steady-state biology was silently assumed. The dominant remaining uncertainties are the same measurables: etaF, surface kLa (gassing-out), and — newly highlighted — whether H₂ can actually be delivered/consumed fast enough during establishment.
