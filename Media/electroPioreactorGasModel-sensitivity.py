@@ -23,6 +23,8 @@ BASE=dict(
   Q_CO2=10, spg_dur=1, spg_int=1, R=8.314462618, M_CO2=44.0095,
   sigma=0.0712, rho_L=995.65, g=9.80665, D_O2=2.249e-9,  # Han & Bartels 1996 fit at 30 C (audit 2026-06-16)
   d_orifice=0.000205, mend_a=2.14, mend_b=0.505,
+  stir_rpm=500, stir_len=12,                              # §11 stirring (surface aeration)
+  H_CO2ref=3.3e-4, H_CO2T=2400, Km_CO2=50,               # §12 dissolved CO2 (Sander 2023; RuBisCO Km)
 )
 
 def model(p):
@@ -55,9 +57,26 @@ def model(p):
     holdup=u_sg/u_rise; a_int=6*holdup/d_b; t_c=d_b/u_rise
     kL=2*math.sqrt(p['D_O2']/(PI*t_c)); kLa=kL*a_int
     strip_sparge=kLa*(V_charge/1e6)*O2_ceil_C*3600
-    strip_ratio=(strip_sparge*duty)/O2_excess if O2_excess>0 else float('nan')
+    strip_avg=strip_sparge*duty
+    strip_ratio=strip_avg/O2_excess if O2_excess>0 else float('nan')
+    # --- §11 surface-aeration path (stirred surface -> vented headspace) ---
+    interface_A=(A_x-(p['rod_n']*PI/4*p['rod_d']**2+PI/4*p['spg_OD']**2+PI/4*p['eff_OD']**2))  # mm2
+    tip_speed=PI*(p['stir_len']/1000)*p['stir_rpm']/60
+    s_renew=tip_speed/(vial_ID/1000)
+    kL_surf=2*math.sqrt(p['D_O2']*s_renew/PI)
+    a_surf=interface_A/V_charge  # 1/m
+    kLa_surf=kL_surf*a_surf
+    surf_strip=kLa_surf*(V_charge/1e6)*O2_ceil_C*3600
+    surf_ratio=surf_strip/O2_excess if O2_excess>0 else float('nan')
+    removal_ratio=(strip_avg+surf_strip+O2_cath)/O2_excess if O2_excess>0 else float('nan')
+    t_ceiling_lag=O2_ceil_C*(V_charge/1e6)/O2_net*60  # min, no biological uptake
+    # --- §12 dissolved CO2 ---
+    H_CO2_T=p['H_CO2ref']*math.exp(p['H_CO2T']*(1/T_K-1/p['T_ref']))
+    CO2_diss_mM=H_CO2_T*p['P_atm']  # mol/m3 = mM
+    carbon_margin=CO2_diss_mM*1000/p['Km_CO2']
     return dict(rH2_mol_h=rH2, O2_excess=O2_excess, strip_ratio=strip_ratio,
-                CO2_sd=CO2_sd, d_bubble_mm=d_b*1000)
+                surf_ratio=surf_ratio, removal_ratio=removal_ratio, t_ceiling_lag=t_ceiling_lag,
+                CO2_sd=CO2_sd, carbon_margin=carbon_margin, d_bubble_mm=d_b*1000)
 
 def run(name,val):
     p=dict(BASE); p[name]=val; return model(p)
@@ -65,28 +84,32 @@ def run(name,val):
 # UNCERTAIN INPUTS (measurements): (low, high, rationale)
 MEAS={
  'etaF':       (0.5, 1.0,  'cathodic H2 faradaic efficiency; 1.0 optimistic, true value unmeasured'),
- 'bio_O2':     (1.5, 2.5,  'O2:H2 consumption ratio (base 2 of 6:2:1)'),
- 'bio_CO2':    (0.7, 1.3,  'CO2:H2 consumption ratio (base 1 of 6:2:1)'),
+ 'bio_O2':     (1.75,2.1,  'O2:H2 consumption ratio (knallgas-bounded growth range)'),
+ 'bio_CO2':    (0.9, 1.15, 'CO2:H2 consumption ratio (growth range)'),
  'D_O2':       (1.8e-9,3.0e-9,'O2 diffusivity literature spread'),
  'O2_ceil_atm':(0.2, 0.4,  'O2 growth-inhibition ceiling'),
  'd_orifice':  (160e-6,250e-6,'sinter P0 pore size range 160-250 um'),
  'vial_wall':  (0.8, 1.4,  'estimated borosilicate wall thickness'),
+ 'stir_len':   (8, 18,     'stir-bar length (Pioreactor max 20mm) — drives surface kLa'),
+ 'Km_CO2':     (20, 80,    'RuBisCO Km(CO2) order-of-magnitude'),
 }
 KNOBS={
  'intensity':(3,25,'LED setpoint, validated range'),
  'Q_CO2':    (5,20,'needle-valve flow'),
  'spg_int':  (0.5,2,'sparge interval (duty)'),
+ 'stir_rpm': (200,900,'stir speed — surface aeration / O2 removal'),
 }
-KEYS=['rH2_mol_h','O2_excess','strip_ratio','CO2_sd']
+KEYS=['rH2_mol_h','O2_excess','strip_ratio','surf_ratio','removal_ratio','t_ceiling_lag','CO2_sd','carbon_margin']
 
 b=model(BASE)
 print("BASELINE (AEP0.1.1):")
-for k in KEYS: print(f"  {k:12} = {b[k]:.4g}")
-print(f"  verdicts: strip_ratio {b['strip_ratio']:.3f} (<1 => stripping insufficient); CO2_sd {b['CO2_sd']:.1f} (>1 => carbon ok)")
+for k in KEYS: print(f"  {k:14} = {b[k]:.4g}")
+print(f"  O2 verdict: bubble strip_ratio {b['strip_ratio']:.3f} (<1 alone) BUT surf_ratio {b['surf_ratio']:.1f} + combined removal_ratio {b['removal_ratio']:.1f} (>1 => ceiling held)")
+print(f"  lag time-to-ceiling {b['t_ceiling_lag']:.1f} min; carbon margin {b['carbon_margin']:.0f}x (>>1 => CO2 saturating)")
 
 def report(title, D):
     print(f"\n=== {title} — span of each output across the input's range ===")
-    print(f"  {'input':12} {'O2_excess span%':>16} {'strip_ratio span%':>18} {'rH2 span%':>11} {'CO2_sd span%':>13}")
+    print(f"  {'input':12} {'O2_excess%':>11} {'surf_ratio%':>12} {'removal%':>10} {'t_lag%':>8} {'rH2%':>7} {'carbonMrg%':>11}")
     rows=[]
     for nm,(lo,hi,_) in D.items():
         rl,rh=run(nm,lo),run(nm,hi)
@@ -95,10 +118,11 @@ def report(title, D):
             if any(map(lambda x:isinstance(x,float) and math.isnan(x),(a,bv))): return float('nan')
             base=b[k]
             return abs(bv-a)/abs(base)*100 if base else float('nan')
-        rows.append((nm,span('O2_excess'),span('strip_ratio'),span('rH2_mol_h'),span('CO2_sd')))
-    rows.sort(key=lambda r:(-(r[1] if not math.isnan(r[1]) else -1)))
-    for nm,oe,sr,rh,cs in rows:
-        print(f"  {nm:12} {oe:>15.1f}% {sr:>17.1f}% {rh:>10.1f}% {cs:>12.1f}%")
+        rows.append((nm,span('O2_excess'),span('surf_ratio'),span('removal_ratio'),
+                     span('t_ceiling_lag'),span('rH2_mol_h'),span('carbon_margin')))
+    rows.sort(key=lambda r:(-(r[3] if not math.isnan(r[3]) else -1)))
+    for nm,oe,sf,rm,tl,rh,cm in rows:
+        print(f"  {nm:12} {oe:>10.1f}% {sf:>11.1f}% {rm:>9.1f}% {tl:>7.1f}% {rh:>6.1f}% {cm:>10.1f}%")
 
 report("UNCERTAIN MEASUREMENTS", MEAS)
 report("KNOBS (control authority, not measurements)", KNOBS)
