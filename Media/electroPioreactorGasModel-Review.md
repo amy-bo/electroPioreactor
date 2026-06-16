@@ -70,11 +70,43 @@ Verified correct:
 Corrected:
 - `D_O2` 2.4e-9 → **2.249e-9 m²/s**. The cited Han & Bartels (1996) fit, log₁₀(D[cm²/s]) = −4.410 + 773.8/T − (506.4/T)², gives 2.25e-9 at 303.15 K, not 2.4e-9. Effect is tiny (kL ∝ √D_O2; strip_ratio already ≪1).
 
-Flagged for your decision:
-- **`bio` 6:2:1 — the citation was wrong.** The paper it traced to (aem.02007-22, Amer & Kim 2023) is about lag phase, not stoichiometry, and does not give 6:2:1. The real basis is Lu & Yu (2019, Biochem Eng J 152:107369): uptake is *not* a fixed ratio — it's set by the electron split between energy (O₂) and CO₂ fixation, which shifts with cell density/phase. 6:2:1 corresponds to ~40% of electrons to biomass (a defensible mid-range); measured biomass stoichiometry (Ishizaki) is leaner on O₂ (~5.2:1.5:1), so 6:2:1 may slightly understate the O₂ surplus. Note rewritten; value left for you because it's the top-sensitivity input — best measured on your rig. (Feed mix 7:2:1, Ishizaki 2001; feed ≠ consumption.)
-- **`etaF` "Nat. Commun. 2022"** citation is unidentified — I couldn't find the specific paper. The value (1.0) is an explicit optimistic upper bound anyway. Identify the paper or drop the citation. Flagged in the cell note.
+Corrected (citations):
+- **`etaF` "Nat. Commun. 2022" → Clary et al. 2020 (PNAS 117:32947).** The original citation was unidentifiable. Replaced with a verified paper that measures neutral-water HER at ~97% Faradaic yield — directly on point, since neutral pH is exactly this cell's hard regime (FE near 100% is routine in acid/alkali; neutral is where O₂ reduction competes). Value (1.0) unchanged as a stated optimistic bound.
+
+Resolved (see Task 1 below):
+- **`bio` 6:2:1 — citation was wrong** (aem.02007-22 is a lag-phase paper, not stoichiometry). Note rewritten to Lu & Yu (2019); value kept at 6:2:1 as the defensible central estimate, with ranges stated. Reasoning in the Task 1 section.
 
 Not externally verifiable (not papers): Gerrit's Law fit (`gerrit_slope`/`int`/`min`/`max`) is the Pioreactor team's empirical calibration; NIST/ISO/DURAN/Pioreactor are standards/data/software, not journal articles.
 
 ### Zotero
-All seven journal papers cited by the model are now in the library (userID 9492620), tagged `electroPioreactorGasModel`: Lu & Yu 2019, Amer & Kim 2023 (lag phase), Lambauer & Kratzer 2022 (explosive-mix feed), Sander 2023 (Henry), Wagner & Pruß 2002 (IAPWS-95), Han & Bartels 1996 (O₂ diffusivity), Mendelson 1967 (bubble rise). Mendelson's DOI was corrected during entry (10.1002/aic.690130213, not …0308). The non-paper sources (NIST, ISO 4793, DURAN catalogue, IAPWS releases, Pioreactor docs/source) were not added — say if you want them as Zotero documents/webpages.
+All cited sources are now in the library (userID 9492620), tagged `electroPioreactorGasModel`. **Papers (8):** Lu & Yu 2019, Amer & Kim 2023 (lag phase), Lambauer & Kratzer 2022 (explosive-mix feed), Sander 2023 (Henry), Wagner & Pruß 2002 (IAPWS-95), Han & Bartels 1996 (O₂ diffusivity), Mendelson 1967 (bubble rise), Clary et al. 2020 (neutral-water HER FE). Mendelson's DOI was corrected during entry (10.1002/aic.690130213). **Non-paper sources (7):** NIST CODATA constants, NIST Chemistry WebBook, ISO 4793:1980, DURAN porosity catalogue, IAPWS R6-95 (density), IAPWS R1-76 (surface tension), Pioreactor docs/source.
+
+## Task 1 — bio consumption ratio: research + decision (2026-06-16)
+
+You can't measure the uptake ratio pre-growth, so this is a reasoned choice with stated ranges, biased toward reaching growth.
+
+**Research.** The uptake ratio is genuinely *not* a fixed constant — Lu & Yu (2019) show it's set by how the cell splits reducing power between O₂ respiration (energy) and CO₂ fixation, and that split shifts with cell density and growth phase. Hard anchors: the knallgas energy reaction (2H₂ + O₂ → 2H₂O) caps O₂:H₂ at 0.5; autotrophic growth diverts ~30–40% of reducing equivalents to fixation, which puts O₂:H₂ ≈ 0.29–0.35 and CO₂:H₂ ≈ 0.15–0.19. The widely-cited *feed* optimum is 7:2:1 (Ishizaki 2001), which reliably gives <12 h lag — but feed ≠ consumption.
+
+**Decision: keep 6:2:1 as the central consumption estimate.** O₂:H₂ = 0.33 and CO₂:H₂ = 0.17 both sit mid-range of the anchors above, so 6:2:1 is defensible without inventing a new number I can't source. Ranges now recorded in the cell notes:
+- O₂:H₂ ∈ [0.29, 0.35] → `bio_O2` ∈ [1.75, 2.1] (with `bio_H2` = 6)
+- CO₂:H₂ ∈ [0.15, 0.19] → `bio_CO2` ∈ [0.9, 1.15]
+
+**Most-likely-to-reach-growth caveat.** The binding risk to establishing growth is O₂ inhibition (Amer & Kim 2023), so the *design* should be stress-tested at the lean-O₂ end (`bio_O2` ≈ 1.8 → ~20% larger O₂ surplus to remove). The sensitivity sweep already spans this. One-line change if you want the value itself biased that way rather than just the range: set `bio_O2` = 1.8. Carbon is non-limiting across the whole CO₂ range (supply ≈ 22× demand), so `bio_CO2` doesn't move the dosing conclusion — but see the over-dosing point in the section 5/9 review below, which is the *real* CO₂ story.
+
+## Deep review — sections 6–10 (2026-06-16)
+
+Recomputed every formula in 6–10 independently (Python, exact sheet formulas, post-D_O2-fix). **No arithmetic, unit, or reference errors found** — the chain is dimensionally clean and self-consistent. Spot values (active build, sinter P0, etaF=1): d_bubble 2.08 mm, u_rise 0.290 m/s, kLa_sparge 7.5 /h, kLa_avg 0.13 /h, strip_ratio 0.039, We 0.13 (static), carryover 151× margin. The findings below are modelling limitations and one important missing diagnostic, not bugs.
+
+**Added: O₂ time-to-ceiling diagnostic (`t_O2_ceiling`, `t_O2_ceiling_strip`, section 10).** This is the operational number the model was missing. Without active O₂ removal, dissolved O₂ rises from zero to the 0.30 atm inhibition ceiling in **~18.5 min** at current settings; crediting time-averaged gas-bubble stripping extends it to only **~19.2 min**. That single comparison makes the central result concrete: gas-bubble stripping is not the O₂ mechanism.
+
+**The core O₂ tension (synthesis across 5/7/9/10).** The same CO₂ bubbles do two jobs — deliver carbon and strip O₂ — but the two have wildly mismatched rate needs:
+- Carbon: CO₂ supply is ~22× demand at the current schedule (`CO2_sd_ratio`). Carbon is hugely non-limiting; if anything the schedule *over-doses* CO₂. High dissolved CO₂/pCO₂ extends lag (Amer & Kim 2023), so over-dosing is itself a growth risk, not free insurance.
+- O₂ stripping: at *best-case* driving force (bulk DO at the ceiling) and **continuous** sparging, gas stripping would remove ~2.3× the O₂ surplus — so capacity isn't the problem. But you only sparge ~1.7% of the time (because that's all the CO₂ you need), so time-averaged stripping delivers ~4% of requirement. To strip the surplus you'd need near-continuous sparging, i.e. ~60× more CO₂ (`CO2_sd` → ~1300×). You cannot.
+- Therefore O₂ management cannot come from the CO₂ bubbles. It must come from (a) the cathode (`O2_cathode_ORR`, active once etaF<1), (b) running low electrolysis current so the absolute O₂ rate is small, and/or (c) a *separate* O₂-stripping gas decoupled from CO₂ dosing. **The strongest Phase-2 recommendation: consider a dedicated strip gas (or headspace sweep) so O₂ removal isn't hostage to the CO₂ dosing rate.**
+
+**Section-by-section limitations (all correct as written, but bounded):**
+- **§6 `d_bubble` (Tate static):** for the *sinter*, single-pore Tate ignores coalescence of bubbles from adjacent active pores at the disc face — real sinter bubbles will be larger than 2.08 mm, rise faster, give less interfacial area, so strip even less. Reinforces the conclusion. For the *tube*, the 4.1 mm bubble is ~16% of the vial ID, so wall effects on rise velocity begin to matter (not modelled). `n_pores_active` = 1 is correctly the worst case for the We check (lowest pore count → highest velocity → most likely dynamic), and even that comes out static, so "Tate valid" is robust.
+- **§7 `strip_sparge` driving force = O₂ at the ceiling (364 µM):** explicit best case. The stated operating aim is to *minimise* DO, where the driving force collapses, so the real strip rate is below even the 4% figure. CO₂ bubbles also partly dissolve as they rise (that's the delivery mechanism), shrinking them and changing `a_int` — the coupled CO₂-in/O₂-out behaviour of one bubble population is not modelled (acceptable for Phase 1). Higbie `kL` and `a = 6ε/d_b` are standard and correctly applied.
+- **§8 carryover:** correctly uses the during-pulse (peak) velocity; 151× margin, robust.
+- **§9 verdict:** logic is sound. Now that `t_O2_ceiling` exists, the verdict could optionally reference the ~18 min timescale, but I left the verdict formula untouched.
+- **§10 (the Phase-1.2 additions):** all formulas re-verified; bubble-regime flag and the new diagnostics compute correctly.
