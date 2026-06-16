@@ -51,3 +51,30 @@ Verified the AEP0.2 (40 mL) placeholders against Pioreactor's software (`core/pi
 - Still genuine gaps (Pioreactor publishes neither wall, internal diameter, nor heights): `D_int_1`, `D_int_2`, `Vtot_1`, `Vtot_2`, `vial_wall`. Pioreactor's extra published figures for reference: max fill 18 mL (20 mL vial) and 36 mL (40 mL vial).
 
 Source: Pioreactor `models.py`, docs `prepare-vial-for-cultures`.
+
+## Reference audit (2026-06-16)
+
+Checked every value sourced to a paper/reference against what the source actually gives. Cells referenced by name (row numbers drift as rows are inserted). DOI resolution is firewalled in the container, so literature values were corroborated via the source's own formula or an independent cross-check where the row couldn't be pulled directly.
+
+Verified correct:
+- Defined/standard constants — `F_const`, `R_gas`, `T_ref`, `g_const`, `Pa_per_atm`, `z_e_H2`, `z_e_O2`, `M_CO2`: exact (NIST CODATA / SI definitions).
+- `sigma` 0.0712 N/m — IAPWS R1-76 at 30 °C gives 0.07118. ✓
+- `rho_L` 995.65 kg/m³ — IAPWS-95 at 30 °C. ✓
+- `H_O2ref` 1.3e-5 mol/m³/Pa — consistent with O₂ solubility (~1.24e-5 from 1.26 mmol/L at 1 atm, within 5%). ✓
+- `H_O2T` 1500 K — consistent with the van 't Hoff coefficient for O₂ (≈1450–1560 K). ✓
+- `O2_ceil_atm` 0.30 atm — ~0.30 atm O₂ growth-inhibition threshold corroborated for *C. necator*. ✓
+- `mend_a`/`mend_b` 2.14/0.505 — standard Mendelson (1967) coefficients. ✓
+- DURAN pore-size midpoints — arithmetic correct. ✓
+- Vial dimensions — audited against Pioreactor source (Phase 1.3 above). ✓
+
+Corrected:
+- `D_O2` 2.4e-9 → **2.249e-9 m²/s**. The cited Han & Bartels (1996) fit, log₁₀(D[cm²/s]) = −4.410 + 773.8/T − (506.4/T)², gives 2.25e-9 at 303.15 K, not 2.4e-9. Effect is tiny (kL ∝ √D_O2; strip_ratio already ≪1).
+
+Flagged for your decision:
+- **`bio` 6:2:1 — the citation was wrong.** The paper it traced to (aem.02007-22, Amer & Kim 2023) is about lag phase, not stoichiometry, and does not give 6:2:1. The real basis is Lu & Yu (2019, Biochem Eng J 152:107369): uptake is *not* a fixed ratio — it's set by the electron split between energy (O₂) and CO₂ fixation, which shifts with cell density/phase. 6:2:1 corresponds to ~40% of electrons to biomass (a defensible mid-range); measured biomass stoichiometry (Ishizaki) is leaner on O₂ (~5.2:1.5:1), so 6:2:1 may slightly understate the O₂ surplus. Note rewritten; value left for you because it's the top-sensitivity input — best measured on your rig. (Feed mix 7:2:1, Ishizaki 2001; feed ≠ consumption.)
+- **`etaF` "Nat. Commun. 2022"** citation is unidentified — I couldn't find the specific paper. The value (1.0) is an explicit optimistic upper bound anyway. Identify the paper or drop the citation. Flagged in the cell note.
+
+Not externally verifiable (not papers): Gerrit's Law fit (`gerrit_slope`/`int`/`min`/`max`) is the Pioreactor team's empirical calibration; NIST/ISO/DURAN/Pioreactor are standards/data/software, not journal articles.
+
+### Zotero
+All seven journal papers cited by the model are now in the library (userID 9492620), tagged `electroPioreactorGasModel`: Lu & Yu 2019, Amer & Kim 2023 (lag phase), Lambauer & Kratzer 2022 (explosive-mix feed), Sander 2023 (Henry), Wagner & Pruß 2002 (IAPWS-95), Han & Bartels 1996 (O₂ diffusivity), Mendelson 1967 (bubble rise). Mendelson's DOI was corrected during entry (10.1002/aic.690130213, not …0308). The non-paper sources (NIST, ISO 4793, DURAN catalogue, IAPWS releases, Pioreactor docs/source) were not added — say if you want them as Zotero documents/webpages.

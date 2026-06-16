@@ -21,7 +21,7 @@ BASE=dict(
   T_C=30, P_atm=101325, Pa_per_atm=101325,
   H_O2ref=1.3e-5, H_O2T=1500, T_ref=298.15, O2_ceil_atm=0.3,
   Q_CO2=10, spg_dur=1, spg_int=1, R=8.314462618, M_CO2=44.0095,
-  sigma=0.0712, rho_L=995.65, g=9.80665, D_O2=2.4e-9,
+  sigma=0.0712, rho_L=995.65, g=9.80665, D_O2=2.249e-9,  # Han & Bartels 1996 fit at 30 C (audit 2026-06-16)
   d_orifice=0.000205, mend_a=2.14, mend_b=0.505,
 )
 
