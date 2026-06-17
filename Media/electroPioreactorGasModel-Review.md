@@ -206,3 +206,13 @@ Re-ran `electroPioreactorGasModel-sensitivity.py` (rewritten to cover the full m
 **Knobs (you turn these deliberately):** `Q_CO2` (~150% on schedule) and `target_DO_frac` (~120%) are the dominant schedule levers; `intensity` (~80%) sets gas generation; `stir_rpm` (~63%) sets the surface removal. `carbon_margin_min` does nothing (O₂-venting binds, not carbon).
 
 Caveat: this is one-at-a-time about the current baseline; it deliberately does not capture interactions (e.g. `z_e_ORR` × etaF). The "conditional" note flags the ones that are silent only because of the baseline.
+
+## Phase 1.10 — fixes from Claude Desktop review (2026-06-17)
+1. **`t_O2_ceiling_rem` (lag) used the steady surplus** — corrected `O2_excess` → `O2_net_gen` (lag regime: cells aren't consuming, so removal must offset the full net O₂). Went further than the review: **both `t_O2_ceiling_rem` and `O2_removal_ratio` were double-counting `O2_cathode_ORR`** (it's already inside `O2_net_gen`/`O2_excess`), so the explicit `-O2_cathode_ORR`/`+O2_cathode_ORR` terms were dropped. Invisible at etaF=1; wrong at etaF<1. Reproduced the review's weak-stir case (130 rpm/4 mm): now 15 min, not "9999 holds".
+2. **`sched_mode` errored on invalid input** — `spg_dur`/`spg_int` now return `NA()` for any value that isn't `Optimal` or `Manual` (was silently falling through to Manual).
+3. **Dropdowns now reject out-of-list entries** — `showErrorMessage`/`errorStyle=stop` enabled on all four validations (D16/17/18/236).
+4. **`u_rise` #N/A cascade note corrected** — now states the cascade reaches §7, §9 (per-pulse), §10 (`t_O2_ceiling_strip`) and §11 (`O2_removal_ratio`/`t_O2_ceiling_rem`); §14 optimiser independent. Behaviour kept (the error is intended for unsupported fine sinters).
+5. **`H2_safety` gated on the real condition** — `H2_turnover>1` (H₂ escaping to headspace) rather than `rH2_gen>0` (always true). Honest note that it's on at any useful current.
+6. **`duty_O2vent` robust to surface pressure** — `O2_ceil_atm` (implicitly the mole fraction) → `O2_ceil_Pa/P_atm`. No change at 1 atm.
+
+Deferred (agreed enhancements, not bugs): the inter-pulse DO-sawtooth replacement for the two O₂ proxies (`duty_O2vent` + `spg_int_max`), and a steady-growth schedule alongside the lag-sized one. Both improve robustness/efficiency without moving the current answer.
