@@ -216,3 +216,8 @@ Caveat: this is one-at-a-time about the current baseline; it deliberately does n
 6. **`duty_O2vent` robust to surface pressure** — `O2_ceil_atm` (implicitly the mole fraction) → `O2_ceil_Pa/P_atm`. No change at 1 atm.
 
 Deferred (agreed enhancements, not bugs): the inter-pulse DO-sawtooth replacement for the two O₂ proxies (`duty_O2vent` + `spg_int_max`), and a steady-growth schedule alongside the lag-sized one. Both improve robustness/efficiency without moving the current answer.
+
+## Phase 1.11 — reviewability: concise notes + graceful sinter message (2026-06-17)
+- **Notes tightened** to ~64 chars avg (from multi-sentence), sources and caveats kept — word-count down without losing accuracy, since human review is the live risk.
+- **#N/A replaced with a clean message.** Fine sinters (sub-mm bubbles) no longer cascade #N/A: `u_rise` computes plainly, the bubble strip term `strip_sparge` is excluded (=0) for d_bubble<1 mm, and `bubble_regime` reads **"Sinter OOR – add fine-bubble model"**. The surface path (§11) still yields a valid O₂ answer, so a fine sinter reads as a known model-scope gap, not a fault.
+- Cleared the redundant hydrogenase-clarification row (folded into the `O2_ceil_atm` note).
