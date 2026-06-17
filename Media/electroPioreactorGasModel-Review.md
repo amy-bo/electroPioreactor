@@ -187,3 +187,22 @@ Every cell re-checked for stale assumptions, self-flagellation, logic, arithmeti
 - **Self-flagellation / process notes removed** (kept the science): the "Audit: corrected from…/replaced…" lines on etaF/D_O2/O2_ceil, "was unused" (a_surf), "was implicitly… now explicit" (spg_len), "the verdict cell was removed" (sched_bal), "flow-dependence not modelled" → "valid in the quasi-static regime (see §10)".
 - **Stale link removed:** the old mis-citation URL (aem.02007-22) left on the §3 header rows.
 - **Minor:** dropped uncertain "form-II" RuBisCO qualifier; "~22×" → "~20×" (Optimal-mode default); fixed a `<12 h lag` attribution (Amer & Kim, not Ishizaki).
+
+## Phase 1.9 — comprehensive sensitivity & urgent-attention ranking (2026-06-17)
+Re-ran `electroPioreactorGasModel-sensitivity.py` (rewritten to cover the full model incl. §13/§14, in Optimal mode) over **every non-absolute input** (29 of them; only the defined/exact constants — Faraday, R, g, atm, electron counts, M_CO2, T_ref — excluded). Each input carries an *ignorance tier*; urgency = leverage on the critical outputs (recommended schedule, O₂ time-to-ceiling, O₂-removal feasibility, surface ratio, H₂-escape time) × how poorly we know it. Knobs are reported separately as control authority, not "attention".
+
+**Urgent to pin down (measure these):**
+1. **Surface kLa** (`kL_surf_factor`, DATA-GAP) — by far the biggest (≈375% swing on O₂-removal feasibility). The entire O₂-management strategy rests on the stirred-surface→headspace path, and `kL_surf` is only a coarse renewal-theory proxy. Measure by gassing-out (dynamic DO). Even at the low end (¼×) removal stays >1, but this is the dominant unknown.
+2. **etaF** (cathodic H₂ faradaic efficiency, DATA-GAP) — ~100–150%; drives throughput, the O₂ balance *and* the recommended schedule. Measure by cathode-gas collection / H₂:O₂ ratio.
+3. **`pulse_floor`** (solenoid minimum reliable pulse, DATA-GAP) — ~140% on the schedule. The recommended pulse duration **is** `pulse_floor`, and the interval scales with it, so bench-characterising the solenoid directly fixes the operating schedule. Trivial to measure — do it first.
+4. **`bio_O2`** (O₂:H₂ uptake ratio, DATA-GAP) — ~95% on the steady-state O₂ surplus. Can't measure until you *have* growth, so use the lean-O₂ end (1.8) as the growth-protective default meanwhile.
+
+**Worth refining (ESTIMATE tier, moderate leverage):** `etaF_OER` (~43%), `O2_ceil_atm` (~33%), `V_max`/actual charge volume (~20% on the timescales), the Gerrit fit (`gerrit_int`/`slope`, ~8–14%).
+
+**Conditional — matter only off the current operating point (OAT-at-baseline misses these):** `z_e_ORR` is inert while etaF=1 (only bites once etaF<1); `bio_CO2`, `Km_CO2`, `H_CO2ref`, `carbon_margin_min` are all ~0 because carbon is ~586× saturating and the O₂-vent floor binds the schedule, not carbon. If you ever dose far less CO₂ or measure etaF<1, re-rank.
+
+**Don't bother:** the literature constants (Henry O₂/CO₂/H₂, σ, ρ, D_O₂, Mendelson coeffs) show 8–15% leverage at most but are known to a few %, so their urgency scores are ≤2; `u_g_max` carryover has 150× margin.
+
+**Knobs (you turn these deliberately):** `Q_CO2` (~150% on schedule) and `target_DO_frac` (~120%) are the dominant schedule levers; `intensity` (~80%) sets gas generation; `stir_rpm` (~63%) sets the surface removal. `carbon_margin_min` does nothing (O₂-venting binds, not carbon).
+
+Caveat: this is one-at-a-time about the current baseline; it deliberately does not capture interactions (e.g. `z_e_ORR` × etaF). The "conditional" note flags the ones that are silent only because of the baseline.
