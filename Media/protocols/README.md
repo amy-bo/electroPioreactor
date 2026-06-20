@@ -1,3 +1,19 @@
+---
+state: authored
+author: [claude-opus-4.8]
+checked: []
+reviewed: []
+authorised:
+source_type: external
+description: "electroPioreactor experiment protocols"
+sources:
+  []
+created: 2026-06-19
+recorded_at: 2026-06-20
+cssclasses: [trust-authored]
+tags: [electropioreactor, protocol, index]
+---
+
 # electroPioreactor experiment protocols
 
 Standalone instructions for the bench experiments that determine the measured / assumed parameters in `electroPioreactorGasModel-modular.xlsx`. Run these to replace the model's default and data-gap (pink) values with measured ones and get optimal figures for everything. Each protocol gives an **optimal** route (best accuracy, more kit) and a **budget** route (minimal kit, stated accuracy trade-off), and states exactly which model cell to enter the result in.

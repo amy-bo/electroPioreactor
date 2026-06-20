@@ -1,3 +1,31 @@
+---
+state: authored
+author: [claude-opus-4.8]
+checked: []
+reviewed: []
+authorised:
+source_type: external
+description: "Sinter (frit) porosity grade"
+sources:
+  - https://www.iso.org/standard/10772.html>
+  - https://www.astm.org/Standards/E128.htm>
+  - https://www.astm.org/standards/f316>
+  - https://www.iso.org/standard/9678.html>
+  - https://www.dwk.com/na/technical/sintered-discs>
+  - https://www.buch-holm.com/products/filtration/>
+  - https://www.sigmaaldrich.com/US/en/product/aldrich/z232440>
+  - https://www.filsonfilters.com/sintered-glass-filter/>
+  - https://www.pharmtech.com/view/relationship-among-pore-size-ratings-bubble-points-and-porosity>
+  - https://www.gkd-group.com/en/glossary/bubble-point-test/>
+  - https://wiki.anton-paar.com/en/basics-of-capillary-flow-porometry/>
+  - https://scottlab.com/bubble-point-integrity-testing>
+  - https://adamschittenden.com/technical/frits>
+created: 2026-06-19
+recorded_at: 2026-06-20
+cssclasses: [trust-authored]
+tags: [electropioreactor, protocol, sparger, sinter, mass-transfer]
+---
+
 # Sinter (frit) porosity grade
 
 **Feeds:** Mass Transfer!por\_grade (0 - 5; ISO 4793 / DURAN class).

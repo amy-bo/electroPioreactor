@@ -1,3 +1,27 @@
+---
+state: authored
+author: [claude-opus-4.8]
+checked: []
+reviewed: []
+authorised:
+source_type: external
+description: "Vial geometry & true headspace"
+sources:
+  - https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/5861554
+  - https://www.sciencedirect.com/science/article/abs/pii/S0955598615000631
+  - https://www.sciencedirect.com/science/article/pii/S2472630325001414
+  - https://kg-m3.com/material/water-25c
+  - https://kg-m3.com/material/water-30c
+  - https://www.engineeringtoolbox.com/water-density-specific-weight-d_595.html
+  - https://www.westlab.com/blog/how-to-read-a-meniscus-when-using-graduated-cylinders
+  - https://www.needle.tube/product-articles-3/measuring-liquid-volumes-in-syringes-importance-and-best-practices-2
+  - https://pioreactor.com/products/20ml-glass-vial
+created: 2026-06-19
+recorded_at: 2026-06-20
+cssclasses: [trust-authored]
+tags: [electropioreactor, protocol, geometry, headspace, calibration]
+---
+
 # Vial geometry & true headspace
 
 **Feeds:** Geometry!V_vial_total, A_x, D_int, vial_ID (+ clears the geom_check INCONSISTENT flag). Current: nominal 20/42 mL vs cylinder ~27.6 mL.

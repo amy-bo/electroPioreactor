@@ -1,3 +1,28 @@
+---
+state: authored
+author: [claude-opus-4.8]
+checked: []
+reviewed: []
+authorised:
+source_type: external
+description: "Dissolved oxygen: probe + organism DO bands"
+sources:
+  - https://www.mdpi.com/2306-5354/9/5/204
+  - https://pmc.ncbi.nlm.nih.gov/articles/PMC9138072/
+  - https://www.sciencedirect.com/science/article/abs/pii/S1096717620300781
+  - https://bacdive.dsmz.de/strain/2008
+  - https://www.sciencedirect.com/topics/engineering/oxygen-limitation
+  - https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9815084/
+  - https://www.hamiltoncompany.com/process-analytics/dissolved-oxygen-knowledge/calibration-and-maintenance-for-oxygen-sensors/do-sensor-calibration
+  - https://www.epa.gov/sites/default/files/2015-06/documents/DissolvedOxygenQABulletinfinal.pdf
+  - https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9572888/
+  - https://onlinelibrary.wiley.com/doi/10.1002/bies.201500002
+created: 2026-06-19
+recorded_at: 2026-06-20
+cssclasses: [trust-authored]
+tags: [electropioreactor, protocol, dissolved-oxygen, DO, biology]
+---
+
 # Dissolved oxygen: probe + organism DO bands
 
 **Feeds:** Biology HOB table (minimum/optimum/impairment/toxic DO per organism); validates DO_ss.

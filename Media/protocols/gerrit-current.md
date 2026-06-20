@@ -1,3 +1,27 @@
+---
+state: authored
+author: [claude-opus-4.8]
+checked: []
+reviewed: []
+authorised:
+source_type: external
+description: "Gerrit's Law: LED-intensity to electrolysis-current calibration"
+sources:
+  - https://docs.pioreactor.com/user-guide/led-automations
+  - https://www.allaboutcircuits.com/news/LED-controller-linear-constant-current-control-high-current-diodes-inc/
+  - https://en.wikipedia.org/wiki/Faraday%27s_laws_of_electrolysis
+  - https://www.tek.com/en/blog/measuring-current-using-shunt-resistors
+  - https://docs.pioreactor.com/user-guide/intro-python-scripting
+  - https://www.firgelliauto.com/blogs/engineering-calculators/current-sense-resistor-calculator-measuring-current-with-a-shunt
+  - https://www.analog.com/en/resources/app-notes/an-105fa.html
+  - https://docs.pioreactor.com/user-guide/external-power
+  - https://scienceinfo.com/quantitative-electrolysis/
+created: 2026-06-19
+recorded_at: 2026-06-20
+cssclasses: [trust-authored]
+tags: [electropioreactor, protocol, electrochemistry, gerrit, calibration]
+---
+
 # Gerrit's Law: LED-intensity to electrolysis-current calibration
 
 **Feeds:** Electrochemistry!gerrit_slope, gerrit_int (+ the 3-25% validity band).

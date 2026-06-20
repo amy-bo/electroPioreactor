@@ -1,3 +1,29 @@
+---
+state: authored
+author: [claude-opus-4.8]
+checked: []
+reviewed: []
+authorised:
+source_type: external
+description: "Knallgas uptake stoichiometry (H2:O2:CO2)"
+sources:
+  - https://journals.asm.org/doi/10.1128/aem.02007-22
+  - https://www.mdpi.com/2306-5354/9/5/204
+  - https://journals.asm.org/doi/10.1128/aem.00748-24
+  - https://pmc.ncbi.nlm.nih.gov/articles/PMC7007916/
+  - https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11776160/
+  - https://pmc.ncbi.nlm.nih.gov/articles/PMC6459910/
+  - https://pmc.ncbi.nlm.nih.gov/articles/PMC4993457/
+  - https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8892151/
+  - https://sensidyne.com/application/understanding-explosive-limits/
+  - https://stacks.cdc.gov/view/cdc/9780/cdc_9780_DS1.pdf
+  - https://conference.ing.unipi.it/ichs2005/Papers/120001.pdf
+created: 2026-06-19
+recorded_at: 2026-06-20
+cssclasses: [trust-authored]
+tags: [electropioreactor, protocol, stoichiometry, knallgas, biology]
+---
+
 # Knallgas uptake stoichiometry (H2:O2:CO2)
 
 **Feeds:** Biology!bio_H2 : bio_O2 : bio_CO2 (currently 6:2:1).

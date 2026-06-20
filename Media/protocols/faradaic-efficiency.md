@@ -1,3 +1,26 @@
+---
+state: authored
+author: [claude-opus-4.8]
+checked: []
+reviewed: []
+authorised:
+source_type: external
+description: "Faradaic efficiency (cathodic etaF, anodic etaF_OER)"
+sources:
+  - https://www.nature.com/articles/s41467-023-36880-8
+  - https://pubs.acs.org/doi/10.1021/acsenergylett.3c02362
+  - https://www.sciencedirect.com/topics/engineering/faradic-efficiency
+  - https://www.deanza.edu/chemistry/documents/1b/experiments/Experiment%20B1-%20Gases.pdf
+  - https://chem.libretexts.org/Ancillary_Materials/Laboratory_Experiments/Wet_Lab_Experiments/General_Chemistry_Labs/Online_Chemistry_Lab_Manual/Chem_10_Experiments/10%3A_Experimental_Determination_of_the_Gas_Constant_(Experiment
+  - https://onlinelibrary.wiley.com/doi/10.1002/anie.202417987
+  - https://www.science.org/doi/10.1126/sciadv.adi3180
+  - https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8934858/
+created: 2026-06-19
+recorded_at: 2026-06-20
+cssclasses: [trust-authored]
+tags: [electropioreactor, protocol, electrochemistry, faradaic-efficiency, electrolysis]
+---
+
 # Faradaic efficiency (cathodic etaF, anodic etaF_OER)
 
 **Feeds:** Electrochemistry!etaF (cathode H2, now =1 assumed) and etaF_OER (anode O2, =1).

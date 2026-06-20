@@ -1,3 +1,24 @@
+---
+state: authored
+author: [claude-opus-4.8]
+checked: []
+reviewed: []
+authorised:
+source_type: external
+description: "CO2 flow calibration (per reactor)"
+sources:
+  - https://patents.google.com/patent/US4691577A/en
+  - https://tameson.com/pages/solenoid-valve-timer
+  - https://link.springer.com/article/10.1007/s12665-024-11836-3
+  - https://www.sigmaaldrich.com/US/en/product/supelco/20433u
+  - https://lab-training.com/measurement-gas-volumes-laboratories/
+  - https://sciencing.com/measure-gas-using-water-displacement-7912117.html
+created: 2026-06-19
+recorded_at: 2026-06-20
+cssclasses: [trust-authored]
+tags: [electropioreactor, protocol, co2, flow-calibration, sparging]
+---
+
 # CO2 flow calibration (per reactor)
 
 **Feeds:** 'CO2 flows'!J (nominal flowrate, ml/s) + I (minimum sparge, s) -> flowrate_cal / min_sparge_cal / Q_CO2. Baseline ed04: 3.33 ml/s, 0.25 s.

@@ -1,3 +1,31 @@
+---
+state: authored
+author: [claude-opus-4.8]
+checked: []
+reviewed: []
+authorised:
+source_type: external
+description: "Surface oxygen transfer (kL_surf) by dynamic gassing-out"
+sources:
+  - https://www.bioprocessintl.com/sponsored-content/improving-bioreactor-performance-measuring-dissolved-oxygen-to-determine-kla
+  - https://www.eppendorf.com/ie-en/lab-academy/applied-industries/bioprocessing/measuring-the-kla-of-cell-culture-bioreactors/
+  - https://bioprocesstools.com/blog/how-to-calculate-kla/
+  - https://www.biologydiscussion.com/cell-biology/assessment-of-kla-oxygen-transfer-coefficient-6-methods/7681
+  - https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/pdf/10.1002/bit.260460412
+  - https://scijournals.onlinelibrary.wiley.com/doi/10.1002/jctb.5157
+  - https://www.bioprocessintl.com/bioreactors/measuring-kla-for-better-bioreactor-performance
+  - https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9572888/
+  - https://pubs.usgs.gov/of/2006/1047/pdf/ofr2006-1047.pdf
+  - https://www.scientificbio.com/blog/how-to-choose-the-right-dissolved-oxygen-sensor/
+  - https://www.sciencedirect.com/topics/engineering/surface-aeration
+  - https://www.bioprocessintl.com/bioreactors/lessons-in-bioreactor-s-scale-up-part-4-physiochemical-factors-affecting-oxygen-transfer-and-the-volumetric-mass-transfer-coefficient-in-stirred-tanks
+  - https://www.fondriest.com/environmental-measurements/parameters/water-quality/dissolved-oxygen/
+created: 2026-06-19
+recorded_at: 2026-06-20
+cssclasses: [trust-authored]
+tags: [electropioreactor, protocol, mass-transfer, kla, dissolved-oxygen]
+---
+
 # Surface oxygen transfer (kL_surf) by dynamic gassing-out
 
 **Feeds:** Mass Transfer!kL_surf / kLa_surf_used (enter the measured value into kLa_meas so the model uses it instead of the proxy). Compare to kL_surf_crit.
