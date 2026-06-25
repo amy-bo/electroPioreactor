@@ -6,8 +6,9 @@ source: app
 description: >
   Drives electrolysis on the configured LED channel (default D) and periodically
   sparges CO2 via a solenoid on PWM channel 4. Connect your electrode pair to the
-  configured LED channel and your CO2 solenoid to PWM channel 4. Electrolysis is
-  paused during each CO2 sparge cycle and resumed immediately afterwards.
+  configured LED channel and your CO2 solenoid to PWM channel 4. Electrolysis
+  cycles ON/OFF on a user-defined schedule and is also paused during each CO2
+  sparge cycle.
 published_settings:
   - key: electrolysis_power
     unit: "%"
@@ -18,6 +19,23 @@ published_settings:
       your electrode pair to the configured LED channel (default D, set via
       led_channel in config.ini). Set to 0 to disable electrolysis while keeping
       CO2 sparging active.
+    type: numeric
+    display: true
+  - key: electrolysis_on_seconds
+    unit: s
+    label: Electrolysis ON Time
+    description: >
+      How long (in seconds) electrolysis stays ON during each ON/OFF cycle.
+      Mid-cycle changes apply to the next phase, not the in-flight one.
+    type: numeric
+    display: true
+  - key: electrolysis_off_seconds
+    unit: s
+    label: Electrolysis OFF Time
+    description: >
+      How long (in seconds) electrolysis stays OFF between ON phases. Set to 0
+      for continuous electrolysis (no OFF phase). Mid-cycle changes apply to the
+      next phase.
     type: numeric
     display: true
   - key: sparge_duration_seconds
@@ -51,8 +69,8 @@ published_settings:
   - key: reset_to_defaults
     label: Reset to Defaults
     description: >
-      Toggle on to reset Electrolysis Power, Sparging Duration, Sparging
-      Interval, and OD Pause After Sparge to the values defined in config.ini.
-      The toggle resets itself automatically after applying.
+      Toggle on to reset all electrolysis and sparging settings to the values
+      defined in config.ini. The toggle resets itself automatically after
+      applying.
     type: boolean
     display: true

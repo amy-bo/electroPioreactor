@@ -174,11 +174,15 @@ class TestLifecycle:
         sparge_timer.cancel.assert_called_once()
 
     def test_resume_from_sleep_restores_led_and_reschedules(self, job):
-        job.state = job.SLEEPING
+        # By the time on_sleeping_to_ready runs, BackgroundJob has already
+        # transitioned state to READY; mirror that so _begin_electrolysis_on
+        # (which guards on state == READY) proceeds.
+        job.state = job.READY
         job._is_sparging = True   # simulate interrupted mid-sparge
         job.electrolysis_power = 3.0
         job.on_sleeping_to_ready()
         assert not job._is_sparging
+        # Resume starts a fresh electrolysis ON phase, which lights the LED.
         led_intensity.assert_called_with({"D": 3.0}, unit="unit", experiment="exp")
 
 
@@ -415,3 +419,122 @@ class TestConfigurableLEDChannel:
         # led_channel is a config-only hardware binding, deliberately NOT a
         # published (UI) setting — it's read once from config.ini at init.
         assert "led_channel" not in ElectroPioreactor.published_settings
+
+
+# ── electrolysis ON/OFF cycling ───────────────────────────────────────────────
+
+class TestElectrolysisCycling:
+    def test_defaults(self, job):
+        assert job.electrolysis_on_seconds == 60.0
+        assert job.electrolysis_off_seconds == 0.0
+
+    def test_new_settings_in_published_settings(self):
+        for key in (
+            "electrolysis_on_seconds",
+            "electrolysis_off_seconds",
+        ):
+            assert key in ElectroPioreactor.published_settings
+            assert ElectroPioreactor.published_settings[key]["persist"] is True
+
+    def test_begin_on_lights_led_and_schedules_off(self, job):
+        job.state = job.READY
+        job._is_sparging = False
+        job.electrolysis_power = 6.0
+        job.electrolysis_on_seconds = 30.0
+        with patch("threading.Timer") as timer_cls:
+            timer_cls.side_effect = lambda *a, **kw: MagicMock()
+            job._begin_electrolysis_on()
+        assert job._electrolysis_on is True
+        led_intensity.assert_called_with({"D": 6.0}, unit="unit", experiment="exp")
+
+    def test_begin_on_bails_when_not_ready(self, job):
+        job.state = job.SLEEPING
+        job._electrolysis_on = False
+        job._begin_electrolysis_on()
+        assert job._electrolysis_on is False
+        led_intensity.assert_not_called()
+
+    def test_begin_on_does_not_fight_in_flight_sparge(self, job):
+        # While a sparge owns the LED (forced to 0), the ON phase must not
+        # re-light it; _end_sparge re-lights when the sparge finishes.
+        job.state = job.READY
+        job._is_sparging = True
+        job.electrolysis_power = 4.0
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            job._begin_electrolysis_on()
+        assert job._electrolysis_on is True
+        led_intensity.assert_not_called()
+
+    def test_off_phase_kills_led_and_schedules_next_on(self, job):
+        job.state = job.READY
+        job._is_sparging = False
+        job.electrolysis_off_seconds = 20.0
+        with patch("threading.Timer") as timer_cls:
+            timer_cls.side_effect = lambda *a, **kw: MagicMock()
+            job._begin_electrolysis_off()
+            delays = [c.args[0] for c in timer_cls.call_args_list]
+        assert job._electrolysis_on is False
+        led_intensity.assert_called_with({"D": 0.0}, unit="unit", experiment="exp")
+        assert 20.0 in delays  # next ON scheduled at OFF duration
+
+    def test_off_seconds_zero_means_continuous(self, job):
+        # OFF == 0 -> no OFF phase; _begin_electrolysis_off immediately re-enters
+        # the ON phase, keeping the LED lit (v0.6.x continuous behaviour).
+        job.state = job.READY
+        job._is_sparging = False
+        job.electrolysis_off_seconds = 0.0
+        job.electrolysis_power = 5.0
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            job._begin_electrolysis_off()
+        assert job._electrolysis_on is True
+        # last LED call is the re-light, not the 0.0 off
+        led_intensity.assert_called_with({"D": 5.0}, unit="unit", experiment="exp")
+
+
+# ── electrolysis-cycling setters & validators ─────────────────────────────────
+
+class TestElectrolysisSetters:
+    def test_set_on_seconds_rejects_zero(self, job):
+        with pytest.raises(ValueError):
+            job.set_electrolysis_on_seconds(0)
+
+    def test_set_on_seconds_rejects_negative(self, job):
+        with pytest.raises(ValueError):
+            job.set_electrolysis_on_seconds(-5)
+
+    def test_set_on_seconds_accepts_positive(self, job):
+        job.set_electrolysis_on_seconds(45.0)
+        assert job.electrolysis_on_seconds == 45.0
+
+    def test_set_off_seconds_accepts_zero(self, job):
+        job.set_electrolysis_off_seconds(0)
+        assert job.electrolysis_off_seconds == 0.0
+
+    def test_set_off_seconds_rejects_negative(self, job):
+        with pytest.raises(ValueError):
+            job.set_electrolysis_off_seconds(-1)
+
+    def test_set_off_seconds_accepts_positive(self, job):
+        job.set_electrolysis_off_seconds(15.0)
+        assert job.electrolysis_off_seconds == 15.0
+
+    def test_non_negative_validator(self):
+        assert ElectroPioreactor._non_negative(0, "x") == 0.0
+        assert ElectroPioreactor._non_negative(3.5, "x") == 3.5
+        with pytest.raises(ValueError):
+            ElectroPioreactor._non_negative(-0.01, "x")
+
+    def test_set_power_during_off_phase_does_not_touch_led(self, job):
+        # During an OFF phase the LED is intentionally 0; changing power must not
+        # light it. (It applies on the next ON phase.)
+        job._is_sparging = False
+        job._electrolysis_on = False
+        job.set_electrolysis_power(8.0)
+        assert job.electrolysis_power == 8.0
+        led_intensity.assert_not_called()
+
+    def test_set_power_during_on_phase_updates_led(self, job):
+        job._is_sparging = False
+        job._electrolysis_on = True
+        job.set_electrolysis_power(8.0)
+        led_intensity.assert_called_once_with({"D": 8.0}, unit="unit", experiment="exp")
