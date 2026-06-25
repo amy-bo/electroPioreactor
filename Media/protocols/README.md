@@ -16,7 +16,7 @@ tags: [electropioreactor, protocol, index]
 
 # electroPioreactor experiment protocols
 
-Standalone instructions for the bench experiments that determine the measured / assumed parameters in `electroPioreactorGasModel-modular.xlsx`. Run these to replace the model's default and data-gap (pink) values with measured ones and get optimal figures for everything. Each protocol gives an **optimal** route (best accuracy, more kit) and a **budget** route (minimal kit, stated accuracy trade-off), and states exactly which model cell to enter the result in.
+Standalone instructions for the bench experiments that determine the measured / assumed parameters in `electroPioreactorGasModel.xlsx`. Run these to replace the model's default and data-gap (pink) values with measured ones and get optimal figures for everything. Each protocol gives an **optimal** route (best accuracy, more kit) and a **budget** route (minimal kit, stated accuracy trade-off), and states exactly which model cell to enter the result in.
 
 Work top-to-bottom: the order is by leverage (blocker first, then the model's own ranked-improvement priority). The model has live gates that tell you when a measurement has cleared its problem: the Geometry consistency check, and the `kL_surf_crit` threshold on Mass Transfer.
 

@@ -1,6 +1,6 @@
 # electroPioreactorGasModel – changelog
 
-Done-work audit for `electroPioreactorGasModel-modular.xlsx`. Newest first. Open work is in `TODO.md`.
+Done-work audit for `electroPioreactorGasModel.xlsx`. Newest first. Open work is in `TODO.md`.
 
 ## 2026-06-25
 
