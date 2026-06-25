@@ -8,6 +8,89 @@ Provenance is in git, not here: the version chain (`CO2.xlsx` → `electroPiorea
 
 It sizes CO₂ dosing and O₂ management for an aseptic electro-bioreactor growing *C. necator* on electrolytic H₂/O₂ plus dosed CO₂, in a Pioreactor vial. The agent-facing modelling rules (cell discipline, colour conventions, units) live in `Media/CLAUDE.md`. In brief: column-E fill = confidence (six levels, legend in the sheet); column-D font = input (blue) vs formula (black).
 
+---
+
+# Wave-1 adversarial review + independent cross-check (2026-06-25)
+
+This is the headline review record. It consolidates a multi-expert adversarial pass over `electroPioreactorGasModel.xlsx` (the **non-modular** workbook: 7 sheets, includes Chemistry) with a from-scratch independent Python reimplementation. The phase-by-phase change history from earlier passes follows below and is retained as the audit trail.
+
+> **Scope note.** Every cell address in this section resolves against `Media/electroPioreactorGasModel.xlsx` (the non-modular file). The modular workbook on this branch (`electroPioreactorGasModel-modular.xlsx`, 6 sheets) has **no Chemistry sheet yet** and uses different Mass-Transfer addresses; the H-1/H-5 (Chemistry) and Mass-Transfer fixes below must be re-applied at the modular addresses when the Chemistry block is ported.
+
+## The eight review dimensions
+
+The model was examined along eight independent dimensions. Each is summarised with what it found.
+
+1. **Dimensional / unit consistency.** Traced end to end. Every derived cell is dimensionally clean; no unit errors. The geometry→electrolysis→Henry→dosing→bubble/strip→surface→pH chain balances. *Clean.*
+2. **Formula / reference integrity.** All ~190 defined names resolve, no out-of-range lookups, no circular references (the mode-switched `spg_dur`/`spg_int` confirmed acyclic). Found the H-2/H-3 ref defect: a feasibility-ceiling quantity (`surf_strip`, `Mass Transfer!D73`) wired as a subtractive credit inside two safety guards. *One structural defect.*
+3. **Arithmetic vs. independent recompute.** Every output re-derived from inputs in plain Python (`electroPioreactorGasModel.py`); 77/77 match within 0.5%. The defects found are modelling-logic and labelling errors, **not** calculation errors. *Arithmetic faithful.*
+4. **Selector / error-by-design logic.** All four dropdowns reject out-of-list values (`errorStyle=stop`); `sched_mode` returns `NA()` on anything but Optimal/Manual. *Clean.*
+5. **Chemistry / electrochemistry physics.** Found H-1 (`Chemistry!D36` SID_mc02 drops Mg²⁺/Ca²⁺ charge) and H-5 (`Chemistry!D109` bleach_flag labels a CaCl₂ medium "chloride-free" while D125 red-flags 8.88 mg/L HOCl). Confirmed `etaF_OER=1` and `z_e_ORR=2` are recipe/literature-defensible. *Two findings, one already fixed.*
+6. **Mass-transfer / O₂ regime logic.** Found H-2/H-3/H-4: the surf_strip credit disables the frequency cap (`D89`, reads ~1.5×10⁸ min vs intended 2.85 min) and the O₂-vent duty (`D87`, clamps to 0), and the vent-leg note (`D75/D76/E76`) labels a mole ratio a "fraction" and claims the vented-gas DO is "≪ ceiling" when it is above it. *Three findings, open.*
+7. **Data-gap / provenance discipline.** Audited every flagged gap. Most are genuine physical measurements correctly listed in Improvements (vial wall/volume, cathodic FE, organism DO bands); only a few are literature-citable. Colour conventions (column-E fill = confidence, column-D font = provenance) applied consistently. *Discipline sound; see data-gap conclusion below.*
+8. **Documentation / citation accuracy.** Found `knallgas-stoichiometry.md` re-attributes the 7:2:1 feed optimum to the wrong paper (a lag-phase paper); `dissolved-oxygen.md:33` mislabels the 11.5 mg/L Wilde & Schlegel datum as a Henry conversion; sheet note `Biology!E38` overstates H₂/O₂ relative solubility. *Three doc corrections.*
+
+## Verified bug findings (cell refs + status)
+
+| ID | Cell(s) | Finding | Status |
+|---|---|---|---|
+| **H-1** | `Chemistry!D36` (SID_mc02) | Cation side omits Mg²⁺ and Ca²⁺ while the anion side subtracts their sulfate: 38.51 mM instead of 46.13 mM, giving pH 5.89 against the documented validated MC02 pH 6.10. Latent (only bites when MC02 is selected; current media is UdG), but it mis-trips the `D110` "<6.5 — reduce CO₂ dose" advisory. | **FIXED** (commit `53b8b3d`; corrected SID = 46.13 mM, pH 6.10 restored. NH₄⁺ correctly stays out of SID, entered via NT_mc02.) |
+| **H-2** | `Mass Transfer!D89` (spg_int_max) | Best-case ceiling-evaluated `surf_strip` (D73) ≈ 1.85× `O2_net_gen`, so the denominator `O2_net_gen − surf_strip` clamps to 1e-12 and the frequency cap reads ~1.5×10⁸ min. Intended form `target_DO_frac × t_O2_ceiling_lag` = 2.85 min. Feeds `D91 = MIN(178 min, spg_int_max)`, so this **changes the headline interval 178 → 2.85 min (62×)** and removes the DO-ceiling-breach guard. | **OPEN — judgement call.** Revert to the lag-sized cap now, or replace with the steady-growth sawtooth (Improvement 1)? |
+| **H-3** | `Mass Transfer!D87` (duty_O2vent) | Same root cause: `surf_strip > O2_net_gen` so `MAX(O2_net_gen − surf_strip, 0) = 0`, the O₂-vent duty clamps to zero, and `duty_opt` binds on carbon not O₂. The `D88` note "O2-venting binds, not pH" is now **false**. | **OPEN — judgement call** (same fix style as H-2; also correct the D88 note). |
+| **H-4** | `Mass Transfer!D75/D76/E76` (vent leg) | `y_O2_vent` (D75) = `O2_excess/CO2_supply` = 0.5 is a mole **ratio** mislabelled "fraction"; `DO_vent_eq` (D76) = 559.5 µM is **above** the 335.7 µM ceiling (Biology D28), yet note E76 says "≪ ceiling → vent-feasible". Even the corrected mole fraction (0.333) gives 373 µM, still above ceiling. Both are leaf cells — zero blast radius. | **OPEN — judgement call.** D75 → `O2_excess/(O2_excess+CO2_supply)`; E76 → state vented-gas DO sits above the ceiling, so the vent leg is not a comfortable kL-independent backstop. |
+| **H-5** | `Chemistry!D109` (bleach_flag) vs `D125`/`Summary!D36` | With UdG selected, `pH_Cl` = 0.18 mM (from UdG's 0.01 g/L CaCl₂) sits below D109's arbitrary 0.5 mM gate, so D109 reads **"chloride-free: no bleaching"** — while `D125` = 8.88 mg/L HOCl (≈9× the sheet's own ~1 mg/L bactericidal threshold) fires the `Summary!D36` red band. Two adjacent cells make opposite claims about the same chloride; "chloride-free" is factually wrong for a CaCl₂ medium. | **OPEN — judgement call.** Drive D109 off `HOCl_max` crossing a free-chlorine threshold (e.g. >0.1 or >1 mg/L) rather than the unsourced 0.5 mM chloride cut. Gated on the threshold choice (Open Question Q1). |
+
+**Root cause shared by H-2/H-3/H-4** (`Mass Transfer!D73`): `surf_strip` is a legitimate feasibility *ceiling* for the diagnostic ratios `surf_ratio` (D74) and `O2_removal_ratio` (D78), but it must not be a subtractive credit inside *safety guards*. A 375%-uncertain `kL_surf` proxy (D70) silently switching off two O₂ guards is the structural defect. All three trace to commit `9bb2bed` ("sparge interval credits surface O2 stripping… not zero"), which implemented a deferred enhancement by **disabling** the guard rather than replacing it with the planned steady-growth sawtooth.
+
+## Data-gap conclusion
+
+Almost nothing in the data-gap set is a literature plug-in. Most flagged gaps are **genuine physical measurements** on the actual rig (caliper/water-fill/gas-collection) or operator setpoints, correctly listed in the Improvements section and not to be invented:
+
+- **Physical measurement (do not invent):** `Geometry!D16/D17` (vial total volumes — water-fill), `D19` (vial wall — high-leverage caliper), `D12/D13/D28/D32/D47` (bore depths, build clearances); `Electrochemistry!D18` (cathodic H₂ FE — HIGH impact, gas-collection); `Electrochemistry!D37` (sparger lookup row — needs the real electrode spec); `Biology!D57` (UdG mixed-consortium DO band — HIGH impact, drives every DO/sparge verdict).
+- **Literature-citable (the genuinely fillable few):**
+  - knallgas uptake ratio 6:2:1 (`Biology!D10/D11/D12`) — keep central values, cite **Lu & Yu 2019** (uptake-ratio ranges) and **Ishizaki 2001** (7:2:1 feed optimum). Exact culture value needs a growing culture; the literature central is defensible.
+  - `etaF_OER = 1` (`Electrochemistry!D26`) — confirmable from the recipe (chloride-free → no competing Cl₂ evolution).
+  - `z_e_ORR = 2` (`Electrochemistry!D27`) — 2e⁻ peroxide pathway, SS cathode, neutral pH; literature-supported.
+
+## Independent-model cross-check
+
+A from-scratch independent reimplementation (`Media/electroPioreactorGasModel.py`, standard library only) re-derives every final output from input parameters and physical/chemical constants — **not** read back from the workbook's cached values. It mirrors the sheet structure but re-implements the arithmetic cleanly from the documented formula logic.
+
+**Result of this run: 77/77 outputs match the spreadsheet within 0.5% (text flags exact).** The run prints a per-output table (spreadsheet vs model vs MATCH) and the closing line `77/77 outputs match the spreadsheet within 0.5%.` with no mismatches. Headline outputs confirmed: CO₂ pulse 0.78 s (rounds to 1 s), sparge interval 178 min, steady-state DO 1.94 mg/L, endpoint pH 6.31, max HOCl 8.88 mg/L, carbon margin 586×, H₂ headspace EXPLOSIVE, organism-DO data gap flagged.
+
+The cross-check confirms the spreadsheet's arithmetic is internally faithful: the defects above are modelling-logic and labelling errors, not calculation errors. (Note the 178-min headline is the *current* live value — it is exactly what H-2 inflates; reverting H-2 to the lag-sized cap would drop it to 2.85 min.)
+
+## Improvements (ordered)
+
+1. **Replace the two O₂ proxies with the deferred steady-growth sawtooth** (the clean structural fix that makes H-2/H-3/H-4 go away properly instead of by reverting to lag-conservative forms). Highest leverage.
+2. **Until `kLa_meas` is entered, force the schedule onto the lag-conservative O₂ cap** — never let the 375%-uncertain `kL_surf` proxy (D70) gate a safety guard. (The structural guard behind H-2/H-3.)
+3. **Per-cell regime labelling** (`Mass Transfer!D87/D89` vs `D108`): state which O₂ figure each cell uses — lag = `O2_net_gen` (5.31e-5), steady = `O2_excess` (1.77e-5, ~3× smaller). A reader treats it as one schedule; it mixes worst- and best-case.
+4. **Carry the headspace uncertainty band onto the headline** (`Mass Transfer!D77` → `Summary!D13/D15`): the interval depends on the un-measured `headspace_V` via `hs_flush_time`; propagate the ~4× band, and confirm `hs_flush_time ≈ carbon-limited interval` is genuine, not a coincidence masking a non-binding flush cap.
+5. **`u_sg` (D47) — use the insert-free flow area** for the carryover check (D59); full-bore area biases velocity low ~15%, non-conservative.
+6. **Don't sum bubble-path and surface-path strip as co-existing steady states** (`O2_removal_ratio` D78 = strip_avg + surf_strip): the swarm never establishes at this sub-second duty; annotate as order-of-magnitude.
+7. **Jetting case should also invalidate `d_bubble`** (E64/D42): the regime flag currently only zeroes the sub-mm sinter case, not a high-We jetting case.
+8. **`target_DO_frac` (D84) reference consistency:** define optimum and toxic against one reference concentration.
+9. **`spg_dur_opt` (D90) flush sizing** assumes CO₂ breakthrough; note the effective flush is smaller during the unsaturated establishment phase.
+
+## Sensitivity ranking (informs the measurement priorities)
+
+`electroPioreactorGasModel-sensitivity.py` was updated to the current live model (calibrated Q_CO2 = 199.8 mL/min for ed04, z_e_ORR = 2, H_O2ref = 1.2e-5, the surf_strip-credited guard form) and re-run. Its baseline reproduces the live 178.1-min schedule, confirming fidelity. Urgency = leverage on the schedule-critical outputs × ignorance (KNOBs excluded as control levers). Ranked data-gaps/estimates to pin down:
+
+1. **`kL_surf_factor`** (surface kLa, DATA-GAP) — **375%** swing. The entire O₂-management strategy rests on the stirred-surface→headspace path and `kL_surf` is only a coarse renewal-theory proxy. Measure by gassing-out. (This is also why H-2/H-3 are dangerous: a 375%-uncertain quantity gates a safety cap.)
+2. **`etaF`** (cathodic H₂ FE, DATA-GAP) — ~100%. Drives throughput, the O₂ balance, and the schedule. Gas-collection over a known charge.
+3. **`bio_O2`** (O₂:H₂ uptake ratio, DATA-GAP) — ~95% on the steady O₂ surplus. Needs a growing culture; use the lean-O₂ end (1.8) as the growth-protective default meanwhile.
+4. **`V_max`** / actual charge volume (ESTIMATE) — ~106% on the schedule (it sets headspace and flush sizing).
+5. **`bio_CO2`** (~48%, schedule), **`pulse_floor`** (~27%, the recommended pulse *is* `pulse_floor` — trivial to bench-characterise), **`etaF_OER`** (~43% on removal), **`O2_ceil_atm`** (~33%).
+6. Literature constants (Henry O₂/CO₂/H₂, σ, ρ, D_O₂, Mendelson) show ≤17% leverage but are known to a few %, so their urgency scores are ≤2.5. **Knobs:** `intensity` (~99% on schedule), `carbon_margin_min` (~67%), `stir_rpm` (~63%) are the deliberate control levers.
+
+## Open questions for Martin (gate the OPEN findings)
+
+1. **HOCl/bleach threshold (gates H-5).** What free-chlorine threshold should drive `bleach_flag` (D109)? (a) >1 mg/L HOCl (matches the sheet's own bactericidal threshold), (b) >0.1 mg/L (precautionary, matches the Summary D36 amber band), or (c) `pH_Cl>0` with a caveated rate. This sets a front-page red verdict.
+2. **O₂-guard fix style (gates H-2/H-3).** Quick revert to the lag-conservative cap now (restores the 2.85-min guard immediately), or hold for the steady-growth sawtooth (Improvement 1, larger but the right long-term model)?
+3. **`target_DO_frac` intent (D84):** fraction of the same ceiling `O2_ceil_C` represents (inhibition concentration), or of a separate toxic reference?
+4. **Modular port:** track a port-checklist in TODO.md for re-applying the H-1/H-5 Chemistry fixes and the Mass-Transfer fixes at the modular addresses once the Chemistry block is ported?
+
+---
+
 ## First-pass review: the model is sound
 
 I traced every formula. Dimensional analysis is consistent end to end, the selector/error-by-design logic matches the actual data validations, and no arithmetic or unit errors were found. The points below are about modelling assumptions and a few latent traps, not broken cells.
