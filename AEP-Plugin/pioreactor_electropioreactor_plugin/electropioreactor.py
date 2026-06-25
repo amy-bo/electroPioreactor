@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import configparser
+import math
 import os
 import threading
 from pathlib import Path
@@ -19,7 +20,7 @@ from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
 __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
-__plugin_version__ = "0.6.7"
+__plugin_version__ = "0.7.0"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
 __plugin_homepage__ = "https://github.com/amy-bo/electroPioreactor"
@@ -102,10 +103,13 @@ class ElectroPioreactor(BackgroundJob):
         "sparge_duration_seconds": {"datatype": "float", "settable": True, "persist": True},
         "sparge_interval_minutes": {"datatype": "float", "settable": True, "persist": True},
         "od_pause_after_sparge_seconds": {"datatype": "float", "settable": True, "persist": True},
-        # reset_to_defaults is intentionally NOT in published_settings — Pioreactor
-        # would otherwise store and replay the last True value on every restart,
-        # firing a reset 2 seconds after each start. It is in the YAML for UI display
-        # and handled via MQTT set/<unit>/<exp>/electropioreactor/reset_to_defaults.
+        "reset_to_defaults": {"datatype": "boolean", "settable": True, "persist": False},
+        # reset_to_defaults IS published (so the dispatcher routes a UI `set` to
+        # set_reset_to_defaults) but with persist=False: Pioreactor must NOT
+        # retain/replay the last True value on restart, which would fire a reset
+        # ~2 s after every start. persist=False means the value is not stored to
+        # the metadata DB and not re-published as a retained MQTT message, so a
+        # restart starts from the in-memory default (False).
         #
         # led_channel is also NOT in published_settings: it's a hardware binding
         # (which physical LED slot the electrode pair occupies), set once in
@@ -161,10 +165,14 @@ class ElectroPioreactor(BackgroundJob):
             )
         self.electrolysis_on_seconds = self._positive(electrolysis_on_seconds, "electrolysis_on_seconds")
         self.electrolysis_off_seconds = self._non_negative(electrolysis_off_seconds, "electrolysis_off_seconds")
-        self.od_pause_after_electrolysis_seconds = float(od_pause_after_electrolysis_seconds)
+        self.od_pause_after_electrolysis_seconds = self._finite_offset(
+            od_pause_after_electrolysis_seconds, "od_pause_after_electrolysis_seconds"
+        )
         self.sparge_duration_seconds = self._positive(sparge_duration_seconds, "sparge_duration_seconds")
         self.sparge_interval_minutes = self._positive(sparge_interval_minutes, "sparge_interval_minutes")
-        self.od_pause_after_sparge_seconds = float(od_pause_after_sparge_seconds)
+        self.od_pause_after_sparge_seconds = self._finite_offset(
+            od_pause_after_sparge_seconds, "od_pause_after_sparge_seconds"
+        )
 
         pwm_channel = config.get("PWM_reverse", "relay")
         # Deferred: PWM_TO_PIN is a lazy resolver that touches DOT_PIOREACTOR env var.
@@ -212,7 +220,9 @@ class ElectroPioreactor(BackgroundJob):
         self._save_config("electrolysis_off_seconds", self.electrolysis_off_seconds)
 
     def set_od_pause_after_electrolysis_seconds(self, value: float) -> None:
-        self.od_pause_after_electrolysis_seconds = float(value)
+        self.od_pause_after_electrolysis_seconds = self._finite_offset(
+            value, "od_pause_after_electrolysis_seconds"
+        )
         self._save_config(
             "od_pause_after_electrolysis_seconds", self.od_pause_after_electrolysis_seconds
         )
@@ -228,7 +238,9 @@ class ElectroPioreactor(BackgroundJob):
             self._schedule_next_sparge()
 
     def set_od_pause_after_sparge_seconds(self, value: float) -> None:
-        self.od_pause_after_sparge_seconds = float(value)
+        self.od_pause_after_sparge_seconds = self._finite_offset(
+            value, "od_pause_after_sparge_seconds"
+        )
         self._save_config("od_pause_after_sparge_seconds", self.od_pause_after_sparge_seconds)
 
     def set_reset_to_defaults(self, value: bool) -> None:
@@ -292,6 +304,11 @@ class ElectroPioreactor(BackgroundJob):
         total_od_pause = self.sparge_duration_seconds + self.od_pause_after_sparge_seconds
         if total_od_pause > 0:
             self._pause_od_reading(_OD_PAUSE_SPARGE)
+            # Cancel any pending OD-resume from a prior sparge before reassigning,
+            # otherwise the orphaned timer fires _resume_od_reading() mid-new-sparge
+            # and escapes _cancel_timers (which only sees the latest reference).
+            if self._od_resume_timer is not None:
+                self._od_resume_timer.cancel()
             self._od_resume_timer = threading.Timer(
                 total_od_pause, self._resume_od_reading, args=(_OD_PAUSE_SPARGE,)
             )
@@ -490,7 +507,14 @@ class ElectroPioreactor(BackgroundJob):
         return channel
 
     def _set_led(self, intensity: float) -> None:
-        led_intensity({self.led_channel: intensity}, unit=self.unit, experiment=self.experiment)
+        # Pass our existing pub_client so led_intensity reuses this job's MQTT
+        # connection instead of opening a fresh connect/disconnect every call.
+        led_intensity(
+            {self.led_channel: intensity},
+            unit=self.unit,
+            experiment=self.experiment,
+            pubsub_client=self.pub_client,
+        )
 
     def _cancel_timers(self) -> None:
         for attr in (
@@ -583,6 +607,11 @@ class ElectroPioreactor(BackgroundJob):
     @staticmethod
     def _clamp_power(value: float) -> float:
         v = float(value)
+        # NaN/inf must never reach led_intensity. Callers of _clamp_power don't
+        # expect it to raise (it's a clamp, not a validator), so map non-finite
+        # to the safe floor 0.0 rather than raising.
+        if not math.isfinite(v):
+            return 0.0
         if v < 0.0:
             return 0.0
         if v > ElectroPioreactor.MAX_ELECTROLYSIS_POWER:
@@ -592,6 +621,11 @@ class ElectroPioreactor(BackgroundJob):
     @staticmethod
     def _positive(value: float, name: str) -> float:
         v = float(value)
+        # NaN/inf would otherwise flow into threading.Timer delays (a NaN delay
+        # silently kills the timer thread, stopping the schedule). Reject them
+        # via the same ValueError contract as out-of-range values.
+        if not math.isfinite(v):
+            raise ValueError(f"{name} must be finite (got {v})")
         if v <= 0.0:
             raise ValueError(f"{name} must be > 0 (got {v})")
         return v
@@ -601,8 +635,23 @@ class ElectroPioreactor(BackgroundJob):
         """Used for electrolysis_off_seconds: 0 is valid (= continuous, no OFF
         phase), negatives are not."""
         v = float(value)
+        # Non-finite would flow into a threading.Timer delay; reject it.
+        if not math.isfinite(v):
+            raise ValueError(f"{name} must be finite (got {v})")
         if v < 0.0:
             raise ValueError(f"{name} must be >= 0 (got {v})")
+        return v
+
+    @staticmethod
+    def _finite_offset(value: float, name: str) -> float:
+        """Used for the OD-pause offsets, which may be negative but feed
+        threading.Timer delays via od_pause_window_seconds / the sparge total.
+        A NaN/inf delay silently kills the timer thread and stops the schedule,
+        so reject non-finite via the existing ValueError contract; any finite
+        value (including negatives) is allowed."""
+        v = float(value)
+        if not math.isfinite(v):
+            raise ValueError(f"{name} must be finite (got {v})")
         return v
 
 

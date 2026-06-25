@@ -1,5 +1,122 @@
 # electroPioreactor Plugin — Changelog
 
+## v0.7.0 (2026-06-25) — electrolysis ON/OFF cycling, OD pause around electrolysis, configurable LED channel
+
+Two new features plus the long-deferred configurable-LED-channel work
+(Gerrit's PR #16 flag).
+
+### Electrolysis ON/OFF cycling
+
+Electrolysis previously ran continuously (LED held at power, only dropped
+during a sparge). It now **cycles**: ON for `electrolysis_on_seconds`
+(> 0, default `60`), then OFF for `electrolysis_off_seconds` (≥ 0, default
+`0`), repeating. `electrolysis_off_seconds = 0` means continuous (no OFF
+phase) — identical to the v0.6.x behaviour, so default-config users see no
+change. The cycle is a `threading.Timer` chain
+(`_begin_electrolysis_on` → `_begin_electrolysis_off` → …) mirroring the
+existing sparge chain. A mid-phase setting change applies to the next
+phase, not the in-flight one (same invariant as `sparge_duration_seconds`).
+
+### OD-read pause around electrolysis
+
+OD reading is now paused around each electrolysis ON phase, governed by a
+new `od_pause_after_electrolysis_seconds` (default `5.0`). The effective
+OD-suppression window, from ON start, is
+`electrolysis_on_seconds + od_pause_after_electrolysis_seconds` (floored at
+0). Crucially the offset **may be negative**, down to and below
+`−electrolysis_on_seconds`: a negative value shortens or cancels the pause
+so OD resumes *during* electrolysis (e.g. `on=10, pause=−3` → OD resumes at
+t=7 s, 3 s before electrolysis ends; `pause=−10` → never paused, OD
+measured throughout). The pure timing core is extracted as the
+side-effect-free module function `od_pause_window_seconds(on, pause_after)`
+with a worked-example docstring, unit-tested across the negative edge
+cases. This OD pause is independent of, and composes with, the existing
+sparge OD pause.
+
+### Configurable LED channel (closes PR #16 / v0.7 reviewer flag)
+
+The electrolysis LED channel was hardcoded to `D`. It is now read from
+`[electropioreactor.config] led_channel` (default `D`, validated to one of
+A/B/C/D — an invalid label raises `ValueError` at job start). `_set_led`
+drives the configured channel; `_set_led_d` is gone. The PWM (CO₂) channel
+was already configurable via `[PWM] N = relay`; the README now documents
+both in a new **Hardware connections** section. `led_channel` is a hardware
+binding read once at init (not a live setting), so switching it needs a
+config edit + restart.
+
+### Settings, config, UI
+
+Three new live settings (`electrolysis_on_seconds`,
+`electrolysis_off_seconds`, `od_pause_after_electrolysis_seconds`) added to
+`published_settings` (all `persist: True`), the YAML descriptor, the CLI,
+`additional_config.ini`, and `scripts/patch-config-ini.py` defaults.
+`reset_to_defaults` now also resets the three new values. YAML/README
+D/4 references reworded to "the configured channel".
+
+### Tests
+
+`tests/test_electropioreactor.py` gains 36 tests (now 82 total in that
+file): the pure `od_pause_window_seconds` with all negative-pause edge
+cases, the ON/OFF cycle timer logic, continuous-mode (`off=0`), the
+OD-pause-during-electrolysis scheduling, the new setters/validators
+(`_non_negative`), configurable-LED-channel resolution + invalid-channel
+rejection at init, and electrolysis-cycle persistence/reset. The
+`patch-config-ini` test asserts the new defaults. All pass off-device
+(mocked, no hardware). Backwards-compat: with defaults (`led_channel=D`,
+`electrolysis_off_seconds=0`) behaviour is identical to v0.6.x.
+
+### Compatibility note
+
+This branch is based on `AEP-Plugin` (v0.6.7), not the parallel
+`configurable-led-channel` v0.7 spec branch; it folds that branch's
+configurable-LED-channel goal into this release so the cycling/OD-pause
+work ships channel-agnostic in one version.
+
+### Review fixes (pre-merge)
+
+A round of code review on the v0.7.0 work surfaced several correctness and
+hygiene issues, all fixed in this release (each paired with tests):
+
+- **OD-pause owner refcount (the named feature's core defect).** Sparge and
+  electrolysis both paused OD via a single shared `_od_paused` boolean, and
+  `_resume_od_reading` cleared it unconditionally — so a sparge resume could
+  re-enable OD *mid-electrolysis* (and vice-versa). OD pausing is now
+  reference-counted by owner (`_od_pausers`: `{'sparge', 'electrolysis'}`):
+  the first owner publishes SLEEPING, each resume releases only its own owner,
+  and OD is actually resumed only once the last owner releases. Regression
+  test added: electrolysis pause → sparge pause → sparge resume → OD stays
+  paused while electrolysis still holds.
+- **Dead "Reset to Defaults" toggle.** `reset_to_defaults` was absent from
+  `published_settings`, so the real `BackgroundJob._set_attr_from_message`
+  dispatcher silently dropped every UI `set` and the toggle was inert. Added
+  it as `{datatype: boolean, settable: True, persist: False}` (persist=False
+  so Pioreactor doesn't retain/replay the last True and fire a spurious reset
+  on restart); corrected the false "handled via MQTT" comment. Tests now
+  drive the real dispatcher path.
+- **Orphaned OD-resume timer mid-sparge.** A new sparge reassigned
+  `_od_resume_timer` without cancelling a pending one; the orphan fired
+  `_resume_od_reading` mid-new-sparge and escaped `_cancel_timers`. Now
+  cancelled before reassignment.
+- **LED MQTT connection churn.** `_set_led` called `led_intensity()` without
+  a `pubsub_client`, opening a fresh MQTT connect/disconnect on every call.
+  Now passes the job's `self.pub_client`.
+- **Non-finite floats reaching hardware / `threading.Timer`.** NaN/inf could
+  flow into `led_intensity` and into timer delays (a NaN delay silently kills
+  the timer thread, stopping the schedule). `_positive` / `_non_negative` and
+  the OD-pause offsets now reject non-finite via the existing `ValueError`
+  contract; `_clamp_power` maps non-finite to the safe floor `0.0` (callers
+  don't expect it to raise).
+- **Docs.** Rewrote the `CLAUDE.md` status note to state the PR-#615
+  transitional hot-patch flow was removed in v0.6.6 and the minimum Pioreactor
+  is 26.5.0 (`pio update` is the remedy on older units) — the code already
+  enforces the minimum, no system-patching. Added a maintainer release
+  checklist to the README so the expected-version strings get bumped alongside
+  `setup.py` / `__plugin_version__`.
+- **Test-harness rigor.** The conftest `getfloat` stub returned the caller's
+  own fallback, making config-reset assertions vacuous (a literal compared to
+  itself). It now injects distinct non-fallback values per `(section, key)`,
+  and the reset tests assert those injected values.
+
 ## v0.6.7 (2026-05-10) — preserve key case in config.ini writes
 
 Pre-v0.6.7 the plugin used a default `configparser.ConfigParser()` in

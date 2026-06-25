@@ -1,31 +1,59 @@
 # electroPioreactor-plugin
 
-A [Pioreactor](https://pioreactor.com) community plugin for the **[electroPioreactor](https://electroPioreactor.org)** – any Pioreactor fitted with an electrode pair driven by LED D and a CO₂ solenoid driven by PWM channel 4.
+A [Pioreactor](https://pioreactor.com) community plugin for the **[electroPioreactor](https://electroPioreactor.org)** – any Pioreactor fitted with an electrode pair driven by an LED channel and a CO₂ solenoid driven by a PWM channel.
 
 Provides a single background job, **electroPioreactor**, that:
 
-- Drives electrolysis (via LED channel D) at a user-defined power level (0–10 %, clamped at runtime to protect the electrodes).
-- Sparges CO₂ by periodically opening a CO₂ solenoid (PWM channel 4 relay) for a user-defined duration, at a user-defined interval in minutes.
-- Automatically pauses electrolysis (LED D → 0 %) for the duration of each sparge and resumes it immediately after.
-- Pauses the `od_reading` job for the duration of the sparge plus a user-defined settle window, so OD samples aren't contaminated by bubbles.
+- Drives electrolysis (via the configured LED channel, default **D**) at a user-defined power level (0–10 %, clamped at runtime to protect the electrodes).
+- **Cycles electrolysis ON/OFF** on a user-defined schedule (`electrolysis_on_seconds` ON, then `electrolysis_off_seconds` OFF, repeating). Set the OFF time to `0` for continuous electrolysis.
+- Sparges CO₂ by periodically opening a CO₂ solenoid (the configured PWM channel, default **4**) for a user-defined duration, at a user-defined interval in minutes.
+- Pauses electrolysis (LED → 0 %) for the duration of each sparge and resumes it immediately after.
+- Pauses the `od_reading` job around each electrolysis ON phase (plus a user-defined window) and, independently, around each CO₂ sparge, so OD samples aren't contaminated by electrolysis or bubbles.
 
-All four user-defined parameters are editable live from the Pioreactor web interface.
+All electrolysis and sparging parameters are editable live from the Pioreactor web interface. The LED and PWM channels are set in `config.ini` (they're hardware bindings, not runtime settings — see **Hardware connections**).
 
-### OD pausing
+### Electrolysis ON/OFF cycling
 
-`od_pause_after_sparge_seconds` (default `5.0`) is the number of seconds **after the CO₂ solenoid closes** before OD reading resumes – the bubble-clearance window. The total OD pause window is `sparge_duration_seconds + od_pause_after_sparge_seconds`, measured from sparge start.
+- `electrolysis_on_seconds` (default `60.0`) – how long electrolysis is ON each cycle. Must be > 0.
+- `electrolysis_off_seconds` (default `0.0`) – how long electrolysis is OFF between ON phases. Must be ≥ 0; `0` = continuous electrolysis (no OFF phase, identical to the pre-v0.7 behaviour).
 
-- **Positive** → pause OD for the full sparge plus N seconds of settle time. Typical.
-- **Zero** → resume OD the instant the solenoid closes.
-- **Negative** → resume OD part-way through the sparge (OD continues through the tail end of sparging).
-- **≤ −`sparge_duration_seconds`** → total pause ≤ 0; OD is not paused at all. Use a large negative (e.g. `-99999`) to disable the feature entirely.
+A mid-cycle change applies to the **next** phase, not the in-flight one.
+
+### OD pausing around electrolysis
+
+`od_pause_after_electrolysis_seconds` (default `5.0`) is the settle window **after each electrolysis ON phase ends** before OD reading resumes. The effective OD-suppression window, measured from the start of the ON phase, is:
+
+```
+od_pause_window = electrolysis_on_seconds + od_pause_after_electrolysis_seconds   (floored at 0)
+```
+
+This value is **allowed to go negative**, down to (and below) −`electrolysis_on_seconds`. A negative value eats into the ON-phase pause, so OD resumes *before* electrolysis ends and OD is measured **during** electrolysis. Worked example with `electrolysis_on_seconds = 10`:
+
+| `od_pause_after_electrolysis_seconds` | window | behaviour |
+|---|---|---|
+| `+5` | `15` | OD off for the 10 s ON phase + 5 s settle after. Typical. |
+| `0`  | `10` | OD off for exactly the ON phase. |
+| `−3` | `7`  | OD resumes at t = 7 s, **3 s before electrolysis ends** → OD measured during the tail of electrolysis. |
+| `−10` (= −on) | `0` | OD never paused → OD measured throughout electrolysis. |
+| `−99999` | `0` | clamped to 0; disables this OD pause entirely. |
+
+### OD pausing around sparging
+
+`od_pause_after_sparge_seconds` (default `5.0`) is the bubble-clearance window **after the CO₂ solenoid closes** before OD reading resumes. The total OD pause window is `sparge_duration_seconds + od_pause_after_sparge_seconds`, measured from sparge start, and follows the same positive/zero/negative rules as the electrolysis OD pause (negatives down to −`sparge_duration_seconds` shorten or cancel the pause).
 
 Pause/resume is done by publishing `JobState.SLEEPING`/`READY` to `od_reading`'s `$state/set` topic. If `od_reading` isn't running, the publish is a no-op.
 
+## Hardware connections
+
+The electrode pair drives an LED channel and the CO₂ solenoid drives a PWM channel; **both are configurable** in `~/.pioreactor/config.ini` so the plugin doesn't assume a fixed channel is free (e.g. if other jobs occupy LED slots).
+
+- **LED channel** for the electrode pair: `[electropioreactor.config] led_channel = D` (one of `A`, `B`, `C`, `D`; default `D`). An invalid label makes the job refuse to start with a clear error.
+- **PWM channel** for the CO₂ solenoid: Pioreactor's own `[PWM] N = relay` label indirection. The plugin opens whichever PWM channel is labelled `relay`. The install flow sets `[PWM] 4 = relay`; to use a different channel, wire the solenoid there and set e.g. `[PWM] 2 = relay` instead.
+
 ## Hardware requirements
 
-- Pioreactor with an electrode pair wired to **LED channel D**.
-- CO₂ solenoid valve wired to **PWM channel 4**.
+- Pioreactor with an electrode pair wired to the configured **LED channel** (default D).
+- CO₂ solenoid valve wired to the configured **PWM channel** (default 4).
 - CO₂ supply (e.g. SodaStream) ideally with a needle valve for flow control.
 
 ## Installation
@@ -105,7 +133,7 @@ git -C electroPioreactor checkout AEP-Plugin
 /opt/pioreactor/venv/bin/pip show pioreactor-electropioreactor-plugin | grep Version
 ```
 
-The last line should print `Version: 0.6.6` (or later).
+The last line should print `Version: 0.7.0` (or later).
 
 ### 3. Deploy the UI job descriptor
 
@@ -139,7 +167,7 @@ export DOT_PIOREACTOR=/home/pioreactor/.pioreactor
 /opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep electro
 ```
 
-Expected: `pioreactor-electropioreactor-plugin==0.6.6` (or later).
+Expected: `pioreactor-electropioreactor-plugin==0.7.0` (or later).
 
 ```bash
 ls -la /home/pioreactor/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
@@ -193,25 +221,32 @@ The install flow above writes the following to `~/.pioreactor/config.ini`:
 4=relay
 
 [electropioreactor.config]
-electrolysis_power=2.5              ; LED D intensity (0–10 %, clamped at runtime)
-sparge_duration_seconds=10.0        ; solenoid open time per cycle (s)
-sparge_interval_minutes=60.0        ; cycle frequency (min)
-od_pause_after_sparge_seconds=5.0   ; OD settle window after sparge ends (s); negative allowed
+led_channel=D                            ; LED channel for the electrode pair (A/B/C/D)
+electrolysis_power=2.5                    ; LED intensity (0–10 %, clamped at runtime)
+electrolysis_on_seconds=60.0             ; electrolysis ON time per cycle (s, > 0)
+electrolysis_off_seconds=0.0             ; electrolysis OFF time per cycle (s, >= 0; 0 = continuous)
+od_pause_after_electrolysis_seconds=5.0  ; OD settle window after electrolysis ON ends (s); negative allowed
+sparge_duration_seconds=10.0             ; solenoid open time per cycle (s)
+sparge_interval_minutes=60.0             ; cycle frequency (min)
+od_pause_after_sparge_seconds=5.0        ; OD settle window after sparge ends (s); negative allowed
 ```
 
-Adjust these values in the Pioreactor **Configuration** page, or change them live via the **Settings** panel on the *Manage* screen while the job is running.
+Adjust the numeric values in the Pioreactor **Configuration** page, or change them live via the **Settings** panel on the *Manage* screen while the job is running. `led_channel` is a hardware binding and is read once at job start (see **Hardware connections**); change it in `config.ini` and restart the job to switch channels.
 
-`od_pause_after_sparge_seconds` can be edited live, but the new value only takes effect on the **next** sparge cycle – an in-flight OD pause uses the value that was set when that sparge began.
+The OD-pause and cycle-duration settings can be edited live, but a new value only takes effect on the **next** phase/cycle – an in-flight pause uses the value that was set when that phase began.
 
 ## Starting the job
 
-Via the web interface: open the **Activities** tab on the *Manage* screen and start **electroPioreactor**. All four parameters can then be adjusted live from the **Settings** panel without restarting the job.
+Via the web interface: open the **Activities** tab on the *Manage* screen and start **electroPioreactor**. All numeric parameters can then be adjusted live from the **Settings** panel without restarting the job.
 
 Via CLI:
 
 ```bash
 pio run electropioreactor \
     --electrolysis-power 2.5 \
+    --electrolysis-on-seconds 60 \
+    --electrolysis-off-seconds 0 \
+    --od-pause-after-electrolysis-seconds 5 \
     --sparge-duration-seconds 10 \
     --sparge-interval-minutes 60 \
     --od-pause-after-sparge-seconds 5
@@ -226,3 +261,12 @@ If your unit is on an older Pioreactor, run `pio update` before installing this 
 ## Contributing
 
 Issues and pull requests welcome at <https://github.com/amy-bo/electroPioreactor>.
+
+### Release checklist (maintainers)
+
+When bumping the plugin version, update the version string in **all** of these in the same commit, or the install/verify instructions go stale:
+
+- `setup.py` (`version=`)
+- `pioreactor_electropioreactor_plugin/electropioreactor.py` (`__plugin_version__`)
+- `README.md` — the two expected-version strings in the install/verify steps (`Version: X.Y.Z` and `pioreactor-electropioreactor-plugin==X.Y.Z`); both are written as "(or later)" so a reader on a newer build isn't tripped up, but keep the literal in step with the release.
+- `CHANGELOG.md` — add the new version's entry.
