@@ -380,3 +380,38 @@ class TestPersistence:
         assert section["sparge_duration_seconds"] == "11.0"
         assert section["sparge_interval_minutes"] == "12.5"
         assert section["od_pause_after_sparge_seconds"] == "-1.0"
+
+
+# ── configurable LED channel ──────────────────────────────────────────────────
+
+class TestConfigurableLEDChannel:
+    def test_default_channel_is_D(self, job):
+        assert job.led_channel == "D"
+
+    def test_set_led_uses_configured_channel(self, job):
+        job.led_channel = "B"
+        job._set_led(4.0)
+        led_intensity.assert_called_with({"B": 4.0}, unit="unit", experiment="exp")
+
+    def test_get_led_channel_normalises_case_and_whitespace(self, job):
+        from pioreactor.config import config
+        with patch.object(config, "get", side_effect=lambda *a, **kw: " c "):
+            assert job._get_led_channel() == "C"
+
+    def test_get_led_channel_rejects_invalid(self, job):
+        from pioreactor.config import config
+        with patch.object(config, "get", side_effect=lambda *a, **kw: "Z"):
+            with pytest.raises(ValueError):
+                job._get_led_channel()
+
+    def test_invalid_channel_raises_at_init(self):
+        from pioreactor.config import config
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            with patch.object(config, "get", side_effect=lambda *a, **kw: "Q"):
+                with pytest.raises(ValueError):
+                    ElectroPioreactor(unit="unit", experiment="exp")
+
+    def test_led_channel_not_in_published_settings(self):
+        # led_channel is a config-only hardware binding, deliberately NOT a
+        # published (UI) setting — it's read once from config.ini at init.
+        assert "led_channel" not in ElectroPioreactor.published_settings

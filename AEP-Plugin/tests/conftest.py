@@ -68,7 +68,22 @@ _cli.run = _mock_run
 # ── config ────────────────────────────────────────────────────────────────────
 _cfg = _mod("pioreactor.config")
 _mock_config = MagicMock()
-_mock_config.get.return_value = "4"                          # PWM_reverse → channel "4"
+
+
+# config.get is called with two distinct shapes by the plugin:
+#   config.get("PWM_reverse", "relay")                         -> PWM channel label "4"
+#   config.get(_CONFIG_SECTION, "led_channel", fallback="D")   -> LED channel label "D"
+# A single return value can't serve both, so dispatch on the args. Any other
+# .get falls back to the supplied fallback (or "" ) so tests stay robust.
+def _config_get(*args, **kwargs):
+    if args and args[0] == "PWM_reverse":
+        return "4"                                            # PWM_reverse → channel "4"
+    if len(args) >= 2 and args[1] == "led_channel":
+        return kwargs.get("fallback", "D")                    # default LED channel "D"
+    return kwargs.get("fallback", "")
+
+
+_mock_config.get.side_effect = _config_get
 _mock_config.getfloat.side_effect = lambda s, k, **kw: kw.get("fallback", 0.0)
 _cfg.config = _mock_config
 

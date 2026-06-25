@@ -26,6 +26,7 @@ DOT = os.environ.get("DOT_PIOREACTOR", str(Path.home() / ".pioreactor"))
 PATH = Path(DOT) / "config.ini"
 
 DEFAULTS = {
+    "led_channel": "D",
     "electrolysis_power": "2.5",
     "sparge_duration_seconds": "10.0",
     "sparge_interval_minutes": "60.0",

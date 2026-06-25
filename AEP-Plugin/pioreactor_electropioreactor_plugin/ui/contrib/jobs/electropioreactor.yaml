@@ -4,19 +4,20 @@ job_name: electropioreactor
 display: true
 source: app
 description: >
-  Drives electrolysis via LED channel D and periodically sparges CO2 via a
-  solenoid on PWM channel 4. Connect your electrode pair to LED channel D and
-  your CO2 solenoid to PWM channel 4. Electrolysis is paused during each
-  sparge cycle and resumed immediately afterwards.
+  Drives electrolysis on the configured LED channel (default D) and periodically
+  sparges CO2 via a solenoid on PWM channel 4. Connect your electrode pair to the
+  configured LED channel and your CO2 solenoid to PWM channel 4. Electrolysis is
+  paused during each CO2 sparge cycle and resumed immediately afterwards.
 published_settings:
   - key: electrolysis_power
     unit: "%"
     label: Electrolysis Power
     description: >
-      Power level for electrolysis as a percentage (0-10%) of LED channel D
-      full power. Values above 10 are clamped to 10 at runtime. Connect your
-      electrode pair to LED channel D. Set to 0 to disable electrolysis while
-      keeping CO2 sparging active.
+      Power level for electrolysis as a percentage (0-10%) of the configured LED
+      channel's full power. Values above 10 are clamped to 10 at runtime. Connect
+      your electrode pair to the configured LED channel (default D, set via
+      led_channel in config.ini). Set to 0 to disable electrolysis while keeping
+      CO2 sparging active.
     type: numeric
     display: true
   - key: sparge_duration_seconds
