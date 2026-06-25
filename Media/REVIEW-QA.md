@@ -1,19 +1,43 @@
-# Model/Plugin Review Programme — Q&A Ledger (working file, not for upstream)
+# Model/Plugin Review Programme — Ledger & Completion Plan (working file, not for upstream)
 
-Async channel so no workstream blocks on a question. Agents log questions here with a
-**default assumption** and proceed. The Programme Manager surfaces must-answer ones in the
-5-minute chat updates; Martin answers in chat; answers are recorded here.
+Durable state for the perfection programme: Martin's decisions + the remaining-work
+checklist. On "continue" in a new session, read this file + `git log` and resume.
+(Dropping the opaque "H-1/H-2" labels — plain descriptions below, per Martin.)
 
-## Open questions for Martin
-| # | Workstream | Question | Default assumption (proceeding on this) | Blocking? |
-|---|---|---|---|---|
-| Q1 | Plugin | Upstream-PR-ready, or local-only? | Build PR-ready: clean plugin feature, require a minimum Pioreactor version rather than patching; no un-consented system changes (per prior reviewer feedback). | No |
-| Q2 | Plugin | Confirm the OD-pause spec: OD reading pauses during + for a user-set period after each electrolysis ON phase; setting that period to −(electrolysis ON time) cancels the pause so OD is logged throughout electrolysis. | Yes, as stated. Period in seconds; negative allowed down to −(ON time). | No |
-| Q3 | Python model | Keep electroPioreactorGasModel.py separate from -sensitivity.py, or merge? | Build separate first; merge only if it leaves a single clean, well-documented module. | No |
+## Decisions (Martin, 2026-06-25)
 
-## Answered
-_(none yet)_
+| Topic | Decision |
+|---|---|
+| Plugin PR | **Open it** upstream (PR-ready). |
+| LED channel | **Read from config.ini only — no UI control.** Keep in *this* branch; it supersedes `configurable-led-channel` and solves Gerrit's needs too. Structure as **separate commits** (LED-from-config / electrolysis cycling / OD-pause). |
+| OD-pause logic | Confirmed. **Pause trumps no-pause**: if electrolysis OR CO₂-sparge requests an OD pause, OD is paused; OD only resumes when the last owner releases. (Owner-set already implemented — matches.) A pause offset that is negative *and* ≥ the ON-time in magnitude → OD runs throughout (unless sparge pauses it). |
+| Python model file | Merge sensitivity into one file **iff zero downside** (e.g. one module, separate functions/flag); otherwise keep separate. |
+| Sparge O₂-vent guards (the "62×" headline bug) | Do the **proper structural fix** (deferred steady-growth model), abstracted so a **post-grad can check it and a human expert can review it**. Not the quick lag-revert. Accuracy + correctness over speed. |
+| HOCl biocidal threshold | **Species-specific from the literature**, added to a generalised species DO/tolerance table; use the **conservative (cell-sensitive) end** of the best-justified value. Not a round 1 mg/L. (Note: water-industry thresholds err high — toward over-disinfection — so don't borrow those.) |
 
-## Assumptions log (agents proceeding without asking)
-- Data gaps: plug from peer-reviewed literature only, cite source + give range/confidence; never invent. Genuinely unmeasurable values stay in the Summary Improvements list.
-- "Authorisor" agents produce sign-off-readiness verdicts only; they NEVER set an `authorised` state (human-only act).
+## Completion checklist
+
+**Done & pushed**
+- [x] Secret-leak closed (`MCTests/` git-ignored) — `ca917c3`
+- [x] MC02 strong-ion-difference number bug (missing Mg²⁺/Ca²⁺) — `53b8b3d`
+- [x] Review.md wave-1 record + independent Python model (77/77 within 0.5%) + sensitivity refresh — `00bc7e9`
+- [x] Bleach flag corrected + over-budget string trimmed — `0d57db6` (HOCl threshold still **interim 1 mg/L**, see below)
+- [x] Plugin: feature + 9 verified review fixes, 113 tests — pushed `plugin/electrolysis-cycling-od-pause` `4279d76`
+
+**To completion**
+- [ ] Sparge O₂-vent guards: proper steady-growth model replacing the best-case `surf_strip` credit; verify with the Python twin; document for post-grad/expert review. *(high)*
+- [ ] HOCl threshold: literature research → species-specific, conservative; add a tolerance column to the species table; replace the interim 1 mg/L in `bleach_flag`. *(high)*
+- [ ] pH solve-grid: add a sign-flip-count guard (flag/#N/A if the residual crosses ≠ once) — closes a silent-wrong-answer mode off-baseline. *(med)*
+- [ ] Review.md: add a modular-era **Chemistry-sheet section** — verify each van't Hoff Ka vs handbook ΔH, re-derive both SID formulas + phosphate/ammonium sums, confirm the HOCl/bleach stoichiometry. (wave-1 synthesis predated the tab.) *(high)*
+- [ ] Methodologies/* media recipes (Crymlyn, Irvine/Medium): cross-check vs the Chemistry MC02/UdG g/L rows, or explicitly scope out. *(low)*
+- [ ] 8 bench protocols: method-correctness review; advance document-control authored→checked→reviewed (never `authorised`). *(med)*
+- [ ] Summary Improvements: enlarge to the sensitivity-ranked table (+4 measurement rows). *(med)*
+- [ ] Spreadsheet dump: regenerate (stale — still shows the pre-fix SID); stamp with the source git SHA. *(infra)*
+- [ ] Python model: merge sensitivity into one file if zero-downside. *(low)*
+- [ ] Plugin: LED config-only (drop UI control), restructure into the three separate commits, open the PR. *(plugin)*
+- [ ] Wave-2: re-run the plug-the-gaps + synthesise phases that died on the session limit.
+
+## Assumptions (standing)
+- Data gaps: peer-reviewed literature only, cited + ranged; never invent. Unmeasurable values stay in Summary Improvements.
+- Authoriser agents give sign-off-readiness verdicts only; never set an `authorised` state (human-only).
+- Plugin default `electrolysis_off_seconds = 0` = continuous (no behaviour change for existing users).
