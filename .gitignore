@@ -9,7 +9,7 @@ __pycache__/
 *.afphoto
 .claude/
 .vibe/
-MCTests/.claude/settings.local.json
+MCTests/
 private-notes/
 
 # >>> vibe-managed runtime exclusions (auto-added; do not edit body) >>>
