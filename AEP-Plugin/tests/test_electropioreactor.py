@@ -8,7 +8,10 @@ threading.Timer is patched per-test so no real timers fire.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from pioreactor_electropioreactor_plugin.electropioreactor import ElectroPioreactor
+from pioreactor_electropioreactor_plugin.electropioreactor import (
+    ElectroPioreactor,
+    od_pause_window_seconds,
+)
 from pioreactor.actions.led_intensity import led_intensity
 from pioreactor.pubsub import publish as mqtt_publish
 
@@ -22,10 +25,13 @@ def job():
     with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
         inst = ElectroPioreactor(unit="unit", experiment="exp")
         inst.on_init_to_ready()
-        # clear init noise so assertions in tests start clean
+        # on_init_to_ready starts the electrolysis cycle, which lights the LED
+        # and (with the default OD-pause window) pauses od_reading. Clear that
+        # init noise AND the resulting state so each test body starts clean.
         led_intensity.reset_mock()
         inst._pwm.reset_mock()
         mqtt_publish.reset_mock()
+        inst._od_paused = False
         yield inst
 
 
@@ -427,11 +433,13 @@ class TestElectrolysisCycling:
     def test_defaults(self, job):
         assert job.electrolysis_on_seconds == 60.0
         assert job.electrolysis_off_seconds == 0.0
+        assert job.od_pause_after_electrolysis_seconds == 5.0
 
     def test_new_settings_in_published_settings(self):
         for key in (
             "electrolysis_on_seconds",
             "electrolysis_off_seconds",
+            "od_pause_after_electrolysis_seconds",
         ):
             assert key in ElectroPioreactor.published_settings
             assert ElectroPioreactor.published_settings[key]["persist"] is True
@@ -490,6 +498,55 @@ class TestElectrolysisCycling:
         # last LED call is the re-light, not the 0.0 off
         led_intensity.assert_called_with({"D": 5.0}, unit="unit", experiment="exp")
 
+    def test_on_phase_pauses_od_for_window(self, job):
+        job.state = job.READY
+        job._is_sparging = False
+        job._od_paused = False
+        job.electrolysis_on_seconds = 10.0
+        job.od_pause_after_electrolysis_seconds = 5.0
+        with patch("threading.Timer") as timer_cls:
+            timer_cls.side_effect = lambda *a, **kw: MagicMock()
+            job._begin_electrolysis_on()
+            delays = [c.args[0] for c in timer_cls.call_args_list]
+        assert "sleeping" in _od_state_payloads()
+        assert job._od_paused is True
+        assert 15.0 in delays   # OD resume at on+pause = 15s
+        assert 10.0 in delays   # OFF transition at on = 10s
+
+    def test_on_phase_resumes_od_during_electrolysis_for_negative_pause(self, job):
+        # pause=-3, on=10 -> OD resume scheduled at t=7s, during electrolysis.
+        job.state = job.READY
+        job._is_sparging = False
+        job._od_paused = False
+        job.electrolysis_on_seconds = 10.0
+        job.od_pause_after_electrolysis_seconds = -3.0
+        with patch("threading.Timer") as timer_cls:
+            timer_cls.side_effect = lambda *a, **kw: MagicMock()
+            job._begin_electrolysis_on()
+            delays = [c.args[0] for c in timer_cls.call_args_list]
+        assert job._od_paused is True
+        assert 7.0 in delays
+
+    def test_on_phase_never_pauses_od_when_window_is_zero(self, job):
+        # pause == -on -> window 0 -> OD not touched at all.
+        job.state = job.READY
+        job._is_sparging = False
+        job._od_paused = False
+        job.electrolysis_on_seconds = 10.0
+        job.od_pause_after_electrolysis_seconds = -10.0
+        job._begin_electrolysis_on()
+        assert _od_state_payloads() == []
+        assert job._od_paused is False
+
+    def test_on_phase_never_pauses_od_when_window_negative(self, job):
+        job.state = job.READY
+        job._is_sparging = False
+        job._od_paused = False
+        job.electrolysis_on_seconds = 10.0
+        job.od_pause_after_electrolysis_seconds = -60.0
+        job._begin_electrolysis_on()
+        assert _od_state_payloads() == []
+
 
 # ── electrolysis-cycling setters & validators ─────────────────────────────────
 
@@ -518,6 +575,10 @@ class TestElectrolysisSetters:
         job.set_electrolysis_off_seconds(15.0)
         assert job.electrolysis_off_seconds == 15.0
 
+    def test_set_od_pause_after_electrolysis_accepts_negative(self, job):
+        job.set_od_pause_after_electrolysis_seconds(-20.0)
+        assert job.od_pause_after_electrolysis_seconds == -20.0
+
     def test_non_negative_validator(self):
         assert ElectroPioreactor._non_negative(0, "x") == 0.0
         assert ElectroPioreactor._non_negative(3.5, "x") == 3.5
@@ -538,3 +599,141 @@ class TestElectrolysisSetters:
         job._electrolysis_on = True
         job.set_electrolysis_power(8.0)
         led_intensity.assert_called_once_with({"D": 8.0}, unit="unit", experiment="exp")
+
+
+# ── OD-pause owner refcount (electrolysis + sparge interaction) ────────────────
+
+class TestODPauseOwners:
+    """The named feature's core defect: a single shared boolean let a sparge
+    resume re-enable OD mid-electrolysis. OD pause is now reference-counted by
+    owner ('sparge' / 'electrolysis'); OD only actually resumes once the LAST
+    owner releases. These tests pin that model."""
+
+    def test_second_owner_does_not_republish_sleeping(self, job):
+        from pioreactor_electropioreactor_plugin.electropioreactor import (
+            _OD_PAUSE_ELECTROLYSIS,
+            _OD_PAUSE_SPARGE,
+        )
+        job._pause_od_reading(_OD_PAUSE_ELECTROLYSIS)
+        first = list(_od_state_payloads())
+        assert first == ["sleeping"]
+        # A second, overlapping owner joins without re-publishing SLEEPING.
+        job._pause_od_reading(_OD_PAUSE_SPARGE)
+        assert _od_state_payloads() == ["sleeping"]
+        assert job._od_pausers == {_OD_PAUSE_ELECTROLYSIS, _OD_PAUSE_SPARGE}
+
+    def test_releasing_one_of_two_owners_does_not_resume(self, job):
+        from pioreactor_electropioreactor_plugin.electropioreactor import (
+            _OD_PAUSE_ELECTROLYSIS,
+            _OD_PAUSE_SPARGE,
+        )
+        job._pause_od_reading(_OD_PAUSE_ELECTROLYSIS)
+        job._pause_od_reading(_OD_PAUSE_SPARGE)
+        mqtt_publish.reset_mock()
+        # Sparge releases its owner; electrolysis still holds → OD must NOT resume.
+        job._resume_od_reading(_OD_PAUSE_SPARGE)
+        assert "ready" not in _od_state_payloads()
+        assert job._od_pausers == {_OD_PAUSE_ELECTROLYSIS}
+
+    def test_releasing_last_owner_resumes(self, job):
+        from pioreactor_electropioreactor_plugin.electropioreactor import (
+            _OD_PAUSE_ELECTROLYSIS,
+            _OD_PAUSE_SPARGE,
+        )
+        job._pause_od_reading(_OD_PAUSE_ELECTROLYSIS)
+        job._pause_od_reading(_OD_PAUSE_SPARGE)
+        job._resume_od_reading(_OD_PAUSE_SPARGE)
+        mqtt_publish.reset_mock()
+        job._resume_od_reading(_OD_PAUSE_ELECTROLYSIS)
+        assert "ready" in _od_state_payloads()
+        assert job._od_pausers == set()
+
+    def test_sparge_resume_does_not_resume_od_mid_electrolysis(self, job):
+        """REGRESSION (the reviewer's top improvement): electrolysis OD-pause
+        active → a sparge OD-pause begins → the SPARGE resume timer fires →
+        OD must NOT be resumed while electrolysis still holds its pause."""
+        from pioreactor_electropioreactor_plugin.electropioreactor import (
+            _OD_PAUSE_ELECTROLYSIS,
+            _OD_PAUSE_SPARGE,
+        )
+        job.state = job.READY
+        job._is_sparging = False
+
+        # 1. Electrolysis ON phase pauses OD.
+        job.electrolysis_on_seconds = 60.0
+        job.od_pause_after_electrolysis_seconds = 5.0
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            job._begin_electrolysis_on()
+        assert job._od_pausers == {_OD_PAUSE_ELECTROLYSIS}
+
+        # 2. A sparge begins and also pauses OD.
+        job.sparge_duration_seconds = 10.0
+        job.od_pause_after_sparge_seconds = 5.0
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            job._begin_sparge()
+        assert job._od_pausers == {_OD_PAUSE_ELECTROLYSIS, _OD_PAUSE_SPARGE}
+
+        # 3. Fire the SPARGE resume (what the sparge resume timer would do).
+        mqtt_publish.reset_mock()
+        job._resume_od_reading(_OD_PAUSE_SPARGE)
+
+        # OD must STILL be paused — electrolysis owner remains.
+        assert "ready" not in _od_state_payloads()
+        assert job._od_pausers == {_OD_PAUSE_ELECTROLYSIS}
+        assert job._od_paused is True
+
+    def test_begin_sparge_registers_sparge_owner(self, job):
+        from pioreactor_electropioreactor_plugin.electropioreactor import _OD_PAUSE_SPARGE
+        job.state = job.READY
+        job.sparge_duration_seconds = 10.0
+        job.od_pause_after_sparge_seconds = 5.0
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            job._begin_sparge()
+        assert _OD_PAUSE_SPARGE in job._od_pausers
+
+    def test_begin_electrolysis_on_registers_electrolysis_owner(self, job):
+        from pioreactor_electropioreactor_plugin.electropioreactor import _OD_PAUSE_ELECTROLYSIS
+        job.state = job.READY
+        job._is_sparging = False
+        job.electrolysis_on_seconds = 10.0
+        job.od_pause_after_electrolysis_seconds = 5.0
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            job._begin_electrolysis_on()
+        assert _OD_PAUSE_ELECTROLYSIS in job._od_pausers
+
+
+# ── pure OD-pause-window timing function (negative-pause edge cases) ───────────
+# These exercise the contract WITHOUT constructing a job: od_pause_window_seconds
+# is the side-effect-free core of the "OD pause around electrolysis" feature.
+
+class TestODPauseWindowFunction:
+    def test_positive_pause_extends_window_past_on_phase(self):
+        # on=10, pause=+5 -> OD off for the 10s ON phase + 5s settle = 15s.
+        assert od_pause_window_seconds(10.0, 5.0) == 15.0
+
+    def test_zero_pause_equals_on_phase(self):
+        # on=10, pause=0 -> OD off for exactly the ON phase.
+        assert od_pause_window_seconds(10.0, 0.0) == 10.0
+
+    def test_negative_pause_shortens_window_into_on_phase(self):
+        # on=10, pause=-3 -> OD resumes at t=7s, i.e. 3s BEFORE electrolysis
+        # ends, so OD is measured during the tail of the ON phase.
+        assert od_pause_window_seconds(10.0, -3.0) == 7.0
+
+    def test_negative_pause_equal_to_on_cancels_window(self):
+        # on=10, pause=-10 (== -on) -> window 0 -> OD never paused; measured
+        # throughout electrolysis. This is the floor boundary.
+        assert od_pause_window_seconds(10.0, -10.0) == 0.0
+
+    def test_negative_pause_beyond_on_clamps_to_zero(self):
+        # on=10, pause=-50 (< -on) -> still clamped to 0, never negative.
+        assert od_pause_window_seconds(10.0, -50.0) == 0.0
+
+    def test_window_never_negative(self):
+        # Property: for any inputs the window is >= 0.
+        for on in (1.0, 10.0, 60.0):
+            for pause in (-1000.0, -on, -1.0, 0.0, 1.0, 1000.0):
+                assert od_pause_window_seconds(on, pause) >= 0.0
+
+    def test_accepts_int_and_str_floats(self):
+        assert od_pause_window_seconds(10, -3) == 7.0

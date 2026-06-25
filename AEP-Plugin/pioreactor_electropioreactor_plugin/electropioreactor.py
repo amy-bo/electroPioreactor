@@ -30,6 +30,46 @@ _CONFIG_SECTION = "electropioreactor.config"
 # wired to one of these; which one is user-configurable (see _get_led_channel).
 _VALID_LED_CHANNELS = ("A", "B", "C", "D")
 
+# OD-pause owners (reasons). OD reading is paused while ANY of these is active
+# and only resumed once all have released. See ElectroPioreactor._od_pausers.
+_OD_PAUSE_SPARGE = "sparge"
+_OD_PAUSE_ELECTROLYSIS = "electrolysis"
+
+
+def od_pause_window_seconds(on_seconds: float, pause_after_seconds: float) -> float:
+    """Effective OD-suppression window (seconds) measured from electrolysis-ON start.
+
+    OD reading is paused for the whole electrolysis ON phase plus a user-defined
+    settle period *after* electrolysis ends. That settle period
+    (``pause_after_seconds``) is allowed to be **negative**: a negative value
+    eats into the ON-phase pause so OD resumes *before* electrolysis finishes,
+    letting OD be measured during (the tail of, or all of) the ON phase.
+
+    The window is the time from ON start at which OD reading resumes::
+
+        window = on_seconds + pause_after_seconds          (floored at 0)
+
+    Floored at 0 because a negative window is meaningless — at and below
+    ``-on_seconds`` the pause is fully cancelled and OD is never suppressed.
+
+    Worked example, with ``on_seconds = 10``:
+
+        pause_after = +5  -> window = 15  : OD off for the 10 s ON phase + 5 s settle
+        pause_after =  0  -> window = 10  : OD off for exactly the ON phase
+        pause_after = -3  -> window =  7  : OD resumes at t=7 s, 3 s BEFORE electrolysis
+                                            ends -> OD measured during the tail of the ON phase
+        pause_after = -10 -> window =  0  : window == 0 -> OD never paused, measured
+                                            throughout electrolysis  (-10 == -on_seconds)
+        pause_after = -50 -> window =  0  : clamp floor; any value <= -on_seconds gives 0
+
+    :param on_seconds: electrolysis ON-phase duration (> 0).
+    :param pause_after_seconds: settle period after electrolysis ends; may be
+        negative down to ``-on_seconds`` (and beyond, which also gives 0).
+    :returns: seconds from ON start until OD reading should resume; ``0.0``
+        means "do not pause OD at all this cycle".
+    """
+    return max(0.0, float(on_seconds) + float(pause_after_seconds))
+
 
 class ElectroPioreactor(BackgroundJob):
     """
@@ -41,6 +81,10 @@ class ElectroPioreactor(BackgroundJob):
     opens a CO₂ solenoid (PWM channel configured via ``[PWM] N = relay``) for a
     user-defined duration every user-defined interval. Electrolysis is paused
     for the duration of each sparge and resumed immediately after.
+
+    OD reading is paused during each electrolysis ON phase plus a settle window
+    (``od_pause_after_electrolysis_seconds``, which may be negative — see
+    :func:`od_pause_window_seconds`) and, independently, during each CO₂ sparge.
     """
 
     job_name = "electropioreactor"
@@ -54,6 +98,7 @@ class ElectroPioreactor(BackgroundJob):
         "electrolysis_power": {"datatype": "float", "settable": True, "persist": True},
         "electrolysis_on_seconds": {"datatype": "float", "settable": True, "persist": True},
         "electrolysis_off_seconds": {"datatype": "float", "settable": True, "persist": True},
+        "od_pause_after_electrolysis_seconds": {"datatype": "float", "settable": True, "persist": True},
         "sparge_duration_seconds": {"datatype": "float", "settable": True, "persist": True},
         "sparge_interval_minutes": {"datatype": "float", "settable": True, "persist": True},
         "od_pause_after_sparge_seconds": {"datatype": "float", "settable": True, "persist": True},
@@ -75,6 +120,7 @@ class ElectroPioreactor(BackgroundJob):
         electrolysis_power: float = 2.5,
         electrolysis_on_seconds: float = 60.0,
         electrolysis_off_seconds: float = 0.0,
+        od_pause_after_electrolysis_seconds: float = 5.0,
         sparge_duration_seconds: float = 10.0,
         sparge_interval_minutes: float = 60.0,
         od_pause_after_sparge_seconds: float = 5.0,
@@ -85,7 +131,13 @@ class ElectroPioreactor(BackgroundJob):
         # reads these attrs; if a validator below raises before they exist,
         # cleanup masks the real ValueError with an AttributeError.
         self._is_sparging = False
-        self._od_paused = False
+        # OD reading has TWO independent pausers — the sparge cycle and the
+        # electrolysis ON phase — that can overlap. A single boolean let a
+        # sparge resume re-enable OD mid-electrolysis (and vice-versa). Track
+        # the set of active pause owners instead; OD is only actually resumed
+        # when the LAST owner releases (the set becomes empty). See
+        # _pause_od_reading / _resume_od_reading.
+        self._od_pausers: set[str] = set()
         self._sparge_timer: threading.Timer | None = None
         self._stop_timer: threading.Timer | None = None
         self._od_resume_timer: threading.Timer | None = None
@@ -93,6 +145,7 @@ class ElectroPioreactor(BackgroundJob):
         self._electrolysis_on = False
         self._electrolysis_on_timer: threading.Timer | None = None
         self._electrolysis_off_timer: threading.Timer | None = None
+        self._electrolysis_od_resume_timer: threading.Timer | None = None
         self.reset_to_defaults = False
 
         # Hardware binding: which LED channel the electrode pair is wired to.
@@ -108,6 +161,7 @@ class ElectroPioreactor(BackgroundJob):
             )
         self.electrolysis_on_seconds = self._positive(electrolysis_on_seconds, "electrolysis_on_seconds")
         self.electrolysis_off_seconds = self._non_negative(electrolysis_off_seconds, "electrolysis_off_seconds")
+        self.od_pause_after_electrolysis_seconds = float(od_pause_after_electrolysis_seconds)
         self.sparge_duration_seconds = self._positive(sparge_duration_seconds, "sparge_duration_seconds")
         self.sparge_interval_minutes = self._positive(sparge_interval_minutes, "sparge_interval_minutes")
         self.od_pause_after_sparge_seconds = float(od_pause_after_sparge_seconds)
@@ -157,6 +211,12 @@ class ElectroPioreactor(BackgroundJob):
         self.electrolysis_off_seconds = self._non_negative(value, "electrolysis_off_seconds")
         self._save_config("electrolysis_off_seconds", self.electrolysis_off_seconds)
 
+    def set_od_pause_after_electrolysis_seconds(self, value: float) -> None:
+        self.od_pause_after_electrolysis_seconds = float(value)
+        self._save_config(
+            "od_pause_after_electrolysis_seconds", self.od_pause_after_electrolysis_seconds
+        )
+
     def set_sparge_duration_seconds(self, value: float) -> None:
         self.sparge_duration_seconds = self._positive(value, "sparge_duration_seconds")
         self._save_config("sparge_duration_seconds", self.sparge_duration_seconds)
@@ -184,6 +244,9 @@ class ElectroPioreactor(BackgroundJob):
         )
         self.set_electrolysis_off_seconds(
             config.getfloat(_CONFIG_SECTION, "electrolysis_off_seconds", fallback=0.0)
+        )
+        self.set_od_pause_after_electrolysis_seconds(
+            config.getfloat(_CONFIG_SECTION, "od_pause_after_electrolysis_seconds", fallback=5.0)
         )
         self.set_sparge_duration_seconds(
             config.getfloat(_CONFIG_SECTION, "sparge_duration_seconds", fallback=10.0)
@@ -228,8 +291,10 @@ class ElectroPioreactor(BackgroundJob):
         # A sufficiently negative offset (<= -sparge_duration) means "never pause OD".
         total_od_pause = self.sparge_duration_seconds + self.od_pause_after_sparge_seconds
         if total_od_pause > 0:
-            self._pause_od_reading()
-            self._od_resume_timer = threading.Timer(total_od_pause, self._resume_od_reading)
+            self._pause_od_reading(_OD_PAUSE_SPARGE)
+            self._od_resume_timer = threading.Timer(
+                total_od_pause, self._resume_od_reading, args=(_OD_PAUSE_SPARGE,)
+            )
             self._od_resume_timer.daemon = True
             self._od_resume_timer.start()
 
@@ -249,7 +314,9 @@ class ElectroPioreactor(BackgroundJob):
     # electrolysis_off_seconds, repeating. electrolysis_off_seconds == 0 means
     # "continuous" — we keep the LED on and never schedule an OFF phase (the
     # v0.6.x behaviour, so default-config users see no change). The chain mirrors
-    # the sparge timer chain above.
+    # the sparge timer chain above. OD reading is paused for the ON phase plus an
+    # offset (od_pause_after_electrolysis_seconds, may be negative — see
+    # od_pause_window_seconds), independently of the sparge OD pause.
 
     def _begin_electrolysis_on(self) -> None:
         if self.state != self.READY:
@@ -265,6 +332,18 @@ class ElectroPioreactor(BackgroundJob):
             f"Electrolysis ON for {self.electrolysis_on_seconds:.0f}s "
             f"(power {self.electrolysis_power:.2f}%)"
         )
+
+        # Pause OD for the ON phase + the (possibly negative) settle offset.
+        window = od_pause_window_seconds(
+            self.electrolysis_on_seconds, self.od_pause_after_electrolysis_seconds
+        )
+        if window > 0:
+            self._pause_od_reading(_OD_PAUSE_ELECTROLYSIS)
+            self._electrolysis_od_resume_timer = threading.Timer(
+                window, self._resume_od_reading, args=(_OD_PAUSE_ELECTROLYSIS,)
+            )
+            self._electrolysis_od_resume_timer.daemon = True
+            self._electrolysis_od_resume_timer.start()
 
         # Schedule the end of this ON phase.
         self._electrolysis_off_timer = threading.Timer(
@@ -294,29 +373,63 @@ class ElectroPioreactor(BackgroundJob):
         self._electrolysis_on_timer.daemon = True
         self._electrolysis_on_timer.start()
 
-    def _pause_od_reading(self) -> None:
+    @property
+    def _od_paused(self) -> bool:
+        """Aggregate 'is OD currently paused by us' — True iff any owner holds a
+        pause. Kept as a convenience/back-compat accessor over the _od_pausers
+        set. Writing True registers a generic pause owner; writing False clears
+        all owners (does NOT publish — use _resume_od_reading for that)."""
+        return bool(self._od_pausers)
+
+    @_od_paused.setter
+    def _od_paused(self, value: bool) -> None:
+        if value:
+            self._od_pausers.add("_generic")
+        else:
+            self._od_pausers.clear()
+
+    def _pause_od_reading(self, reason: str) -> None:
         # JobState is a StrEnum on-device — its members ARE strings; .encode()
         # turns them into the bytes paho-mqtt expects. (Earlier code used
         # .to_bytes(), which doesn't exist on str subclasses and threw on every
         # sparge cycle. Off-device tests passed because conftest stubbed JobState
         # with its own .to_bytes(); see conftest fix in same commit.)
+        #
+        # `reason` registers an OD-pause owner ('sparge' or 'electrolysis'). Only
+        # the FIRST owner publishes SLEEPING; a second overlapping owner just
+        # joins the set so it won't be resumed early by the other's resume timer.
+        already_paused = bool(self._od_pausers)
+        self._od_pausers.add(reason)
+        if already_paused:
+            return
         topic = f"pioreactor/{self.unit}/{self.experiment}/od_reading/$state/set"
         try:
             publish(topic, JobState.SLEEPING.encode(), qos=QOS.AT_LEAST_ONCE)
-            self._od_paused = True
         except Exception as e:
+            # Pausing failed: drop this owner again so we don't later think OD is
+            # paused-by-us and publish a spurious READY.
+            self._od_pausers.discard(reason)
             self.logger.warning(f"Could not pause od_reading: {e}")
 
-    def _resume_od_reading(self) -> None:
-        if not self._od_paused:
+    def _resume_od_reading(self, reason: str | None = None) -> None:
+        # reason=None is an unconditional release (cleanup paths: sleep,
+        # disconnect) — clear ALL owners. A specific reason releases only that
+        # owner. Either way, OD is only actually resumed once NO owner remains,
+        # so e.g. a sparge resume can't re-enable OD while electrolysis still
+        # holds its pause.
+        if not self._od_pausers:
             return
+        if reason is None:
+            self._od_pausers.clear()
+        else:
+            self._od_pausers.discard(reason)
+            if self._od_pausers:
+                return
         topic = f"pioreactor/{self.unit}/{self.experiment}/od_reading/$state/set"
         try:
             publish(topic, JobState.READY.encode(), qos=QOS.AT_LEAST_ONCE)
         except Exception as e:
             self.logger.warning(f"Could not resume od_reading: {e}")
-        finally:
-            self._od_paused = False
 
     # ── lifecycle hooks ──────────────────────────────────────────────────────
 
@@ -386,6 +499,7 @@ class ElectroPioreactor(BackgroundJob):
             "_od_resume_timer",
             "_electrolysis_on_timer",
             "_electrolysis_off_timer",
+            "_electrolysis_od_resume_timer",
         ):
             timer = getattr(self, attr, None)
             if timer is not None:
@@ -424,6 +538,7 @@ class ElectroPioreactor(BackgroundJob):
                 parser.set(_CONFIG_SECTION, "electrolysis_power", str(self.electrolysis_power))
                 parser.set(_CONFIG_SECTION, "electrolysis_on_seconds", str(self.electrolysis_on_seconds))
                 parser.set(_CONFIG_SECTION, "electrolysis_off_seconds", str(self.electrolysis_off_seconds))
+                parser.set(_CONFIG_SECTION, "od_pause_after_electrolysis_seconds", str(self.od_pause_after_electrolysis_seconds))
                 parser.set(_CONFIG_SECTION, "sparge_duration_seconds", str(self.sparge_duration_seconds))
                 parser.set(_CONFIG_SECTION, "sparge_interval_minutes", str(self.sparge_interval_minutes))
                 parser.set(_CONFIG_SECTION, "od_pause_after_sparge_seconds", str(self.od_pause_after_sparge_seconds))
@@ -519,6 +634,15 @@ class ElectroPioreactor(BackgroundJob):
          "electrolysis (no OFF phase).",
 )
 @click.option(
+    "--od-pause-after-electrolysis-seconds",
+    default=lambda: config.getfloat(_CONFIG_SECTION, "od_pause_after_electrolysis_seconds", fallback=5.0),
+    type=float,
+    show_default=True,
+    help="Seconds after each electrolysis ON phase ends before OD reading "
+         "resumes. Negative values resume OD during electrolysis; values "
+         "≤ −electrolysis_on_seconds disable this OD pause entirely.",
+)
+@click.option(
     "--sparge-duration-seconds",
     default=lambda: config.getfloat(_CONFIG_SECTION, "sparge_duration_seconds", fallback=10.0),
     type=float,
@@ -544,6 +668,7 @@ def click_electropioreactor(
     electrolysis_power: float,
     electrolysis_on_seconds: float,
     electrolysis_off_seconds: float,
+    od_pause_after_electrolysis_seconds: float,
     sparge_duration_seconds: float,
     sparge_interval_minutes: float,
     od_pause_after_sparge_seconds: float,
@@ -556,6 +681,7 @@ def click_electropioreactor(
         electrolysis_power=electrolysis_power,
         electrolysis_on_seconds=electrolysis_on_seconds,
         electrolysis_off_seconds=electrolysis_off_seconds,
+        od_pause_after_electrolysis_seconds=od_pause_after_electrolysis_seconds,
         sparge_duration_seconds=sparge_duration_seconds,
         sparge_interval_minutes=sparge_interval_minutes,
         od_pause_after_sparge_seconds=od_pause_after_sparge_seconds,

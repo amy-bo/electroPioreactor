@@ -5,10 +5,10 @@ display: true
 source: app
 description: >
   Drives electrolysis on the configured LED channel (default D) and periodically
-  sparges CO2 via a solenoid on PWM channel 4. Connect your electrode pair to the
-  configured LED channel and your CO2 solenoid to PWM channel 4. Electrolysis
-  cycles ON/OFF on a user-defined schedule and is also paused during each CO2
-  sparge cycle.
+  sparges CO2 via a solenoid on the configured PWM channel (default 4). Connect
+  your electrode pair to the configured LED channel and your CO2 solenoid to the
+  configured PWM channel. Electrolysis cycles ON/OFF on a user-defined schedule
+  and is also paused during each CO2 sparge cycle.
 published_settings:
   - key: electrolysis_power
     unit: "%"
@@ -38,13 +38,25 @@ published_settings:
       next phase.
     type: numeric
     display: true
+  - key: od_pause_after_electrolysis_seconds
+    unit: s
+    label: OD Pause After Electrolysis
+    description: >
+      How long (in seconds) after each electrolysis ON phase ends before OD
+      reading resumes – i.e. the settle window after electrolysis. Negative
+      values resume OD reading before the ON phase ends (OD is measured during
+      electrolysis). A value less than or equal to the negative of the
+      electrolysis ON time disables this OD pause entirely (OD measured
+      throughout electrolysis).
+    type: numeric
+    display: true
   - key: sparge_duration_seconds
     unit: s
     label: Sparging Duration
     description: >
-      How long (in seconds) the CO2 solenoid on PWM channel 4 is held open
-      during each sparging cycle. Electrolysis is paused for this duration.
-      Mid-sparge changes apply to the next cycle, not the in-flight one.
+      How long (in seconds) the CO2 solenoid on the configured PWM channel is
+      held open during each sparging cycle. Electrolysis is paused for this
+      duration. Mid-sparge changes apply to the next cycle, not the in-flight one.
     type: numeric
     display: true
   - key: sparge_interval_minutes

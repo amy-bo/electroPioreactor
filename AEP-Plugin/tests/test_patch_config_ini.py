@@ -157,6 +157,7 @@ class TestCasePreservation:
         assert sec["electrolysis_power"] == "2.5"
         assert sec["electrolysis_on_seconds"] == "60.0"
         assert sec["electrolysis_off_seconds"] == "0.0"
+        assert sec["od_pause_after_electrolysis_seconds"] == "5.0"
         assert sec["sparge_duration_seconds"] == "10.0"
         assert sec["sparge_interval_minutes"] == "60.0"
         assert sec["od_pause_after_sparge_seconds"] == "5.0"
