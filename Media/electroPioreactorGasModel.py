@@ -214,7 +214,11 @@ DO_toxic  = _do(_row[3])                              # D48
 # CHEMISTRY TAB  (buffered pH solve + anodic bleaching)
 # ============================================================================
 TKc   = T_K                                           # D4 (K)
-CO2aqc = CO2_diss / 1000                              # D5 (mol/L)
+# CO2aqc (Chemistry D5) is now the schedule-dependent sawtooth steady-state
+# dissolved CO2 (CO2aqc_ss). It is computed in the MASS TRANSFER section below
+# (it needs kLa_sparge/kLa_surf/spg_dur/spg_int), and the buffered pH solve that
+# consumes it has been moved to run AFTER Mass Transfer. CO2aqc was previously the
+# fixed full-sparge worst case (=CO2_diss/1000).
 Iappc = I_app                                         # D6 (A)
 Fcc   = F_const                                       # D7 (C/mol)
 VLc   = V_charge / 1000                               # D8 (L)
@@ -271,67 +275,12 @@ pH_PT  = _by_media(PT_mc02, PT_udg)                   # D45
 pH_NT  = _by_media(NT_mc02, NT_udg)                   # D46
 pH_Cl  = _by_media(Cl_mc02, Cl_udg)                   # D47
 
-# pH solve grid (A50:A100 trial pH 4.0..9.0 step 0.1); root by linear interp.
-def charge_residual(pH):
-    h = 10 ** (-pH)
-    return (pH_SID
-            + pH_NT * h / (h + Ka_NH4)
-            + h
-            - (pH_PT * Ka1p * h ** 2 + 2 * pH_PT * Ka1p * Ka2p * h
-               + 3 * pH_PT * Ka1p * Ka2p * Ka3p)
-              / (h ** 3 + Ka1p * h ** 2 + Ka1p * Ka2p * h + Ka1p * Ka2p * Ka3p)
-            - Ka1c * CO2aqc / h
-            - 2 * Ka1c * Ka2c * CO2aqc / h ** 2
-            - Kw_w / h)
-
-_pH_grid = [round(4.0 + 0.1 * i, 10) for i in range(51)]  # 4.0 .. 9.0
-_resid = [charge_residual(p) for p in _pH_grid]
-_interp_sum = 0.0
-for i in range(len(_pH_grid) - 1):
-    b, bn = _resid[i], _resid[i + 1]
-    if b >= 0 and bn < 0:                              # sign change (root bracket)
-        _interp_sum += _pH_grid[i] + 0.1 * b / (b - bn)
-pH_op = _interp_sum                                    # D103 (operating pH)
-
-pH_fHOCl = 1 / (1 + 10 ** (pH_op - pKa_HOCl))          # D104
-# --- naive FE=1 cells (NOT operative; kept for contrast) ---
-bleach_rate   = Iappc / (2 * Fcc) * 52460 * 3600 / VLc # D107 (mg/L/h, FE=1 ceiling)
-bleach_t1ppm  = 1 / bleach_rate * 60                   # D108 (min)
-HOCl_max = pH_Cl * pH_fHOCl * 52460                    # D125 (naive FE=1 ceiling, superseded)
-# --- graded kinetic free-chlorine penalty model (operative; mirrors Chemistry rows 128-147) ---
-FE_CER   = 0.5                                         # D128 max CER efficiency (high-Cl plateau)
-km_Cl    = 0.003                                       # D129 (cm/s)
-A_anode  = 5                                           # D130 (cm2)
-I_Cl_FE  = Iappc * FE_CER                              # D131 (A) efficiency-limited
-I_Cl_mt  = Fcc * km_Cl * (pH_Cl / 1000) * A_anode      # D132 (A) chloride mass-transport limit
-I_Cl     = min(I_Cl_FE, I_Cl_mt)                       # D133 (A) binding limit (mt-limited at trace Cl-)
-P_HOCl   = I_Cl / (2 * Fcc * VLc)                      # D134 (mol/L/s) volumetric free-Cl production
-NH3_N    = pH_NT * 14007                               # D135 (mg/L) ammonium as N
-k1_NH2Cl = 4.2e6                                       # D136 (M^-1 s^-1) HOCl+NH3 rate constant
-pKa_NH4  = 9.25                                        # D137
-NH3_free = pH_NT / (1 + 10 ** (pKa_NH4 - pH_op))       # D138 (M) reactive free ammonia
-HOCl_ss  = P_HOCl / (k1_NH2Cl * NH3_free)              # D139 (M) steady bulk free HOCl
-HOCl_ss_mgL = HOCl_ss * 52460                          # D140 (mg/L)
-f_local  = 10                                          # D141 anode boundary-layer enrichment
-tau_NH2Cl = 1                                          # D142 (h) monochloramine residence
-NH2Cl_mgL = min(P_HOCl * tau_NH2Cl * 3600 * 52460, 5.06 * NH3_N)  # D143 (mg/L) combined chlorine
-R_chloramine = 25                                      # D144 monochloramine potency divisor
-C_eff    = f_local * pH_fHOCl * HOCl_ss_mgL + NH2Cl_mgL / R_chloramine  # D145 (mg/L) OPERATIVE
-Cl_onset = 0.1                                         # D146 (mg/L) sub-lethal onset
-Cl_kill  = 2                                           # D147 (mg/L) kill
-if C_eff < Cl_onset:                                   # D109
-    bleach_flag = f"negligible free chlorine ({C_eff:.2f} mg/L < onset)"
-elif C_eff < Cl_kill:
-    bleach_flag = f"MILD sub-lethal penalty: {C_eff:.2f} mg/L (chloride costs lag/growth — Sydow 2017; chloride-free avoids it)"
-else:
-    bleach_flag = f"SEVERE free chlorine: {C_eff:.1f} mg/L → biofilm/electrode damage (Baek 2021)"
-if pH_op < 6.5:
-    pH_band_flag = "pH BELOW HOB optimum (<6.5) - reduce CO2 dose"
-elif pH_op > 7.5:
-    pH_band_flag = "pH above optimum (>7.5)"
-else:
-    pH_band_flag = "pH in HOB band 6.5-7.5"            # D110
-# HOCl_max (D125) computed above, before bleach_flag (workbook D109 gates on it)
+# NOTE: the buffered pH solve + anodic-bleaching chlorine chain that consume
+# CO2aqc have been MOVED to run after the Mass Transfer section (see
+# "CHEMISTRY pH SOLVE (deferred)" below) because CO2aqc is now the
+# schedule-dependent sawtooth CO2aqc_ss, which needs kLa_sparge/kLa_surf/
+# spg_dur/spg_int. The Chemistry constants above (Ka1p..Ka_HOCl, pH_SID/PT/
+# NT/Cl) have no schedule dependency and stay here.
 
 
 # ============================================================================
@@ -532,6 +481,103 @@ kL_surf_crit = (O2_excess * 32 / (DO_impair * 3600 * (V_charge / 1e6) * a_surf)
 
 
 # ============================================================================
+# MASS TRANSFER TAB - schedule -> dissolved-CO2 sawtooth (new MT rows 138-155)
+#   Limit-cycle dissolved CO2 from the sparge pulse/gap schedule. Mirrors the
+#   workbook block appended to Mass Transfer; sets CO2aqc (Chemistry D5) before
+#   the deferred pH solve below. Needs kLa_sparge/kLa_surf/spg_dur/spg_int, all
+#   computed above, hence its placement here rather than in the Chemistry block.
+# ============================================================================
+D_CO2_diff = 1.92e-9                                    # MT D138 (m2/s) CO2 diffusivity ~25C (Cussler/Tamimi 1994)
+pCO2_air   = 40.0                                       # MT D139 (Pa) atmospheric pCO2 ~400 ppm
+C_sat_CO2  = H_CO2_T * P_atm                            # MT D140 (mol/m3) pure-CO2 sparge saturation
+C_air_CO2  = H_CO2_T * pCO2_air                         # MT D141 (mol/m3) air-equilibrium
+sqrtD_CO2  = math.sqrt(D_CO2_diff / D_O2)               # MT D142 penetration-theory diffusivity scaling
+kLa_CO2_on  = kLa_sparge * sqrtD_CO2                    # MT D143 (1/s) bubble-path during pulse
+kLa_CO2_off = kLa_surf * sqrtD_CO2                      # MT D144 (1/s) surface-path between pulses
+t_on_CO2    = spg_dur                                   # MT D145 (s) pulse duration
+t_off_CO2   = max(0.0, spg_int * 60 - spg_dur)          # MT D146 (s) GUARD floored at 0
+saw_a = math.exp(-kLa_CO2_on * t_on_CO2)                # MT D147
+saw_b = math.exp(-kLa_CO2_off * t_off_CO2)              # MT D148
+CO2_cyc_start = (C_air_CO2 * (1 - saw_b) + saw_b * C_sat_CO2 * (1 - saw_a)) / (1 - saw_a * saw_b)  # MT D149
+CO2_cyc_end   = C_sat_CO2 + (CO2_cyc_start - C_sat_CO2) * saw_a                                    # MT D150
+CO2_int_on  = C_sat_CO2 * t_on_CO2 + (CO2_cyc_start - C_sat_CO2) / kLa_CO2_on * (1 - saw_a)        # MT D151
+CO2_int_off = C_air_CO2 * t_off_CO2 + (CO2_cyc_end - C_air_CO2) / kLa_CO2_off * (1 - saw_b)        # MT D152
+CO2_cyc_avg = (CO2_int_on + CO2_int_off) / (t_on_CO2 + t_off_CO2)                                  # MT D153 (mol/m3)
+CO2aqc = min(C_sat_CO2, max(C_air_CO2, CO2_cyc_avg)) / 1000   # MT D154 = Chemistry D5 (mol/L) bounded steady CO2
+sched_valid = "OK" if (spg_int * 60 >= spg_dur) else "INVALID: interval < pulse"  # MT D155
+
+
+# ============================================================================
+# CHEMISTRY pH SOLVE (deferred) - buffered charge-balance pH + anodic bleaching
+#   Moved here so it consumes the schedule-dependent CO2aqc (CO2aqc_ss) above.
+#   Uses the Chemistry constants (Ka1p..Ka_HOCl, pH_SID/PT/NT/Cl) defined in the
+#   Chemistry section. Yields the NEW operating pH (~7.9 at the recommended
+#   schedule) which cascades to pH_fHOCl, NH3_free, HOCl_ss, C_eff, etc.
+# ============================================================================
+# pH solve grid (A50:A100 trial pH 4.0..9.0 step 0.1); root by linear interp.
+def charge_residual(pH):
+    h = 10 ** (-pH)
+    return (pH_SID
+            + pH_NT * h / (h + Ka_NH4)
+            + h
+            - (pH_PT * Ka1p * h ** 2 + 2 * pH_PT * Ka1p * Ka2p * h
+               + 3 * pH_PT * Ka1p * Ka2p * Ka3p)
+              / (h ** 3 + Ka1p * h ** 2 + Ka1p * Ka2p * h + Ka1p * Ka2p * Ka3p)
+            - Ka1c * CO2aqc / h
+            - 2 * Ka1c * Ka2c * CO2aqc / h ** 2
+            - Kw_w / h)
+
+_pH_grid = [round(4.0 + 0.1 * i, 10) for i in range(51)]  # 4.0 .. 9.0
+_resid = [charge_residual(p) for p in _pH_grid]
+_interp_sum = 0.0
+for i in range(len(_pH_grid) - 1):
+    b, bn = _resid[i], _resid[i + 1]
+    if b >= 0 and bn < 0:                              # sign change (root bracket)
+        _interp_sum += _pH_grid[i] + 0.1 * b / (b - bn)
+pH_op = _interp_sum                                    # D103 (operating pH)
+
+pH_fHOCl = 1 / (1 + 10 ** (pH_op - pKa_HOCl))          # D104
+# --- naive FE=1 cells (NOT operative; kept for contrast) ---
+bleach_rate   = Iappc / (2 * Fcc) * 52460 * 3600 / VLc # D107 (mg/L/h, FE=1 ceiling)
+bleach_t1ppm  = 1 / bleach_rate * 60                   # D108 (min)
+HOCl_max = pH_Cl * pH_fHOCl * 52460                    # D125 (naive FE=1 ceiling, superseded)
+# --- graded kinetic free-chlorine penalty model (operative; mirrors Chemistry rows 128-147) ---
+FE_CER   = 0.5                                         # D128 max CER efficiency (high-Cl plateau)
+km_Cl    = 0.003                                       # D129 (cm/s)
+A_anode  = 5                                           # D130 (cm2)
+I_Cl_FE  = Iappc * FE_CER                              # D131 (A) efficiency-limited
+I_Cl_mt  = Fcc * km_Cl * (pH_Cl / 1000) * A_anode      # D132 (A) chloride mass-transport limit
+I_Cl     = min(I_Cl_FE, I_Cl_mt)                       # D133 (A) binding limit (mt-limited at trace Cl-)
+P_HOCl   = I_Cl / (2 * Fcc * VLc)                      # D134 (mol/L/s) volumetric free-Cl production
+NH3_N    = pH_NT * 14007                               # D135 (mg/L) ammonium as N
+k1_NH2Cl = 4.2e6                                       # D136 (M^-1 s^-1) HOCl+NH3 rate constant
+pKa_NH4  = 9.25                                        # D137
+NH3_free = pH_NT / (1 + 10 ** (pKa_NH4 - pH_op))       # D138 (M) reactive free ammonia
+HOCl_ss  = P_HOCl / (k1_NH2Cl * NH3_free)              # D139 (M) steady bulk free HOCl
+HOCl_ss_mgL = HOCl_ss * 52460                          # D140 (mg/L)
+f_local  = 10                                          # D141 anode boundary-layer enrichment
+tau_NH2Cl = 1                                          # D142 (h) monochloramine residence
+NH2Cl_mgL = min(P_HOCl * tau_NH2Cl * 3600 * 52460, 5.06 * NH3_N)  # D143 (mg/L) combined chlorine
+R_chloramine = 25                                      # D144 monochloramine potency divisor
+C_eff    = f_local * pH_fHOCl * HOCl_ss_mgL + NH2Cl_mgL / R_chloramine  # D145 (mg/L) OPERATIVE
+Cl_onset = 0.1                                         # D146 (mg/L) sub-lethal onset
+Cl_kill  = 2                                           # D147 (mg/L) kill
+if C_eff < Cl_onset:                                   # D109
+    bleach_flag = f"negligible free chlorine ({C_eff:.2f} mg/L < onset)"
+elif C_eff < Cl_kill:
+    bleach_flag = f"MILD sub-lethal penalty: {C_eff:.2f} mg/L (chloride costs lag/growth — Sydow 2017; chloride-free avoids it)"
+else:
+    bleach_flag = f"SEVERE free chlorine: {C_eff:.1f} mg/L → biofilm/electrode damage (Baek 2021)"
+if pH_op < 6.5:
+    pH_band_flag = "pH above optimum (>7.5)"
+elif pH_op > 7.5:
+    pH_band_flag = "pH above optimum (>7.5)"
+else:
+    pH_band_flag = "pH in HOB band 6.5-7.5"            # D110
+# HOCl_max (D125) computed above, before bleach_flag (workbook D109 gates on it)
+
+
+# ============================================================================
 # SUMMARY TAB - results & checks (the headline deliverables)
 # ============================================================================
 def iferror(fn, fallback):
@@ -610,8 +656,8 @@ OUTPUTS = [
     ("Summary D32  Liquid level OK?",                  S_D32, "OK"),
     ("Summary D33  LED current-law in range?",         S_D33, "OK"),
     ("Summary D34  Organism DO data present?",         S_D34, "DATA GAP - organism DO thresholds unmeasured; DO & sparge results unreliable"),
-    ("Summary D35  Endpoint pH (worst-case)",          S_D35, 6.3125785894509363),
-    ("Summary D36  C_eff (mg/L)",                      S_D36, 0.6821),
+    ("Summary D35  Endpoint pH (recommended schedule)", S_D35, 7.942096372670541),
+    ("Summary D36  C_eff (mg/L)",                      S_D36, 0.6806937625228213),
     ("Summary D38  Steady-state DO (mg/L)",            S_D38, 1.9407611529861681),
     ("Summary D39  Sparge interval if O2 handled (min)", S_D39, 178.08128884816398),
     ("Summary D40  Stir-bar tip speed (m/s)",          S_D40, 0.31415926535897931),
@@ -627,15 +673,15 @@ OUTPUTS = [
     ("Electrochem D24  V_O2_gen (mL/min)",             V_O2_gen, 2.2004797411460917e-2),
     ("Electrochem D25  V_gas_total (mL/min)",          V_gas_total, 6.6014392234382754e-2),
     ("Electrochem D20  I_valid",                       I_valid, "OK"),
-    ("Chemistry D104  HOCl fraction at op pH",         pH_fHOCl, 0.93902741032842141),
+    ("Chemistry D104  HOCl fraction at op pH",         pH_fHOCl, 0.2654789502),
     ("Chemistry D108  Time to ~1 ppm HOCl (min)",      bleach_t1ppm, 0.16161837945657148),
     ("Chemistry D109  bleach_flag",                    bleach_flag, "MILD sub-lethal penalty: 0.68 mg/L (chloride costs lag/growth — Sydow 2017; chloride-free avoids it)"),
     ("Chemistry D134  P_HOCl (mol/L/s)",               P_HOCl, 9.011e-08),
-    ("Chemistry D139  HOCl_ss (M)",                    HOCl_ss, 2.615e-09),
-    ("Chemistry D143  NH2Cl (mg/L)",                   NH2Cl_mgL, 17.02),
-    ("Chemistry D145  C_eff (mg/L)",                   C_eff, 0.6821),
-    ("Chemistry D110  pH_band_flag",                   pH_band_flag, "pH BELOW HOB optimum (<6.5) - reduce CO2 dose"),
-    ("Chemistry D125  HOCl_max (mg/L)",                HOCl_max, 8.877523507988645),
+    ("Chemistry D139  HOCl_ss (M)",                    HOCl_ss, 6.429548901e-11),
+    ("Chemistry D143  NH2Cl (mg/L)",                   NH2Cl_mgL, 17.017120201838175),
+    ("Chemistry D145  C_eff (mg/L)",                   C_eff, 0.6806937625228213),
+    ("Chemistry D110  pH_band_flag",                   pH_band_flag, "pH above optimum (>7.5)"),
+    ("Chemistry D125  HOCl_max (mg/L)",                HOCl_max, 2.509826225),
     ("Biology  D28  O2_ceil_uM (uM)",                  O2_ceil_uM, 335.72349444703224),
     ("Biology  D35  CO2_carbon_margin (x)",            CO2_carbon_margin, 585.59956132513264),
     ("Biology  D37  pH_CO2_unbuf",                     pH_CO2_unbuf, 3.9425346209821237),
