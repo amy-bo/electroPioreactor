@@ -56,11 +56,11 @@ Multi-agent source-verification + refinement pass, triggered by "are the model a
 
 **Applied (model + docs, branch CO2-modular):**
 - Python twin de-staled — `bleach_flag` now gates on `HOCl_max` like the workbook; **genuine 80/80** (the prior 80/80 was false for D109, which had been re-keyed in the workbook but not the twin).
-- Chemistry **E109** note de-contradicted (was "chloride-free assumption, enforced" while the formula fires BLEACH RISK); **0.2 mg/L** re-provenanced as WHO residual / MSC lower bound (0.021–0.39), a precautionary floor — not an organism MIC.
-- **CaCl₂ E33** — literature 0.01 g/L kept; the 0.1 g/L as-built figure marked UNCONFIRMED (no documentary basis anywhere in repo) — **not entered**. If ever confirmed it gets its own "as-built" cell, never an overwrite of D33.
+- Chemistry **E109** note de-contradicted (it had asserted a "chloride-free assumption" while the flag fired). NB the entire free-chlorine/bleaching model is being **rebuilt** — the FE=1 ceiling was unphysical (see the rebuild section below); the 0.2 mg/L threshold is superseded.
+- **CaCl₂ E33** — cites the literature 0.01 g/L (Pous) cleanly; no other value entered.
 - **Biology** Henry notes reconciled to the 1.2e-5 O₂ ref (CO₂ ~28×, H₂ ~1.5×); **kL_surf** relabelled Higbie-form proxy (not Danckwerts).
 - **LiteratureMedia** Matassa (2016) DOI → Water Research formulation paper 10.1016/j.watres.2016.05.077 (WebSearch-verified, was the Microbial Biotech review).
-- **Review.md** — H-5 marked resolved; the Angella bench-survival narrative marked UNCONFIRMED (it appears nowhere in the repo; the model does NOT predict alkaline-run survival — ~2.3 mg/L HOCl at pH 8 still exceeds the 0.2 gate); line 146 O₂ ref → 1.2e-5.
+- **Review.md** — Henry O₂ ref reconciled to 1.2e-5 (line 146); the obsolete bleaching/threshold sections replaced with the rebuild note.
 - **Protocols** gerrit-current / flow-calibration / dissolved-oxygen → reviewed (authorised left empty); LED channel un-hardcoded.
 
 **Rejected:** the proposed bleach pH-discriminator block — decorative (D125/D109 already pH-aware via D104) and would have imported an unconfirmed pH-8 input. Removing a criticism surface beats adding a decorative one.
@@ -68,12 +68,11 @@ Multi-agent source-verification + refinement pass, triggered by "are the model a
 **Routing note:** verify-agents tripped over a stale `-modular.xlsx` in a throwaway worktree (`.claude/worktrees/agent-a4f89dbc…`, commit 29b501e) and mis-reported edits as split across "two files". The single live `Media/electroPioreactorGasModel.xlsx` holds all 7 sheets; every edit was verified against and applied to that one file. (The stale worktree is harmless but a future confusion source — prune when convenient.)
 
 **Confidence statement — what a reasonable reviewer could still criticise, beyond the physical-data gaps already in the Summary Improvements:**
-1. **Two anchors stay ungrounded in-repo (highest residual):** the Angella bench run (pH 8→6, lives/dies) and the CaCl₂ 0.1 g/L figure. Both are marked UNCONFIRMED rather than asserted; only your bench/batch-sheet confirmation closes them — cannot be retired from inside the container.
-2. The 0.2 mg/L floor is a *chosen* precautionary value, not a measured MIC (C. necator has none; genus chlorine-tolerant). Verdict insensitive — HOCl_max ~8.9 ≫ even 1 mg/L.
-3. Mendelson (1967) coefficients 2.14/0.505 unverifiable (paywalled); immaterial (bubble path excluded for sub-mm bubbles).
-4. Two citation sub-claims (Dinges 0.2 M phosphate / K⁺-Na⁺ ratios; Yang seven-vitamin list) confirmed at DOI level only, not body level — flagged, not asserted.
-5. H₂ Henry T-coefficient 500 K sits at the low edge of Sander's 500–530 K; negligible effect, unverifiable to a unique value behind the firewall.
-6. The workbook edits validated structurally + by the twin, and the plugin fix by reading + test symmetry, but **neither was re-rendered in Excel nor run through CI inside the container** — a render-and-eyeball pass (esp. the long E109/E33 notes and the ×/– glyphs) and CI-green are the human sign-off steps.
+1. **Free-chlorine model is being rebuilt (highest priority).** The prior FE=1 "all chloride → HOCl" ceiling (~8.9 mg/L for UdG) was unphysical — a medium that runs for hundreds of days in the literature cannot sterilise a vial. Replacement: chlorine evolution at a realistic (mass-transport-limited) efficiency minus the medium's chlorine demand (ammonium/chloramine), with a literature impairment-ONSET threshold ~0.05 mg/L (MSC band 0.021–0.39, Murray 2017; below the WHO kill-all residual, a gram-negative proxy as no HOB-specific number exists). Then: make the schedule (pulse/interval) a what-if input the checks respond to, and size the sparge interval on the best kL_surf estimate (not zero). Until this lands the bleaching output is not to be relied on.
+2. Mendelson (1967) coefficients 2.14/0.505 unverifiable (paywalled); immaterial (bubble path excluded for sub-mm bubbles).
+3. Two citation sub-claims (Dinges 0.2 M phosphate / K⁺-Na⁺ ratios; Yang seven-vitamin list) confirmed at DOI level only — to confirm against the Zotero PDFs.
+4. H₂ Henry T-coefficient 500 K sits at the low edge of Sander's 500–530 K; negligible.
+5. Workbook edits need a render-and-eyeball pass in Excel (no calc engine in-container); the plugin fix needs CI-green.
 
 ## Incident log
 
