@@ -406,10 +406,18 @@ duty_opt    = max(duty_carbon, duty_O2vent)            # D88
 spg_int_max = (target_DO_frac * O2_ceil_C * (V_charge / 1e6)
                / O2_src_guard * 60)                                   # D89 (min)
 spg_dur_opt = max(pulse_floor, flush_factor * headspace_V / (Q_CO2 / 60))  # D90 (s)
-spg_int_opt = min(spg_dur_opt / (60 * duty_opt), spg_int_max)         # D91 (min)
+spg_int_carbon = spg_dur_opt / (60 * duty_carbon)      # D112 (min) - carbon-limited (surface-credited)
+DO_ss_sawtooth = O2_excess / (kLa_surf_used * 3600 * (V_charge / 1e6))      # D133
+spg_int_regime = "SURFACE-HELD" if DO_ss_sawtooth < target_DO_frac * O2_ceil_C else "SPARGE-NEEDED"  # D134
+# Recommend on the best kL_surf estimate: when surface stripping holds DO (SURFACE-HELD) the
+# binding limit is carbon supply -> carbon-limited interval; else the O2-limited zero-surface fallback.
+spg_int_opt = (spg_int_carbon if spg_int_regime == "SURFACE-HELD"
+               else min(spg_dur_opt / (60 * duty_opt), spg_int_max))         # D91 (min)
 spg_int_opt_s = spg_int_opt * 60                       # D92 (s)
 duty_actual = spg_dur_opt / (spg_int_opt * 60)         # D93
-if spg_int_opt >= spg_int_max - 0.0001:
+if spg_int_regime == "SURFACE-HELD":
+    opt_binding = "CARBON (surface holds DO)"
+elif spg_int_opt >= spg_int_max - 0.0001:
     opt_binding = "O2-CEILING"
 elif spg_int_opt < spg_dur_opt / (60 * duty_opt) - 0.0001:
     opt_binding = "O2-FREQ"
@@ -568,8 +576,8 @@ OUTPUTS = [
     # --- Summary tab (every cell with a Value/result) ---
     ("Summary D13  CO2 pulse duration (s)",            S_D13, 0.78451304982496561),
     ("Summary D14  CO2 pulse duration rounded (s)",    S_D14, 1),
-    ("Summary D15  CO2 sparge interval (min)",         S_D15, 2.846431710211678),
-    ("Summary D16  CO2 sparge interval rounded (min)", S_D16, 3),
+    ("Summary D15  CO2 sparge interval (min)",         S_D15, 178.0812888),
+    ("Summary D16  CO2 sparge interval rounded (min)", S_D16, 178),
     ("Summary D19  Vial geometry consistent?",         S_D19, "VIAL GEOMETRY INCONSISTENT - measure true fill volume & bore depth"),
     ("Summary D20  Reactor calibrated?",               S_D20, "calibrated: ed04"),
     ("Summary D21  O2 at/under optimum?",              S_D21, "organism optimum unknown"),
@@ -617,35 +625,35 @@ OUTPUTS = [
     ("Biology  D42  t_H2_sat (min)",                   t_H2_sat, 6.5180515324831827),
     ("Biology  D43  H2_turnover (1/h)",                H2_turnover, 9.20520491453399),
     ("Biology  D44  H2_safety",                        H2_safety, "EXPLOSIVE"),
-    ("MassXfer D53  kLa_avg (1/s)",                    kLa_avg, 7.578984762686915e-05),
-    ("MassXfer D55  strip_avg (mol/h)",                strip_avg, 1.373999354400634e-06),
-    ("MassXfer D56  strip_ratio (x)",                  strip_ratio, 0.07766302521500339),
+    ("MassXfer D53  kLa_avg (1/s)",                    kLa_avg, 1.211416578e-06),
+    ("MassXfer D55  strip_avg (mol/h)",                strip_avg, 2.196185437e-08),
+    ("MassXfer D56  strip_ratio (x)",                  strip_ratio, 0.001241357243),
     ("MassXfer D57  kLa_req (1/s)",                    kLa_req, 9.7588070278039642e-4),
     ("MassXfer D59  carry_flag",                       carry_flag, "OK"),
     ("MassXfer D64  bubble_regime",                    bubble_regime, "Static"),
     ("MassXfer D65  t_O2_ceiling (min)",               t_O2_ceiling, 17.078590261270065),
-    ("MassXfer D66  t_O2_ceiling_strip (min)",         t_O2_ceiling_strip, 18.516649259617083),
+    ("MassXfer D66  t_O2_ceiling_strip (min)",         t_O2_ceiling_strip, 17.09981724),
     ("MassXfer D74  surf_ratio (x)",                   surf_ratio, 5.5355352747941149),
-    ("MassXfer D76  DO_vent_eq (uM)",                  DO_vent_eq, 8.872702127418156),
-    ("MassXfer D77  hs_flush_time (min)",              hs_flush_time, 2.846431710211678),
-    ("MassXfer D78  O2_removal_ratio (x)",             O2_removal_ratio, 5.613198300009119),
+    ("MassXfer D76  DO_vent_eq (uM)",                  DO_vent_eq, 373.0261049),
+    ("MassXfer D77  hs_flush_time (min)",              hs_flush_time, 178.0812888),
+    ("MassXfer D78  O2_removal_ratio (x)",             O2_removal_ratio, 5.536776632),
     ("MassXfer D79  t_O2_ceiling_lag (min)",           t_O2_ceiling_lag, 5.6928634204233548),
     ("MassXfer D80  t_O2_ceiling_rem (min)",           t_O2_ceiling_rem, 9999),
-    ("MassXfer D92  spg_int_opt_s (s)",                spg_int_opt_s, 170.78590261270065),
-    ("MassXfer D93  duty_actual",                      duty_actual, 0.0045935468784214775),
-    ("MassXfer D94  opt_binding",                      opt_binding, "O2-CEILING"),
+    ("MassXfer D92  spg_int_opt_s (s)",                spg_int_opt_s, 10684.87733),
+    ("MassXfer D93  duty_actual",                      duty_actual, 7.342274745e-05),
+    ("MassXfer D94  opt_binding",                      opt_binding, "CARBON (surface holds DO)"),
     ("MassXfer D95  od_ok",                            od_ok, "OK"),
     ("MassXfer D108 DO_ss (mg/L)",                     DO_ss, 1.9407611529861681),
     ("MassXfer D109 DO_ss_vs_opt",                     DO_ss_vs_opt, "organism optimum unknown"),
     ("MassXfer D110 DO_ss_vs_min",                     DO_ss_vs_min, "minimum DO unknown - measure"),
     ("MassXfer D111 tip_warn",                         tip_warn, "OK"),
     ("MassXfer D113 sched_regime",                     sched_regime, "organism DO unknown"),
-    ("MassXfer D124 pulses_h (/h)",                    pulses_h, 21.079023180056566),
-    ("MassXfer D125 pulses_d (/d)",                    pulses_d, 505.8965563213576),
-    ("MassXfer D126 CO2_sd_ratio (x)",                 CO2_sd_ratio, 125.12598718549323),
-    ("MassXfer D127 O2_accum (mol)",                   O2_accum, 8.393087361175805e-07),
+    ("MassXfer D124 pulses_h (/h)",                    pulses_h, 0.3369247852),
+    ("MassXfer D125 pulses_d (/d)",                    pulses_d, 8.086194846),
+    ("MassXfer D126 CO2_sd_ratio (x)",                 CO2_sd_ratio, 2),
+    ("MassXfer D127 O2_accum (mol)",                   O2_accum, 5.250966708e-05),
     ("MassXfer D128 O2_strip_pulse (mol)",             O2_strip_pulse, 6.5183255536272289e-8),
-    ("MassXfer D129 sched_bal (x)",                    sched_bal, 0.07766302521500341),
+    ("MassXfer D129 sched_bal (x)",                    sched_bal, 0.001241357243),
     ("MassXfer D130 dur_ok",                           dur_ok, "OK"),
     ("MassXfer D131 kL_surf_crit (m/s)",               kL_surf_crit, NA),
     ("MassXfer D133 DO_ss_sawtooth (mol/m3)",         DO_ss_sawtooth, 0.060648786030817754),
