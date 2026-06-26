@@ -434,12 +434,17 @@ elif duty_O2vent >= duty_carbon:
     opt_binding = "O2-VENT"
 else:
     opt_binding = "CARBON"                             # D94
-od_ok = "OK" if (spg_int_opt * 60 - spg_dur_opt >= 5) else "TIGHT"    # D95
-
-# --- schedule mode resolution (Optimal) ---
-sched_mode = "Optimal"                                 # D81
-spg_dur = spg_dur_opt if sched_mode == "Optimal" else (1.0 if sched_mode == "Manual" else NA)  # D121
-spg_int = spg_int_opt if sched_mode == "Optimal" else (1.0 if sched_mode == "Manual" else NA)  # D122
+# --- schedule mode resolution: Summary 'Your setting' override > Manual cells > Optimal ---
+sched_mode   = "Optimal"                               # D81
+spg_dur_man  = 1.0                                     # D82 (s)
+spg_int_man  = 1.0                                     # D83 (min)
+user_spg_dur = None                                    # Summary G13 (blank -> recommended)
+user_spg_int = None                                    # Summary G15 (blank -> recommended)
+spg_dur = (user_spg_dur if (isnum(user_spg_dur) and user_spg_dur > 0)
+           else (spg_dur_man if sched_mode == "Manual" else spg_dur_opt))   # D121
+spg_int = (user_spg_int if (isnum(user_spg_int) and user_spg_int > 0)
+           else (spg_int_man if sched_mode == "Manual" else spg_int_opt))   # D122
+od_ok = "OK" if (spg_int * 60 - spg_dur >= 5) else "TIGHT"    # D95 (uses schedule in use)
 duty    = spg_dur / (spg_int * 60)                     # D105
 spg_int_carbon = spg_dur_opt / (60 * duty_carbon)      # D112 (min)
 
