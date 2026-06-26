@@ -71,3 +71,4 @@ Three closing tasks of the perfection programme.
 - Data gaps: peer-reviewed literature only, cited + ranged; never invent. Unmeasurable values stay in Summary Improvements.
 - Authoriser agents give sign-off-readiness verdicts only; never set an `authorised` state (human-only).
 - Plugin default `electrolysis_off_seconds = 0` = continuous (no behaviour change for existing users).
+- **Stock-Pioreactor logging (correction, 2026-06-26):** a stock Pioreactor export records **OD600 and temperature only** — NOT cell voltage, NOT electrolysis current, NOT pH. Cell voltage is read manually (multimeter) during calibration; electrolysis current is *computed* via Gerrit's Law from LED intensity (not measured); pH is modelled (Chemistry sheet) or measured manually. Earlier analysis wrongly implied the export carries V/I/pH — do not repeat. On-board OD during electrolysis/sparging is the ~20 h rise-then-nosedive artefact and is not trustworthy without the plugin's OD-pause.
