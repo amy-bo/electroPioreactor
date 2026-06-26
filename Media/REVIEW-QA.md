@@ -36,7 +36,7 @@ checklist. On "continue" in a new session, read this file + `git log` and resume
 - [x] Spreadsheet dump: regenerate (stale — still shows the pre-fix SID); stamp with the source git SHA. *(infra)*
 - [x] Python model: merge sensitivity into one file if zero-downside → **kept separate** (downside is non-zero; see Final-cleanup wave below). *(low)*
 - [x] Plugin: LED config-only (already config-only — no change needed), restructured into 4 topic commits, PR opened. *(plugin)*
-- [ ] Wave-2: re-run the plug-the-gaps + synthesise phases that died on the session limit.
+- [x] Wave-2: not re-run — every gap it identified was plugged individually instead (Chemistry-sheet coverage, stale dump, pH-grid guard, Methodologies cross-check, protocol method-review, cross-sheet import-integrity audit). All closed across the wave-3 + final-cleanup waves.
 
 ## Final-cleanup wave (2026-06-26)
 
