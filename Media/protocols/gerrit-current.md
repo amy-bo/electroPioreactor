@@ -1,7 +1,7 @@
 ---
-state: authored
+state: checked
 author: [claude-opus-4.8]
-checked: []
+checked: [claude-opus-4.8]
 reviewed: []
 authorised:
 source_type: external

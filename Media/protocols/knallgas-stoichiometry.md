@@ -1,8 +1,8 @@
 ---
-state: authored
+state: reviewed
 author: [claude-opus-4.8]
-checked: []
-reviewed: []
+checked: [claude-opus-4.8]
+reviewed: [claude-opus-4.8]
 authorised:
 source_type: external
 description: "Knallgas uptake stoichiometry (H2:O2:CO2)"
