@@ -1,8 +1,8 @@
 ---
-state: checked
+state: reviewed
 author: [claude-opus-4.8]
 checked: [claude-opus-4.8]
-reviewed: []
+reviewed: [claude-opus-4.8]
 authorised:
 source_type: external
 description: "Dissolved oxygen: probe + organism DO bands"
@@ -40,7 +40,7 @@ The measurement principle is amperometric or optical quenching. A Clark-type ele
 
 Goal: map the full DO band for the organism and validate DO_ss against a live probe trace.
 
-Kit. An optical luminescent DO probe or sensor patch sized for the vial (optical is preferred here over Clark for a small stirred vial - it does not consume O2, is insensitive to the stirring hydrodynamics, and the patch form factor fits without displacing much liquid); a meter with temperature compensation; a means of setting and holding several DO levels (the electrolysis current via Gerrit's Law sets O2 input, and the CO2 sparge strips O2, so DO is set by the current/sparge combination); OD measurement for growth rate (Pioreactor OD, or offline OD600).
+Kit. An optical luminescent DO probe or sensor patch sized for the vial (optical is preferred here over Clark for a small stirred vial - it does not consume O2, is insensitive to the stirring hydrodynamics, and the patch form factor fits without displacing much liquid); a meter with temperature compensation; a means of setting and holding several DO levels (the electrolysis current via Gerrit's Law sets O2 input, and the CO2 sparge strips O2, so DO is set by the current/sparge combination); OD measurement for growth rate (the Pioreactor's 90°-scatter OD gives the growth RATE directly — the slope of ln OD vs time, which is scale-invariant — while an absolute OD600 needs an offline spectrophotometer).
 
 Calibration (do this before every run, it is the single largest error source).
 1. Zero point: immerse the probe in a freshly made sodium sulphite (Na2SO3) solution, roughly 1 g or more per litre of deionised water, optionally with a trace of cobalt(II) chloride as catalyst. This scavenges all O2 to give a true 0 mg/L. Read after 2-3 min once stable. Make it fresh - it re-oxygenates from air within hours.

@@ -296,19 +296,20 @@ pH_op = _interp_sum                                    # D103 (operating pH)
 pH_fHOCl = 1 / (1 + 10 ** (pH_op - pKa_HOCl))          # D104
 bleach_rate   = Iappc / (2 * Fcc) * 52460 * 3600 / VLc # D107 (mg/L/h)
 bleach_t1ppm  = 1 / bleach_rate * 60                   # D108 (min)
-if pH_Cl > 0.0005:
-    bleach_flag = ("BLEACHING RISK: chloride medium + electrolysis makes up to "
-                   f"{bleach_rate:.0f} mg/L/h free chlorine (FE=1 ceiling); "
-                   f"{pH_fHOCl * 100:.0f}% is biocidal HOCl at pH {pH_op:.1f}; ~1 ppm in minutes")
+HOCl_max = pH_Cl * pH_fHOCl * 52460                    # D125 (mg/L) - gate input for D109, pH-aware via D104
+if HOCl_max > 0.2:                                     # D109 mirrors the workbook: HOCl_max gate, not a chloride gate
+    bleach_flag = f"BLEACH RISK: HOCl {HOCl_max:.1f} mg/L (>0.2 first-impairment)"
+elif HOCl_max > 0.02:
+    bleach_flag = f"HOCl {HOCl_max:.1f} mg/L - watch"
 else:
-    bleach_flag = "chloride-free: no chlorine evolution, no bleaching"  # D109
+    bleach_flag = "no bleaching (negligible chloride)"
 if pH_op < 6.5:
     pH_band_flag = "pH BELOW HOB optimum (<6.5) - reduce CO2 dose"
 elif pH_op > 7.5:
     pH_band_flag = "pH above optimum (>7.5)"
 else:
     pH_band_flag = "pH in HOB band 6.5-7.5"            # D110
-HOCl_max = pH_Cl * pH_fHOCl * 52460                    # D125 (mg/L)
+# HOCl_max (D125) computed above, before bleach_flag (workbook D109 gates on it)
 
 
 # ============================================================================
@@ -591,7 +592,7 @@ OUTPUTS = [
     ("Electrochem D20  I_valid",                       I_valid, "OK"),
     ("Chemistry D104  HOCl fraction at op pH",         pH_fHOCl, 0.93902741032842141),
     ("Chemistry D108  Time to ~1 ppm HOCl (min)",      bleach_t1ppm, 0.16161837945657148),
-    ("Chemistry D109  bleach_flag",                    bleach_flag, "chloride-free: no chlorine evolution, no bleaching"),
+    ("Chemistry D109  bleach_flag",                    bleach_flag, "BLEACH RISK: HOCl 8.9 mg/L (>0.2 first-impairment)"),
     ("Chemistry D110  pH_band_flag",                   pH_band_flag, "pH BELOW HOB optimum (<6.5) - reduce CO2 dose"),
     ("Chemistry D125  HOCl_max (mg/L)",                HOCl_max, 8.877523507988645),
     ("Biology  D28  O2_ceil_uM (uM)",                  O2_ceil_uM, 335.72349444703224),

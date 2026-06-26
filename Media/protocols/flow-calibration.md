@@ -1,8 +1,8 @@
 ---
-state: checked
+state: reviewed
 author: [claude-opus-4.8]
 checked: [claude-opus-4.8]
-reviewed: []
+reviewed: [claude-opus-4.8]
 authorised:
 source_type: external
 description: "CO2 flow calibration (per reactor)"

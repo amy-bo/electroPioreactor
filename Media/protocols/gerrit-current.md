@@ -1,8 +1,8 @@
 ---
-state: checked
+state: reviewed
 author: [claude-opus-4.8]
 checked: [claude-opus-4.8]
-reviewed: []
+reviewed: [claude-opus-4.8]
 authorised:
 source_type: external
 description: "Gerrit's Law: LED-intensity to electrolysis-current calibration"
@@ -44,7 +44,7 @@ Kit: a source-measure unit (SMU) or data-logging precision ammeter (e.g. Keithle
 1. Prepare the electrolytic cell with the same electrolyte concentration and volume that will be used in experiments. Record electrolyte composition and temperature at the start and end of each run.
 2. Pre-condition the electrodes by running the cell at 15% intensity for 10 minutes before recording any calibration data. This stabilises the electrode surface and reduces drift in subsequent measurements.
 3. Connect the SMU or logging ammeter in series with the electrolytic cell, observing correct polarity. A 4-wire (Kelvin) connection eliminates lead-resistance error ([Tektronix, measuring current with shunt resistors](https://www.tek.com/en/blog/measuring-current-using-shunt-resistors)).
-4. Set the Pioreactor channel to the first intensity setpoint. Use the Python API (`from pioreactor.actions.led_intensity import led_intensity; led_intensity({'D': <value>})`) or the web UI to apply each setpoint ([Pioreactor Python scripting](https://docs.pioreactor.com/user-guide/intro-python-scripting)).
+4. Set the Pioreactor channel to the first intensity setpoint. Use the Python API (`from pioreactor.actions.led_intensity import led_intensity; led_intensity({<LED_CHANNEL>: <value>})`) or the web UI to apply each setpoint ([Pioreactor Python scripting](https://docs.pioreactor.com/user-guide/intro-python-scripting)). `<LED_CHANNEL>` is the channel string (e.g. `'A'`–`'D'`) read from the plugin config for this build — do not hardcode it, per the no-hardcoded-channel hygiene rule.
 5. Allow 120 seconds of settling at each setpoint before recording. Monitor the current trace on the SMU display; record only once the drift rate falls below 0.5 mA min⁻¹.
 6. Record the mean current (mA) over a 30-second logging window at each setpoint. Log at ≥ 1 Hz and report the mean and standard deviation.
 7. Step through intensity setpoints: 1, 2, 3, 5, 7, 10, 13, 16, 20, 25, 28, 30%. This covers the validated range (3-25%), extends two points below (1, 2%) to characterise the extrapolated intercept region, and adds three points above (28, 30%) to test whether linearity holds outside the validated band.

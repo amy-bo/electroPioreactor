@@ -50,6 +50,31 @@ Three closing tasks of the perfection programme.
 
 - [x] **Python-merge decision — KEEP SEPARATE (downside non-zero, gate not met).** Martin's gate was "merge IFF zero downside." It is not zero. The two files have **different roles AND different physics by design**: `electroPioreactorGasModel.py` is a fidelity twin (every one of 80 outputs must reproduce the workbook exactly; verified 80/80) using the *fixed* post-sparge-fix guard (`O2_src_guard = O2_net_gen`, surface credit withheld). `electroPioreactorGasModel-sensitivity.py` is a deliberately reduced perturb-and-rank sweep that *intentionally keeps the old surf_strip-credited guard form* (`max(0, O2_net − surf_strip)`, `max(1e-12, O2_net − surf_strip)`) — precisely so the sweep can demonstrate how strongly `kL_surf_factor` drives the schedule *because* that credit gated the cap. Merging would force one of the two intentionally-divergent guard implementations to win (or a flag-switch that is itself coupling), destroying the sensitivity script's demonstrative value, and would couple a "reproduce the sheet exactly" module to a "perturb and rank" one while dragging the unused Summary/Chemistry/CO2-flows apparatus into the sweep. The split is the correct design; the rationale already lives in the sensitivity script's own module docstring. Both scripts re-verified running clean after this wave (model 80/80; sensitivity produces its leverage + urgency ranking).
 
+## Perfection wave (2026-06-26)
+
+Multi-agent source-verification + refinement pass, triggered by "are the model and plugin perfect?". Every external constant, citation and hardware-capability claim was re-checked against primary sources (the discipline added because of two prior confident-but-wrong Pioreactor-logging claims). Findings applied only after independent verification.
+
+**Applied (model + docs, branch CO2-modular):**
+- Python twin de-staled — `bleach_flag` now gates on `HOCl_max` like the workbook; **genuine 80/80** (the prior 80/80 was false for D109, which had been re-keyed in the workbook but not the twin).
+- Chemistry **E109** note de-contradicted (was "chloride-free assumption, enforced" while the formula fires BLEACH RISK); **0.2 mg/L** re-provenanced as WHO residual / MSC lower bound (0.021–0.39), a precautionary floor — not an organism MIC.
+- **CaCl₂ E33** — literature 0.01 g/L kept; the 0.1 g/L as-built figure marked UNCONFIRMED (no documentary basis anywhere in repo) — **not entered**. If ever confirmed it gets its own "as-built" cell, never an overwrite of D33.
+- **Biology** Henry notes reconciled to the 1.2e-5 O₂ ref (CO₂ ~28×, H₂ ~1.5×); **kL_surf** relabelled Higbie-form proxy (not Danckwerts).
+- **LiteratureMedia** Matassa (2016) DOI → Water Research formulation paper 10.1016/j.watres.2016.05.077 (WebSearch-verified, was the Microbial Biotech review).
+- **Review.md** — H-5 marked resolved; the Angella bench-survival narrative marked UNCONFIRMED (it appears nowhere in the repo; the model does NOT predict alkaline-run survival — ~2.3 mg/L HOCl at pH 8 still exceeds the 0.2 gate); line 146 O₂ ref → 1.2e-5.
+- **Protocols** gerrit-current / flow-calibration / dissolved-oxygen → reviewed (authorised left empty); LED channel un-hardcoded.
+
+**Rejected:** the proposed bleach pH-discriminator block — decorative (D125/D109 already pH-aware via D104) and would have imported an unconfirmed pH-8 input. Removing a criticism surface beats adding a decorative one.
+
+**Routing note:** verify-agents tripped over a stale `-modular.xlsx` in a throwaway worktree (`.claude/worktrees/agent-a4f89dbc…`, commit 29b501e) and mis-reported edits as split across "two files". The single live `Media/electroPioreactorGasModel.xlsx` holds all 7 sheets; every edit was verified against and applied to that one file. (The stale worktree is harmless but a future confusion source — prune when convenient.)
+
+**Confidence statement — what a reasonable reviewer could still criticise, beyond the physical-data gaps already in the Summary Improvements:**
+1. **Two anchors stay ungrounded in-repo (highest residual):** the Angella bench run (pH 8→6, lives/dies) and the CaCl₂ 0.1 g/L figure. Both are marked UNCONFIRMED rather than asserted; only your bench/batch-sheet confirmation closes them — cannot be retired from inside the container.
+2. The 0.2 mg/L floor is a *chosen* precautionary value, not a measured MIC (C. necator has none; genus chlorine-tolerant). Verdict insensitive — HOCl_max ~8.9 ≫ even 1 mg/L.
+3. Mendelson (1967) coefficients 2.14/0.505 unverifiable (paywalled); immaterial (bubble path excluded for sub-mm bubbles).
+4. Two citation sub-claims (Dinges 0.2 M phosphate / K⁺-Na⁺ ratios; Yang seven-vitamin list) confirmed at DOI level only, not body level — flagged, not asserted.
+5. H₂ Henry T-coefficient 500 K sits at the low edge of Sander's 500–530 K; negligible effect, unverifiable to a unique value behind the firewall.
+6. The workbook edits validated structurally + by the twin, and the plugin fix by reading + test symmetry, but **neither was re-rendered in Excel nor run through CI inside the container** — a render-and-eyeball pass (esp. the long E109/E33 notes and the ×/– glyphs) and CI-green are the human sign-off steps.
+
 ## Incident log
 
 - **2026-06-25 — force-push landed on wrong ref (recovered).** The local branch
