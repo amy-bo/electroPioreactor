@@ -552,9 +552,11 @@ def round_sig_or_int(x):
 
 S_D13 = iferror(lambda: spg_dur_opt,   # D13: ='Mass Transfer'!D90 (spg_dur_opt)
                 "calibrate this reactor first (see CO2 flows)")
-S_D14 = round_sig_or_int(S_D13) if isinstance(S_D13, float) else S_D13       # D14
+S_D14 = (user_spg_dur if (isnum(user_spg_dur) and user_spg_dur > 0)
+         else (round_sig_or_int(S_D13) if isinstance(S_D13, float) else S_D13))   # D14 (your setting or rounded recommendation)
 S_D15 = iferror(lambda: spg_int_opt, "calibrate this reactor first (see CO2 flows)")  # D15
-S_D16 = round_sig_or_int(S_D15) if isinstance(S_D15, float) else S_D15       # D16
+S_D16 = (user_spg_int if (isnum(user_spg_int) and user_spg_int > 0)
+         else (round_sig_or_int(S_D15) if isinstance(S_D15, float) else S_D15))   # D16 (your setting or rounded recommendation)
 S_D19 = geom_check                                      # D19 vial geometry
 S_D20 = cal_warning                                     # D20 reactor calibrated
 S_D21 = DO_ss_vs_opt                                    # D21 O2 at/under optimum
@@ -562,8 +564,8 @@ S_D22 = DO_ss_vs_min                                    # D22 O2 above minimum
 S_D23 = sched_regime                                    # D23 interval relaxable
 S_D24 = H2_safety                                       # D24 H2 headspace safe
 S_D25 = bubble_regime                                   # D25 bubble model valid
-S_D26 = iferror(lambda: ("OK" if CO2_sd_ratio >= 1 else "SHORTFALL (CO2 < demand)"),
-                "calibrate this reactor first")         # D26 CO2 supply meets demand
+S_D26 = iferror(lambda: f"×{CO2_sd_ratio:.1f}" + (" OK" if CO2_sd_ratio >= 1 else " SHORTFALL (CO2 < demand)"),
+                "calibrate this reactor first")         # D26 CO2 supply : demand (this schedule)
 S_D27 = iferror(lambda: dur_ok, "calibrate this reactor first (see CO2 flows)")  # D27 pulse >= floor
 S_D28 = iferror(lambda: od_ok, "calibrate this reactor first (see CO2 flows)")   # D28 dosing window
 S_D29 = carry_flag                                      # D29 carryover risk
@@ -599,7 +601,7 @@ OUTPUTS = [
     ("Summary D23  Interval relaxable?",               S_D23, "organism DO unknown"),
     ("Summary D24  H2 headspace safe?",                S_D24, "EXPLOSIVE"),
     ("Summary D25  Bubble model valid?",               S_D25, "Static"),
-    ("Summary D26  CO2 supply meets demand?",          S_D26, "OK"),
+    ("Summary D26  CO2 supply : demand",               S_D26, "×2.0 OK"),
     ("Summary D27  Pulse >= solenoid floor?",          S_D27, "OK"),
     ("Summary D28  Dosing window OK?",                 S_D28, "OK"),
     ("Summary D29  Carryover risk?",                   S_D29, "OK"),
