@@ -481,30 +481,50 @@ kL_surf_crit = (O2_excess * 32 / (DO_impair * 3600 * (V_charge / 1e6) * a_surf)
 
 
 # ============================================================================
-# MASS TRANSFER TAB - schedule -> dissolved-CO2 sawtooth (new MT rows 138-155)
-#   Limit-cycle dissolved CO2 from the sparge pulse/gap schedule. Mirrors the
-#   workbook block appended to Mass Transfer; sets CO2aqc (Chemistry D5) before
-#   the deferred pH solve below. Needs kLa_sparge/kLa_surf/spg_dur/spg_int, all
-#   computed above, hence its placement here rather than in the Chemistry block.
+# MASS TRANSFER TAB - schedule -> dissolved-CO2, TWO-COMPARTMENT closed-headspace
+#   (new MT rows 138-164). Replaces the rejected single-box atmosphere-decay
+#   sawtooth. The headspace is a SECOND well-mixed compartment that fills with
+#   pure CO2 during a sparge pulse and then bleeds out only through a slow
+#   restricted vent (k_vent) between pulses. Between pulses the liquid relaxes
+#   towards the (still CO2-rich) headspace via the surface path (kLa_CO2_off),
+#   NOT towards air. This is what lets a short-interval schedule (run 2) hold a
+#   high dissolved CO2 and acidify to ~pH 6, while a long-interval schedule
+#   (run 1) lets the vent clear the headspace and the liquid relaxes to near
+#   air-equilibrium. Reality-validated against Angella's two runs.
+#   Mirrors the workbook block appended to Mass Transfer; sets CO2aqc
+#   (Chemistry D5) before the deferred pH solve below. Needs kLa_surf/D_O2/
+#   spg_dur/spg_int/P_atm/headspace_V/V_charge/R_gas/T_K, all computed above.
 # ============================================================================
-D_CO2_diff = 1.92e-9                                    # MT D138 (m2/s) CO2 diffusivity ~25C (Cussler/Tamimi 1994)
-pCO2_air   = 40.0                                       # MT D139 (Pa) atmospheric pCO2 ~400 ppm
-C_sat_CO2  = H_CO2_T * P_atm                            # MT D140 (mol/m3) pure-CO2 sparge saturation
-C_air_CO2  = H_CO2_T * pCO2_air                         # MT D141 (mol/m3) air-equilibrium
-sqrtD_CO2  = math.sqrt(D_CO2_diff / D_O2)               # MT D142 penetration-theory diffusivity scaling
-kLa_CO2_on  = kLa_sparge * sqrtD_CO2                    # MT D143 (1/s) bubble-path during pulse
-kLa_CO2_off = kLa_surf * sqrtD_CO2                      # MT D144 (1/s) surface-path between pulses
-t_on_CO2    = spg_dur                                   # MT D145 (s) pulse duration
-t_off_CO2   = max(0.0, spg_int * 60 - spg_dur)          # MT D146 (s) GUARD floored at 0
-saw_a = math.exp(-kLa_CO2_on * t_on_CO2)                # MT D147
-saw_b = math.exp(-kLa_CO2_off * t_off_CO2)              # MT D148
-CO2_cyc_start = (C_air_CO2 * (1 - saw_b) + saw_b * C_sat_CO2 * (1 - saw_a)) / (1 - saw_a * saw_b)  # MT D149
-CO2_cyc_end   = C_sat_CO2 + (CO2_cyc_start - C_sat_CO2) * saw_a                                    # MT D150
-CO2_int_on  = C_sat_CO2 * t_on_CO2 + (CO2_cyc_start - C_sat_CO2) / kLa_CO2_on * (1 - saw_a)        # MT D151
-CO2_int_off = C_air_CO2 * t_off_CO2 + (CO2_cyc_end - C_air_CO2) / kLa_CO2_off * (1 - saw_b)        # MT D152
-CO2_cyc_avg = (CO2_int_on + CO2_int_off) / (t_on_CO2 + t_off_CO2)                                  # MT D153 (mol/m3)
-CO2aqc = min(C_sat_CO2, max(C_air_CO2, CO2_cyc_avg)) / 1000   # MT D154 = Chemistry D5 (mol/L) bounded steady CO2
-sched_valid = "OK" if (spg_int * 60 >= spg_dur) else "INVALID: interval < pulse"  # MT D155
+D_CO2          = 1.92e-9                                # MT D138 (m2/s) CO2 diffusivity ~25C (Cussler/Tamimi 1994) INPUT
+pCO2_air       = 40.0                                   # MT D139 (Pa) atmospheric pCO2 ~400 ppm INPUT
+headspace_V_m3 = headspace_V / 1e6                      # MT D140 (m3)
+V_L_m3         = V_charge / 1e6                         # MT D141 (m3)
+Q_vent         = 0.5                                    # MT D142 (mL/min) slow restricted vent bleed - KEY UNCERTAIN PARAMETER, measure. INPUT
+k_vent         = (Q_vent / 1e6 / 60) / headspace_V_m3   # MT D143 (1/s) headspace vent first-order rate
+tau_hs         = headspace_V_m3 / (Q_vent / 1e6 / 60) / 60   # MT D144 (min) headspace residence time
+C_sat_CO2      = H_CO2_T * P_atm                        # MT D145 (mol/m3) pure-CO2 sparge saturation
+C_air_CO2      = H_CO2_T * pCO2_air                     # MT D146 (mol/m3) air-equilibrium
+sqrtD_CO2      = math.sqrt(D_CO2 / D_O2)                # MT D147 penetration-theory diffusivity scaling
+kLa_CO2_off    = kLa_surf * sqrtD_CO2                   # MT D148 (1/s) surface-path between pulses
+tau_surf_floor = 1 / kLa_CO2_off / 60                  # MT D149 (min) surface-relaxation time
+n_hs_gas       = P_atm * headspace_V_m3 / (R_gas * T_K) # MT D150 (mol) headspace gas inventory
+t_on_CO2       = spg_dur                                # MT D151 (s) pulse duration
+t_off_CO2      = max(0.0, spg_int * 60 - spg_dur)       # MT D152 (s) gap, GUARD floored at 0
+eon_CO2        = math.exp(-kLa_CO2_off * t_on_CO2)      # MT D153
+e1_CO2         = math.exp(-kLa_CO2_off * t_off_CO2)     # MT D154
+e2_CO2         = math.exp(-k_vent * t_off_CO2)          # MT D155
+coef_CO2       = (C_sat_CO2 - C_air_CO2) * kLa_CO2_off / (kLa_CO2_off - k_vent)   # MT D156
+Ca_CO2         = (e1_CO2 * C_sat_CO2 * (1 - eon_CO2) + C_air_CO2 * (1 - e1_CO2)
+                  + coef_CO2 * (e2_CO2 - e1_CO2)) / (1 - e1_CO2 * eon_CO2)         # MT D157 cycle-start liquid CO2
+Cb_CO2         = C_sat_CO2 + (Ca_CO2 - C_sat_CO2) * eon_CO2                        # MT D158 cycle-end-of-pulse liquid CO2
+CO2_int_on     = C_sat_CO2 * t_on_CO2 + (Ca_CO2 - C_sat_CO2) / kLa_CO2_off * (1 - eon_CO2)   # MT D159
+CO2_int_off    = (C_air_CO2 * t_off_CO2 + (Cb_CO2 - C_air_CO2) / kLa_CO2_off * (1 - e1_CO2)
+                  + coef_CO2 * ((1 - e2_CO2) / k_vent - (1 - e1_CO2) / kLa_CO2_off))          # MT D160
+CO2_cyc_avg    = (CO2_int_on + CO2_int_off) / (t_on_CO2 + t_off_CO2)              # MT D161 (mol/m3)
+CO2aqc         = min(C_sat_CO2, max(C_air_CO2, CO2_cyc_avg)) / 1000               # MT D162 = Chemistry D5 (mol/L)
+vent_floor_chk = ("vent is slow path - OK" if tau_hs >= tau_surf_floor
+                  else "WARNING: surface clears faster than vent - run2 cannot stay acidic")  # MT D163
+sched_valid    = "OK" if (spg_int * 60 >= spg_dur) else "INVALID: interval < pulse"  # MT D164
 
 
 # ============================================================================
@@ -656,8 +676,8 @@ OUTPUTS = [
     ("Summary D32  Liquid level OK?",                  S_D32, "OK"),
     ("Summary D33  LED current-law in range?",         S_D33, "OK"),
     ("Summary D34  Organism DO data present?",         S_D34, "DATA GAP - organism DO thresholds unmeasured; DO & sparge results unreliable"),
-    ("Summary D35  Endpoint pH (recommended schedule)", S_D35, 7.942096372670541),
-    ("Summary D36  C_eff (mg/L)",                      S_D36, 0.6806937625228213),
+    ("Summary D35  Endpoint pH (recommended schedule)", S_D35, 7.383429797358975),
+    ("Summary D36  C_eff (mg/L)",                      S_D36, 0.6807516554997687),
     ("Summary D38  Steady-state DO (mg/L)",            S_D38, 1.9407611529861681),
     ("Summary D39  Sparge interval if O2 handled (min)", S_D39, 178.08128884816398),
     ("Summary D40  Stir-bar tip speed (m/s)",          S_D40, 0.31415926535897931),
@@ -673,15 +693,15 @@ OUTPUTS = [
     ("Electrochem D24  V_O2_gen (mL/min)",             V_O2_gen, 2.2004797411460917e-2),
     ("Electrochem D25  V_gas_total (mL/min)",          V_gas_total, 6.6014392234382754e-2),
     ("Electrochem D20  I_valid",                       I_valid, "OK"),
-    ("Chemistry D104  HOCl fraction at op pH",         pH_fHOCl, 0.2654789502),
+    ("Chemistry D104  HOCl fraction at op pH",         pH_fHOCl, 0.5667723118211371),
     ("Chemistry D108  Time to ~1 ppm HOCl (min)",      bleach_t1ppm, 0.16161837945657148),
     ("Chemistry D109  bleach_flag",                    bleach_flag, "MILD sub-lethal penalty: 0.68 mg/L (chloride costs lag/growth — Sydow 2017; chloride-free avoids it)"),
     ("Chemistry D134  P_HOCl (mol/L/s)",               P_HOCl, 9.011e-08),
-    ("Chemistry D139  HOCl_ss (M)",                    HOCl_ss, 6.429548901e-11),
+    ("Chemistry D139  HOCl_ss (M)",                    HOCl_ss, 2.2482664446908421e-10),
     ("Chemistry D143  NH2Cl (mg/L)",                   NH2Cl_mgL, 17.017120201838175),
-    ("Chemistry D145  C_eff (mg/L)",                   C_eff, 0.6806937625228213),
-    ("Chemistry D110  pH_band_flag",                   pH_band_flag, "pH above optimum (>7.5)"),
-    ("Chemistry D125  HOCl_max (mg/L)",                HOCl_max, 2.509826225),
+    ("Chemistry D145  C_eff (mg/L)",                   C_eff, 0.6807516554997687),
+    ("Chemistry D110  pH_band_flag",                   pH_band_flag, "pH in HOB band 6.5-7.5"),
+    ("Chemistry D125  HOCl_max (mg/L)",                HOCl_max, 5.358240309629997),
     ("Biology  D28  O2_ceil_uM (uM)",                  O2_ceil_uM, 335.72349444703224),
     ("Biology  D35  CO2_carbon_margin (x)",            CO2_carbon_margin, 585.59956132513264),
     ("Biology  D37  pH_CO2_unbuf",                     pH_CO2_unbuf, 3.9425346209821237),
