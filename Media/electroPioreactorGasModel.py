@@ -294,15 +294,28 @@ for i in range(len(_pH_grid) - 1):
 pH_op = _interp_sum                                    # D103 (operating pH)
 
 pH_fHOCl = 1 / (1 + 10 ** (pH_op - pKa_HOCl))          # D104
-bleach_rate   = Iappc / (2 * Fcc) * 52460 * 3600 / VLc # D107 (mg/L/h)
+# --- naive FE=1 cells (NOT operative; kept for contrast) ---
+bleach_rate   = Iappc / (2 * Fcc) * 52460 * 3600 / VLc # D107 (mg/L/h, FE=1 ceiling)
 bleach_t1ppm  = 1 / bleach_rate * 60                   # D108 (min)
-HOCl_max = pH_Cl * pH_fHOCl * 52460                    # D125 (mg/L) - gate input for D109, pH-aware via D104
-if HOCl_max > 0.2:                                     # D109 mirrors the workbook: HOCl_max gate, not a chloride gate
-    bleach_flag = f"BLEACH RISK: HOCl {HOCl_max:.1f} mg/L (>0.2 first-impairment)"
-elif HOCl_max > 0.02:
-    bleach_flag = f"HOCl {HOCl_max:.1f} mg/L - watch"
+HOCl_max = pH_Cl * pH_fHOCl * 52460                    # D125 (naive FE=1 ceiling, superseded)
+# --- realistic free-chlorine model (operative; mirrors Chemistry rows 128-140) ---
+FE_CER   = 0.01                                        # D128 CER efficiency at trace Cl-
+km_Cl    = 0.003                                       # D129 (cm/s)
+A_anode  = 5                                           # D130 (cm2)
+I_Cl_FE  = Iappc * FE_CER                              # D131 (A) efficiency-limited
+I_Cl_mt  = Fcc * km_Cl * (pH_Cl / 1000) * A_anode      # D132 (A) chloride mass-transport limit
+I_Cl     = min(I_Cl_FE, I_Cl_mt)                       # D133 (A) binding limit
+Cl2_prod = I_Cl / (2 * Fcc) * 52460 * 3600 / VLc       # D134 (mg/L/h)
+NH3_N    = pH_NT * 14007                               # D135 (mg/L) ammonium as N
+Cl_demand = 10 * NH3_N                                 # D136 (mg/L) breakpoint sink
+t_run    = 168                                         # D137 (h)
+Cl2_cum  = Cl2_prod * t_run                            # D138 (mg/L)
+free_HOCl = max(0, Cl2_cum - Cl_demand) * pH_fHOCl     # D139 (mg/L) operative
+bleach_thresh = 0.05                                   # D140 (mg/L) HOB impairment onset
+if free_HOCl > bleach_thresh:                          # D109
+    bleach_flag = f"FREE-CHLORINE RISK: {free_HOCl:.2f} mg/L (> {bleach_thresh:.2f} onset)"
 else:
-    bleach_flag = "no bleaching (negligible chloride)"
+    bleach_flag = "no free chlorine (CER<1% at trace Cl⁻; ammonium breakpoint demand scavenges it)"
 if pH_op < 6.5:
     pH_band_flag = "pH BELOW HOB optimum (<6.5) - reduce CO2 dose"
 elif pH_op > 7.5:
@@ -539,7 +552,7 @@ S_D33 = I_valid                                         # D33 LED current-law ra
 S_D34 = ("inputs present" if (isnum(DO_min) and isnum(DO_opt) and isnum(DO_impair) and isnum(DO_toxic))
          else "DATA GAP - organism DO thresholds unmeasured; DO & sparge results unreliable")  # D34
 S_D35 = pH_op                                           # D35 endpoint pH
-S_D36 = HOCl_max                                        # D36 max HOCl
+S_D36 = free_HOCl                                       # D36 free HOCl (operative)
 S_D38 = DO_ss                                           # D38 steady-state DO
 S_D39 = spg_int_carbon                                  # D39 interval if O2 handled
 S_D40 = tip_speed                                       # D40 stir-bar tip speed
@@ -574,7 +587,7 @@ OUTPUTS = [
     ("Summary D33  LED current-law in range?",         S_D33, "OK"),
     ("Summary D34  Organism DO data present?",         S_D34, "DATA GAP - organism DO thresholds unmeasured; DO & sparge results unreliable"),
     ("Summary D35  Endpoint pH (worst-case)",          S_D35, 6.3125785894509363),
-    ("Summary D36  Max HOCl (mg/L)",                   S_D36, 8.877523507988645),
+    ("Summary D36  free HOCl (mg/L)",                  S_D36, 0.0),
     ("Summary D38  Steady-state DO (mg/L)",            S_D38, 1.9407611529861681),
     ("Summary D39  Sparge interval if O2 handled (min)", S_D39, 178.08128884816398),
     ("Summary D40  Stir-bar tip speed (m/s)",          S_D40, 0.31415926535897931),
@@ -592,7 +605,10 @@ OUTPUTS = [
     ("Electrochem D20  I_valid",                       I_valid, "OK"),
     ("Chemistry D104  HOCl fraction at op pH",         pH_fHOCl, 0.93902741032842141),
     ("Chemistry D108  Time to ~1 ppm HOCl (min)",      bleach_t1ppm, 0.16161837945657148),
-    ("Chemistry D109  bleach_flag",                    bleach_flag, "BLEACH RISK: HOCl 8.9 mg/L (>0.2 first-impairment)"),
+    ("Chemistry D109  bleach_flag",                    bleach_flag, "no free chlorine (CER<1% at trace Cl⁻; ammonium breakpoint demand scavenges it)"),
+    ("Chemistry D134  Cl2_prod (mg/L/h)",              Cl2_prod, 3.7126),
+    ("Chemistry D136  Cl_demand (mg/L)",               Cl_demand, 996.36),
+    ("Chemistry D139  free_HOCl (mg/L)",               free_HOCl, 0.0),
     ("Chemistry D110  pH_band_flag",                   pH_band_flag, "pH BELOW HOB optimum (<6.5) - reduce CO2 dose"),
     ("Chemistry D125  HOCl_max (mg/L)",                HOCl_max, 8.877523507988645),
     ("Biology  D28  O2_ceil_uM (uM)",                  O2_ceil_uM, 335.72349444703224),
