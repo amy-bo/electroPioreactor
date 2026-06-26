@@ -1,8 +1,8 @@
 ---
-state: authored
+state: reviewed
 author: [claude-opus-4.8]
-checked: []
-reviewed: []
+checked: [claude-opus-4.8]
+reviewed: [claude-opus-4.8]
 authorised:
 source_type: external
 description: "Sinter (frit) porosity grade"
@@ -22,18 +22,18 @@ sources:
   - https://adamschittenden.com/technical/frits>
 created: 2026-06-19
 recorded_at: 2026-06-20
-cssclasses: [trust-authored]
+cssclasses: [trust-reviewed]
 tags: [electropioreactor, protocol, sparger, sinter, mass-transfer]
 ---
 
 # Sinter (frit) porosity grade
 
-**Feeds:** Mass Transfer!por\_grade (0 - 5; ISO 4793 / DURAN class).
+**Feeds:** the "sinter porosity" column (E) of the electrode lookup table (Electrochemistry A34:I37), grade 0 - 5 (ISO 4793 / DURAN class). The model sources the grade from that electrode row via por_grade_e (Electrochemistry!D32) -> por_grade (Mass Transfer!D20), both read-only imports; there is no hand-entered grade cell.
 **Why it matters:** sets bubble size and clears the "Sinter OOR" regime flag when sparger=Sintered.
 
 ## Principle
 
-A sintered (fritted) sparger contains a network of tortuous capillary pores. The largest pore sets both the minimum bubble diameter produced and the capillary pressure threshold that gas must overcome to enter the liquid. The model maps an integer grade (0 = coarsest, 5 = finest) to a nominal maximum pore diameter via the ISO 4793 / DURAN porosity-class table stored in cells por0\_um - por5\_um (Mass Transfer!D33:D38). Once por\_grade is set correctly, d\_bubble (Mass Transfer!D42) becomes valid and the "Sinter OOR" flag clears.
+A sintered (fritted) sparger contains a network of tortuous capillary pores. The largest pore sets both the minimum bubble diameter produced and the capillary pressure threshold that gas must overcome to enter the liquid. The model maps an integer grade (0 = coarsest, 5 = finest) to a nominal maximum pore diameter via the ISO 4793 / DURAN porosity-class table stored in cells por0\_um - por5\_um (Mass Transfer!D33:D38). The grade itself is not a free input: it follows the selected electrode. por\_grade (Mass Transfer!D20) is a formula import of por\_grade\_e (Electrochemistry!D32), which in turn VLOOKUPs the "sinter porosity" column of the electrode table on the selected electrode. So once the sintered electrode's row carries the measured grade, por\_grade is set correctly, d\_bubble (Mass Transfer!D42) becomes valid and the "Sinter OOR" flag clears.
 
 The relevant physics: for a circular capillary wetted by a liquid, the Young - Laplace / Washburn relation gives the pressure difference ΔP required to expel the liquid from a pore of diameter d:
 
@@ -106,13 +106,15 @@ Note on grade 5: the DURAN 6-grade system (which the model's lookup table uses) 
 
 ## Result -> model
 
-Enter the integer grade (0 - 5) into **Mass Transfer!D20** (named range: por\_grade; also settable via the Summary sheet dropdown at D42).
+The grade follows the selected electrode, so it is set on the electrode lookup table, **not** by hand-entering a free cell. Enter the integer grade (0 - 5) into the **"sinter porosity" column (E) of the sintered electrode's row in the electrode table at Electrochemistry A34:I37** - the sintered electrode is the "MMO tube" row (row 37), whose column E currently holds 0. (The two rod electrodes, rows 35 - 36, carry "n/a" because they sparge through an open tube, not a frit.)
 
-The model reads por\_grade and indexes the lookup array por0\_um - por5\_um (Mass Transfer!D33:D38) to retrieve d\_max in µm, then sets d\_bubble (D42) for the mass-transfer calculations. Once por\_grade is a valid integer and sparger = Sintered, the "Sinter OOR" flag in bubble\_regime (D64) will clear if d\_bubble falls within the validated bubble-size range used by the Mendelson rise-velocity and kL correlations.
+Do not write into Mass Transfer!D20 or Electrochemistry!D32: both are read-only formula imports (D20 = `=Electrochemistry!$D$32`; D32 = a VLOOKUP on the electrode table), so overwriting them severs the link. There is no Summary-sheet dropdown for por\_grade (Summary inputs sit at D2 - D10; Mass Transfer!D42 is d\_bubble, not a selector) - the only place the grade is set is the electrode-table "sinter porosity" column.
+
+With the electrode row updated and that electrode selected, por\_grade\_e (Electrochemistry!D32) picks up the grade, por\_grade (Mass Transfer!D20) imports it, and the model indexes the lookup array por0\_um - por5\_um (Mass Transfer!D33:D38) to retrieve d\_max in µm, then sets d\_bubble (D42) for the mass-transfer calculations. Once por\_grade is a valid integer and sparger = Sintered, the "Sinter OOR" flag in bubble\_regime (D64) will clear if d\_bubble falls within the validated bubble-size range used by the Mendelson rise-velocity and kL correlations.
 
 ## Acceptance checks & pitfalls
 
-**Check 1 - flag clears:** after entering por\_grade, confirm that bubble\_regime (Mass Transfer!D64) no longer reads "Sinter OOR". If it still shows OOR, the resulting d\_bubble is outside the validated range for the active correlation; consider whether the frit grade is appropriate for the application or whether a different sparger type should be selected.
+**Check 1 - flag clears:** after setting the grade on the electrode table and selecting that electrode, confirm that bubble\_regime (Mass Transfer!D64) no longer reads "Sinter OOR". If it still shows OOR, the resulting d\_bubble is outside the validated range for the active correlation; consider whether the frit grade is appropriate for the application or whether a different sparger type should be selected.
 
 **Check 2 - cross-check against visual bubble size:** if you can observe sparging in the Pioreactor vial, bubbles from a grade 3 - 4 frit (16 - 40 µm pores, d\_bubble ≈ 0.5 - 1.5 mm at this scale) should be visibly much finer than those from a simple tube sparger (grade 0 - 1 or open tube, d\_bubble ≈ 2 - 5 mm). A qualitative match between observation and model output is a useful sanity check.
 

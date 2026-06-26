@@ -1,8 +1,8 @@
 ---
-state: authored
+state: reviewed
 author: [claude-opus-4.8]
-checked: []
-reviewed: []
+checked: [claude-opus-4.8]
+reviewed: [claude-opus-4.8]
 authorised:
 source_type: external
 description: "Vial geometry & true headspace"
@@ -18,13 +18,13 @@ sources:
   - https://pioreactor.com/products/20ml-glass-vial
 created: 2026-06-19
 recorded_at: 2026-06-20
-cssclasses: [trust-authored]
+cssclasses: [trust-reviewed]
 tags: [electropioreactor, protocol, geometry, headspace, calibration]
 ---
 
 # Vial geometry & true headspace
 
-**Feeds:** Geometry!V_vial_total, A_x, D_int, vial_ID (+ clears the geom_check INCONSISTENT flag). Current: nominal 20/42 mL vs cylinder ~27.6 mL.
+**Feeds:** the reactor-type lookup table (Geometry A83:I87) columns "total vial (mL)" and "usable depth (mm)", which V_vial_total (Geometry!D24) and D_int (Geometry!D22) read by VLOOKUP on rx_ver; also A_x via vial_ID (+ clears the geom_check INCONSISTENT flag). Current: nominal 20/42 mL vs cylinder ~27.6 mL.
 
 **Why it matters:** headline optimal-pulse ~4x sensitive to headspace_V.
 
@@ -35,6 +35,8 @@ The model needs three internally consistent numbers for each vial type (the 20 m
 The fix is to stop guessing the total and instead directly measure the free gas space that the model actually cares about, with the real electrode and tube inserts in place. We measure two things per vial type. First, the true free-gas headspace volume: with the vial charged to its normal working liquid level and the full insert set (two electrodes, sparge tube, efflux tube, extra headspace tubes) seated as in a real run, the volume of gas between the liquid surface and the underside of the septum/cap. Second, the true uniform-bore internal depth D_int: the straight cylindrical body height that the model approximates as a plain cylinder, measured from the inside base to the underside of the cap, excluding the curved shoulder/neck where the bore is not uniform.
 
 The interface between measurement and model is deliberate. We measure free headspace at working fill (the load-bearing quantity), and we measure bore depth. The geometry sheet already computes A_x from vial_ID and computes V_inserts and V_charge. So once we have measured headspace at a known V_charge and insert set, we can back-solve a self-consistent V_vial_total ( = measured headspace + V_charge + V_inserts ) and check it against A_x times D_int. When those two agree to within tolerance, the geom_check consistency cell reads OK.
+
+Note on where the model actually reads these numbers. The live model does not read V_vial_total or D_int from the standalone cells Vtot_1/Vtot_2 (Geometry!D16/D17) and D_int_1/D_int_2 (Geometry!D12/D13) - those four are vestigial display cells, marked in the sheet "Superseded by the reactor-type lookup below; not read by any formula." The values that drive the model are V_vial_total (Geometry!D24) and D_int (Geometry!D22), both of which VLOOKUP the reactor-type table at A83:I87 keyed on rx_ver - V_vial_total reads the "total vial (mL)" column (F), D_int reads the "usable depth (mm)" column (D). So the measured numbers must be written into that table, not into the vestigial cells (see "Result -> model").
 
 Gravimetric water displacement is the reference method because mass on a lab balance is far more precise and repeatable than reading a meniscus, and water density at the working temperature is known to better than 0.1 percent (about 997.0 kg/m3 at 25 degC, 995.6 kg/m3 at 30 degC), so volume follows directly from mass divided by density. The graduated-syringe variant trades that precision for needing only a syringe.
 
@@ -73,12 +75,14 @@ Accuracy note: a graduated syringe is typically good to about plus or minus 1 pe
 
 ## Result -> model
 
-Per vial type, enter into the Geometry sheet:
+Per vial type, edit the reactor-type lookup table on the Geometry sheet (A83:I87). This is the table V_vial_total (D24) and D_int (D22) read by VLOOKUP, so editing it is what actually changes the model - writing into the old Vtot_1/Vtot_2/D_int_1/D_int_2 cells changes nothing.
 
-- Back-solve the total: V_vial_total = headspace_V (measured) + V_charge (the working volume you used) + V_inserts (the value the sheet computes for that insert set). Enter this into Vtot_1 (20 mL build, currently placeholder 20) or Vtot_2 (40 mL build, currently placeholder 40). This is the single change that makes headspace_V correct, because headspace_V = V_vial_total - V_charge - V_inserts will now reproduce your measured headspace by construction at that fill.
-- Enter the measured/effective uniform-bore depth into D_int_1 (currently 55 mm) or D_int_2 (currently 95 mm).
+- Back-solve the total: V_vial_total = headspace_V (measured) + V_charge (the working volume you used) + V_inserts (the value the sheet computes for that insert set). Enter this into the **"total vial (mL)" column (F)** of the matching reactor-type row: AEP0.1.1 is row 84 (col F currently 20), AEP0.2 is row 86 (col F currently 42). This is the single change that makes headspace_V correct, because headspace_V = V_vial_total - V_charge - V_inserts will now reproduce your measured headspace by construction at that fill.
+- Enter the measured/effective uniform-bore depth into the **"usable depth (mm)" column (D)** of the same row: AEP0.1.1 row 84 (col D currently 55), AEP0.2 row 86 (col D currently 95).
+- Note the shared-geometry pairs: AEP0.1.1 (row 84) and MEP0.3 (row 85) have identical geometry, as do AEP0.2 (row 86) and AEP0.2a (row 87). If your build uses MEP0.3 or AEP0.2a, update that row too (or both rows of the pair) so the lookup returns your measured numbers whichever reactor is selected.
 - Leave A_x derived from vial_ID as is, unless your caliper internal-diameter reading differs from 25.28 mm, in which case update vial_OD or vial_wall so vial_ID matches the measured bore.
-- Record the measured numbers, the temperature, the density value used, and the three-run spread in the Source/assumption column so the figures are no longer placeholders.
+- The standalone cells Vtot_1/Vtot_2 (D16/D17) and D_int_1/D_int_2 (D12/D13) are vestigial - leave them as display-only, or update them to match for tidiness, but they do not feed any formula.
+- Record the measured numbers, the temperature, the density value used, and the three-run spread in the Source/assumption column (E) of the edited table row so the figures are no longer placeholders.
 
 The consistency-check (geom_check) compares the entered V_vial_total against the cylinder estimate A_x x D_int. After this protocol the two should agree because both now trace to measured water volumes, and the flag should clear from INCONSISTENT to OK.
 
@@ -90,7 +94,7 @@ The consistency-check (geom_check) compares the entered V_vial_total against the
 - Fill exactly to the septum plane: the model's headspace is bounded by the cap/septum underside, not the cap top. Filling into the cap recess or stopping at the neck both bias the result. Mark the septum plane if it is hard to see.
 - Inserts must be at run depth: headspace_V depends on how far the electrodes and tubes protrude. Seat them exactly as in a real run; a different insertion depth changes V_inserts and invalidates the back-solve.
 - Match temperature to density: use the rho_water value for the actual water temperature. Using 1.000 g/mL instead of 0.997 g/mL adds a ~0.3 percent bias - small here but free to avoid.
-- Do the same for both vial types: the 20 mL and 40 mL builds have separate placeholders (Vtot_1/Vtot_2, D_int_1/D_int_2). Measuring only one leaves the other inconsistent.
+- Do the same for both vial types: the 20 mL and 40 mL builds are separate rows in the reactor-type table (AEP0.1.1/MEP0.3 at rows 84/85, AEP0.2/AEP0.2a at rows 86/87). Measuring only one leaves the other inconsistent.
 - Read the meniscus at eye level (syringe: top of meniscus) to avoid parallax on the budget route.
 
 ## Sources
