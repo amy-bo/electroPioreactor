@@ -356,6 +356,13 @@ class ElectroPioreactor(BackgroundJob):
         )
         if window > 0:
             self._pause_od_reading(_OD_PAUSE_ELECTROLYSIS)
+            # Cancel any pending OD-resume from a prior ON phase before reassigning,
+            # otherwise the orphaned timer fires _resume_od_reading() during the new
+            # ON phase — dropping the 'electrolysis' pause owner and republishing OD
+            # READY while electrolysis is still ON — and escapes _cancel_timers
+            # (which only sees the latest reference). This mirrors the sparge path.
+            if self._electrolysis_od_resume_timer is not None:
+                self._electrolysis_od_resume_timer.cancel()
             self._electrolysis_od_resume_timer = threading.Timer(
                 window, self._resume_od_reading, args=(_OD_PAUSE_ELECTROLYSIS,)
             )

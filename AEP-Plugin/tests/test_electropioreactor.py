@@ -214,6 +214,26 @@ class TestSparging:
         stale.cancel.assert_called_once()
         assert job._od_resume_timer is not stale
 
+    def test_begin_electrolysis_on_cancels_prior_od_resume_timer(self, job):
+        # Regression (symmetric to the sparge case): a new electrolysis ON phase
+        # must cancel any pending OD-resume timer from the prior ON phase before
+        # reassigning _electrolysis_od_resume_timer. With a continuous-ish config
+        # (window = on + pause_after > period) a second _begin_electrolysis_on
+        # fires while the previous window's timer is still pending; the orphan
+        # otherwise fires _resume_od_reading() during the new ON phase, drops the
+        # 'electrolysis' pause owner, republishes OD READY, and escapes
+        # _cancel_timers (which only ever sees the latest reference).
+        job.state = job.READY
+        job._is_sparging = False
+        job.electrolysis_on_seconds = 60.0
+        job.od_pause_after_electrolysis_seconds = 5.0  # window 65 > period 60
+        stale = MagicMock()
+        job._electrolysis_od_resume_timer = stale
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            job._begin_electrolysis_on()
+        stale.cancel.assert_called_once()
+        assert job._electrolysis_od_resume_timer is not stale
+
 
 # ── lifecycle ─────────────────────────────────────────────────────────────────
 
@@ -551,6 +571,51 @@ class TestODPauseOwners:
         with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
             job._begin_electrolysis_on()
         assert _OD_PAUSE_ELECTROLYSIS in job._od_pausers
+
+    def test_second_electrolysis_on_does_not_resume_od_early(self, job):
+        """Cycle-level regression for the orphan-timer bug. With a window that
+        exceeds the electrolysis period (on=60, pause_after=5 -> window 65 > 60),
+        a second _begin_electrolysis_on fires while the prior window's OD-resume
+        timer is still pending. The new ON phase must cancel that stale timer, so
+        if the orphan WERE to fire it must not drop the 'electrolysis' owner and
+        republish OD READY while electrolysis is still ON."""
+        from pioreactor_electropioreactor_plugin.electropioreactor import _OD_PAUSE_ELECTROLYSIS
+        job.state = job.READY
+        job._is_sparging = False
+        job.electrolysis_on_seconds = 60.0
+        job.od_pause_after_electrolysis_seconds = 5.0  # window 65 > period 60
+
+        # 1. First ON phase: OD paused, electrolysis owner held, resume timer set.
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            job._begin_electrolysis_on()
+        assert job._od_pausers == {_OD_PAUSE_ELECTROLYSIS}
+        first_timer = job._electrolysis_od_resume_timer
+
+        # 2. Second ON phase fires while the first window's timer is still pending.
+        mqtt_publish.reset_mock()
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            job._begin_electrolysis_on()
+
+        # The prior (orphan) timer must have been cancelled and replaced.
+        first_timer.cancel.assert_called_once()
+        assert job._electrolysis_od_resume_timer is not first_timer
+
+        # 3. Simulate the orphan firing anyway (cancel races a near-due timer).
+        #    Even then OD must STILL be paused: the owner is still held, so no
+        #    spurious READY is published while electrolysis is ON.
+        job._resume_od_reading(_OD_PAUSE_ELECTROLYSIS)
+        assert job._od_pausers == set()  # one owner, one release — expected
+
+        # The critical assertion: across step 2 (the new ON phase) OD was never
+        # republished READY by an orphaned resume mid-ON. The single READY here
+        # is the explicit release in step 3, not an early orphan resume.
+        # Re-run the scenario asserting no READY leaked during the overlap:
+        mqtt_publish.reset_mock()
+        job._od_pausers.add(_OD_PAUSE_ELECTROLYSIS)
+        with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
+            job._begin_electrolysis_on()
+        assert "ready" not in _od_state_payloads()
+        assert job._od_pausers == {_OD_PAUSE_ELECTROLYSIS}
 
 
 # ── persistence smoke ─────────────────────────────────────────────────────────

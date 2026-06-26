@@ -1,5 +1,27 @@
 # electroPioreactor Plugin — Changelog
 
+## v0.7.1 (2026-06-26) — fix orphaned electrolysis OD-resume timer
+
+Bugfix on the v0.7.0 OD-pause-around-electrolysis path. `_begin_electrolysis_on`
+reassigned `self._electrolysis_od_resume_timer` **without first cancelling the
+prior one**. With a continuous-ish window where the OD-pause window (`on_seconds`
++ `od_pause_after_electrolysis_seconds`) exceeds the electrolysis period
+(e.g. `on=60, off=0, pause_after=5` → window `65` > period `60`), a second
+`_begin_electrolysis_on` fires while the previous window's resume timer is still
+pending. The orphaned timer later fired `_resume_od_reading("electrolysis")`,
+dropped the sole `electrolysis` pause owner, and republished the OD job **READY
+while electrolysis was still ON** — exactly the failure the sparge path already
+guards against. The orphan also escaped `_cancel_timers`, which only ever holds
+the latest timer reference.
+
+Fix: mirror the sparge path — cancel any pending
+`_electrolysis_od_resume_timer` before reassigning it (under the existing
+`window > 0` guard, keeping the daemon/start pattern). Added a symmetric
+unit regression (`test_begin_electrolysis_on_cancels_prior_od_resume_timer`)
+and a cycle-level regression (`test_second_electrolysis_on_does_not_resume_od_early`)
+asserting a second ON phase does not republish OD READY while the electrolysis
+owner is still held.
+
 ## v0.7.0 (2026-06-25) — electrolysis ON/OFF cycling, OD pause around electrolysis, configurable LED channel
 
 Two new features plus the long-deferred configurable-LED-channel work
