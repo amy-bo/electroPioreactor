@@ -248,8 +248,15 @@ udg = dict(KH2PO4=2.3, Na2HPO4=2.9, NaHCO3=1.05, MgSO4_7H2O=0.5,
            NH42SO4=0.47, CaCl2=0.01)                  # UdG g/L
 
 PT_mc02  = mc["Na2HPO4"] / MW["Na2HPO4"] + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"]  # D35
+# BUGFIX (review 2026-06-26): the divalent strong cations Mg2+ and Ca2+ were
+# missing from the cation sum while their SO4(2-) was subtracted in the anion
+# bracket, so each wrongly contributed -2 to SID (~7.6 mM too low -> MC02 pH
+# ~0.34 too acidic). Mg/Ca are strong, pH-independent ions and belong in SID
+# (NH4+ is correctly excluded - it is handled dynamically via the pH_NT term).
+# The UdG SID below already had them and is unaffected.
 SID_mc02 = ((2 * mc["Na2HPO4"] / MW["Na2HPO4"] + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"]
-             + 2 * mc["K2SO4"] / MW["K2SO4"])
+             + 2 * mc["K2SO4"] / MW["K2SO4"]
+             + 2 * mc["MgSO4_7H2O"] / MW["MgSO4_7H2O"] + 2 * mc["CaSO4_2H2O"] / MW["CaSO4_2H2O"])
             - 2 * (mc["NH42SO4"] / MW["NH42SO4"] + mc["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
                    + mc["K2SO4"] / MW["K2SO4"] + mc["CaSO4_2H2O"] / MW["CaSO4_2H2O"]))  # D36
 NT_mc02  = 2 * mc["NH42SO4"] / MW["NH42SO4"]                                            # D37
@@ -568,24 +575,61 @@ A_anode  = 5                                           # D130 (cm2)
 I_Cl_FE  = Iappc * FE_CER                              # D131 (A) efficiency-limited
 I_Cl_mt  = Fcc * km_Cl * (pH_Cl / 1000) * A_anode      # D132 (A) chloride mass-transport limit
 I_Cl     = min(I_Cl_FE, I_Cl_mt)                       # D133 (A) binding limit (mt-limited at trace Cl-)
-P_HOCl   = I_Cl / (2 * Fcc * VLc)                      # D134 (mol/L/s) volumetric free-Cl production
+# BUGFIX (review 2026-06-26) n-electron consistency: when the binding limit is
+# chloride ARRIVAL (I_Cl_mt, a 1 e-/Cl flux) one arriving Cl- yields one HOCl,
+# so divide by 1*F, not 2*F. Only the FE/Cl2 route (I_Cl_FE) is 2 e-/Cl2. The
+# old fixed /2 under-counted production ~2x in the (binding) mt-limited regime.
+n_e_Cl   = 1 if I_Cl_mt <= I_Cl_FE else 2              # D148 electrons per produced HOCl in the binding regime
+P_HOCl   = I_Cl / (n_e_Cl * Fcc * VLc)                 # D134 (mol/L/s) volumetric free-Cl production
 NH3_N    = pH_NT * 14007                               # D135 (mg/L) ammonium as N
 k1_NH2Cl = 4.2e6                                       # D136 (M^-1 s^-1) HOCl+NH3 rate constant
 pKa_NH4  = 9.25                                        # D137
 NH3_free = pH_NT / (1 + 10 ** (pKa_NH4 - pH_op))       # D138 (M) reactive free ammonia
-HOCl_ss  = P_HOCl / (k1_NH2Cl * NH3_free)              # D139 (M) steady bulk free HOCl
+HOCl_ss  = P_HOCl / (k1_NH2Cl * NH3_free)              # D139 (M) steady bulk free HOCl (already the undissociated acid)
 HOCl_ss_mgL = HOCl_ss * 52460                          # D140 (mg/L)
-f_local  = 10                                          # D141 anode boundary-layer enrichment
+f_local  = 10                                          # D141 anode boundary-layer enrichment (numerically inert: chloramine dominates ~1e4x)
 tau_NH2Cl = 1                                          # D142 (h) monochloramine residence
-NH2Cl_mgL = min(P_HOCl * tau_NH2Cl * 3600 * 52460, 5.06 * NH3_N)  # D143 (mg/L) combined chlorine
+# BUGFIX (review 2026-06-26) chloride mass balance: chlorine (free + combined)
+# can never exceed the medium chloride pool. The old cap was on ammonium
+# capacity (5.06*NH3_N, never binds) and let NH2Cl reach 17 mg/L from only
+# ~9.45 mg/L of chloride - physically impossible. Cap by the chloride pool.
+# (In a closed batch this pool also DEPLETES; a steady value at the cap presumes
+#  chloride is regenerated as HOCl is reduced back to Cl- - stated, not proven.)
+Cl_pool_mgL = pH_Cl * 52460                            # D149 (mg/L as HOCl-equiv) chloride-pool ceiling
+NH2Cl_mgL = min(P_HOCl * tau_NH2Cl * 3600 * 52460, 5.06 * NH3_N, Cl_pool_mgL)  # D143 (mg/L) combined chlorine, pool-capped
 R_chloramine = 25                                      # D144 monochloramine potency divisor
-C_eff    = f_local * pH_fHOCl * HOCl_ss_mgL + NH2Cl_mgL / R_chloramine  # D145 (mg/L) OPERATIVE
+# BUGFIX (review 2026-06-26) double pH-discount removed: HOCl_ss is ALREADY the
+# undissociated hypochlorous acid, so the old extra *pH_fHOCl multiplier on the
+# free term discounted dissociation twice. Dropped.
+C_eff    = f_local * HOCl_ss_mgL + NH2Cl_mgL / R_chloramine  # D145 (mg/L) OPERATIVE
 Cl_onset = 0.1                                         # D146 (mg/L) sub-lethal onset
 Cl_kill  = 2                                           # D147 (mg/L) kill
+# --- C_eff uncertainty band from the two unmeasured knobs (tau, R), pool-capped ---
+tau_NH2Cl_lo = 1 / 60                                  # D150 (h) 1 min
+tau_NH2Cl_hi = 5                                       # D151 (h)
+R_chloramine_lo = 18                                   # D152 most-potent end of defensible band
+R_chloramine_hi = 70                                   # D153 least-potent end
+NH2Cl_lo = min(P_HOCl * tau_NH2Cl_lo * 3600 * 52460, 5.06 * NH3_N, Cl_pool_mgL)  # D154
+NH2Cl_hi = min(P_HOCl * tau_NH2Cl_hi * 3600 * 52460, 5.06 * NH3_N, Cl_pool_mgL)  # D155
+C_eff_lo = f_local * HOCl_ss_mgL + NH2Cl_lo / R_chloramine_hi  # D156 least chlorine, least potent
+C_eff_hi = f_local * HOCl_ss_mgL + NH2Cl_hi / R_chloramine_lo  # D157 most chlorine, most potent
+# --- electrode-corrosion / dissolved-metal pathway (DATA GAP: the UNMODELLED prime suspect for Exp-2) ---
+corr_I_frac   = NA                                     # D158 fraction of anodic charge -> metal dissolution. DATA GAP - measure
+metal_MW      = 63.55                                  # D159 (g/mol) Cu, representative leached transition metal
+metal_z       = 2                                      # D160 electrons per dissolved metal ion
+metal_leach_rate = (corr_I_frac * Iappc / (metal_z * Fcc) * metal_MW * 1000 * 3600 / VLc
+                    if isnum(corr_I_frac) else NA)     # D161 (mg/L/h) #N/A until corr_I_frac measured
+metal_tox_thresh = 0.5                                 # D162 (mg/L) order-of-magnitude bactericidal Cu/Ni for gram-negatives
+metal_flag = ("DATA GAP - measure dissolved Cu/Ni/Fe in spent medium; the green anode implicates "
+              "electrode corrosion / metal leaching as the unmodelled prime suspect for the Exp-2 death"
+              if not isnum(corr_I_frac)
+              else f"metal leach {metal_leach_rate:.2f} mg/L/h vs ~{metal_tox_thresh} mg/L bactericidal threshold")  # D163
 if C_eff < Cl_onset:                                   # D109
-    bleach_flag = f"negligible free chlorine ({C_eff:.2f} mg/L < onset)"
+    bleach_flag = (f"negligible free chlorine ({C_eff:.2f} mg/L < onset); "
+                   "does NOT account for the Exp-2 death - see metal_flag")
 elif C_eff < Cl_kill:
-    bleach_flag = f"MILD sub-lethal penalty: {C_eff:.2f} mg/L (chloride costs lag/growth — Sydow 2017; chloride-free avoids it)"
+    bleach_flag = (f"sub-lethal {C_eff:.2f} mg/L (band {C_eff_lo:.2f}-{C_eff_hi:.2f}); chloride-pool-bounded, "
+                   "cannot reach the kill threshold in this medium; does NOT explain the death - see metal_flag")
 else:
     bleach_flag = f"SEVERE free chlorine: {C_eff:.1f} mg/L → biofilm/electrode damage (Baek 2021)"
 if pH_op < 6.5:
@@ -677,7 +721,7 @@ OUTPUTS = [
     ("Summary D33  LED current-law in range?",         S_D33, "OK"),
     ("Summary D34  Organism DO data present?",         S_D34, "DATA GAP - organism DO thresholds unmeasured; DO & sparge results unreliable"),
     ("Summary D35  Endpoint pH (recommended schedule)", S_D35, 7.383429797358975),
-    ("Summary D36  C_eff (mg/L)",                      S_D36, 0.6807516554997687),
+    ("Summary D36  C_eff (mg/L)",                      S_D36, 0.37839411482),
     ("Summary D38  Steady-state DO (mg/L)",            S_D38, 1.9407611529861681),
     ("Summary D39  Sparge interval if O2 handled (min)", S_D39, 178.08128884816398),
     ("Summary D40  Stir-bar tip speed (m/s)",          S_D40, 0.31415926535897931),
@@ -695,11 +739,16 @@ OUTPUTS = [
     ("Electrochem D20  I_valid",                       I_valid, "OK"),
     ("Chemistry D104  HOCl fraction at op pH",         pH_fHOCl, 0.5667723118211371),
     ("Chemistry D108  Time to ~1 ppm HOCl (min)",      bleach_t1ppm, 0.16161837945657148),
-    ("Chemistry D109  bleach_flag",                    bleach_flag, "MILD sub-lethal penalty: 0.68 mg/L (chloride costs lag/growth — Sydow 2017; chloride-free avoids it)"),
-    ("Chemistry D134  P_HOCl (mol/L/s)",               P_HOCl, 9.011e-08),
-    ("Chemistry D139  HOCl_ss (M)",                    HOCl_ss, 2.2482664446908421e-10),
-    ("Chemistry D143  NH2Cl (mg/L)",                   NH2Cl_mgL, 17.017120201838175),
-    ("Chemistry D145  C_eff (mg/L)",                   C_eff, 0.6807516554997687),
+    ("Chemistry D109  bleach_flag",                    bleach_flag, "sub-lethal 0.38 mg/L (band 0.01-0.53); chloride-pool-bounded, cannot reach the kill threshold in this medium; does NOT explain the death - see metal_flag"),
+    ("Chemistry D134  P_HOCl (mol/L/s)",               P_HOCl, 1.8021265098e-07),
+    ("Chemistry D139  HOCl_ss (M)",                    HOCl_ss, 4.4965328893816842e-10),
+    ("Chemistry D143  NH2Cl (mg/L)",                   NH2Cl_mgL, 9.4539556679),
+    ("Chemistry D145  C_eff (mg/L)",                   C_eff, 0.37839411482),
+    ("Chemistry D149  Cl_pool_mgL (mg/L)",             Cl_pool_mgL, 9.4539556679),
+    ("Chemistry D156  C_eff_lo (mg/L)",                C_eff_lo, 0.008339278688),
+    ("Chemistry D157  C_eff_hi (mg/L)",                C_eff_hi, 0.5254397457),
+    ("Chemistry D161  metal_leach_rate (mg/L/h)",      metal_leach_rate, NA),
+    ("Chemistry D163  metal_flag",                     metal_flag, "DATA GAP - measure dissolved Cu/Ni/Fe in spent medium; the green anode implicates electrode corrosion / metal leaching as the unmodelled prime suspect for the Exp-2 death"),
     ("Chemistry D110  pH_band_flag",                   pH_band_flag, "pH in HOB band 6.5-7.5"),
     ("Chemistry D125  HOCl_max (mg/L)",                HOCl_max, 5.358240309629997),
     ("Biology  D28  O2_ceil_uM (uM)",                  O2_ceil_uM, 335.72349444703224),

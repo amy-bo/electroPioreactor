@@ -238,3 +238,65 @@ knobs = [(name, crit) for name, tier, sp, crit in rows if tier == 'KNOB']
 knobs.sort(key=lambda r: -r[1])
 for name, crit in knobs:
     print(f"   {name:18} max critical span {crit:.0f}%")
+
+
+# ============================================================================
+# C_eff (effective biocidal chlorine) sensitivity -- the four chlorine knobs the
+# review (2026-06-26) flagged as never swept: tau_NH2Cl, R_chloramine, km_Cl,
+# FE_CER. The schedule model above does not compute C_eff, so this is a separate
+# block. It holds the pH/chloride context fixed at the UdG recommended-schedule
+# baseline (taken from the live model) and sweeps each knob over its plausible
+# range. The headline is that the chloride-pool cap (Cl_pool_mgL, the new mass-
+# balance fix) bounds C_eff below the kill threshold across the WHOLE knob box.
+# ============================================================================
+CL_BASE = dict(
+  # fixed context from electroPioreactorGasModel.py (UdG, recommended schedule)
+  pH_Cl=0.00018021265092809516,   # chloride molarity (mol/L)
+  NH3_free=9.542413029341608e-05, # reactive free ammonia (M)
+  NH3_N=99.64113818677161,        # ammonium-N (mg/L) -> 5.06*NH3_N ammonium cap
+  Cl_pool_mgL=9.453955667687872,  # chloride-pool ceiling (mg/L HOCl-equiv)
+  Iappc=0.00569, Fcc=96485.33212, VLc=0.015, k1_NH2Cl=4.2e6, f_local=10, A_anode=5,
+  # the four swept knobs at baseline
+  km_Cl=0.003, FE_CER=0.5, tau_NH2Cl=1.0, R_chloramine=25.0,
+)
+
+
+def c_eff_model(p):
+    """Reproduce the live chlorine chain (Chemistry rows 128-163) at fixed pH/Cl.
+    Returns C_eff (mg/L). Includes the two review bug-fixes: n-electron-correct
+    P_HOCl and the chloride-pool cap on combined chlorine."""
+    I_Cl_FE = p['Iappc'] * p['FE_CER']
+    I_Cl_mt = p['Fcc'] * p['km_Cl'] * (p['pH_Cl'] / 1000) * p['A_anode']
+    I_Cl = min(I_Cl_FE, I_Cl_mt)
+    n_e_Cl = 1 if I_Cl_mt <= I_Cl_FE else 2          # arrival-limited -> 1 e-/Cl
+    P_HOCl = I_Cl / (n_e_Cl * p['Fcc'] * p['VLc'])
+    HOCl_ss_mgL = P_HOCl / (p['k1_NH2Cl'] * p['NH3_free']) * 52460
+    NH2Cl = min(P_HOCl * p['tau_NH2Cl'] * 3600 * 52460, 5.06 * p['NH3_N'], p['Cl_pool_mgL'])
+    return p['f_local'] * HOCl_ss_mgL + NH2Cl / p['R_chloramine']
+
+
+def c_eff_run(name, val):
+    p = dict(CL_BASE); p[name] = val; return c_eff_model(p)
+
+
+# (knob, low, high, tier) -- all four are ESTIMATE/DATA-GAP, none measured here
+CL_SWEEP = [
+ ('tau_NH2Cl', 1/60, 5.0, 'DATA-GAP'),   # 1 min .. 5 h monochloramine residence
+ ('R_chloramine', 18, 70, 'ESTIMATE'),   # potency-divisor band
+ ('km_Cl', 0.001, 0.01, 'ESTIMATE'),     # chloride mass-transfer coeff (cm/s)
+ ('FE_CER', 0.2, 0.8, 'DATA-GAP'),       # max CER faradaic efficiency
+]
+ce_base = c_eff_model(CL_BASE)
+print("\n" + "=" * 88)
+print("C_eff (effective biocidal chlorine) sensitivity -- the four chlorine knobs")
+print(f"   baseline C_eff = {ce_base:.3f} mg/L  (UdG, recommended schedule; "
+      f"onset 0.1, kill 2.0 mg/L)")
+print(f"{'knob':16}{'tier':10}{'low':>12}{'high':>12}{'C_eff lo':>11}{'C_eff hi':>11}")
+ce_lo_all, ce_hi_all = [], []
+for name, lo, hi, tier in CL_SWEEP:
+    a, c = c_eff_run(name, lo), c_eff_run(name, hi)
+    ce_lo_all.append(min(a, c)); ce_hi_all.append(max(a, c))
+    print(f"{name:16}{tier:10}{lo:>12.4g}{hi:>12.4g}{min(a,c):>11.3f}{max(a,c):>11.3f}")
+print(f"\n   full one-at-a-time C_eff envelope: {min(ce_lo_all):.3f} .. {max(ce_hi_all):.3f} mg/L")
+print(f"   kill threshold = 2.0 mg/L -> {'REACHED' if max(ce_hi_all) >= 2.0 else 'NOT reached'}: "
+      "the chloride-pool cap holds C_eff sub-lethal across the whole knob box for UdG.")
