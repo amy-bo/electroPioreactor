@@ -136,6 +136,37 @@ sparger_e    = e["sparger"]                                     # D31
 por_grade_e  = e["por"] if isnum(e["por"]) else 0              # D32
 z_e_ORR      = e["z_e_ORR"]                                     # D27
 
+# --- current density, shape-aware wetted area & limits (Electrochemistry rows 40-76) ---
+# NOTE ON THE CALIBRATIONS LAYER: in the workbook every parameter below that has a
+# bench calibration (gerrit_slope/int, etaF/etaF_OER, kLa, DO bands, knallgas ratio,
+# vial geometry, sinter grade, strain j) is read as IFERROR(<Calibrations aggregate>,
+# <default>). With an empty Calibrations tab the aggregates error and the model uses
+# these defaults, so this twin mirrors the empty-calibration (default) state exactly.
+ELECTRODE_GEOM = {  # anode/cathode shape+dia (mm); plating limits (mA/cm2); material
+    "Pt/Ti rod":    dict(a_shape="rod",  a_d=6.0, c_shape="rod", c_d=6.0, jc=100, jm=500, mat="Pt/Ti"),
+    "MMO rod":      dict(a_shape="rod",  a_d=6.0, c_shape="rod", c_d=6.0, jc=50,  jm=500, mat="MMO"),
+    "MMO tube":     dict(a_shape="tube", a_d=6.0, c_shape="rod", c_d=6.0, jc=10,  jm=60,  mat="MMO"),
+    "Graphite rod": dict(a_shape="rod",  a_d=6.0, c_shape="rod", c_d=6.0, jc=35,  jm=50,  mat="Graphite"),
+}
+eg = ELECTRODE_GEOM[electrode_sel]
+def _wetted(shape, d):                         # cm^2: lateral + end face for a rod, none for a tube
+    return (math.pi * d * elec_sub_L + (math.pi / 4 * d ** 2 if shape == "rod" else 0)) / 100
+A_anode_wet = _wetted(eg["a_shape"], eg["a_d"])                 # D46 (cm^2)
+A_cath_wet  = _wetted(eg["c_shape"], eg["c_d"])                 # D47 (cm^2)
+j_anode     = I_app * 1000 / A_anode_wet                        # D48 (mA/cm^2)
+j_cathode   = I_app * 1000 / A_cath_wet                         # D49 (mA/cm^2)
+anode_j_cont, anode_j_max = eg["jc"], eg["jm"]                  # D50, D51
+cath_j_cont,  cath_j_max  = 80, 250                             # D52, D53 (SS HER norm)
+STRAIN_J = {  # per-organism (optimum, tolerated-ceiling) mA/cm^2; calibration-overridable
+    "Cupriavidus necator": (2, 4), "Xanthobacter autotrophicus": (2, 4),
+    "Xanthobacter flavus": (2, 4), "Xanthobacter tagetidis": (2, 4),
+    "Cupriavidus metallidurans": (2, 4), "UdG (mixed)": (2.14, 4.29),
+}
+j_opt_strain, j_ceiling_strain = STRAIN_J.get(organism_sel, (1, 2))   # D56, D57 (fallback 1/2)
+power_max   = 10.0                                              # D73 (%) AEP-Plugin electrolysis_power clamp
+I_max_mA    = gerrit_slope * power_max + gerrit_int             # D74 (mA) current at max power
+j_anode_max = I_max_mA / A_anode_wet                            # D75 (mA/cm^2)
+
 
 # ============================================================================
 # BIOLOGY TAB  (sets temperature, pressure, Henry solubilities, gas budget)
@@ -699,6 +730,10 @@ S_D41 = CO2_carbon_margin                               # D41 carbon margin
 # ============================================================================
 # Each entry: (label, computed value, cached spreadsheet value)
 OUTPUTS = [
+    # --- Electrochemistry current density (rows 40-76) ---
+    ("Echem D46  anode wetted area (cm2)",             A_anode_wet, 2.144493495626294),
+    ("Echem D48  anode current density (mA/cm2)",      j_anode,     2.6533071849389076),
+    ("Echem D75  max anode current density (mA/cm2)",  j_anode_max, 6.015408),
     # --- Summary tab (every cell with a Value/result) ---
     ("Summary D13  CO2 pulse duration (s)",            S_D13, 0.78451304982496561),
     ("Summary D14  CO2 pulse duration rounded (s)",    S_D14, 1),

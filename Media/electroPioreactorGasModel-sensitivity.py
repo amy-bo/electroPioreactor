@@ -255,7 +255,9 @@ CL_BASE = dict(
   NH3_free=9.542413029341608e-05, # reactive free ammonia (M)
   NH3_N=99.64113818677161,        # ammonium-N (mg/L) -> 5.06*NH3_N ammonium cap
   Cl_pool_mgL=9.453955667687872,  # chloride-pool ceiling (mg/L HOCl-equiv)
-  Iappc=0.00569, Fcc=96485.33212, VLc=0.015, k1_NH2Cl=4.2e6, f_local=10, A_anode=5,
+  Iappc=0.00569, Fcc=96485.33212, VLc=0.015, k1_NH2Cl=4.2e6, f_local=10,
+  A_anode=2.1445,  # geometry-derived wetted anode area (20 mL Pt/Ti, ~9.9 mm submerged); was a fixed 5 cm2 estimate, now computed in the model
+
   # the four swept knobs at baseline
   km_Cl=0.003, FE_CER=0.5, tau_NH2Cl=1.0, R_chloramine=25.0,
 )
