@@ -26,7 +26,7 @@ Best accuracy. Use this route whenever the strain has no trustworthy published i
 ### Kit
 
 - At least 4 electroPioreactor units (more is better – this is a dose-response curve).
-- The onboard OD reader for logging growth, blanked per [Calibration](../../MixedElectroPioreactor/Calibration.md).
+- The onboard OD reader for logging growth. Blank the OD reading against a cell-free vial of medium only (or bicarbonate-only) before inoculation.
 - A viability assay: plate counts or a live/dead stain.
 - A calibrated in-line current measurement (per [gerrit-current.md](gerrit-current.md)) so the current density is known, not assumed.
 - pH and dissolved-oxygen (DO) probes.

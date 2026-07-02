@@ -30,7 +30,7 @@ Highest accuracy. Uses a laboratory balance and gravimetric water displacement, 
 
 ### Kit
 
-- Analytical or precision balance, 0.01 g resolution or better, capacity above 100 g.
+- Analytical or precision balance, 0.01 g resolution or better, capacity above ~150 g.
 - A thermometer.
 - A fine-tipped wash bottle or a 1 mL syringe for topping up to the fill line.
 - The actual vial of each reactor type to be calibrated.

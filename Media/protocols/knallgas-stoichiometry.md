@@ -63,7 +63,7 @@ Continuous mass balance on a growing culture: the three uptake rates are read di
 7. From the optical-density trace, identify the exponential growth window (or, for a chemostat, the steady-state period).
 8. Read the hydrogen, oxygen and carbon dioxide uptake rates the analyser software reports over that window. The software uses the constant nitrogen tracer to recover the off-gas flow, so no manual flow correction is needed.
 9. Repeat the whole run across at least three independent cultivations.
-10. Record the measured H2 : O2 : CO2 uptake ratio for the organism in the **Knallgas ratio** section of the **Calibrations** tab. Fill Researcher, Date and Organism; set Include to y. Leave the Computed and value-in-use cells to the spreadsheet.
+10. Record the three measured uptake values (H2, O2 and CO2, in consistent units) in the three columns of the **Knallgas ratio** section of the **Calibrations** tab. Fill Researcher, Date and Organism; set Include to y. Leave the Computed and value-in-use cells to the spreadsheet, which forms and averages the ratio for you; do not pre-compute a ratio yourself.
 
 ## Budget protocol
 
@@ -94,14 +94,14 @@ Same uptake ratio from sealed serum bottles using only a gas chromatograph, a pr
 5. Incubate all bottles at 30 degrees Celsius with shaking.
 6. At each timepoint (for example 0, 6, 12, 24, 36 and 48 hours): first read the sealed total headspace pressure with the manometer, before withdrawing any gas; then withdraw a fixed volume with a gastight syringe into the GC-TCD and record the hydrogen, oxygen, carbon dioxide and nitrogen composition.
 7. At intervals, sacrifice replicate bottles for optical density and dry cell weight rather than repeatedly sampling one bottle.
-8. Enter each timepoint's pressure and composition, the known headspace volume and the biomass readings into the bottle-kinetics workbook and read the hydrogen, oxygen and carbon dioxide uptake it reports. The constant nitrogen partial pressure corrects for sampling losses and small leaks; discard any bottle whose nitrogen drifts.
+8. For each gas, work out its uptake rate from the slope of its headspace partial pressure against time over the growth interval (read the slope off your own plot), keeping to consistent units throughout. The constant nitrogen partial pressure corrects for sampling losses and small leaks; discard any bottle whose nitrogen drifts.
 9. Check the reported carbon-dioxide uptake against the biomass carbon-balance cross-check (dry-cell-weight carbon, with any stored polymer accounted for) and against the uninoculated control, which quantifies abiotic carbon-dioxide loss.
 10. Confirm the H2 : O2 : CO2 ratio is consistent across the range of oxygen doses.
-11. Record the measured H2 : O2 : CO2 uptake ratio for the organism in the **Knallgas ratio** section of the **Calibrations** tab. Fill Researcher, Date and Organism; set Include to y. Leave the Computed and value-in-use cells to the spreadsheet.
+11. Record the three measured uptake values (H2, O2 and CO2, in consistent units) in the three columns of the **Knallgas ratio** section of the **Calibrations** tab. Fill Researcher, Date and Organism; set Include to y. Leave the Computed and value-in-use cells to the spreadsheet, which forms and averages the ratio for you; do not pre-compute a ratio yourself.
 
 ## What the spreadsheet does with it
 
-The Calibrations tab averages the included uptake ratios for each organism and feeds that average as the gas requirement ratio used downstream. That single ratio sets the surplus oxygen the schedule must vent and the carbon demand it must meet, so both the oxygen budget and the carbon budget are driven by this measured number rather than by the cylinder feed composition.
+The Calibrations tab takes the three uptake values (H2, O2 and CO2) you record for each run, forms the H2 : O2 : CO2 ratio itself, and averages those ratios across the included runs for each organism, feeding that average as the gas requirement ratio used downstream. That single ratio sets the surplus oxygen the schedule must vent and the carbon demand it must meet, so both the oxygen budget and the carbon budget are driven by this measured number rather than by the cylinder feed composition.
 
 ## Principle & background
 

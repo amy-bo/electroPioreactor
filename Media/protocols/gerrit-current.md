@@ -1,8 +1,8 @@
 ---
 state: authored
 author: [claude-opus-4.8]
-checked: [claude-opus-4.8]
-reviewed: [claude-opus-4.8]
+checked: []
+reviewed: []
 authorised:
 source_type: external
 description: "Gerrit's Law: LED-intensity to electrolysis-current calibration"

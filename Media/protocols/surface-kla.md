@@ -39,6 +39,7 @@ Best accuracy: a fast lab-grade dissolved-oxygen probe in the real reactor geome
 - Temperature control able to hold 30 °C: the Pioreactor itself or a jacketed block.
 - A magnetic stirrer and stir bar able to hold 500 rpm.
 - A nitrogen supply feeding the vial's existing sparge tube.
+- A small air source (for example an aquarium air pump) for the saturation/span step.
 - A DO logger or logging software able to record at 1 s intervals or faster.
 
 ### Reagents
@@ -68,6 +69,7 @@ Lower-kit variant: a low-cost optical DO probe (an inexpensive optical DO module
 
 - The same reactor vial, working volume, temperature control and 500 rpm stirrer as the optimal protocol.
 - A low-cost optical or galvanic DO meter. Note its response time.
+- A small air source (for example an aquarium air pump) for the saturation/span step.
 - A nitrogen supply, or a fresh sodium-sulfite (or sodium-metabisulfite) charge as a fallback deoxygenant.
 - A logger, or a stopwatch and phone-timestamped manual readings.
 
@@ -87,7 +89,7 @@ The Surface kLa section of the Calibrations tab gathers every re-aeration run yo
 
 ## Principle & background
 
-The electro-bioreactor makes oxygen at the anode, and in this stirred 16 mL vial the dominant route for getting that oxygen back out of the liquid is transfer across the free surface into the vented headspace – there is no continuous air sparge doing the work. The rate is set by a surface volumetric oxygen mass-transfer coefficient, kLa_surf, where kL_surf is the liquid-film coefficient (m/s) and a_surf is the gas-liquid interfacial area per unit liquid volume (1/m). The model estimates kL_surf from a Danckwerts surface-renewal proxy (kL_surf = 2·√(D_O2·s_renew/π), with the surface-renewal frequency s_renew = tip_speed/vial_ID). That proxy is unvalidated and is the single most sensitive number in the whole model – around 375% sensitivity – and it decides whether the sparge interval sits near 1.4 min or near 178 min, so it has to be replaced by a measured value.
+The electro-bioreactor makes oxygen at the anode, and in this stirred ~16 mL working volume the dominant route for getting that oxygen back out of the liquid is transfer across the free surface into the vented headspace – there is no continuous air sparge doing the work. The rate is set by a surface volumetric oxygen mass-transfer coefficient, kLa_surf, where kL_surf is the liquid-film coefficient (m/s) and a_surf is the gas-liquid interfacial area per unit liquid volume (1/m). The model estimates kL_surf from a Danckwerts surface-renewal proxy (kL_surf = 2·√(D_O2·s_renew/π), with the surface-renewal frequency s_renew = tip_speed/vial_ID). That proxy is unvalidated and is the single most sensitive number in the whole model – around 375% sensitivity – and it decides whether the sparge interval sits near 1.4 min or near 178 min, so it has to be replaced by a measured value.
 
 The standard way to measure kLa without a culture is the dynamic gassing-out method ("gas-out / gas-in"). You strip the dissolved oxygen out of the working volume by sparging nitrogen, stop the strip, then let the liquid re-aerate from its own free surface while the stirrer runs at the real operating speed. A DO probe records the re-aeration curve. With no oxygen uptake (no cells) and a well-mixed liquid, the dissolved-oxygen balance is dC/dt = kLa·(C_star − C), where C_star is the saturation DO in equilibrium with the gas above the surface. That integrates to ln(C_star − C) = −kLa·t + const, so a plot of ln(C_star − C) against time is a straight line whose slope is −kLa. That slope is the surface kLa, because surface transfer is the only path operating once the nitrogen is off and there is no sparge. This approach is established and widely used because it needs only a DO probe – no off-gas analyser, no hazardous reagents and no organism (Garcia-Ochoa / BioProcess International, and the Eppendorf and bioprocesstools method notes in Sources).
 

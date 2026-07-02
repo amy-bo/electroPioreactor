@@ -28,7 +28,6 @@ tags: [electropioreactor, protocol, co2, flow-calibration, sparging]
 - The Pioreactor running the reactor under test, with the real CO2 line, regulator and solenoid it will use in service.
 - An inverted burette or graduated gas-collection tube (1 mL graduations) standing mouth-down in a water trough, or a calibrated soap-film / bubble flow meter.
 - A stopwatch (a phone stopwatch is fine).
-- A thermometer for the trough liquid and, if available, a barometer.
 
 ### Reagents
 
@@ -39,12 +38,11 @@ tags: [electropioreactor, protocol, co2, flow-calibration, sparging]
 1. Fill the collection tube with acidified water, cover the mouth, invert it into the trough and uncover it under the surface so it stays full with no trapped air.
 2. Connect the CO2 line so it delivers into the mouth of the collection tube instead of into the reactor vial.
 3. Vent CO2 through the line for a few seconds to clear air from the tubing, then close the valve.
-4. Record the trough liquid temperature (and ambient pressure, if you have a barometer) on the log sheet.
-5. Open the CO2 valve and start the stopwatch at the same instant.
-6. Let gas collect until the tube holds a comfortably readable volume, then close the valve and stop the stopwatch at the same instant. Note the elapsed time.
-7. Raise or lower the collection tube until the liquid level inside matches the level in the trough, so the collected gas sits at ambient pressure, then read the collected gas volume off the graduations.
-8. Repeat steps 3 to 7 at least five times, refilling the tube each time, so you have five independent measurements for this reactor.
-9. Record, for each measurement, the volume of CO2 collected (mL) and the time taken (s) in the **CO₂ flow** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
+4. Open the CO2 valve and start the stopwatch at the same instant.
+5. Let gas collect until the tube holds a comfortably readable volume, then close the valve and stop the stopwatch at the same instant. Note the elapsed time.
+6. Raise or lower the collection tube until the liquid level inside matches the level in the trough, so the collected gas sits at ambient pressure, then read the collected gas volume off the graduations.
+7. Repeat steps 3 to 6 at least five times, refilling the tube each time, so you have five independent measurements for this reactor.
+8. Record, for each measurement, the volume of CO2 collected (mL) and the time taken (s) in the **CO₂ flow** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## Budget protocol
 
@@ -71,7 +69,7 @@ tags: [electropioreactor, protocol, co2, flow-calibration, sparging]
 
 ## What the spreadsheet does with it
 
-The Calibrations tab divides the collected volume by the time taken to obtain the CO2 flow rate for that measurement. For each reactor it then uses the most recent included calibration: a flow rate is a fixed property of that reactor's regulator, valve and tubing, so the latest measurement replaces the older ones rather than being averaged with them. That flow rate feeds both the CO2 dosing flow rate and the minimum sparge time used elsewhere in the model.
+The Calibrations tab divides the collected volume by the time taken to obtain the CO2 flow rate for that measurement; you enter only the volume and the time, and the model applies its own reactor temperature and pressure rather than any conditions recorded at the trough. For each reactor it then uses the most recent included calibration: a flow rate is a fixed property of that reactor's regulator, valve and tubing, so the latest measurement replaces the older ones rather than being averaged with them. That flow rate feeds both the CO2 dosing flow rate and the minimum sparge time used elsewhere in the model.
 
 ## Principle & background
 

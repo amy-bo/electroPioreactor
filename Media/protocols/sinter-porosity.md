@@ -75,7 +75,7 @@ tags: [electropioreactor, protocol, sparger, sinter, mass-transfer]
 
 ## What the spreadsheet does with it
 
-The Calibrations tab converts the recorded bubble-point pressure to the largest-pore size and then to the ISO 4793 / DURAN porosity grade. For each reactor it uses the most recent included measurement: the fitted frit is a piece of hardware, so the latest measurement replaces the older ones rather than being averaged with them. That grade feeds the sinter porosity grade used for bubble-size modelling elsewhere in the model.
+The Calibrations tab converts the recorded bubble-point pressure to the largest-pore size and then to the ISO 4793 / DURAN porosity grade. For each reactor it uses the most recent included measurement: the fitted frit is a piece of hardware, so the latest measurement replaces the older ones rather than being averaged with them. That grade feeds the sinter porosity grade used for bubble-size modelling elsewhere in the model. On the budget route, if you already know the frit's manufacturer porosity grade you do not need a Calibrations entry at all, because the selected electrode already carries its grade in the model; the Sinter porosity section is there for measuring an actual frit by its bubble-point.
 
 ## Principle & background
 
