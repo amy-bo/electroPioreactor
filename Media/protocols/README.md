@@ -9,38 +9,58 @@ description: "electroPioreactor experiment protocols"
 sources:
   []
 created: 2026-06-19
-recorded_at: 2026-06-20
+recorded_at: 2026-07-02
 cssclasses: [trust-authored]
 tags: [electropioreactor, protocol, index]
 ---
 
 # electroPioreactor experiment protocols
 
-Standalone instructions for the bench experiments that determine the measured / assumed parameters in `electroPioreactorGasModel.xlsx`. Run these to replace the model's default and data-gap (pink) values with measured ones and get optimal figures for everything. Each protocol gives an **optimal** route (best accuracy, more kit) and a **budget** route (minimal kit, stated accuracy trade-off), and states exactly which model cell to enter the result in.
+Standalone bench instructions for the measurements that calibrate `electroPioreactorGasModel.xlsx`. Run these to replace the model's default and data-gap values with measured ones.
 
-Work top-to-bottom: the order is by leverage (blocker first, then the model's own ranked-improvement priority). The model has live gates that tell you when a measurement has cleared its problem: the Geometry consistency check, and the `kL_surf_crit` threshold on Mass Transfer.
+Each protocol is written to be followed blindly: an **Optimal** route (best accuracy, more kit) and a **Budget** route (minimal kit, with its accuracy trade-off stated), each a numbered, calculation-free method. You never do any arithmetic. You record the raw numbers you measure into the **Calibrations** tab of the workbook, and the spreadsheet does the rest.
 
-| # | Experiment | Protocol | Feeds (model cell) | Current state | Why it's here |
-|---|-----------|----------|--------------------|---------------|----------------|
-| 0 | Vial geometry & true headspace | [vial-geometry.md](vial-geometry.md) | Geometry: `V_vial_total`, `A_x`, `D_int`, `vial_ID` | **INCONSISTENT** (20 mL nominal vs ~27.6 mL cylinder) | **Blocker B1** – headline optimal pulse is ~4x sensitive to headspace; clears the `geom_check` flag |
-| 1 | Surface O2 transfer (kL_surf) | [surface-kla.md](surface-kla.md) | Mass Transfer: `kLa_meas` → `kLa_surf_used` | proxy only (unvalidated) | **#1 sensitivity (~375%)** – decides the 1.4-min vs 178-min sparge interval; must exceed `kL_surf_crit` (~1.22e-4 m/s) |
-| 2 | Faradaic efficiency | [faradaic-efficiency.md](faradaic-efficiency.md) | Electrochemistry: `etaF`, `etaF_OER` | both assumed 1.0 | makes all O2 figures an optimistic upper bound until measured (likely <1 here) |
-| 3 | Dissolved oxygen & organism DO bands | [dissolved-oxygen.md](dissolved-oxygen.md) | Biology HOB table (min/opt/impair/toxic DO) | mostly pink gaps; validates `DO_ss` | the organism DO band sets the target operating DO and the schedule |
-| 4 | CO2 flow calibration (per reactor) | [flow-calibration.md](flow-calibration.md) | `CO2 flows`!J (flowrate), I (min sparge) | only ed04 done (3.33 ml/s, 0.25 s) | every reactor needs its own; an uncalibrated reactor shows "calibrate first" |
-| 5 | Knallgas uptake stoichiometry | [knallgas-stoichiometry.md](knallgas-stoichiometry.md) | Biology: `bio_H2`:`bio_O2`:`bio_CO2` | assumed 6:2:1 (needs a growing culture) | sets the O2 surplus and carbon demand the schedule is built on |
-| 6 | Sinter (frit) porosity grade | [sinter-porosity.md](sinter-porosity.md) | Mass Transfer: `por_grade` | gap (only matters if sparger = Sintered) | sets bubble size; clears the "Sinter OOR" regime flag |
-| 7 | Gerrit's-Law current calibration | [gerrit-current.md](gerrit-current.md) | Electrochemistry: `gerrit_slope`, `gerrit_int` | fit exists; validated 3-25% intensity | current is the master input for all H2/O2 generation; re-verify per electrode/cell |
+## How the Calibrations tab works
+
+Every calibration has its own section on the one **Calibrations** tab. To record a result you fill only the white cells in that section:
+
+- **Researcher**, **Date**, and the key for that calibration – the **Reactor** it was run on, or the **Organism** it applies to.
+- The **raw measurements** the protocol tells you to record (for example a volume and a time, or a set of current readings).
+- **Include?** – put `y` on rows the model should use. Leave it blank, or put `n`, to keep a row in the record without using it.
+
+Everything else is automatic. Grey cells are computed for you: the tab derives the reactor **Type** from the reactor name, does every calculation the old protocols used to ask for, and works out the **value in use** that feeds the model. If no rows are included yet, the model quietly falls back to its built-in default, so an empty tab never breaks anything.
+
+Multiple people can log multiple runs on multiple reactors or organisms in the same section. How the value in use is chosen depends on the parameter, and is stated under each section's heading:
+
+- **Averaged across included runs** where repeat measurements improve the estimate – Gerrit current, Faradaic efficiency, surface kLa (per reactor); dissolved-oxygen bands, knallgas ratio, current-density tolerance (per organism); vial geometry (per reactor type, since all vials of a type are nominally identical).
+- **Latest included run wins** where the number is a hardware or valve setting that supersedes older values – CO₂ flow rate and sinter frit grade (per reactor).
+
+The value in use always matches whatever Reactor and Organism are selected on the Summary, so the model uses the right calibration for the run you are setting up.
+
+## Order of work
+
+Work top-to-bottom; the order is by leverage (biggest model uncertainty first). The model has live gates that tell you when a measurement has cleared its problem: the Geometry consistency check, and the `kL_surf_crit` threshold on Mass Transfer.
+
+| # | Experiment | Protocol | Calibrations section | Why it's here |
+|---|-----------|----------|----------------------|----------------|
+| 0 | Vial geometry & true headspace | [vial-geometry.md](vial-geometry.md) | Vial geometry | Biggest lever – the headline sparge pulse is ~4x as sensitive to headspace as to anything else; clears the geometry consistency flag |
+| 1 | Surface O₂ transfer (kLa) | [surface-kla.md](surface-kla.md) | Surface kLa | Highest sensitivity (~375%) – decides a short vs long sparge interval; must exceed the critical value |
+| 2 | Faradaic efficiency | [faradaic-efficiency.md](faradaic-efficiency.md) | Faradaic efficiency | Both efficiencies are assumed 1.0 until measured, which makes every O₂ figure an optimistic upper bound |
+| 3 | Dissolved oxygen & organism DO bands | [dissolved-oxygen.md](dissolved-oxygen.md) | DO thresholds | The organism's DO band sets the target operating DO and the schedule |
+| 4 | CO₂ flow calibration | [flow-calibration.md](flow-calibration.md) | CO₂ flow | Every reactor needs its own; an uncalibrated reactor reads "calibrate first" |
+| 5 | Knallgas uptake stoichiometry | [knallgas-stoichiometry.md](knallgas-stoichiometry.md) | Knallgas ratio | Sets the O₂ surplus and carbon demand the schedule is built on |
+| 6 | Sinter (frit) porosity grade | [sinter-porosity.md](sinter-porosity.md) | Sinter porosity | Sets bubble size; only matters when the sparger is a sintered frit |
+| 7 | Gerrit current calibration | [gerrit-current.md](gerrit-current.md) | Gerrit current | Current is the master input for all H₂/O₂ generation; re-check per electrode and cell |
+| – | Current-density screen (new strain) | [current-density-screen.md](current-density-screen.md) | Current density | Only when a strain has no trustworthy published current-density tolerance |
 
 ## Ambient pressure (no protocol needed)
 
-`Biology!P_atm` defaults to 101325 Pa. For optimal Henry-solubility and gas-volume figures, enter the actual lab pressure on the day: read a barometer, or take the local station pressure from a met service and correct for altitude. It is a minor input (low sensitivity), so the default is fine for design work; record the real value for a publication-grade run.
+The model defaults ambient pressure to 101325 Pa. For the best Henry-solubility and gas-volume figures, enter the actual lab pressure on the day on the Summary: read a barometer, or take the local station pressure and correct for altitude. It is a low-sensitivity input, so the default is fine for design work; record the real value for a publication-grade run.
 
 ## How to use
 
-1. Pick the experiment from the table (start at #0, the blocker).
-2. Follow the optimal route if you have the kit; otherwise the budget route. Both state their accuracy.
-3. Enter the result in the named model cell (each protocol's "Result → model" section is explicit).
-4. The model recomputes. Watch the gates: `geom_check` should read OK after #0; measured `kLa` should exceed `kL_surf_crit` after #1; a calibrated reactor stops showing "calibrate first" after #4.
-5. Re-read the Summary dashboard: the headline pulse/interval, DO band, and warnings update from your measured inputs.
-
-Provenance and the model's own assumptions are in the workbook (column E "source / assumption" and the Summary key). These protocols cover how to replace the assumptions with measurements.
+1. Pick the experiment from the table, starting at #0.
+2. Follow the Optimal route if you have the kit; otherwise the Budget route. Both state their accuracy.
+3. Record your raw numbers in that section of the Calibrations tab, filling Researcher, Date and the key, and setting Include to `y`.
+4. The model recomputes. Watch the gates on the Summary: the geometry check should read OK after #0; the measured kLa should exceed its critical value after #1; a calibrated reactor stops reading "calibrate first" after #4.
+5. Re-read the Summary: the headline pulse and interval, the DO band, the current-density status and the warnings all update from your measured inputs.

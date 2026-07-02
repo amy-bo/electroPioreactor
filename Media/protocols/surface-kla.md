@@ -1,8 +1,7 @@
 ---
-state: reviewed
 author: [claude-opus-4.8]
-checked: [claude-opus-4.8]
-reviewed: [claude-opus-4.8]
+checked:
+reviewed:
 authorised:
 source_type: external
 description: "Surface oxygen transfer (kL_surf) by dynamic gassing-out"
@@ -22,83 +21,86 @@ sources:
   - https://www.fondriest.com/environmental-measurements/parameters/water-quality/dissolved-oxygen/
 created: 2026-06-19
 recorded_at: 2026-06-20
+state: authored
 cssclasses: [trust-authored]
 tags: [electropioreactor, protocol, mass-transfer, kla, dissolved-oxygen]
 ---
 
 # Surface oxygen transfer (kL_surf) by dynamic gassing-out
 
-**Feeds:** Mass Transfer!kL_surf / kLa_surf_used (enter the measured value into kLa_meas so the model uses it instead of the proxy). Compare to kL_surf_crit.
+## Optimal protocol
 
-**Why it matters:** ~375% model sensitivity; decides the 1.4-min vs 178-min sparge interval.
+Best accuracy: a fast lab-grade dissolved-oxygen probe in the real reactor geometry.
 
-## Principle
+### Kit
 
-The electro-bioreactor makes O2 at the anode, and in this stirred 16 mL vial the dominant route for getting that O2 back out of the liquid is transfer across the free surface into the vented headspace - there is no continuous air sparge doing the work. The rate of that transfer is set by a surface volumetric oxygen mass-transfer coefficient, kLa_surf, where kL_surf is the liquid-film coefficient (m/s) and a_surf is the gas-liquid interfacial area per unit liquid volume (1/m). The model currently estimates kL_surf from a Danckwerts surface-renewal proxy (kL_surf = 2*sqrt(D_O2*s_renew/pi), with the surface-renewal frequency s_renew = tip_speed/vial_ID). That proxy is unvalidated and is the single most sensitive number in the whole model, so it has to be replaced by a measured value.
+- A clean reactor vial of the exact operating geometry, fitted with the same inserts that sit in the real reactor.
+- A fast dissolved-oxygen (DO) probe: an optical luminescence-quenching probe or a small Clark-type electrode. Note its quoted response time (t63 or t95) from the datasheet before you start.
+- Temperature control able to hold 30 °C: the Pioreactor itself or a jacketed block.
+- A magnetic stirrer and stir bar able to hold 500 rpm.
+- A nitrogen supply feeding the vial's existing sparge tube.
+- A DO logger or logging software able to record at 1 s intervals or faster.
 
-The standard way to measure kLa without a culture is the dynamic gassing-out method ("gas-out / gas-in"). You strip the dissolved oxygen out of the working volume by sparging an inert gas (nitrogen), stop the strip, then let the liquid re-aerate from its own free surface while the stirrer runs at the real operating speed. A dissolved-oxygen (DO) probe records the re-aeration curve. With no oxygen uptake (no cells) and a well-mixed liquid, the dissolved-O2 balance is dC/dt = kLa*(C_star - C), where C_star is the saturation DO in equilibrium with the gas above the surface. That integrates to ln(C_star - C) = -kLa*t + const, so a plot of ln(C_star - C) against time is a straight line whose slope is -kLa. The slope is the surface kLa, because surface transfer is the only path operating once the N2 is off and there is no sparge. This is the established and widely used approach because it needs only a DO probe, no off-gas analyser, no hazardous reagents and no organism (see Garcia-Ochoa / BioProcess International, and the Eppendorf and bioprocesstools method notes in Sources).
+### Reagents
 
-Two things make this measurement specific rather than generic. First, surface renewal scales with stirring, so the run MUST be at the operating stirrer speed (500 rpm here) and in the actual vial geometry - the same free-surface area and the same inserts that sit in the real reactor - or kL_surf will not match what the reactor sees. Second, the DO probe has its own first-order response lag; if that lag is not small compared with the mass-transfer time constant it flattens the early part of the curve and makes kLa read low, so the lag must be checked and, if needed, corrected (see Tribe 1995 and the Torres 2017 system-delay algorithm in Sources).
+- The actual Sydow 2017 minimal medium (preferred), or de-ionised water. Medium is the more faithful choice because its salts shift oxygen solubility and coalescence slightly.
+- Nitrogen, as the inert stripping gas.
 
-## Optimal protocol (best accuracy)
+### Method
 
-Use a fast lab-grade DO probe and the real reactor geometry.
+1. Fill the vial with the operating working volume of medium (or de-ionised water).
+2. Hold the vial at 30 °C and run the stir bar at 500 rpm. Keep both steady for the whole measurement.
+3. Fit the DO probe through the cap so the sensing tip sits in the well-mixed bulk, clear of the stir bar and clear of the surface. Make sure no bubble is trapped on the tip.
+4. Calibrate the probe at two points: set zero in fully nitrogen-sparged water, and set span at 100% air saturation by bubbling air through the stirred medium until the reading is stable. Read your own stable air-saturated plateau as the working saturation value.
+5. Deoxygenate the liquid: sparge nitrogen through the sparge tube, at 30 °C and 500 rpm, until the DO reading falls to near zero and holds steady. Do not sparge longer than needed to reach a low, stable start point.
+6. Stop the nitrogen cleanly and let the headspace return to its vented composition. Start logging DO against time immediately, at 1 s intervals or faster, with the stirrer still at 500 rpm.
+7. Keep logging until the curve flattens at the air-saturated plateau. A single sweep from near-zero up to the plateau is one dataset.
+8. Run one further sweep with the stirrer switched OFF as a contrast. This one should re-aerate markedly more slowly.
+9. Repeat the stirred sweep so you have at least three good stirred datasets in all.
+10. For each stirred sweep, use your logging software (or a spreadsheet's curve-fit tool) to fit the re-aeration curve to a first-order re-aeration model, keeping to the middle portion of the rise (roughly the tenth to the ninetieth percentile of the approach to the plateau). Read off the fitted surface mass-transfer coefficient kLa in per second. Take the mean of your stirred sweeps.
+11. Record the measured surface mass-transfer coefficient kLa (per second) from your dissolved-oxygen re-aeration fit in the **Surface kLa** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
-1. Fill a clean reactor vial with the operating working volume of de-ionised water or, better, the actual Sydow 2017 minimal medium (salts shift solubility and coalescence slightly, so medium is the more faithful choice). Hold it at the operating temperature, 30 degC, in the Pioreactor or a jacketed block. Run the magnetic stir bar at the operating setpoint, 500 rpm, for the entire measurement.
+## Budget protocol
 
-2. Fit a fast optical (luminescence-quenching) DO probe or a small Clark-type electrode through the cap so the sensing tip sits in the well-mixed bulk, clear of the stir bar and clear of the surface. Avoid trapping a bubble on the tip. Note the probe's quoted response time (t63 or t95) from its datasheet - you need it for the lag check below.
+Lower-kit variant: a low-cost optical DO probe (an inexpensive optical DO module or a hobby galvanic DO meter) in the same vial. A cheap probe responds two to four times slower than a Clark electrode, so its result is provisional.
 
-3. Calibrate the probe two-point: zero in fully N2-sparged (or sodium-sulfite) water, and span at 100% air saturation by bubbling air through the stirred medium until the reading is stable. At 30 degC and ~1 atm, 100% air saturation in fresh water is about 7.54 mg/L - use this as a sanity check on C_star, but read your actual stable air-saturated plateau as the working C_star because salts and local pressure shift it.
+### Kit
 
-4. Deoxygenate: sparge nitrogen through the vial (via the existing sparge tube) at the operating temperature and stir speed until the DO reading falls to near zero and stays there (typically below ~5% of air saturation). Do not over-sparge longer than needed; you only need a low, stable start point.
+- The same reactor vial, working volume, temperature control and 500 rpm stirrer as the optimal protocol.
+- A low-cost optical or galvanic DO meter. Note its response time.
+- A nitrogen supply, or a fresh sodium-sulfite (or sodium-metabisulfite) charge as a fallback deoxygenant.
+- A logger, or a stopwatch and phone-timestamped manual readings.
 
-5. Stop the nitrogen cleanly and let the headspace return to its vented (air or operating-gas) composition. Start logging DO against time immediately, at 1 s intervals or faster, while the stirrer keeps running at 500 rpm. Record until the curve flattens at the air-saturated plateau (this defines C_star for the fit). A single re-aeration sweep from ~0 to plateau is the dataset.
+### Method
 
-6. Probe-lag check and correction: the rule of thumb is that the probe time constant should be under about one tenth of the mass-transfer time constant (1/kLa) for its effect to be negligible; more strictly, tau_probe*kLa should stay below ~0.02-0.05. Surface kLa in a small stirred vial is slow (likely on the order of 0.001-0.01 1/s, i.e. a time constant of minutes), and lab probes respond in 10-100 s, so the lag is often acceptable here - but check it. If tau_probe*kLa exceeds ~0.05, fit a two-parameter model that convolves the first-order liquid response with the first-order probe response (or use the Torres 2017 system-delay algorithm), rather than the bare log-slope, otherwise kLa reads low.
+1. Fill the same vial with the same working volume. Hold 30 °C and 500 rpm. If you cannot hold 30 °C, run at room temperature and record the actual temperature, because oxygen solubility and diffusivity both depend on it.
+2. Calibrate the meter at two points: set zero against vigorously nitrogen-sparged water (or a freshly made sodium-sulfite solution), and set span against air-saturated stirred water.
+3. Deoxygenate by nitrogen sparge through the sparge tube until the reading bottoms out and holds steady. If no nitrogen is available, use a fresh sodium-sulfite charge to pull DO to near zero, then change to fresh aerating medium before the sweep so no residual sulfite keeps consuming oxygen. Nitrogen sparging is cleaner and is preferred.
+4. Stop the gas, start the logger (or the stopwatch), and record DO every two to five seconds with the stirrer at 500 rpm until the reading plateaus. Log densely over the first minute.
+5. Take at least two sweeps. If two sweeps disagree by a large margin, suspect a slow probe, a trapped bubble or an unstable plateau, and repeat.
+6. Fit each sweep to a first-order re-aeration model as in the optimal protocol and read off the fitted kLa in per second. Note the probe model and its response time alongside the result, as this variant is provisional.
+7. Record the measured surface mass-transfer coefficient kLa (per second) from your dissolved-oxygen re-aeration fit in the **Surface kLa** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
-7. Fit: take only the points between roughly 10% and 90% of the approach to C_star (early points are most lag-sensitive; late points have a tiny, noisy driving force). Plot ln(C_star - C) versus time. The slope magnitude is kLa_surf in 1/s. Convert to 1/h by *3600 for entry into the model.
+## What the spreadsheet does with it
 
-8. Replicates and controls: run at least three re-aeration sweeps and report the mean and spread. Run one sweep with the stirrer OFF as a contrast - it should give a markedly lower kLa, confirming the measurement is genuinely surface-renewal-driven and not dominated by a leak or a trapped bubble.
+The Surface kLa section of the Calibrations tab gathers every re-aeration run you enter for a given reactor. For each run marked Include, the tab averages the recorded kLa values for that reactor and uses that measured average in place of the model's built-in surface-renewal proxy. It then compares the measured value against the critical surface coefficient the model derives, and reports the margin between them, so the schedule regime follows from your measurement rather than from the proxy.
 
-## Budget protocol (minimal kit)
+## Principle & background
 
-Use a low-cost optical DO probe (for example an inexpensive optical DO module or a hobby galvanic DO meter) and the same vial.
+The electro-bioreactor makes oxygen at the anode, and in this stirred 16 mL vial the dominant route for getting that oxygen back out of the liquid is transfer across the free surface into the vented headspace – there is no continuous air sparge doing the work. The rate is set by a surface volumetric oxygen mass-transfer coefficient, kLa_surf, where kL_surf is the liquid-film coefficient (m/s) and a_surf is the gas-liquid interfacial area per unit liquid volume (1/m). The model estimates kL_surf from a Danckwerts surface-renewal proxy (kL_surf = 2·√(D_O2·s_renew/π), with the surface-renewal frequency s_renew = tip_speed/vial_ID). That proxy is unvalidated and is the single most sensitive number in the whole model – around 375% sensitivity – and it decides whether the sparge interval sits near 1.4 min or near 178 min, so it has to be replaced by a measured value.
 
-1. Same vial, same working volume, same 30 degC, same 500 rpm. If you cannot hold 30 degC, run at measured room temperature and record it - solubility and diffusivity are temperature-dependent, so the temperature must be logged either way.
+The standard way to measure kLa without a culture is the dynamic gassing-out method ("gas-out / gas-in"). You strip the dissolved oxygen out of the working volume by sparging nitrogen, stop the strip, then let the liquid re-aerate from its own free surface while the stirrer runs at the real operating speed. A DO probe records the re-aeration curve. With no oxygen uptake (no cells) and a well-mixed liquid, the dissolved-oxygen balance is dC/dt = kLa·(C_star − C), where C_star is the saturation DO in equilibrium with the gas above the surface. That integrates to ln(C_star − C) = −kLa·t + const, so a plot of ln(C_star − C) against time is a straight line whose slope is −kLa. That slope is the surface kLa, because surface transfer is the only path operating once the nitrogen is off and there is no sparge. This approach is established and widely used because it needs only a DO probe – no off-gas analyser, no hazardous reagents and no organism (Garcia-Ochoa / BioProcess International, and the Eppendorf and bioprocesstools method notes in Sources).
 
-2. Two-point calibrate the cheap probe: zero against water that has been vigorously N2-sparged (or a fresh sodium-sulfite / sodium-metabisulfite solution, which scavenges O2 to ~0), and span against air-saturated stirred water. Accept that a low-cost optical probe responds 2-4x slower than a Clark electrode (tens of seconds), which makes the lag check below more important.
+Two things make the measurement specific rather than generic. First, surface renewal scales with stirring, so the run must be at the operating stirrer speed (500 rpm) and in the actual vial geometry – the same free-surface area and the same inserts as the real reactor – or the result will not match what the reactor sees. Record the actual rpm, vial, working volume and inserts. Second, the DO probe has its own first-order response lag; the rule of thumb is that the probe time constant should be under about a tenth of the mass-transfer time constant (1/kLa), and more strictly the product of probe time constant and kLa should stay below roughly 0.02 to 0.05. Surface kLa in a small stirred vial is slow (of the order of 0.001 to 0.01 per second, a time constant of minutes) and lab probes respond in tens of seconds, so the lag is often acceptable – but check it. If the product exceeds about 0.05, fit a two-parameter model that convolves the first-order liquid response with the first-order probe response (or use the Torres 2017 system-delay algorithm) rather than the bare log-slope, otherwise kLa reads low. A slow budget probe is the most likely reason a measurement comes out artificially under the critical value (Tribe 1995; Torres 2017; Sources).
 
-3. Deoxygenate by N2 sparge through the sparge tube until the reading bottoms out and is steady. If no N2 is available, a freshly made sodium-sulfite charge will pull DO to near zero, but then you must change to fresh aerating medium before the re-aeration sweep because residual sulfite keeps consuming O2 and corrupts the slope - N2 sparging is cleaner and is preferred.
+The saturation value matters as much as the slope. Read C_star as your own stable air-saturated plateau; cross-check it against about 7.54 mg/L at 30 °C and roughly 1 atm in fresh water, and note that medium salts and local pressure shift it. Fit the linear middle of the curve (about the tenth to the ninetieth percentile of the approach to C_star): the lag-dominated early points and the noisy near-plateau tail both bias the slope. Watch for a trapped bubble on the probe tip or a stuck stir bar, as both flatten the curve and read low; the stirrer-off contrast sweep should give a clearly lower kLa, and if it does not, gas is leaking in by some other path and the surface number is not what you measured. Keep the liquid free of oxygen-consuming residue: sulfite left in the liquid keeps eating oxygen and corrupts the slope, which is why nitrogen stripping is preferred and, if sulfite is used, the medium is swapped before the sweep. Replicate rather than trusting a single sweep (three or more for the optimal protocol, two or more for the budget one) and report the mean and spread.
 
-4. Stop the gas, start a stopwatch or the meter's logger, and record DO every 2-5 s while stirring at 500 rpm until it plateaus. Phone-timestamped manual readings work if no logger is available, but log densely over the first minute.
-
-5. Fit exactly as in the optimal protocol: ln(C_star - C) vs time, slope = -kLa_surf. Because the budget probe is slow, compute tau_probe*kLa; if it exceeds ~0.05, either restrict the fit to later points where the lag matters less and flag the result as a lower bound, or borrow a faster probe for one confirmatory run. Report the budget figure as provisional and note the probe model and its response time.
-
-6. Do at least two sweeps. If the two disagree by more than ~20%, suspect probe lag, a trapped bubble, or an unstable C_star plateau, and repeat.
-
-## Result -> model
-
-1. Enter the measured surface kLa, in 1/h, into Mass Transfer!kLa_meas (currently 0). The model's kLa_surf_used switches to the measured value automatically when kLa_meas > 0 (kLa_surf_used = IF(kLa_meas>0, kLa_meas/3600, kLa_surf)), so everything downstream - the steady-state DO check, the surface strip rate, and the schedule regime - then runs on your measurement instead of the proxy.
-
-2. If you want kL_surf itself (m/s) rather than the lumped kLa, divide by the model's area-per-volume term: kL_surf = kLa_surf / a_surf, where a_surf = interface_A / V_charge is the free-surface area per liquid volume (Mass Transfer!a_surf, in 1/m). Use the model's geometry value for a_surf so the conversion is consistent with the rest of the sheet; you only need this if you are comparing the measured kL_surf directly against the model's proxy kL_surf or against kL_surf_crit.
-
-3. Compare to the critical threshold. The model computes a critical surface coefficient, kL_surf_crit (Mass Transfer; currently about 1.2e-4 m/s), which is the minimum kL_surf at which surface stripping alone holds dissolved O2 under the impairment band. The measured kL_surf must EXCEED kL_surf_crit. Report the margin as the ratio measured / kL_surf_crit: greater than 1 means surface stripping alone can hold DO (carbon-limited regime, long interval near ~178 min); below 1 means it cannot, and the schedule stays O2-limited (short interval near ~1.4 min). Equivalently, watch DO_ss (the model's predicted steady-state DO under surface stripping) against DO_impair once your measured value is in - sched_regime resolves the 1.4-min vs 178-min outcome from exactly this comparison.
-
-## Acceptance checks & pitfalls
-
-- Run at the operating stir rate (500 rpm) and real geometry. Surface renewal scales with tip speed, so a measurement at the wrong rpm or in a different vessel does not transfer. Record the actual rpm, vial, working volume and which inserts were fitted.
-- Confirm C_star independently. The fit is only as good as the saturation value you subtract. Read C_star as your own stable air-saturated plateau; cross-check against ~7.54 mg/L at 30 degC, ~1 atm in fresh water and note that medium salts and local pressure shift it.
-- Check the probe lag every time: compute tau_probe*kLa. Negligible if below ~0.02-0.05; otherwise the bare log-slope reads low and you must use the convolved two-parameter fit or a faster probe. A slow budget probe is the most likely reason a measurement comes out artificially under kL_surf_crit.
-- Fit the linear middle of the curve (~10-90% of approach to C_star). Including the lag-dominated early points or the noisy near-plateau tail biases the slope.
-- Watch for a trapped bubble on the probe tip or a stuck stir bar - both flatten the curve and read low. The stirrer-off contrast run should give a clearly lower kLa; if it does not, the rig is leaking gas in some other way and the surface number is not what you measured.
-- No cells, no O2-consuming residue. Sodium sulfite left in the liquid keeps eating O2 and corrupts the slope; prefer N2 stripping, and if sulfite is used to deoxygenate, swap to fresh medium before the re-aeration sweep.
-- Replicate (>=3 optimal, >=2 budget) and report mean and spread. A single sweep is not an acceptance.
-- Decision rule: measured kL_surf must exceed kL_surf_crit (or DO_ss must sit under DO_impair). Report the margin, not just pass/fail, because the schedule interval swings from ~1.4 min to ~178 min across this threshold.
+The decision the measurement drives is a threshold. The model derives a critical surface coefficient, kL_surf_crit (currently about 1.2×10⁻⁴ m/s), the minimum liquid-film coefficient at which surface stripping alone holds dissolved oxygen under the impairment band. The measured kL_surf must exceed kL_surf_crit. Report the margin as the ratio of measured to critical, not just pass or fail: above 1 means surface stripping alone can hold DO and the reactor sits in the carbon-limited regime with the long interval near 178 min; below 1 means it cannot and the schedule stays oxygen-limited with the short interval near 1.4 min. If you want kL_surf itself (m/s) rather than the lumped kLa, divide the measured kLa by the model's area-per-volume term a_surf (the free-surface area per liquid volume, 1/m), using the model's geometry value so the conversion stays consistent with the rest of the sheet.
 
 ## Sources
 
-- Dynamic gassing-out method, overview and steps: [BioProcess International - Improving Bioreactor Performance: Measuring Dissolved Oxygen to Determine kLa](https://www.bioprocessintl.com/sponsored-content/improving-bioreactor-performance-measuring-dissolved-oxygen-to-determine-kla); [Eppendorf - Measuring the kLa of Cell Culture Bioreactors](https://www.eppendorf.com/ie-en/lab-academy/applied-industries/bioprocessing/measuring-the-kla-of-cell-culture-bioreactors/); [bioprocesstools - How to Calculate kLa](https://bioprocesstools.com/blog/how-to-calculate-kla/); [Assessment of kLa - 6 Methods](https://www.biologydiscussion.com/cell-biology/assessment-of-kla-oxygen-transfer-coefficient-6-methods/7681).
-- Probe-lag (first-order sensor) errors and correction: [Tribe et al. 1995, Determination of kLa using the dynamic gas out-gas in method: errors caused by dissolved oxygen probes (Biotechnol. Bioeng.)](https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/pdf/10.1002/bit.260460412); [Torres et al. 2017, Automated algorithm to determine kLa considering system delay (J. Chem. Technol. Biotechnol.)](https://scijournals.onlinelibrary.wiley.com/doi/10.1002/jctb.5157); [BioProcess International - Measuring kLa for Better Bioreactor Performance](https://www.bioprocessintl.com/bioreactors/measuring-kla-for-better-bioreactor-performance).
-- Probe choice (optical vs Clark) - response time and accuracy: [Optical Oxygen Sensing and Clark Electrode: Face-to-Face in a Biosensor Case Study (PMC9572888)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9572888/); [USGS - Field Comparison of Optical and Clark Cell Dissolved Oxygen Sensors](https://pubs.usgs.gov/of/2006/1047/pdf/ofr2006-1047.pdf); [Scientific Bioprocessing - How to Choose the Right Dissolved Oxygen Sensor](https://www.scientificbio.com/blog/how-to-choose-the-right-dissolved-oxygen-sensor/).
-- Surface aeration and kLa = kL * a in stirred vessels: [ScienceDirect Topics - Surface Aeration](https://www.sciencedirect.com/topics/engineering/surface-aeration); [BioProcess International - Oxygen Transfer and the Volumetric Mass-Transfer Coefficient in Stirred Tanks](https://www.bioprocessintl.com/bioreactors/lessons-in-bioreactor-s-scale-up-part-4-physiochemical-factors-affecting-oxygen-transfer-and-the-volumetric-mass-transfer-coefficient-in-stirred-tanks).
-- DO saturation at 30 degC for C_star cross-check: [Fondriest - Dissolved Oxygen (100% air saturation ~7.54 mg/L at 30 degC)](https://www.fondriest.com/environmental-measurements/parameters/water-quality/dissolved-oxygen/).
+- Dynamic gassing-out method, overview and steps: [BioProcess International – Improving Bioreactor Performance: Measuring Dissolved Oxygen to Determine kLa](https://www.bioprocessintl.com/sponsored-content/improving-bioreactor-performance-measuring-dissolved-oxygen-to-determine-kla); [Eppendorf – Measuring the kLa of Cell Culture Bioreactors](https://www.eppendorf.com/ie-en/lab-academy/applied-industries/bioprocessing/measuring-the-kla-of-cell-culture-bioreactors/); [bioprocesstools – How to Calculate kLa](https://bioprocesstools.com/blog/how-to-calculate-kla/); [Assessment of kLa – 6 Methods](https://www.biologydiscussion.com/cell-biology/assessment-of-kla-oxygen-transfer-coefficient-6-methods/7681).
+- Probe-lag (first-order sensor) errors and correction: [Tribe et al. 1995, Determination of kLa using the dynamic gas out-gas in method: errors caused by dissolved oxygen probes (Biotechnol. Bioeng.)](https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/pdf/10.1002/bit.260460412); [Torres et al. 2017, Automated algorithm to determine kLa considering system delay (J. Chem. Technol. Biotechnol.)](https://scijournals.onlinelibrary.wiley.com/doi/10.1002/jctb.5157); [BioProcess International – Measuring kLa for Better Bioreactor Performance](https://www.bioprocessintl.com/bioreactors/measuring-kla-for-better-bioreactor-performance).
+- Probe choice (optical vs Clark) – response time and accuracy: [Optical Oxygen Sensing and Clark Electrode: Face-to-Face in a Biosensor Case Study (PMC9572888)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9572888/); [USGS – Field Comparison of Optical and Clark Cell Dissolved Oxygen Sensors](https://pubs.usgs.gov/of/2006/1047/pdf/ofr2006-1047.pdf); [Scientific Bioprocessing – How to Choose the Right Dissolved Oxygen Sensor](https://www.scientificbio.com/blog/how-to-choose-the-right-dissolved-oxygen-sensor/).
+- Surface aeration and kLa = kL · a in stirred vessels: [ScienceDirect Topics – Surface Aeration](https://www.sciencedirect.com/topics/engineering/surface-aeration); [BioProcess International – Oxygen Transfer and the Volumetric Mass-Transfer Coefficient in Stirred Tanks](https://www.bioprocessintl.com/bioreactors/lessons-in-bioreactor-s-scale-up-part-4-physiochemical-factors-affecting-oxygen-transfer-and-the-volumetric-mass-transfer-coefficient-in-stirred-tanks).
+- DO saturation at 30 °C for C_star cross-check: [Fondriest – Dissolved Oxygen (100% air saturation ~7.54 mg/L at 30 °C)](https://www.fondriest.com/environmental-measurements/parameters/water-quality/dissolved-oxygen/).

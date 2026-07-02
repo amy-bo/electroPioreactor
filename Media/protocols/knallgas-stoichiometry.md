@@ -1,8 +1,8 @@
 ---
-state: reviewed
+state: authored
 author: [claude-opus-4.8]
-checked: [claude-opus-4.8]
-reviewed: [claude-opus-4.8]
+checked:
+reviewed:
 authorised:
 source_type: external
 description: "Knallgas uptake stoichiometry (H2:O2:CO2)"
@@ -24,72 +24,96 @@ cssclasses: [trust-authored]
 tags: [electropioreactor, protocol, stoichiometry, knallgas, biology]
 ---
 
-# Knallgas uptake stoichiometry (H2:O2:CO2)
+# Knallgas uptake stoichiometry (H2 : O2 : CO2)
 
-**Feeds:** Biology!bio_H2 : bio_O2 : bio_CO2 (currently 6:2:1).
+This protocol measures the molar ratio in which a hydrogen-oxidising culture consumes hydrogen, oxygen and carbon dioxide during active growth. Two routes are given: an optimal continuous-flow route for best accuracy, and a lower-kit sealed-bottle budget route.
 
-**Why it matters:** sets O2 surplus and carbon demand the schedule is built on.
+Safety governs everything below. The ideal knallgas mixture sits inside the hydrogen – oxygen explosive range and the stoichiometric mixture is detonable. Every step is written to keep the gas phase outside the flammable envelope by inert dilution, with no ignition source present. Treat every gas phase in this protocol as potentially explosive at all times.
 
-## Principle
+## Optimal protocol
 
-The hydrogen-oxidising bacterium *Cupriavidus necator* grows autotrophically by oxidising H2 as electron donor, reducing O2 as terminal electron acceptor, and fixing CO2 as its sole carbon source via the Calvin - Benson - Bassham cycle. The amount of each gas the culture removes per unit time is not free to vary independently - it is fixed by the cell's energy and carbon balance, so the three consumption rates hold an approximately constant molar ratio during steady autotrophic growth. That ratio is what this protocol measures, and it is what the model holds as bio_H2 : bio_O2 : bio_CO2 (Biology!D10 : D11 : D12).
+Continuous mass balance on a growing culture: the three uptake rates are read directly from inlet and off-gas analysis, biomass is tracked in parallel, and the ratio is the quotient of the rates over the exponential window.
 
-The distinction the model already flags matters here: the *feed* optimum reported in the literature is about 7:2:1 (the gas you supply), whereas the *uptake* ratio (the gas the culture actually consumes) sits lower on O2 and CO2 relative to H2 - reported ranges are O2:H2 of roughly 0.29 - 0.35 and CO2:H2 of roughly 0.15 - 0.19, i.e. about 6 : 1.8 - 2.1 : 0.9 - 1.15 when scaled to H2 = 6. The current 6:2:1 entry is the central value of those ranges. We measure uptake, not feed, because every downstream quantity the schedule sizes against - the surplus O2 to vent (O2_excess, Biology!D16) and the carbon demand (CO2_cons, Biology!D15) - is driven by what the cells take up, not by the cylinder composition.
+### Kit
 
-The measurement reduces to: during a window of active exponential growth, track how much H2, O2 and CO2 disappear, and divide. Three routes give this, in descending order of accuracy: (1) continuous off-gas analysis on a flow-through reactor with simultaneous biomass tracking (the optimal route); (2) a closed serum-bottle headspace method reading composition by GC plus total pressure over a growth interval (the budget route); (3) an elemental/biomass balance that infers CO2 fixed from the carbon content of the biomass produced, used as an independent cross-check on the gas-phase number.
+- Stirred bench bioreactor (or the electro-bioreactor itself, once its gas generation is calibrated).
+- Mass-flow controllers for hydrogen, oxygen, carbon dioxide and nitrogen.
+- Process mass spectrometer (magnetic-sector or quadrupole bioprocess MS) configured to resolve hydrogen, oxygen, carbon dioxide and nitrogen; or an equivalent multi-channel off-gas analyser. Mass spectrometry is preferred because it resolves hydrogen, which paramagnetic-oxygen and NDIR-carbon-dioxide sensor stacks do not.
+- Spectrophotometer for optical density at 600 nm.
+- Dry-cell-weight apparatus (filters, drying oven, balance).
+- Flashback arrestors on every gas line.
+- Fume hood with forced ventilation.
+- Nitrogen supply for inert dilution and as a non-consumed flow tracer.
 
-Safety note carried from the model: the ideal knallgas mixture (H2:O2:CO2 near 7:2:1) sits squarely inside the H2 - O2 explosive range. Hydrogen is flammable in air from about 4 vol% (LEL) to about 75 - 77 vol% (UEL), and the window is even wider in pure O2; the stoichiometric H2 - O2 mixture is detonable. Every variant below must therefore be designed so that no ignition source meets a flammable mixture: dilute with inert gas (N2 or surplus CO2) to keep the gas phase outside the flammable envelope where the protocol allows, eliminate sparks and hot surfaces, use flashback arrestors on gas lines, work in a fume hood with forced ventilation, and keep electrolytic gas generation rates low. Treat the gas phase as explosive at all times.
+### Reagents
 
-## Optimal protocol (best accuracy)
+- Minimal autotrophic medium (Sydow 2017 formulation).
+- *Cupriavidus necator* inoculum.
+- Cylinder hydrogen, oxygen and carbon dioxide.
+- Cylinder nitrogen (inert balance and internal tracer).
 
-Goal: continuous mass-balance on a growing culture so the three uptake rates are read directly and the ratio falls out as their quotient, with biomass measured in parallel to confirm the rates track growth.
+### Method
 
-Reactor and gassing. Run *C. necator* in a stirred bench bioreactor (or the electro-bioreactor itself once gas generation is calibrated) under either of two regimes:
+1. Work in the fume hood with forced ventilation running. Fit flashback arrestors to all gas lines and remove any spark or hot-surface source from the area.
+2. Charge the reactor with medium and inoculate with the culture.
+3. Set the mass-flow controllers to deliver a metered hydrogen / oxygen / carbon dioxide / nitrogen blend at a known total inlet rate and known inlet composition, using enough nitrogen dilution to hold the gas phase outside the flammable envelope. For a chemostat run, additionally hold a fixed dilution rate so growth reaches steady state.
+4. Start stirring and hold the culture at 30 degrees Celsius.
+5. Sample the inlet and the off-gas continuously into the mass spectrometer and log hydrogen, oxygen, carbon dioxide and nitrogen throughout the run.
+6. In parallel, draw broth samples at intervals for optical density, and take periodic dry-cell-weight samples to calibrate against optical density.
+7. From the optical-density trace, identify the exponential growth window (or, for a chemostat, the steady-state period).
+8. Read the hydrogen, oxygen and carbon dioxide uptake rates the analyser software reports over that window. The software uses the constant nitrogen tracer to recover the off-gas flow, so no manual flow correction is needed.
+9. Repeat the whole run across at least three independent cultivations.
+10. Record the measured H2 : O2 : CO2 uptake ratio for the organism in the **Knallgas ratio** section of the **Calibrations** tab. Fill Researcher, Date and Organism; set Include to y. Leave the Computed and value-in-use cells to the spreadsheet.
 
-- Batch with a defined inlet gas. Feed a metered H2 / O2 / CO2 / N2 blend through mass-flow controllers at a known total inlet rate and known inlet composition. N2 acts both as an inert balance and as a non-consumed internal tracer - because the culture does not take up N2, the ratio of any reactive gas to N2 between inlet and outlet gives its consumption without needing a perfect flow seal.
-- Chemostat. Hold steady-state growth at fixed dilution rate; at steady state the uptake rates are constant and the ratio is most cleanly defined.
+## Budget protocol
 
-Gas analysis. Sample inlet and outlet (off-gas) continuously with a process mass spectrometer (e.g. a magnetic-sector or quadrupole bioprocess MS), or a multi-channel analyser, configured to resolve H2, O2, CO2 and the N2 tracer. Mass spectrometry is preferred because it resolves H2 (which standard paramagnetic-O2 / NDIR-CO2 sensor stacks do not) and gives all four species on one instrument; reported bioprocess off-gas MS achieves RQ accuracy of about +/-4% and CTR resolution below 0.01 mmol/L/h. Compute the molar uptake rate of each gas from the inlet - outlet difference, normalised to liquid volume (the standard OTR / CTR framing): uptake_i = Q_in * y_in,i - Q_out * y_out,i, with Q_out recovered from the inert N2 balance (Q_out = Q_in * y_in,N2 / y_out,N2).
+Same uptake ratio from sealed serum bottles using only a gas chromatograph, a pressure gauge and a syringe: no mass-flow controllers, no mass spectrometer and no continuous flow.
 
-Biomass tracking. In parallel, sample the broth for optical density (OD600) and periodic dry-cell-weight calibration, so each instantaneous uptake triple can be paired with a specific growth rate. This confirms the gases are being consumed by growth (not by abiotic dissolution or leakage) and lets you report the ratio specifically over the exponential phase, where it is most stable.
+### Kit
 
-Window and replication. Average the three uptake rates over a clean exponential window (batch) or over steady state (chemostat). Repeat across at least three independent cultivations. Report bio_H2 : bio_O2 : bio_CO2 normalised to H2 = 6, with confidence intervals.
+- Serum bottles, 120 – 250 mL, with butyl rubber septa and aluminium crimp caps, plus a crimping tool.
+- Gas chromatograph fitted with a thermal-conductivity detector (and a flame-ionisation detector if organics are of interest); one GC-TCD run resolves hydrogen, oxygen, carbon dioxide and nitrogen.
+- Gastight syringes.
+- Digital manometer or pressure transducer that reads through the septum.
+- Shaking incubator at 30 degrees Celsius.
+- Spectrophotometer and dry-cell-weight apparatus.
+- Flashback arrestors, fume hood with forced ventilation, and a nitrogen supply for inert dilution.
 
-## Budget protocol (minimal kit)
+### Reagents
 
-Goal: get the same uptake ratio from sealed serum bottles using only a GC, a pressure gauge and a syringe - no MFCs, no mass spec, no continuous flow.
+- Minimal autotrophic medium (Sydow 2017 formulation).
+- *Cupriavidus necator* inoculum.
+- Cylinder hydrogen, carbon dioxide, oxygen and nitrogen.
 
-Setup. Prepare replicate serum bottles (e.g. 120 - 250 mL) with a defined volume of minimal autotrophic medium (the model's Sydow 2017 minimal), inoculated with *C. necator*. Seal with butyl rubber septa and aluminium crimp caps. Flush the headspace with a measured, **non-explosive** gas charge - this is the key safety adaptation: rather than charging the bottle to the explosive 7:2:1, charge with H2 and CO2 plus a deliberately sub-stoichiometric, growth-limiting O2 dose heavily diluted with N2, kept below the limiting oxygen concentration for H2 ignition, and replenish O2 in small increments. Record the exact partial pressures charged.
+### Method
 
-Incubate and sample over a growth interval. Hold at about 30 C with shaking. At a series of timepoints (e.g. 0, 6, 12, 24, 36, 48 h, mirroring established serum-bottle gas-kinetics schedules) measure:
+1. Work in the fume hood with forced ventilation running and no spark or hot-surface source present.
+2. Fill each serum bottle with a defined volume of medium, inoculate, and seal with a butyl septum and aluminium crimp cap.
+3. Flush each headspace with a measured, non-explosive gas charge: hydrogen and carbon dioxide, plus a small, growth-limiting oxygen dose heavily diluted with nitrogen and held below the limiting oxygen concentration for hydrogen ignition. Record the exact partial pressures charged.
+4. Prepare a set of replicate bottles spanning a range of oxygen doses, and one uninoculated control bottle charged the same way.
+5. Incubate all bottles at 30 degrees Celsius with shaking.
+6. At each timepoint (for example 0, 6, 12, 24, 36 and 48 hours): first read the sealed total headspace pressure with the manometer, before withdrawing any gas; then withdraw a fixed volume with a gastight syringe into the GC-TCD and record the hydrogen, oxygen, carbon dioxide and nitrogen composition.
+7. At intervals, sacrifice replicate bottles for optical density and dry cell weight rather than repeatedly sampling one bottle.
+8. Enter each timepoint's pressure and composition, the known headspace volume and the biomass readings into the bottle-kinetics workbook and read the hydrogen, oxygen and carbon dioxide uptake it reports. The constant nitrogen partial pressure corrects for sampling losses and small leaks; discard any bottle whose nitrogen drifts.
+9. Check the reported carbon-dioxide uptake against the biomass carbon-balance cross-check (dry-cell-weight carbon, with any stored polymer accounted for) and against the uninoculated control, which quantifies abiotic carbon-dioxide loss.
+10. Confirm the H2 : O2 : CO2 ratio is consistent across the range of oxygen doses.
+11. Record the measured H2 : O2 : CO2 uptake ratio for the organism in the **Knallgas ratio** section of the **Calibrations** tab. Fill Researcher, Date and Organism; set Include to y. Leave the Computed and value-in-use cells to the spreadsheet.
 
-- Total headspace pressure, with a digital manometer / pressure transducer through the septum, before any gas is withdrawn (do not let the headspace equilibrate to atmospheric - read the sealed pressure).
-- Headspace composition, by withdrawing a fixed volume with a gastight syringe into a GC fitted with a TCD (and FID if organics are of interest); a single GC-TCD run resolves H2, O2, CO2 and N2.
-- Biomass, by sacrificing replicate bottles at intervals for OD / dry weight (since each withdrawal perturbs a sealed bottle, a sacrifice-replicate design is cleaner than repeated sampling of one bottle).
+## What the spreadsheet does with it
 
-Compute. Convert each species' partial pressure (total pressure x mole fraction) to moles via PV = nRT in the known headspace volume at each timepoint. The N2 partial pressure should be constant (it is not consumed); use it to correct for sampling losses and small leaks. The drop in moles of H2, O2 and CO2 between the start and end of the growth interval gives the consumed amounts; their ratio is bio_H2 : bio_O2 : bio_CO2. Because O2 is dosed sub-stoichiometrically for safety, run several bottles spanning a range of O2 doses and confirm the H2:O2:CO2 *consumption* ratio is consistent across them (O2-limited bottles still reveal the ratio as long as growth occurs).
+The Calibrations tab averages the included uptake ratios for each organism and feeds that average as the gas requirement ratio used downstream. That single ratio sets the surplus oxygen the schedule must vent and the carbon demand it must meet, so both the oxygen budget and the carbon budget are driven by this measured number rather than by the cylinder feed composition.
 
-Cross-check (no extra gas kit). Independently estimate CO2 fixed from biomass: total carbon in dry biomass produced over the interval (dry-cell-weight x carbon fraction, with C. necator biomass approximated by the standard CH1.8O0.5N0.2 formula unless measured) equals the CO2 carbon consumed, less any carbon stored as PHB. Compare this carbon-balance CO2 against the gas-phase CO2 drop; agreement within error validates the headspace number.
+## Principle & background
 
-## Result -> model
+*Cupriavidus necator* grows autotrophically by oxidising hydrogen as electron donor, reducing oxygen as terminal electron acceptor, and fixing carbon dioxide as its sole carbon source via the Calvin – Benson – Bassham cycle. Because the three consumption rates are tied together by the cell's energy and carbon balance, they hold an approximately constant molar ratio during steady autotrophic growth. That ratio is what this protocol measures.
 
-Enter the measured uptake ratio, normalised so the H2 term is 6, into Biology:
+The distinction between feed and uptake is central. The feed optimum reported in the literature is about 7 : 2 : 1 (the gas supplied), whereas the uptake ratio (the gas the culture actually consumes) sits lower on oxygen and carbon dioxide relative to hydrogen: reported ranges are an oxygen-to-hydrogen ratio of roughly 0.29 – 0.35 and a carbon-dioxide-to-hydrogen ratio of roughly 0.15 – 0.19. Scaled to a hydrogen basis of 6, that is about 6 : 1.8 – 2.1 : 0.9 – 1.15. Uptake, not feed, is what matters here, because the surplus oxygen to vent and the carbon demand are driven by what the cells take up, not by the cylinder composition.
 
-- bio_H2 -> Biology!D10 (hold at 6 as the normalising basis).
-- bio_O2 -> Biology!D11 (measured O2:H2 x 6; currently 2).
-- bio_CO2 -> Biology!D12 (measured CO2:H2 x 6; currently 1).
+A valid measured result should land near that envelope: an oxygen-to-hydrogen ratio around 0.29 – 0.35 and a carbon-dioxide-to-hydrogen ratio around 0.15 – 0.19. A measured oxygen-to-hydrogen ratio above 0.5 is thermodynamically implausible for knallgas growth and signals abiotic oxygen loss or a leak; flag it rather than record it. Average only over exponential or steady-state growth: during lag, hydrogen uptake is near zero and a ratio computed across the lag phase is meaningless. Carbon dioxide is highly soluble and partitions into the medium and into bicarbonate at higher pH, so a headspace carbon-dioxide drop overstates biological fixation unless dissolved inorganic carbon is accounted for; the uninoculated control and the biomass carbon-balance cross-check guard against this. If the strain accumulates polyhydroxybutyrate, that stored carbon is fixed carbon dioxide not present in catabolic biomass and must be included in the carbon balance. Oxygen above about 0.30 atmospheres inhibits growth, which the safety-driven sub-stoichiometric oxygen dosing already favours.
 
-These propagate automatically to H2_cons (D13), O2_cons (D14), CO2_cons (D15) and O2_excess (D16) in Biology, and onward to the carbon-margin and O2-vent duty terms in Mass Transfer. Replace the present "central value of literature range" source note with the measured ratio, the organism/medium used, the growth phase it was averaged over, the number of replicates and the confidence interval. If the budget route was used, record both the gas-phase ratio and the carbon-balance cross-check. Once entered, this clears the model's standing caveat that the O2 figures are upper bounds resting on an unmeasured uptake ratio.
+Three routes give the ratio, in descending order of accuracy: continuous off-gas analysis on a flow-through reactor with simultaneous biomass tracking (the optimal route); a closed serum-bottle headspace method reading composition by gas chromatography plus total pressure over a growth interval (the budget route); and an elemental biomass balance that infers carbon dioxide fixed from the carbon content of the biomass produced, used as an independent cross-check on the gas-phase number. Reported bioprocess off-gas mass spectrometry achieves respiratory-quotient accuracy of about plus or minus 4 per cent, and the nitrogen tracer lets uptake be computed from inlet-minus-outlet differences without a perfect flow seal.
 
-## Acceptance checks & pitfalls
-
-- Sanity bounds. A valid result should land near the literature envelope: O2:H2 about 0.29 - 0.35 and CO2:H2 about 0.15 - 0.19 (i.e. bio_O2 about 1.75 - 2.1 and bio_CO2 about 0.9 - 1.15 on the H2 = 6 basis). A measured O2:H2 above 0.5 is thermodynamically implausible for knallgas growth and signals abiotic O2 loss or a leak; flag rather than enter.
-- Growth phase. Average over exponential / steady-state growth only. During lag, H2 uptake is near zero, so a ratio computed across the lag phase is meaningless; the model already notes ~0 uptake in lag.
-- Closed-bottle leaks. Use the constant N2 partial pressure as the leak/sampling tracer; if N2 drifts, correct or discard that bottle. Do not let the headspace equilibrate to atmosphere before reading pressure.
-- Abiotic CO2 dissolution. CO2 is highly soluble and partitions into the medium (and into bicarbonate at higher pH), so the headspace CO2 drop overstates biological fixation unless you account for dissolved inorganic carbon. Run an uninoculated control bottle to quantify abiotic CO2 uptake and subtract it; the carbon-balance cross-check guards against this error.
-- PHB storage. Carbon diverted into PHB is fixed CO2 that is not in catabolic biomass; if the strain accumulates PHB, the carbon-balance CO2 estimate must include stored polymer, or it will under-count fixation.
-- O2 inhibition. O2 above ~0.30 atm inhibits C. necator growth; keep the dissolved/headspace O2 below that, which the safety-driven sub-stoichiometric dosing already favours.
-- Safety (non-negotiable). The optimal-route inlet blend and any bottle charged near 7:2:1 are explosive. Keep mixtures outside the H2 - O2 flammable envelope by inert dilution where the method allows, never near 7:2:1 in an ignition-capable vessel; use flashback arrestors, forced ventilation / fume hood, no sparks or hot surfaces, and low gas-generation rates. Treat every gas phase in this protocol as potentially detonable.
+Safety is non-negotiable. Hydrogen is flammable in air from about 4 per cent by volume up to about 75 – 77 per cent, and the window is wider still in pure oxygen; the stoichiometric hydrogen – oxygen mixture is detonable. Any blend near 7 : 2 : 1 in an ignition-capable vessel is explosive. Keep mixtures outside the flammable envelope by inert dilution with nitrogen or surplus carbon dioxide, use flashback arrestors, work in a fume hood with forced ventilation, exclude sparks and hot surfaces, and keep any electrolytic gas-generation rate low.
 
 ## Sources
 
