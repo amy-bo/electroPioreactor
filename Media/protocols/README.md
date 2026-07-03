@@ -26,7 +26,7 @@ These preconditions are shared across every protocol; each protocol assumes them
 
 - **Working volume per build** – about 15 mL for the 20 mL build, about 30 mL for the 40 mL build (or the actual working volume you run).
 - **Run temperature** – 30 °C.
-- **Working medium / electrolyte** – the formulation in the [medium document](../README.md); the same solution is both the growth medium and the electrolysis electrolyte.
+- **Working medium / electrolyte** – the medium in use (for example [MC02](../README.md)); the same solution is both the growth medium and the electrolysis electrolyte.
 - **Ambient pressure** – enter the station pressure for the day on the Summary (see below).
 
 Two protocols depend on another being done first:

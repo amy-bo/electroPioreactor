@@ -29,7 +29,7 @@ tags: [electropioreactor, protocol, dissolved-oxygen, DO, biology]
 
 ### Kit
 
-- An optical (luminescence-quenching) dissolved-oxygen probe or sensor patch sized for the vial, with a meter that has temperature compensation. Optical is preferred over a Clark-type electrode in this small stirred vial: it does not consume oxygen, is insensitive to the stirring, and the patch form factor fits without displacing much liquid.
+- An optical (luminescence-quenching) dissolved-oxygen sensor for the vial, with a temperature-compensating meter: either an O₂ patch adhered inside the vial wall and read through the glass, or a fibre needle microsensor through the cap's hypodermic-needle gap. A body-style insertion probe will not fit, as the two electrode ports are occupied and the 1.4 mm ports are too small. Optical is preferred over a Clark-type electrode here: it does not consume oxygen, is insensitive to the stirring, and the patch needs no cap port.
 - A thermometer for the medium.
 - A barometer, if available.
 - Enough clean vials to run each dissolved-oxygen setpoint in duplicate.
@@ -37,7 +37,7 @@ tags: [electropioreactor, protocol, dissolved-oxygen, DO, biology]
 
 ### Reagents
 
-- The working growth medium.
+- The actual medium in use (for example [MC02](../README.md)).
 - A freshly made sodium sulphite (Na₂SO₃) solution for the zero point: about 1 g or more per litre of deionised water. A trace of cobalt(II) chloride speeds the reaction, but CoCl₂ is a carcinogen and skin sensitiser: if you use it, wear gloves and route the spent solution to heavy-metal waste. The sulphite zeroes the probe on its own without the catalyst, just more slowly, so dropping it is the safer default. Make the solution immediately before use, as it re-oxygenates from air within hours.
 - Air-saturated water, or a source of water-saturated air, for the span point.
 
@@ -46,7 +46,7 @@ tags: [electropioreactor, protocol, dissolved-oxygen, DO, biology]
 1. Zero the probe: immerse it in the freshly made sodium sulphite solution, wait 2 to 3 minutes until the reading is stable and low, and set the meter's zero to that reading.
 2. Span the probe: hold it in water-saturated air just above a stirred water surface with no droplets on the membrane or patch, or in vigorously air-sparged water. Enter the local temperature and barometric pressure on the meter, wait for the reading to settle, and set the span to air saturation. At 30 °C this air-saturation span sits at about 7.54 mg/L; that single span point is the only anchor, so any reading above it is extrapolated.
 3. Set the meter's compensation temperature to the run temperature, 30 °C for Cupriavidus necator. For an amperometric probe, also enter the medium salinity or conductivity. An optical probe needs only the temperature for its own reading, but converting that reading to mg/L still needs the medium's salinity or solubility correction unless the probe reports per cent saturation or oxygen partial pressure directly.
-4. Fit the probe through the cap so the sensing tip sits in the well-mixed bulk, clear of the stir bar and clear of the surface, with no bubble trapped on it. Note the depth so every run matches.
+4. Position the sensor to read the well-mixed bulk: a wall patch below the liquid line and clear of the stir-bar sweep, or a needle microsensor tip in the bulk through the hypodermic-needle gap, in both cases clear of the stir bar and the surface, with no bubble trapped on the sensing face. Note its position so every run matches.
 5. Fill the vial with the working medium at the operating volume, hold it at 30 °C, and run the stirrer at the operating setpoint for the whole measurement.
 6. Choose a series of dissolved-oxygen setpoints spanning from near zero up towards the suspected toxic ceiling. For C. necator, a spread such as 0.5, 1, 2, 2.5, 3, 4, 6, 9 and 11 mg/L works. Hold each level manually in closed loop off the probe: raise the electrolysis power a step when the reading sits below the setpoint and lower it a step when it sits above, so the reading stays within ±0.3 mg/L of target for the whole assay, with the CO₂ sparge running throughout. The high setpoints (about 9 and 11 mg/L) sit above the air-saturation span, so their held values are extrapolated above the calibration point and carry more uncertainty than the in-range ones. Keep temperature, gas supply and starting cell density the same for every setpoint.
 7. **Safety (in-culture electrolysis):** in-culture electrolysis evolves hydrogen and oxygen together; here the CO₂ sparge runs and inerts the headspace. Keep the sparge running whenever current flows, do not occlude the vent, ventilate the area, and exclude ignition sources. This applies with force at the top setpoints, where holding up to 11 mg/L drives the electrolysis current hard.
@@ -66,7 +66,7 @@ tags: [electropioreactor, protocol, dissolved-oxygen, DO, biology]
 
 ### Reagents
 
-- The working growth medium.
+- The actual medium in use (for example [MC02](../README.md)).
 - Air-saturated water, or water-saturated air, for the span point. The sodium sulphite zero is the part you can skip on a budget, accepting reduced accuracy at the low end.
 
 ### Method

@@ -47,7 +47,7 @@ Continuous mass balance on a growing culture: the three uptake rates are read di
 
 ### Reagents
 
-- Minimal autotrophic medium (Sydow 2017 formulation).
+- The actual medium in use (for example [MC02](../README.md)).
 - *Cupriavidus necator* inoculum.
 - Cylinder hydrogen.
 - Cylinder oxygen.
@@ -88,7 +88,7 @@ Same uptake ratio from sealed serum bottles using only a gas chromatograph, a pr
 
 ### Reagents
 
-- Minimal autotrophic medium (Sydow 2017 formulation).
+- The actual medium in use (for example [MC02](../README.md)).
 - *Cupriavidus necator* inoculum.
 - Cylinder hydrogen.
 - Cylinder oxygen.

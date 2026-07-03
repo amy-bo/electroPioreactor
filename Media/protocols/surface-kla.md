@@ -30,11 +30,11 @@ tags: [electropioreactor, protocol, mass-transfer, kla, dissolved-oxygen]
 
 ## Optimal protocol
 
-Best accuracy: a fast lab-grade dissolved-oxygen probe in the real reactor geometry.
+Best accuracy: a fast optical dissolved-oxygen sensor in the real reactor geometry.
 
 ### Kit
 
-- A fast dissolved-oxygen (DO) probe: an optical luminescence-quenching probe (for example a PreSens or Hamilton VisiFerm) or a small Clark-type electrode. Note its quoted response time (t63 or t95) from the datasheet before you start.
+- A fast optical dissolved-oxygen sensor that fits the sealed vial. Two forms fit: an optical O₂ patch adhered inside the vial wall and read through the glass by an external fibre (for example PreSens or PyroScience), or a fibre-optic needle microsensor passed through the cap's hypodermic-needle gap. A body-style insertion probe (a Hamilton VisiFerm or a Clark electrode) will not fit, as the two electrode ports are occupied and the 1.4 mm ports are too small. Note the sensor's quoted response time (t63 or t95) from the datasheet before you start, since the probe-lag gate below depends on it.
 - A DO logger or logging software able to record at 1 Hz or faster.
 - A nitrogen supply feeding the vial's existing sparge tube.
 - A small air source (for example an aquarium air pump) for the saturation/span step.
@@ -42,17 +42,17 @@ Best accuracy: a fast lab-grade dissolved-oxygen probe in the real reactor geome
 
 ### Reagents
 
-- The actual Sydow 2017 minimal medium (preferred), or de-ionised water. Medium is the more faithful choice because its salts shift oxygen solubility and coalescence slightly.
+- The actual medium in use (for example [MC02](../README.md)), preferred, or de-ionised water. Medium is the more faithful choice because its salts shift oxygen solubility and coalescence slightly.
 - Nitrogen, as the inert stripping gas.
 
 ### Method
 
 1. Fill the vial with the operating working volume of medium (or de-ionised water).
-2. Hold the vial at 30 °C and run the stir bar at 500 rpm. Keep both steady for the whole measurement.
-3. Fit the DO probe through the cap so the sensing tip sits in the well-mixed bulk, clear of the stir bar and clear of the surface. Make sure no bubble is trapped on the tip.
+2. Hold the vial at 30 °C and run the stir bar at the reactor's operating stir speed (the value set on the Summary). Keep both steady for the whole measurement.
+3. Position the sensor to read the well-mixed bulk: a wall patch below the liquid line and clear of the stir-bar sweep, or a needle microsensor tip in the bulk through the hypodermic-needle gap, in both cases clear of the stir bar and the surface. Make sure no bubble is trapped on the sensing face.
 4. Calibrate the probe at two points: set zero in fully nitrogen-sparged water, and set span at 100% air saturation by bubbling air through the stirred medium until the reading is stable. Read your own stable air-saturated plateau as the working saturation value C*.
-5. Deoxygenate the liquid: sparge nitrogen through the sparge tube, at 30 °C and 500 rpm, until the DO reading falls to near zero and holds steady. Do not sparge longer than needed to reach a low, stable start point.
-6. Stop the nitrogen cleanly and let the headspace return to its vented composition. Start logging DO against time immediately, at 1 s intervals or faster, with the stirrer still at 500 rpm.
+5. Deoxygenate the liquid: sparge nitrogen through the sparge tube, at 30 °C and the operating stir speed, until the DO reading falls to near zero and holds steady. Do not sparge longer than needed to reach a low, stable start point.
+6. Stop the nitrogen cleanly and let the headspace return to its vented composition. Start logging DO against time immediately, at 1 s intervals or faster, with the stirrer still at the operating speed.
 7. Keep logging until the curve flattens at the air-saturated plateau.
 8. Run one further sweep with the stirrer switched OFF as a contrast. This one must re-aerate markedly more slowly than the stirred sweep. If it does not, gas is entering by some other path (ingress or a leak): discard the dataset, reseal the vial and inserts, and start again.
 9. Repeat the stirred sweep so you have at least three good stirred datasets in all.
@@ -63,29 +63,29 @@ Best accuracy: a fast lab-grade dissolved-oxygen probe in the real reactor geome
     d. kLa = −slope, in per second.
     Take the mean of your stirred sweeps.
 11. Probe-lag gate: multiply the probe response time τ by the measured kLa. If τ·kLa exceeds about 0.05, the simple log-slope reads low; fit the two-parameter model that convolves the first-order probe response with the first-order liquid response (probe + kLa together) instead of the bare log-slope, and use that fitted kLa.
-12. Record the measured surface mass-transfer coefficient kLa (per second) from your dissolved-oxygen re-aeration fit in the **Surface kLa** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet. The kLa is only valid if the run conditions match the real reactor, so record the stirrer speed, vial, working volume and insert set alongside it in the Notes (the fixed operating values are 500 rpm, ~16 mL working volume and the standard insert set).
+12. Record the measured surface mass-transfer coefficient kLa (per second) from your dissolved-oxygen re-aeration fit in the **Surface kLa** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet. The kLa is only valid if the run conditions match the real reactor, so record the stirrer speed you ran at, the vial, the working volume and the insert set alongside it in the Notes, matching the operating values set on the Summary.
 
 ## Budget protocol
 
-Lower-kit variant: a low-cost optical DO probe (an inexpensive optical DO module or a hobby galvanic DO meter) in the same vial. A cheap probe responds two to four times slower than a Clark electrode, so its result is provisional.
+Lower-kit variant: a low-cost optical DO sensor (an inexpensive optical patch reader or optical DO module) on the same vial. A cheap sensor responds two to four times slower than a fast lab sensor, so its result is provisional.
 
 ### Kit
 
-- A low-cost optical or galvanic DO meter. Note its response time.
+- A low-cost optical DO sensor (patch reader or module) that fits the vial as above. Note its response time.
 - A small air source (for example an aquarium air pump) for the saturation/span step.
 - A nitrogen supply (preferred), or a fresh sodium-sulphite (or sodium-metabisulphite) charge as a fallback deoxygenant.
 - A logger, or a stopwatch with phone-timestamped manual readings.
-- The same reactor vial and working volume as the optimal route (temperature control and the 500 rpm stirrer are onboard).
+- The same reactor vial and working volume as the optimal route (temperature control and the stirrer are onboard).
 
 ### Method
 
-1. Fill the same vial with the same working volume. Hold 30 °C and 500 rpm. If you cannot hold 30 °C, run at room temperature and record the actual temperature.
+1. Fill the same vial with the same working volume. Hold 30 °C and the operating stir speed. If you cannot hold 30 °C, run at room temperature and record the actual temperature.
 2. Calibrate the meter at two points: set zero against vigorously nitrogen-sparged water (or a freshly made sodium-sulphite solution), and set span against air-saturated stirred water.
 3. Deoxygenate by nitrogen sparge through the sparge tube until the reading bottoms out and holds steady. If no nitrogen is available, use a fresh sodium-sulphite charge to pull DO to near zero, then change to fresh aerating medium before the sweep so no residual sulphite keeps consuming oxygen.
-4. Stop the gas, start the logger (or the stopwatch), and record DO every two to five seconds with the stirrer at 500 rpm until the reading plateaus. Log densely over the first minute.
+4. Stop the gas, start the logger (or the stopwatch), and record DO every two to five seconds with the stirrer at the operating speed until the reading plateaus. Log densely over the first minute.
 5. Take at least two sweeps. If two sweeps disagree by a large margin, suspect a slow probe, a trapped bubble or an unstable plateau, and repeat.
 6. Fit each sweep to the first-order re-aeration model as in the optimal protocol (form ln(C* − C), regress against time over the 10–90% approach window, kLa = −slope) and take the mean. Note the probe model and its response time alongside the result, as this variant is provisional; apply the same probe-lag gate (if τ·kLa exceeds about 0.05, fit the two-parameter probe + kLa model instead).
-7. Record the measured surface mass-transfer coefficient kLa (per second) from your dissolved-oxygen re-aeration fit in the **Surface kLa** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet. The kLa is only valid if the run conditions match the real reactor, so record the stirrer speed, vial, working volume and insert set alongside it in the Notes (500 rpm, ~16 mL working volume, standard insert set).
+7. Record the measured surface mass-transfer coefficient kLa (per second) from your dissolved-oxygen re-aeration fit in the **Surface kLa** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet. The kLa is only valid if the run conditions match the real reactor, so record the stirrer speed you ran at, the vial, the working volume and the insert set alongside it in the Notes, matching the operating values set on the Summary.
 
 ## What the spreadsheet does with it
 
@@ -97,7 +97,7 @@ The electro-bioreactor makes oxygen at the anode, and in this stirred ~16 mL wor
 
 The standard way to measure kLa without a culture is the dynamic gassing-out method ("gas-out / gas-in"). You strip the dissolved oxygen out of the working volume by sparging nitrogen, stop the strip, then let the liquid re-aerate from its own free surface while the stirrer runs at the real operating speed. A DO probe records the re-aeration curve. With no oxygen uptake (no cells) and a well-mixed liquid, the dissolved-oxygen balance is dC/dt = kLa·(C_star − C), where C_star is the saturation DO in equilibrium with the gas above the surface. That integrates to ln(C_star − C) = −kLa·t + const, so a plot of ln(C_star − C) against time is a straight line whose slope is −kLa. That slope is the surface kLa, because surface transfer is the only path operating once the nitrogen is off and there is no sparge. It needs only a DO probe – no off-gas analyser, no hazardous reagents and no organism (Garcia-Ochoa / BioProcess International, and the Eppendorf and bioprocesstools method notes in Sources).
 
-Two things make the measurement specific rather than generic. First, surface renewal scales with stirring, so the run must be at the operating stirrer speed (500 rpm) and in the actual vial geometry – the same free-surface area and the same inserts as the real reactor – or the result will not match what the reactor sees. Record the actual rpm, vial, working volume and inserts. Second, the DO probe has its own first-order response lag; the rule of thumb is that the probe time constant should be under about a tenth of the mass-transfer time constant (1/kLa), and more strictly the product of probe time constant and kLa should stay below roughly 0.02 to 0.05. Surface kLa in a small stirred vial is slow (of the order of 0.001 to 0.01 per second, a time constant of minutes) and lab probes respond in tens of seconds, so the lag is often acceptable – but check it. If the product exceeds about 0.05, fit a two-parameter model that convolves the first-order liquid response with the first-order probe response (or use the Torres 2017 system-delay algorithm) rather than the bare log-slope, otherwise kLa reads low. A slow budget probe is the most likely reason a measurement comes out artificially under the critical value (Tribe 1995; Torres 2017; Sources).
+Two things make the measurement specific rather than generic. First, surface renewal scales with stirring, so the run must be at the operating stirrer speed (the value set on the Summary) and in the actual vial geometry – the same free-surface area and the same inserts as the real reactor – or the result will not match what the reactor sees. Record the actual rpm, vial, working volume and inserts. Second, the DO probe has its own first-order response lag; the rule of thumb is that the probe time constant should be under about a tenth of the mass-transfer time constant (1/kLa), and more strictly the product of probe time constant and kLa should stay below roughly 0.02 to 0.05. Surface kLa in a small stirred vial is slow (of the order of 0.001 to 0.01 per second, a time constant of minutes) and lab probes respond in tens of seconds, so the lag is often acceptable – but check it. If the product exceeds about 0.05, fit a two-parameter model that convolves the first-order liquid response with the first-order probe response (or use the Torres 2017 system-delay algorithm) rather than the bare log-slope, otherwise kLa reads low. A slow budget probe is the most likely reason a measurement comes out artificially under the critical value (Tribe 1995; Torres 2017; Sources).
 
 The saturation value matters as much as the slope. Read C_star as your own stable air-saturated plateau; cross-check it against about 7.54 mg/L at 30 °C and roughly 1 atm in fresh water, and note that medium salts and local pressure shift it. Fit the linear middle of the curve (about the tenth to the ninetieth percentile of the approach to C_star): the lag-dominated early points and the noisy near-plateau tail both bias the slope. Watch for a trapped bubble on the probe tip or a stuck stir bar, as both flatten the curve and read low; the stirrer-off contrast sweep should give a clearly lower kLa, and if it does not, gas is leaking in by some other path and the surface number is not what you measured. Keep the liquid free of oxygen-consuming residue: sulphite left in the liquid keeps eating oxygen and corrupts the slope, which is why nitrogen stripping is preferred and, if sulphite is used, the medium is swapped before the sweep. Replicate rather than trusting a single sweep (three or more for the optimal protocol, two or more for the budget one) and report the mean and spread.
 
