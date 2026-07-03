@@ -86,7 +86,7 @@ No balance needed. Uses a graduated syringe and reads volumes directly. Slightly
 
 ## What the spreadsheet does with it
 
-The tab converts each recorded mass to a volume using the density of water at the recorded temperature, giving the true free headspace above the working liquid and the effective bore depth of the vial body. It then averages the included vials of the same reactor type. All vials of a type are nominally identical, so averaging the readings improves the estimate. From those averages it feeds the model the total vial volume and the usable bore depth for that reactor type. On the budget route the recorded volumes are used directly in place of the mass-to-volume step.
+The tab converts each recorded mass to a volume using the density of water at the recorded temperature, giving the true free headspace above the working liquid and the effective bore depth of the vial body. It then averages the included vials of the same reactor type. From those averages it feeds the model the total vial volume and the usable bore depth for that reactor type. On the budget route the recorded volumes are used directly in place of the mass-to-volume step.
 
 ## Principle & background
 

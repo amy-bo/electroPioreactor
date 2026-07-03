@@ -25,7 +25,7 @@ tags: [electropioreactor, protocol, electrochemistry, faradaic-efficiency, elect
 
 ## Apparatus note (separating cathode and anode gas)
 
-Read this before the Kit and Method: the apparatus this protocol needs does not yet exist and is a design task for the team.
+The apparatus this protocol needs does not yet exist and is a design task for the team.
 
 Measuring the cathodic and anodic Faradaic efficiencies *separately* requires the gas evolved at each electrode to be collected separately. The standard cell CANNOT do this. In the real cell both electrodes are two 6 mm rods passing through a single cap into one ~15–20 mL vial; the chamber is undivided and the gases mix by crossover. You cannot seal one collection tube over the cathode and a second over the anode in that geometry – there is no wall between them – so any "seal a tube over each electrode" instruction is physically impossible as written.
 
