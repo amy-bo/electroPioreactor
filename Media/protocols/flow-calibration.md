@@ -39,11 +39,11 @@ Secure the CO₂ cylinder upright and vent CO₂ only in a well-ventilated area:
 
 1. Fill the collection tube with acidified water, cover the mouth, invert it into the trough and uncover it under the surface so it stays full with no trapped air.
 2. Connect the CO₂ line so it delivers into the mouth of the collection tube instead of into the reactor vial.
-3. With the line outlet held away from the collection tube, clear air from the tubing by venting CO₂ for a few seconds, then close the line and position the outlet under the mouth of the collection tube ready for the timed collection.
+3. With the line outlet held away from the collection tube, clear air from the tubing by venting CO₂ for a few seconds, then close the line and position the outlet under the mouth of the collection tube.
 4. Trigger the CO₂ solenoid fully open (via the Pioreactor interface/relay), not a manual regulator or bypass - the calibration measures the solenoid's open-flow rate - and start the stopwatch at the same instant.
 5. Let gas collect until the tube holds a comfortably readable volume, then close the solenoid and stop the stopwatch at the same instant. Note the elapsed time.
 6. Raise or lower the collection tube until the liquid level inside matches the level in the trough, so the collected gas sits at ambient pressure, then read the collected gas volume off the graduations.
-7. Repeat steps 3 to 6 at least five times, refilling the tube each time, so you have five independent measurements for this reactor. If the five readings spread by more than ~10 %, check the solenoid seating and repeat.
+7. Repeat steps 3 to 6 at least five times, refilling the tube each time. If the five readings spread by more than ~10 %, check the solenoid seating and repeat.
 8. Record, for each measurement, the volume of CO₂ collected (mL) and the time taken (s) in the **CO₂ flow** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## Budget protocol
@@ -65,7 +65,7 @@ Secure the CO₂ cylinder upright and vent CO₂ only in a well-ventilated area:
 
 1. Fill the measuring cylinder with acidified water, cover the mouth, invert it into the basin and uncover it under the surface so it stays full with no trapped air.
 2. Feed the CO₂ tubing up into the mouth of the cylinder.
-3. With the tubing outlet held away from the cylinder, clear air from the line by venting CO₂ for a few seconds, then stop the flow and position the outlet under the mouth of the cylinder ready for the timed collection.
+3. With the tubing outlet held away from the cylinder, clear air from the line by venting CO₂ for a few seconds, then stop the flow and position the outlet under the mouth of the cylinder.
 4. Trigger the CO₂ solenoid fully open (via the Pioreactor interface/relay), not a manual regulator or bypass - the calibration measures the solenoid's open-flow rate - and start the stopwatch at the same instant.
 5. Let gas collect until the cylinder holds a comfortably readable volume, then close the solenoid and stop the stopwatch at the same instant. Note the elapsed time.
 6. Lift or lower the cylinder until the water level inside matches the basin surface, then read the collected gas volume off the graduations.
@@ -74,7 +74,7 @@ Secure the CO₂ cylinder upright and vent CO₂ only in a well-ventilated area:
 
 ## What the spreadsheet does with it
 
-The Calibrations tab divides the collected volume by the time taken to obtain the CO₂ flow rate for that measurement: the flow rate is simply volume ÷ time. You enter only the volume and the time - no trough temperature is recorded - and the model applies its own reactor temperature and pressure. For each reactor it then uses the most recent included calibration: a flow rate is a fixed property of that reactor's regulator, solenoid and tubing, so the latest measurement replaces the older ones rather than being averaged with them. That flow rate feeds both the CO₂ dosing flow rate and the minimum sparge time used elsewhere in the model.
+The Calibrations tab divides the collected volume by the time taken to obtain the CO₂ flow rate for that measurement. You enter only the volume and the time - no trough temperature is recorded - and the model applies its own reactor temperature and pressure. For each reactor it then uses the most recent included calibration: a flow rate is a fixed property of that reactor's regulator, solenoid and tubing, so the latest measurement replaces the older ones rather than being averaged with them. That flow rate feeds both the CO₂ dosing flow rate and the minimum sparge time used elsewhere in the model.
 
 ## Principle & background
 

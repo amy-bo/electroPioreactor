@@ -39,12 +39,12 @@ Highest accuracy. Uses a laboratory balance and gravimetric water displacement, 
 
 ### Reagents
 
-- Deionised water. Water is an acceptable stand-in for the medium here, as the headspace geometry is identical. There is no need to consume medium.
+- Deionised water. Water is an acceptable stand-in for the medium here, as the headspace geometry is identical.
 
 ### Method
 
 1. Bring the vial and the deionised water to the run temperature, 30 °C, and keep them there for the whole procedure.
-2. Assemble the vial exactly as for a real run: seat every insert through the cap to its normal insertion depth, and meter in the working volume for that reactor type (about 15 mL for the 20 mL build, about 30 mL for the 40 mL build), measured on the balance or syringe - the vials have no fill line.
+2. Assemble the vial exactly as for a real run: seat every insert through the cap to its normal insertion depth, and meter in the working volume for that reactor type (about 15 mL for the 20 mL build, about 30 mL for the 40 mL build), measured on the balance or syringe.
 3. Place the assembled, charged vial on the balance and tare it to zero.
 4. Through one of the headspace tubes, or by briefly lifting the septum, inject deionised water into the gas space above the liquid until the water reaches the exact plane the cap seals against, with no trapped air.
 5. Tilt the vial slightly and tap it to chase out any bubble clinging to an insert or to the shoulder, then top up to the septum plane again. Inspect against the light before reading.
@@ -73,7 +73,7 @@ No balance needed. Uses a graduated syringe and reads volumes directly. Slightly
 ### Method
 
 1. Bring the vial and the deionised water to the run temperature, 30 °C, and keep them there for the whole procedure.
-2. Assemble the vial exactly as for a real run: seat every insert through the cap to its normal insertion depth, and meter in the working volume for that reactor type (about 15 mL for the 20 mL build, about 30 mL for the 40 mL build), measured on the balance or syringe - the vials have no fill line.
+2. Assemble the vial exactly as for a real run: seat every insert through the cap to its normal insertion depth, and meter in the working volume for that reactor type (about 15 mL for the 20 mL build, about 30 mL for the 40 mL build), measured on the balance or syringe.
 3. Draw a known volume of deionised water into the graduated syringe, reading at the bottom of the concave meniscus with your eye level to it to avoid parallax.
 4. Inject water into the gas space above the liquid, through a headspace tube, until the water reaches the exact plane the cap seals against, with no trapped air.
 5. Tilt the vial slightly and tap it to chase out any bubble clinging to an insert or to the shoulder, then top up to the septum plane again. Inspect against the light before reading.

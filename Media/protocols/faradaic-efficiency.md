@@ -69,7 +69,7 @@ Barrier equipment first.
 7. At the end of the window, for each collection tube, equalise the liquid levels inside and outside the tube so the trapped gas sits at ambient pressure, then read the collected gas volume against the graduations.
 8. Read and note the electrolyte temperature and the barometric pressure at the moment of reading. Read the total charge passed from the instrument (in coulombs), and note the start and end times of the run.
 9. Vent the collected H₂/O₂ mixture immediately after reading. Never store or compress it.
-10. Repeat the collection window at least three times per electrode, so each reported efficiency is an average of three or more runs rather than a single reading.
+10. Repeat the collection window at least three times per electrode.
 11. Record, for each run, the charge passed (coulombs), the gas volume collected (mL), the gas temperature (°C) and pressure (Pa), and which electrode (cathode H₂ or anode O₂), in the **Faradaic efficiency** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## Budget protocol
@@ -94,7 +94,7 @@ Barrier equipment first.
 ### Method
 
 1. Work in a fume hood with forced ventilation. Exclude all ignition sources (sparks, hot surfaces) from the cell, the headspace and the collection vessels. Set up the divided/shrouded test cell (see apparatus note) as normally operated, with the stainless-steel cathode and the anode immersed in the electrolyte.
-2. Invert a water-filled graduated cylinder over the cathode side of the rig so that the rising cathode gas displaces water up the cylinder, and invert a second water-filled cylinder over the anode side, in the water trough. Do NOT fully seal either cylinder against pressure build-up.
+2. Invert a water-filled graduated cylinder over the cathode side of the rig, and invert a second water-filled cylinder over the anode side, in the water trough. Do NOT fully seal either cylinder against pressure build-up.
 3. Connect the datalogging coulomb counter (or the sense resistor and logger) in series with the cell so it records the charge passed. Confirm the logged current against a multimeter reading in series once at the start.
 4. Set the drive current to the operating point (about 5.7 mA) or to a chosen calibration current within the validated range (about 3 to 30 mA).
 5. Pre-condition the electrodes: run the cell at a set intensity for about 10 min before opening the collection window, consistent with the electrolysis current calibration. Efficiency depends on electrode history, so condition a fresh electrode before measuring it.
@@ -102,12 +102,12 @@ Barrier equipment first.
 7. At the end of the window, for each cylinder, equalise the water levels inside and outside the cylinder so the trapped gas sits at ambient pressure, then read the displaced-gas volume against the graduations.
 8. Read and note the electrolyte temperature and the barometric pressure at the moment of reading. Read the total charge passed from the logger (in coulombs), and note the start and end times of the run.
 9. Vent the collected H₂/O₂ mixture immediately after reading. Never store or compress it.
-10. Repeat the collection window at least three times per electrode, so each reported efficiency is an average of three or more runs rather than a single reading.
+10. Repeat the collection window at least three times per electrode.
 11. Record, for each run, the charge passed (coulombs), the gas volume collected (mL), the gas temperature (°C) and pressure (Pa), and which electrode (cathode H₂ or anode O₂), in the **Faradaic efficiency** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## What the spreadsheet does with it
 
-The Faradaic efficiency section of the Calibrations tab converts each recorded gas volume to moles using the ideal gas law from the gas temperature and pressure you entered, and divides that by the theoretical moles expected from the charge passed using Faraday's law. That ratio is the Faradaic efficiency for the run. The tab then averages the included runs for each reactor and feeds the cathodic efficiency (model variable `etaF`) and the anodic efficiency (model variable `etaF_OER`) into the model. You do no hand calculation; enter only the measured quantities and the spreadsheet does the rest.
+The Faradaic efficiency section of the Calibrations tab converts each recorded gas volume to moles using the ideal gas law from the gas temperature and pressure you entered, and divides that by the theoretical moles expected from the charge passed using Faraday's law. That ratio is the Faradaic efficiency for the run. The tab then averages the included runs for each reactor and feeds the cathodic efficiency (model variable `etaF`) and the anodic efficiency (model variable `etaF_OER`) into the model.
 
 ## Principle & background
 

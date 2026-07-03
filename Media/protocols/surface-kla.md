@@ -53,7 +53,7 @@ Best accuracy: a fast lab-grade dissolved-oxygen probe in the real reactor geome
 4. Calibrate the probe at two points: set zero in fully nitrogen-sparged water, and set span at 100% air saturation by bubbling air through the stirred medium until the reading is stable. Read your own stable air-saturated plateau as the working saturation value C*.
 5. Deoxygenate the liquid: sparge nitrogen through the sparge tube, at 30 °C and 500 rpm, until the DO reading falls to near zero and holds steady. Do not sparge longer than needed to reach a low, stable start point.
 6. Stop the nitrogen cleanly and let the headspace return to its vented composition. Start logging DO against time immediately, at 1 s intervals or faster, with the stirrer still at 500 rpm.
-7. Keep logging until the curve flattens at the air-saturated plateau. A single sweep from near-zero up to the plateau is one dataset.
+7. Keep logging until the curve flattens at the air-saturated plateau.
 8. Run one further sweep with the stirrer switched OFF as a contrast. This one must re-aerate markedly more slowly than the stirred sweep. If it does not, gas is entering by some other path (ingress or a leak): discard the dataset, reseal the vial and inserts, and start again.
 9. Repeat the stirred sweep so you have at least three good stirred datasets in all.
 10. For each stirred sweep, compute kLa from the re-aeration curve:
@@ -79,9 +79,9 @@ Lower-kit variant: a low-cost optical DO probe (an inexpensive optical DO module
 
 ### Method
 
-1. Fill the same vial with the same working volume. Hold 30 °C and 500 rpm. If you cannot hold 30 °C, run at room temperature and record the actual temperature, because oxygen solubility and diffusivity both depend on it.
+1. Fill the same vial with the same working volume. Hold 30 °C and 500 rpm. If you cannot hold 30 °C, run at room temperature and record the actual temperature.
 2. Calibrate the meter at two points: set zero against vigorously nitrogen-sparged water (or a freshly made sodium-sulphite solution), and set span against air-saturated stirred water.
-3. Deoxygenate by nitrogen sparge through the sparge tube until the reading bottoms out and holds steady. If no nitrogen is available, use a fresh sodium-sulphite charge to pull DO to near zero, then change to fresh aerating medium before the sweep so no residual sulphite keeps consuming oxygen. Nitrogen sparging is cleaner and is preferred.
+3. Deoxygenate by nitrogen sparge through the sparge tube until the reading bottoms out and holds steady. If no nitrogen is available, use a fresh sodium-sulphite charge to pull DO to near zero, then change to fresh aerating medium before the sweep so no residual sulphite keeps consuming oxygen.
 4. Stop the gas, start the logger (or the stopwatch), and record DO every two to five seconds with the stirrer at 500 rpm until the reading plateaus. Log densely over the first minute.
 5. Take at least two sweeps. If two sweeps disagree by a large margin, suspect a slow probe, a trapped bubble or an unstable plateau, and repeat.
 6. Fit each sweep to the first-order re-aeration model as in the optimal protocol (form ln(C* − C), regress against time over the 10–90% approach window, kLa = −slope) and take the mean. Note the probe model and its response time alongside the result, as this variant is provisional; apply the same probe-lag gate (if τ·kLa exceeds about 0.05, fit the two-parameter probe + kLa model instead).

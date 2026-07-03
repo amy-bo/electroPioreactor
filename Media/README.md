@@ -105,7 +105,7 @@ The medium is assembled from three separately prepared parts so that the heat-se
 ### Combining
 
 1. To the cooled, sterile base solution, aseptically add the sterile stocks at the rates given above – 0.050 mL of Mineral Solution and 3.40 mL of Iron Solution per 1.000 L of base – and mix.
-2. The medium is then ready to use as both the growth medium and the electrolysis electrolyte. Add it to the reactor at the working volume for the build (about 15 mL for the 20 mL build, about 30 mL for the 40 mL build) and run at 30 °C.
+2. Add it to the reactor at the working volume for the build (about 15 mL for the 20 mL build, about 30 mL for the 40 mL build) and run at 30 °C.
 
 ## Final Medium
 
@@ -131,7 +131,7 @@ The medium is assembled from three separately prepared parts so that the heat-se
 | Chlorine | Cl | - |
 | Carbon | C | - |
 
-_<sup>*</sup>_ We believe that [Sydow et al. (2017)'s Supporting Information](https://analyticalsciencejournals.onlinelibrary.wiley.com/action/downloadSupplement?doi=10.1002%2Felsc.201600252&file=elsc999-sup-0001-SuppMat.docx)'s calculation has carried forward the Ni₂SO₄·6H₂O typo, and that the actual concentration of Ni would be 1.67 ×10⁻⁵. We do not anticipate this affecting their results. Further investigation may nonetheless be prudent.
+_<sup>*</sup>_ We believe that [Sydow et al. (2017)'s Supporting Information](https://analyticalsciencejournals.onlinelibrary.wiley.com/action/downloadSupplement?doi=10.1002%2Felsc.201600252&file=elsc999-sup-0001-SuppMat.docx)'s calculation has carried forward the Ni₂SO₄·6H₂O typo, and that the actual concentration of Ni would be 1.67 ×10⁻⁵. We do not anticipate this affecting their results.
 
 Their medium was also supplied with 200 μg/mL kanamycin for pEG7c maintenance. We assume this will not be required with our strains.
 

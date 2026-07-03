@@ -116,7 +116,7 @@ The Calibrations tab takes the three uptake values (H₂, O₂ and CO₂) you re
 
 ## Principle & background
 
-*Cupriavidus necator* grows autotrophically by oxidising hydrogen as electron donor, reducing oxygen as terminal electron acceptor, and fixing carbon dioxide as its sole carbon source via the Calvin–Benson–Bassham cycle. Because the three consumption rates are tied together by the cell's energy and carbon balance, they hold an approximately constant molar ratio during steady autotrophic growth. That ratio is what this protocol measures.
+*Cupriavidus necator* grows autotrophically by oxidising hydrogen as electron donor, reducing oxygen as terminal electron acceptor, and fixing carbon dioxide as its sole carbon source via the Calvin–Benson–Bassham cycle. Because the three consumption rates are tied together by the cell's energy and carbon balance, they hold an approximately constant molar ratio during steady autotrophic growth.
 
 The distinction between feed and uptake is central. The feed optimum reported in the literature is about 7 : 2 : 1 (the gas supplied), whereas the uptake ratio (the gas the culture actually consumes) sits lower on oxygen and carbon dioxide relative to hydrogen: reported ranges are an oxygen-to-hydrogen ratio of roughly 0.29–0.35 and a carbon-dioxide-to-hydrogen ratio of roughly 0.15–0.19. Scaled to a hydrogen basis of 6, that is about 6 : 1.8–2.1 : 0.9–1.15. Uptake, not feed, is what matters here, because the surplus oxygen to vent and the carbon demand are driven by what the cells take up, not by the cylinder composition.
 

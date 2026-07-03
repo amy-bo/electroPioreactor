@@ -24,7 +24,7 @@ Every tab named throughout this pack (the **Calibrations** tab, the **Summary**,
 
 These preconditions are shared across every protocol; each protocol assumes them rather than repeating them:
 
-- **Working volume per build** – about 15 mL for the 20 mL build, about 30 mL for the 40 mL build.
+- **Working volume per build** – about 15 mL for the 20 mL build, about 30 mL for the 40 mL build (or the actual working volume you run).
 - **Run temperature** – 30 °C.
 - **Working medium / electrolyte** – the formulation in the [medium document](../README.md); the same solution is both the growth medium and the electrolysis electrolyte.
 - **Ambient pressure** – enter the station pressure for the day on the Summary (see below).
@@ -34,7 +34,7 @@ Two protocols depend on another being done first:
 - The **current-density screen** needs the **electrolysis current calibration** completed first, so the applied current is known.
 - The current-density **decoupled-control gas rate** is read from the faradaic and gas figures, so those must be in place before it is meaningful.
 
-Each protocol is written to be followed blindly: an **Optimal** route (best accuracy, more kit) and a **Budget** route (minimal kit, with its accuracy trade-off stated), each a numbered, easy-to-follow method. For most protocols you simply record the raw numbers you measure into the **Calibrations** tab of the workbook, and the spreadsheet does the rest. A few (surface kLa, the DO bands, the knallgas uptake ratio, and the current-density screen) ask you to read or fit a value off your own data first; those protocols tell you exactly how.
+Each protocol is written to be followed blindly: an **Optimal** route (best accuracy, more kit) and a **Budget** route (minimal kit, with its accuracy trade-off stated), each a numbered method. For most protocols you simply record the raw numbers you measure into the **Calibrations** tab of the workbook, and the spreadsheet does the rest. A few (surface kLa, the DO bands, the knallgas uptake ratio, and the current-density screen) ask you to read or fit a value off your own data first; those protocols tell you exactly how.
 
 ## How the Calibrations tab works
 
@@ -44,14 +44,14 @@ Every calibration has its own section on the one **Calibrations** tab. To record
 - The **raw measurements** the protocol tells you to record (for example a volume and a time, or a set of current readings).
 - **Include?** – put `y` on rows the model should use. Leave it blank, or put `n`, to keep a row in the record without using it.
 
-Everything else is automatic. Grey cells are computed for you: the tab derives the reactor **Type** from the reactor name, does every calculation the old protocols used to ask for, and works out the **value in use** that feeds the model. If no rows are included yet, the model quietly falls back to its built-in default, so an empty tab never breaks anything.
+Grey cells are computed for you: the tab derives the reactor **Type** from the reactor name, does every calculation the old protocols used to ask for, and works out the **value in use** that feeds the model. If no rows are included yet, the model quietly falls back to its built-in default.
 
 Multiple people can log multiple runs on multiple reactors or organisms in the same section. How the value in use is chosen depends on the parameter, and is stated under each section's heading:
 
 - **Averaged across included runs** where repeat measurements improve the estimate – Electrolysis current, Faradaic efficiency, surface kLa (per reactor); dissolved-oxygen bands, knallgas ratio, current-density tolerance (per organism); vial geometry (per reactor type, since all vials of a type are nominally identical).
 - **Latest included run wins** where the number is a hardware or valve setting that supersedes older values – CO₂ flow rate and sinter frit grade (per reactor).
 
-The value in use always matches whatever Reactor and Organism are selected on the Summary, so the model uses the right calibration for the run you are setting up.
+The value in use always matches whatever Reactor and Organism are selected on the Summary.
 
 ## Order of work
 
@@ -71,7 +71,7 @@ Work top-to-bottom; the order is by leverage (biggest model uncertainty first). 
 
 ## Ambient pressure (no protocol needed)
 
-The model defaults ambient pressure to 101325 Pa. For the best Henry-solubility and gas-volume figures, enter the station pressure on the Summary; the model applies the altitude correction if you enter it on the Summary. It is a low-sensitivity input, so the default is fine for design work; record the real value for a publication-grade run.
+The model defaults ambient pressure to 101325 Pa. For the best Henry-solubility and gas-volume figures, enter the day's station pressure in the Ambient pressure cell on the Summary. It is a low-sensitivity input, so the default is fine for design work; record the real value for a publication-grade run.
 
 ## How to use
 

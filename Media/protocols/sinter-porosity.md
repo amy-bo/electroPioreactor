@@ -38,7 +38,7 @@ tags: [electropioreactor, protocol, sparger, sinter, mass-transfer]
 - A rubber O-ring.
 - A gas inlet fitting, so that one face of the frit can be sealed against the gas line.
 - A trough deep enough to submerge one face of the frit by 5 to 10 mm.
-- A stopwatch (a phone stopwatch is fine).
+- A stopwatch.
 - Eye protection. The finest frits reach a bubble-point near 288 kPa, so the frit is glassware under real gas pressure: use a gauge rated for the range, ramp the pressure slowly, and wear eye protection throughout.
 
 ### Reagents
@@ -53,7 +53,7 @@ tags: [electropioreactor, protocol, sparger, sinter, mass-transfer]
 4. Open the gas supply to the lowest pressure the gauge can read and wait 30 seconds. Slow, isolated bubbles rising from single pores are normal at this stage and are not the reading you want.
 5. Raise the pressure in small steps, waiting 30 seconds after each step. Use steps of about 0.2 to 1 kPa, taking the smaller steps for finer frits.
 6. Watch the submerged face. Note the pressure at which a first continuous, steady stream of bubbles issues from one point on the face, rather than the sporadic isolated bubbles seen earlier.
-7. Close the gas supply, re-wet the frit fully and repeat twice more, so the reading is confirmed on three separate runs. The three readings should agree closely; if one is much lower than the others, suspect incomplete wetting and re-wet before trusting it.
+7. Close the gas supply, re-wet the frit fully and repeat twice more. The three readings should agree closely; if one is much lower than the others, suspect incomplete wetting and re-wet before trusting it.
 8. Record the bubble-point pressure (kPa) at which the first steady stream of bubbles appears, in the **Sinter porosity** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## Budget protocol
@@ -70,7 +70,7 @@ tags: [electropioreactor, protocol, sparger, sinter, mass-transfer]
 ### Method
 
 1. Examine the frit body, the funnel and any supplied documentation under good light for a porosity marking such as "P3", "Por. 3", "G3" or a bare numeral (0 to 5).
-2. If the frit carries no porosity marking but its source is known, find the catalogue number stamped on the glassware and look that number up in the supplier's catalogue or datasheet. The porosity class is always listed there.
+2. If the frit carries no porosity marking but its source is known, find the catalogue number stamped on the glassware and look that number up in the supplier's catalogue or datasheet.
 3. Read off the manufacturer's porosity class. Note that grade numbering is not universal: most laboratory glassware follows the DURAN / ISO numbering the model expects, but a few suppliers number their finest grades differently, so where the supplier's convention is uncertain the optimal bubble-point test is the reliable choice.
 4. If neither a marking nor a datasheet can be found, treat the frit as unknown. Do not record a grade and do not rely on the sintered sparger mode until the frit is identified or a bubble-point test has been done.
 5. If you know the frit's manufacturer porosity grade you do not need a Calibrations entry at all: the selected electrode already carries its grade in the model, so no Sinter porosity measurement is required. A Calibrations entry is only for measuring an unknown frit by its bubble-point (the optimal route).
