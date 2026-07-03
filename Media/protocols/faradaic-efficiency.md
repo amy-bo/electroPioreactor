@@ -35,7 +35,31 @@ To collect each electrode's gas on its own you need a purpose-built rig. This ri
 - **(b) Close-fitting shrouds / inverted funnels.** Fit a shroud or small inverted funnel over each electrode that channels only that electrode's gas to its own port. Only feasible if there is room around the two rods inside the vial.
 - **(c) Two separate half-cells joined by a salt bridge or narrow channel.** Simplest to build, since each half-cell is a normal open vial. But the long inter-electrode path raises the ohmic drop and can bias how current distributes between the electrodes, so results from this geometry must be validated against a known cell before they are trusted.
 
-Until one of these rigs exists, the only abiotic check that is possible is a **TOTAL gas (H₂ + O₂ combined)** collection over the undivided vial. That validates Faraday's law (total charge in versus total gas out) but tells you nothing about the split between cathodic and anodic efficiency. The numbered Methods below are written for "the divided/shrouded test cell" generically; substitute whichever rig the team settles on.
+Until one of these rigs exists, two things are still possible with the undivided vial: a **total-gas check against Faraday's law** (total charge in versus total gas out), and, going further, a **stirred initial-slope screen** (next section) that puts a bound on the *cathodic* loss in situ without any rig. Neither resolves the full cathode-versus-anode split, but the initial-slope screen does turn "we assume 1.0" into a measured bound on the cathodic crossover sink. The numbered Methods further below are written for the divided/shrouded test cell for when it is built; substitute whichever rig the team settles on.
+
+## Interim method (undivided vial, no rig): stirred initial-slope screen
+
+This is what you can do tonight, on the standard vial, with only the electrolysis drive and a gas burette. It bounds the cathodic Faradaic loss (model variable `etaF`) in the real, undivided geometry. It does **not** resolve the anodic efficiency (`etaF_OER`); that still needs one of the rigs above.
+
+Why it works: strip the electrolyte of dissolved oxygen first and the cathode starts clean, so both electrodes run near-ideal and gas comes off at close to the Faradaic maximum (I/2F of H₂ plus I/4F of O₂, about 3I/4F in total). As the run proceeds, oxygen from the anode accumulates in the bulk, reaches the cathode, and is reduced there: the oxygen reduction reaction sits about 1.2 V positive of hydrogen evolution, so a cathode presented with dissolved oxygen reduces it in preference to splitting water. That reaction steals cathodic electrons from hydrogen and re-consumes oxygen that would otherwise escape, so the total-gas rate decays from its initial value to a lower steady plateau. The size of that drop is the crossover sink, in situ, in the geometry the culture actually runs in.
+
+### Method (interim)
+
+1. Work in a fume hood with forced ventilation, exclude all ignition sources, fit a flashback arrestor, do not fully seal the collection vessel, and vent the mixed off-gas immediately after reading. Set up the standard vial as normally operated, with the stirrer on and a gas burette or inverted graduated cylinder over the single headspace outlet.
+2. Purge: sparge CO₂ hard for a few minutes to strip dissolved oxygen from the electrolyte and inert the headspace, then stop the sparge. Do **not** sparge during collection: the CO₂ volume is on the order of 50 times the knallgas, and its run-to-run jitter alone would bury the signal.
+3. Start the electrolysis drive at about 10 mA (the upper operating current gives the largest gas signal and pushes the crossover into a detectable range), stirrer running, and start the clock.
+4. Log the cumulative collected gas volume against time at short intervals (about every 30 to 60 s) for long enough to see the rate settle, typically 20 to 40 min. Equalise levels and subtract the water-vapour pressure when reading, as in the main method.
+5. Re-purge and repeat for at least three runs.
+
+### What the numbers mean
+
+- Fit the cumulative curve to two slopes: the initial slope extrapolated back to t = 0 (dissolved oxygen still low, so near crossover-free) and the steady plateau slope (net operating rate, crossover included). The fractional drop from initial to plateau bounds the cathodic crossover loss, and hence 1 − `etaF`. Record both slopes; enter the resulting `etaF` estimate as the cathodic figure with a Comments note that it came from the initial-slope screen, not from an isolated-electrode collection (the tab's per-electrode charge-versus-volume formula assumes the latter).
+
+### Scope and caveats (state these with the result)
+
+- **Cathode only.** It bounds the cathodic sink; it says nothing about the anodic split, so leave `etaF_OER` at its rig-measured or default value.
+- **Chloride corrupts it.** On a chloride-bearing electrolyte the anode also makes Cl₂, which is a gas, and at more gas-moles per electron than oxygen, so it rides along in the total volume and contaminates it. Run the screen on a chloride-free electrolyte, or treat the total as contaminated. After the Exp-2 chlorine review this is the live risk, not a hypothetical one.
+- **It is a screen, not a precise efficiency.** At 10 mA the knallgas is only about 7 mL/hour and a burette reads to roughly ±5 %, while the crossover drop is itself only a few to about 15 %, set by stirring and electrode spacing. Read stirred (thin diffusion layer gives a larger and more operationally representative drop), fit the whole curve rather than eyeballing two points, and quote the result as a bound, not a three-significant-figure number.
 
 ## Optimal protocol
 
