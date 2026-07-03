@@ -5,7 +5,7 @@ checked: []
 reviewed: []
 authorised:
 source_type: external
-description: "Gerrit's Law: LED-intensity to electrolysis-current calibration"
+description: "Electrolysis current calibration: LED-intensity to electrolysis-current"
 sources:
   - https://docs.pioreactor.com/user-guide/led-automations
   - https://www.allaboutcircuits.com/news/LED-controller-linear-constant-current-control-high-current-diodes-inc/
@@ -19,74 +19,74 @@ sources:
 created: 2026-06-19
 recorded_at: 2026-06-20
 cssclasses: [trust-authored]
-tags: [electropioreactor, protocol, electrochemistry, gerrit, calibration]
+tags: [electropioreactor, protocol, electrochemistry, calibration]
 ---
 
-# Gerrit's Law: LED-intensity to electrolysis-current calibration
+# Electrolysis current calibration
 
 ## Optimal protocol
 
 ### Kit
-- The Pioreactor running the target reactor, with the real electrolytic cell fitted and the same electrode assembly that experiments will use.
-- A source-measure unit or data-logging precision ammeter (for example a Keithley 2400, or a Fluke 289 logging multimeter connected in series), capable of a 4-wire (Kelvin) connection to the cell.
-- A laptop or Raspberry Pi terminal, or the Pioreactor web interface, for applying intensity setpoints.
+- A source-measure unit or data-logging precision ammeter (for example a Keithley 2400, or a Fluke 289 logging multimeter connected in series), 4-wire/Kelvin capable.
 - A thermometer to record electrolyte temperature.
 - A timer.
+- A laptop or Raspberry Pi terminal, or the Pioreactor web interface, for applying intensity setpoints.
+- The Pioreactor running the target reactor, with the real electrolytic cell fitted and the same electrode assembly that experiments will use.
 
 ### Reagents
 - The working electrolyte, at the same composition and volume that experiments will use.
 
 ### Method
 1. Prepare the cell with the working electrolyte at the composition and volume you will use in experiments. Record the electrolyte composition and its temperature.
-2. Connect the ammeter (or source-measure unit) in series with the cell, observing correct polarity. Use a 4-wire connection so the meter leads do not add resistance to the reading.
-3. Run the cell at 15% intensity for 10 minutes to pre-condition the electrodes. Do not record any calibration points during this period.
-4. Set the Pioreactor channel to the first intensity setpoint in the sweep list below. Read the LED channel from the plugin configuration for this build; do not assume a fixed channel.
+2. Connect the ammeter (or source-measure unit) in series with the cell, observing correct polarity. Use the meter's 4-wire/Kelvin input so the meter leads do not add resistance to the reading.
+3. Run the cell at 15% intensity for 10 minutes to pre-condition the electrodes; do not record any calibration points during this period. Safety: in-culture electrolysis evolves hydrogen and oxygen together in the vial headspace. Never occlude the headspace vent, work in a ventilated area, and exclude ignition sources; note that this calibration runs without the CO₂ sparge that normally inerts the headspace, so keep collected/accumulated gas minimal.
+4. Set the Pioreactor channel to the first intensity setpoint in the sweep. On the Pioreactor web interface, Configuration → the electroPioreactor plugin section → the LED channel setting; use that channel wherever a step says set the intensity. The full sweep is: 1, 2, 3, 5, 7, 10, 13, 16, 20, 25, 28, 30%. The sub-3% points (1, 2%) and the points above 25% (28, 30%) fall outside the validated 3-25% band and are recorded as extrapolated - keep them but treat them separately.
 5. Wait 120 seconds at that setpoint before recording. Watch the current reading settle; only record once it has stopped drifting.
 6. Record the steady current in milliamps at that setpoint, taken as the average over a 30-second window.
-7. Move to the next setpoint and repeat steps 5 and 6. Work through the full sweep: 1, 2, 3, 5, 7, 10, 13, 16, 20, 25, 28, 30%.
+7. Move to the next setpoint and repeat steps 5 and 6, working through the full sweep listed in step 4.
 8. Repeat the whole sweep at least once more as an independent run, re-conditioning the electrodes beforehand (step 3). Keep each run's points separate; do not merge them by hand.
 9. Record the electrolyte temperature again at the end.
-10. Record each (intensity %, measured current mA) pair in the **Gerrit current** section of the **Calibrations** tab - one row per point. Fill in Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
+10. Record each (intensity %, measured current mA) pair in the **Electrolysis current** section of the **Calibrations** tab - one row per point. Fill in Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## Budget protocol
 
 ### Kit
-- The Pioreactor with the electrolytic cell fitted, as above.
-- A precision sense resistor of known, measured value (nominally 1 ohm, 1% tolerance, wire-wound type preferred for stability, rated for the expected current).
 - A digital multimeter able to read millivolts (for example a 4.5-digit meter).
+- A precision sense resistor of known, measured value (nominally 1 Ω, 1% tolerance, wire-wound type preferred for stability, rated for the expected current).
 - Short connecting wire.
 - A timer.
+- The Pioreactor with the electrolytic cell fitted, as above.
 
 ### Reagents
 - The working electrolyte, at the same composition and volume that experiments will use.
 
 ### Method
-1. Measure the sense resistor's resistance with the multimeter in 4-wire ohms mode before fitting it. Write down the measured value; use that measured value, not the printed nominal, whenever you convert a voltage reading to a current.
-2. Wire the sense resistor in series with the cell, between the cell's negative terminal and circuit ground. Keep the leads short and twisted together.
+1. Measure the sense resistor's resistance with the multimeter in 4-wire ohms mode before fitting it. Write down this single measured value; you will record it once for the run and let the spreadsheet divide by it, so use the measured value, not the printed nominal.
+2. Wire the sense resistor in series in the cell's return lead (the channel's return terminal on the Pioreactor). Keep the leads short and twisted together.
 3. Prepare the cell with the working electrolyte and record its composition and temperature.
-4. Run the cell at 15% intensity for 10 minutes to pre-condition the electrodes. Do not record any points during this period.
-5. Set the Pioreactor channel to the first intensity setpoint. Read the LED channel from the plugin configuration for this build; do not assume a fixed channel.
+4. Run the cell at 15% intensity for 10 minutes to pre-condition the electrodes; do not record any points during this period. Safety: in-culture electrolysis evolves hydrogen and oxygen together in the vial headspace. Never occlude the headspace vent, work in a ventilated area, and exclude ignition sources; note that this calibration runs without the CO₂ sparge that normally inerts the headspace, so keep collected/accumulated gas minimal.
+5. Set the Pioreactor channel to the first intensity setpoint. On the Pioreactor web interface, Configuration → the electroPioreactor plugin section → the LED channel setting; use that channel wherever a step says set the intensity. The full sweep is: 1, 2, 3, 5, 7, 10, 13, 16, 20, 25, 28, 30%. The sub-3% points (1, 2%) and the points above 25% (28, 30%) fall outside the validated 3-25% band and are recorded as extrapolated - keep them but treat them separately.
 6. Wait 120 seconds, then read the voltage across the sense resistor three times over 30 seconds and average the three readings.
-7. Convert that average voltage to a current: current in milliamps equals the average voltage in millivolts divided by the measured resistance in ohms. Note the resulting current for that setpoint.
-8. Move to the next setpoint and repeat steps 6 and 7. Work through the full sweep: 1, 2, 3, 5, 7, 10, 13, 16, 20, 25, 28, 30%.
+7. Record that average voltage in millivolts for the setpoint. Do not convert to current by hand: you record the raw voltage and the one measured resistance, and the spreadsheet divides to get the current.
+8. Move to the next setpoint and repeat steps 6 and 7, working through the full sweep listed in step 5.
 9. Repeat the whole sweep on a separate day with a freshly prepared electrolyte batch, keeping the runs separate.
-10. Record each (intensity %, measured current mA) pair in the **Gerrit current** section of the **Calibrations** tab - one row per point. Fill in Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
+10. Record each (intensity %, average voltage mV) pair in the **Electrolysis current** section of the **Calibrations** tab - one row per point - and record the single measured sense-resistance value once for the run; the spreadsheet divides voltage by resistance to get the current, so you do no arithmetic by hand. (If that section only has intensity and current columns, record the computed current instead - current mA = average mV ÷ measured Ω - noting this is the one small division you do by hand.) Fill in Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## What the spreadsheet does with it
 
-The Calibrations tab fits a straight line of current against intensity to your recorded points, giving a slope and an intercept for the run. It averages those results across every included run for that reactor, and feeds the averaged slope and intercept into the electrolysis current law that sets the gas generation rates. You do not need to do any of this arithmetic by hand; just enter your measured points and mark them included.
+The Calibrations tab fits a straight line of current against intensity to your recorded points, giving a slope and an intercept for the run. It averages those results across every included run for that reactor, and feeds the averaged slope and intercept into the electrolysis-current relationship that sets the gas generation rates. You do not need to do any of this arithmetic by hand; just enter your measured points and mark them included.
 
 ## Principle & background
 
-The Pioreactor controls its LED/PWM channels by a dimensionless intensity setpoint expressed as a percentage (0-100%). When a channel drives an electrolytic cell, the resulting current is not commanded directly; it is a consequence of the cell's electrochemistry and the channel's output at that setpoint. Gerrit's Law encodes the empirical relationship as a straight line: current (mA) equals a slope times intensity (%) plus an intercept.
+The Pioreactor controls its LED/PWM channels by a dimensionless intensity setpoint expressed as a percentage (0-100%). When a channel drives an electrolytic cell, the resulting current is not commanded directly; it is a consequence of the cell's electrochemistry and the channel's output at that setpoint. The empirical straight-line fit of current against intensity encodes the relationship: current (mA) equals a slope times intensity (%) plus an intercept.
 
-The linear form follows from the roughly linear relationship between PWM duty cycle and mean output current for a resistive, or near-resistive, load, analogous to the way LED dimmer drivers hold linear current against duty-cycle ([Pioreactor LED automations docs](https://docs.pioreactor.com/user-guide/led-automations); [PWM-to-current linearity](https://www.allaboutcircuits.com/news/LED-controller-linear-constant-current-control-high-current-diodes-inc/)). The intercept captures any non-zero current that flows at very low setpoints due to power-supply floor effects or cell conditioning. The model has been validated over roughly the 3-25% band; extrapolation below 3% is outside that range and must be treated with caution, and a negative extrapolated current has no physical meaning.
+The linear form follows from how the Pioreactor drives the channel. Pulse-width modulation (PWM) switches the output on and off at a fixed on-state, and averaged over each PWM period the mean current is the duty cycle times the on-state current. Because the intensity setpoint sets the duty cycle, mean current is proportional to intensity - the near-linear law is a consequence of duty-cycle averaging, not of the cell behaving as a resistor. An electrolytic cell is in fact non-ohmic: essentially no current flows below the decomposition voltage (~1.5-2 V), and above it the current follows a Tafel-type curve rather than Ohm's law, so the linearity comes from the drive electronics, not the load ([Pioreactor LED automations docs](https://docs.pioreactor.com/user-guide/led-automations); [PWM-to-current linearity](https://www.allaboutcircuits.com/news/LED-controller-linear-constant-current-control-high-current-diodes-inc/)). The intercept captures any non-zero current that flows at very low setpoints due to power-supply floor effects or cell conditioning. The model has been validated over roughly the 3-25% band; points below 3% (the 1 and 2% setpoints) and above 25% (the 28 and 30% setpoints) fall outside that band and are treated as extrapolated, to be interpreted with caution, and a negative extrapolated current has no physical meaning.
 
-The fitted slope and intercept feed Faraday's law to set volumetric H2 and O2 generation rates: the molar hydrogen rate is the Faradaic efficiency times current divided by two Faradays, and the molar oxygen rate is the Faradaic efficiency times current divided by four Faradays, with the Faraday constant 96 485 C mol-1 ([Faraday's laws of electrolysis, Wikipedia](https://en.wikipedia.org/wiki/Faraday%27s_laws_of_electrolysis); [quantitative electrolysis](https://scienceinfo.com/quantitative-electrolysis/)). A 1% error in current propagates directly to a 1% error in gas rate, which is why the measurement discipline matters.
+The fitted slope and intercept feed Faraday's law to set volumetric H₂ and O₂ generation rates: the molar hydrogen rate is the Faradaic efficiency times current divided by two Faradays, and the molar oxygen rate is the Faradaic efficiency times current divided by four Faradays, with the Faraday constant 96 485 C mol⁻¹ ([Faraday's laws of electrolysis, Wikipedia](https://en.wikipedia.org/wiki/Faraday%27s_laws_of_electrolysis); [quantitative electrolysis](https://scienceinfo.com/quantitative-electrolysis/)). A 1% error in current propagates directly to a 1% error in gas rate, which is why the measurement discipline matters.
 
-Electrode conditioning - gradual changes in surface state, oxide-layer growth and bubble coverage - causes the current at a fixed setpoint to drift during the first minutes of operation, so every measurement follows a defined settling period. For the budget method, the sense resistor's accuracy sets the accuracy of every current: a 1% error in its resistance becomes a 1% error in all readings, so a cheap 5%-tolerance component is not adequate. A 4-wire connection (optimal method) or a short, twisted sense-resistor lead (budget method) keeps lead resistance and inductive pickup out of the reading ([Tektronix, shunt resistors](https://www.tek.com/en/blog/measuring-current-using-shunt-resistors); [Firgelli current-sense calculator](https://www.firgelliauto.com/blogs/engineering-calculators/current-sense-resistor-calculator-measuring-current-with-a-shunt); [Analog Devices AN-105](https://www.analog.com/en/resources/app-notes/an-105fa.html)).
+Electrode conditioning - gradual changes in surface state, oxide-layer growth and bubble coverage - causes the current at a fixed setpoint to drift during the first minutes of operation, so every measurement follows a defined settling period. For the budget method, the sense resistor's accuracy sets the accuracy of every current: a 1% error in its resistance becomes a 1% error in all readings, so a precise (≤1% tolerance) component is essential and a cheap 5%-tolerance part is not adequate. A 4-wire connection (optimal method) or a short, twisted sense-resistor lead (budget method) keeps lead resistance and inductive pickup out of the reading ([Tektronix, shunt resistors](https://www.tek.com/en/blog/measuring-current-using-shunt-resistors); [Firgelli current-sense calculator](https://www.firgelliauto.com/blogs/engineering-calculators/current-sense-resistor-calculator-measuring-current-with-a-shunt); [Analog Devices AN-105](https://www.analog.com/en/resources/app-notes/an-105fa.html)).
 
-Things to watch for. A poor straight-line fit points to non-linearity from electrolyte depletion, gas-bubble occlusion on the electrodes, or thermal drift; refresh the electrolyte and hold the temperature stable (within 1 degC) across the sweep. Continued drift after settling means the electrodes are not conditioned or the electrolyte is contaminated; extend conditioning or replace the electrolyte. If the lowest setpoints (1-2%) sit at or below the channel's turn-on threshold they can pull the fitted intercept negative; these sub-3% points characterise the extrapolated region but should be treated separately. Curvature at the top of the range can mean the PWM driver is saturating, in which case the trustworthy range is the linear portion. Electrolyte conductivity, and hence cell current at fixed voltage, is temperature-dependent, so record the temperature alongside the run. Finally, mind the power budget: at about 3.3 V and 30 mA the cell dissipates roughly 0.1 W, and the LED/PWM channel has a limited continuous-current rating - confirm that rating before long runs at high setpoints ([Pioreactor external power docs](https://docs.pioreactor.com/user-guide/external-power)).
+Things to watch for. A poor straight-line fit points to non-linearity from electrolyte depletion, gas-bubble occlusion on the electrodes, or thermal drift; refresh the electrolyte and hold the temperature stable (within 1 °C) across the sweep. Continued drift after settling means the electrodes are not conditioned or the electrolyte is contaminated; extend conditioning or replace the electrolyte. If the lowest setpoints (1-2%) sit at or below the channel's turn-on threshold they can pull the fitted intercept negative; these sub-3% points, together with the 28 and 30% points above the validated band, characterise the extrapolated region and should be treated separately. Curvature at the top of the range can mean the PWM driver is saturating, in which case the trustworthy range is the linear portion. Electrolyte conductivity, and hence cell current at fixed voltage, is temperature-dependent, so record the temperature alongside the run. Finally, mind the power budget: at about 3.3 V and 30 mA the cell dissipates roughly 0.1 W, and the LED/PWM channel has a limited continuous-current rating - confirm that rating before long runs at high setpoints ([Pioreactor external power docs](https://docs.pioreactor.com/user-guide/external-power)).
 
 ## Sources
 

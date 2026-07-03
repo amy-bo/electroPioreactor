@@ -13,7 +13,7 @@ We require an optimal nutrient solution for HOB fermentation that is also approp
 
 While many standard and optimised formulations exist for general HOB fermentation, most contain compounds that would have deleterious consequences when subject to electrolysis, for example, evolving ammonia and chlorine, forming hypochlorous acid, etc.
 
-[LiteratureMedia.md](LiteratureMedia.md) discusses over 10 papers describing media used specifically for HOB fermentation with in-culture electrolysis.  Of these it explains the selection of [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252)'s 'Optimal Medium' as the basis for our media formulation. [MediaFormulation.md](MediaFormulation.md) goes on to explain how we derived the longer shelf life trace element solution below from this.
+Our companion literature review surveys over ten papers describing media used specifically for HOB fermentation with in-culture electrolysis. Of these, it selects [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252)'s 'Optimal Medium' as the basis for our medium formulation: it avoids the chloride and other species that would evolve chlorine or ammonia under electrolysis, and it is electrochemically stable. From that starting point we derived the longer shelf-life two-bottle trace element solution below, re-casting the trace metals into an acidified mineral stock and a separate acidified iron(II) stock so that each keeps for years.
 
 ## Macronutrients
 
@@ -27,7 +27,7 @@ Hydrogen should be the limiting nutrient, so its production will be maximised wi
 
 Oxygen is produced to excess at a rate that will cause accumulation that limits electrolysis unless purged by carbon dioxide.
 
-The carbon dioxide purge rate will be set with this, and hydrogen combustion risk reduction, in mind.  [See calculations](https://docs.google.com/spreadsheets/d/1Aeqz_CXZz-brBo-cXe8sFfjbX8h42vEcrhPH9bGLhIA/edit?gid=0#gid=0).
+The carbon dioxide purge rate is set with this, and hydrogen combustion risk reduction, in mind. The rate is derived in `electroPioreactorGasModel.xlsx`, which ships alongside this document; it is set per reactor from the measured oxygen-evolution rate and the sparge schedule rather than fixed here.
 
 ## Mesonutrients
 
@@ -37,49 +37,75 @@ The carbon dioxide purge rate will be set with this, and hydrogen combustion ris
 |---|---|---|
 | Disodium hydrogen phosphate | Na₂HPO₄ | 2.895 |
 | Sodium dihydrogen phosphate dihydrate | NaH₂PO₄·2H₂O | 3.060 |
-| Potassium sulfate | K₂SO₄ | 0.170 |
-| Calcium sulfate dihydrate | CaSO₄·2H₂O | 0.097 |
-| Magnesium sulfate heptahydrate | MgSO₄·7H₂O | 0.800 |
-| Ammonium sulfate | (NH₄)₂SO₄ | 0.943 |
+| Potassium sulphate | K₂SO₄ | 0.170 |
+| Calcium sulphate dihydrate | CaSO₄·2H₂O | 0.097 |
+| Magnesium sulphate heptahydrate | MgSO₄·7H₂O | 0.800 |
+| Ammonium sulphate | (NH₄)₂SO₄ | 0.943 |
 
-With trace elements given in 'Sydow Trace Nutrients in final media' below.
+With trace elements given in 'Sydow Trace Elements in final medium' below.
 
 ## Micronutrients / Trace Element Solution
 
-Our two-bottle trace element solution, [modified](MediaFormulation.md) from [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252) is made up in batches, at concentrations such that 0.050 mL of Mineral Solution and 3.40 mL of Iron Solution are added per 1.000 L of Mesonutrient solution.
+Our two-bottle trace element solution, modified from [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252), is made up in batches, at concentrations such that 0.050 mL of Mineral Solution and 3.40 mL of Iron Solution are added per 1.000 L of Mesonutrient solution.
 
 ### Mineral Solution
 
 | Component | Formula | Concentration (g/L in 0.2 M H₂SO₄) |
 |------------|----------|--------------------------------------|
 | Sodium molybdate dihydrate | Na₂MoO₄·2H₂O | 1.8 |
-| Zinc sulfate heptahydrate | ZnSO₄·7H₂O | 2.4 |
-| Manganese(II) sulfate monohydrate | MnSO₄·H₂O | 2.4 |
-| Copper(II) sulfate pentahydrate | CuSO₄·5H₂O | 0.48 |
-| Nickel(II) sulfate hexahydrate | NiSO₄·6H₂O | 1.5 |
-| Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 0.0402 |
+| Zinc sulphate heptahydrate | ZnSO₄·7H₂O | 2.4 |
+| Manganese(II) sulphate monohydrate | MnSO₄·H₂O | 2.4 |
+| Copper(II) sulphate pentahydrate | CuSO₄·5H₂O | 0.48 |
+| Nickel(II) sulphate hexahydrate | NiSO₄·6H₂O | 1.5 |
+| Cobalt(II) sulphate heptahydrate | CoSO₄·7H₂O | 0.0402 |
 
 ### Iron Solution
 
 | Component | Formula | Concentration (g/L in 0.2 M H₂SO₄) |
 |------------|----------|--------------------------------------|
-| Iron(II) sulfate heptahydrate | FeSO₄·7H₂O | 15.0 |
+| Iron(II) sulphate heptahydrate | FeSO₄·7H₂O | 15.0 |
 
 ### Storage and shelf life
 
 We anticipate that, if refrigerated at 4 °C in amber bottles (kept dark), the mineral solution may remain stable for multiple years (target >5 years), and the acidified iron solution for nearly as long (target >3 years) if the bottle headspace is purged with an inert gas (e.g. N₂ or Ar) after opening.
 
-### Sydow Trace Elements in final media
+### Sydow Trace Elements in final medium
 
 | Component | Formula | Concentration (g/L) |
 |---|---|---|
-| Iron(II) sulfate heptahydrate | FeSO₄·7H₂O | 0.051 |
-| Manganese(II) sulfate monohydrate | MnSO₄·H₂O | 1.2 ×10⁻⁴ |
-| Zinc sulfate heptahydrate | ZnSO₄·7H₂O | 1.2 ×10⁻⁴ |
-| Copper(II) sulfate pentahydrate | CuSO₄·5H₂O | 2.4 ×10⁻⁵ |
+| Iron(II) sulphate heptahydrate | FeSO₄·7H₂O | 0.051 |
+| Manganese(II) sulphate monohydrate | MnSO₄·H₂O | 1.2 ×10⁻⁴ |
+| Zinc sulphate heptahydrate | ZnSO₄·7H₂O | 1.2 ×10⁻⁴ |
+| Copper(II) sulphate pentahydrate | CuSO₄·5H₂O | 2.4 ×10⁻⁵ |
 | Sodium molybdate dihydrate | Na₂MoO₄·2H₂O | 9 ×10⁻⁵ |
-| Nickel(II) sulfate hexahydrate | NiSO₄·6H₂O | 7.5 ×10⁻⁵ |
-| Cobalt(II) sulfate heptahydrate | CoSO₄·7H₂O | 2.01 ×10⁻⁶ |
+| Nickel(II) sulphate hexahydrate | NiSO₄·6H₂O | 7.5 ×10⁻⁵ |
+| Cobalt(II) sulphate heptahydrate | CoSO₄·7H₂O | 2.01 ×10⁻⁶ |
+
+## Preparation
+
+_Verify against your local practice: exact steps and equipment depend on the lab; treat the following as the intended scheme, not a validated SOP._
+
+The medium is assembled from three separately prepared parts so that the heat-sensitive and precipitation-prone components are never autoclaved: an autoclaved base solution, a filter-sterilised mineral (trace-element) stock, and a filter-sterilised iron(II) stock. The two stocks are made up once in dilute acid and stored (see Storage and shelf life); only the base is made fresh for each batch.
+
+**Safety – trace-element salts.** The mineral stock salts, in particular NiSO₄, CoSO₄ and CuSO₄, are CMR (carcinogenic, mutagenic or toxic to reproduction) hazards, and are made up in dilute sulphuric acid (H₂SO₄). Weigh them wearing gloves inside a balance enclosure or fume hood, avoid raising dust, and wear the standard PPE for handling dilute acid (safety glasses, gloves, lab coat). Handle the CaSO₄ and MgSO₄ base salts with routine care.
+
+### Base (phosphate/salt) solution
+
+1. Dissolve the Mesonutrient salts – both phosphates, K₂SO₄, CaSO₄·2H₂O, MgSO₄·7H₂O and (NH₄)₂SO₄ – in most of the final volume of purified water, adding them one at a time and allowing each to dissolve before the next. Add the phosphates first, as they set the buffer; CaSO₄·2H₂O is only sparingly soluble and may need stirring and time.
+2. Make up to the working volume.
+3. Check the pH. The disodium/monosodium phosphate pair targets a near-neutral phosphate buffer of about pH 7.0; adjust if your salt lots pull it off target, and record the value. (The finished medium is not strongly pH-stable in use – see the note under Final Medium.)
+4. Autoclave the base solution (standard 121 °C liquid cycle) and allow it to cool to room temperature before adding the sterile stocks.
+
+### Mineral and iron(II) stocks
+
+1. Make up the Mineral Solution and the Iron Solution in 0.2 M H₂SO₄ at the concentrations tabulated above.
+2. **Filter-sterilise both stocks** (0.2 μm) into sterile bottles. **Do not autoclave them:** heating oxidises Fe²⁺ to Fe³⁺ and drives CaSO₄ and iron precipitation, so an autoclaved stock no longer delivers the intended soluble trace metals.
+3. Store as described under Storage and shelf life.
+
+### Combining
+
+1. To the cooled, sterile base solution, aseptically add the sterile stocks at the rates given above – 0.050 mL of Mineral Solution and 3.40 mL of Iron Solution per 1.000 L of base – and mix.
+2. The medium is then ready to use as both the growth medium and the electrolysis electrolyte. Add it to the reactor at the working volume for the build (about 15 mL for the 20 mL build, about 30 mL for the 40 mL build) and run at 30 °C.
 
 ## Final Medium
 
@@ -105,9 +131,9 @@ We anticipate that, if refrigerated at 4 °C in amber bottles (kept dark), the m
 | Chlorine | Cl | - |
 | Carbon | C | - |
 
-_<sup>*</sup>_ We believe that [Sydow et al. (2017)'s Supporting Information](https://analyticalsciencejournals.onlinelibrary.wiley.com/action/downloadSupplement?doi=10.1002%2Felsc.201600252&file=elsc999-sup-0001-SuppMat.docx)'s calculation has carried forward the Ni₂SO₄·6H₂O typo and the actual concentration of Ni would be 1.67 ×10⁻⁵. While we don't anticipate this impacting their results further investigation may be prudent.
+_<sup>*</sup>_ We believe that [Sydow et al. (2017)'s Supporting Information](https://analyticalsciencejournals.onlinelibrary.wiley.com/action/downloadSupplement?doi=10.1002%2Felsc.201600252&file=elsc999-sup-0001-SuppMat.docx)'s calculation has carried forward the Ni₂SO₄·6H₂O typo, and that the actual concentration of Ni would be 1.67 ×10⁻⁵. We do not anticipate this affecting their results. Further investigation may nonetheless be prudent.
 
-Their media was also supplied with 200 μg/mL kanamycin for pEG7c maintenance, it is assumed that this will not be required with our strains.
+Their medium was also supplied with 200 μg/mL kanamycin for pEG7c maintenance. We assume this will not be required with our strains.
 
 They also note the following:
 
