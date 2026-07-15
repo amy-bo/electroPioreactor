@@ -94,10 +94,6 @@ git clone https://github.com/amy-bo/electroPioreactor.git
 ```
 
 ```bash
-git -C electroPioreactor checkout AEP-Plugin
-```
-
-```bash
 /opt/pioreactor/venv/bin/pip install ./electroPioreactor/AEP-Plugin
 ```
 
@@ -106,6 +102,8 @@ git -C electroPioreactor checkout AEP-Plugin
 ```
 
 The last line should print `Version: 0.6.6` (or later).
+
+> ℹ️ **Worker-only units stop here.** Steps 3–6 set up the web UI and `config.ini`, which live on the **leader**. A worker has no web UI of its own and receives its `config.ini` from the leader when you add it to the cluster, so running these steps on a worker fails with `Configuration file at .../config.ini is missing`. Install the plugin (step 2), then add the unit from the leader's **Inventory** – the leader's UI descriptor and config reach the worker through the cluster. Run steps 3–6 only on a **Leader** or **Leader + Worker** unit.
 
 ### 3. Deploy the UI job descriptor
 
