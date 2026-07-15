@@ -152,10 +152,15 @@ class TestCasePreservation:
 
         parsed = _read_preserving_case(cfg)
         assert parsed["PWM"]["4"] == "relay"
-        assert parsed["electropioreactor.config"]["electrolysis_power"] == "2.5"
-        assert parsed["electropioreactor.config"]["sparge_duration_seconds"] == "10.0"
-        assert parsed["electropioreactor.config"]["sparge_interval_minutes"] == "60.0"
-        assert parsed["electropioreactor.config"]["od_pause_after_sparge_seconds"] == "5.0"
+        sec = parsed["electropioreactor.config"]
+        assert sec["led_channel"] == "D"
+        assert sec["electrolysis_power"] == "2.5"
+        assert sec["electrolysis_on_seconds"] == "60.0"
+        assert sec["electrolysis_off_seconds"] == "0.0"
+        assert sec["od_pause_after_electrolysis_seconds"] == "5.0"
+        assert sec["sparge_duration_seconds"] == "10.0"
+        assert sec["sparge_interval_minutes"] == "60.0"
+        assert sec["od_pause_after_sparge_seconds"] == "5.0"
 
     def test_existing_pwm_4_non_relay_still_refused(self, tmp_path, monkeypatch, capsys):
         # The v0.6.6 PWM-4 guard must survive the case-preservation refactor.

@@ -33,14 +33,19 @@ earlier in the session does NOT carry. Each actuation needs its own yes.
 
 ## What this plugin does
 
-Drives electrolysis via LED channel D and periodically opens a CO₂ solenoid on PWM channel 4.
-Electrolysis is paused during each sparge. All three settings are user-configurable at runtime
-via the Pioreactor Advanced modal.
+Drives electrolysis on the configured LED channel (default D), cycling it ON/OFF on a
+user-defined schedule (`electrolysis_on_seconds` / `electrolysis_off_seconds`; off=0 =
+continuous), and periodically opens a CO₂ solenoid on the configured PWM channel (default 4).
+Electrolysis is paused during each sparge. OD reading is paused around each electrolysis ON
+phase (plus `od_pause_after_electrolysis_seconds`, which may be negative — see
+`od_pause_window_seconds`) and, independently, around each sparge. All numeric settings are
+user-configurable at runtime via the Pioreactor Advanced modal; `led_channel` is a config-only
+hardware binding.
 
 ## Hardware connections
 
-- Electrode pair → LED channel D
-- CO₂ solenoid → PWM channel 4
+- Electrode pair → configured LED channel (`[electropioreactor.config] led_channel`, default D, A/B/C/D)
+- CO₂ solenoid → configured PWM channel (`[PWM] N = relay`, default 4)
 
 ## Development setup
 
@@ -84,7 +89,13 @@ install off a local checkout is convenient:
 
 The Advanced modal hard-refresh symptom was fixed upstream in
 [Pioreactor/pioreactor#615](https://github.com/Pioreactor/pioreactor/pull/615)
-(merged 2026-04-30, will ship in 26.4.5). On Pioreactor 26.4.4 or earlier,
-the README's install path applies a pre-built static-bundle hot-patch from
-`AEP-Plugin/transitional/pioreactor-static-pr615.tar.gz` so the plugin's
-Advanced modal works without a hard-refresh on those versions too.
+(merged 2026-04-30), which shipped in Pioreactor 26.5.0 (2026-05-07).
+
+This plugin now simply **requires Pioreactor ≥ 26.5.0** (declared as the
+minimum in `setup.py` / the README compatibility section). The earlier
+transitional hot-patch flow — which applied a pre-built static-bundle from
+`AEP-Plugin/transitional/pioreactor-static-pr615.tar.gz` to patch the UI on
+26.4.4-or-earlier units — was **removed in v0.6.6**, along with the
+`transitional/` directory. We don't patch users' systems behind their backs;
+the remedy on an older unit is to run `pio update` to reach 26.5.0+ before
+installing this plugin.

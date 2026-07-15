@@ -4,28 +4,59 @@ job_name: electropioreactor
 display: true
 source: app
 description: >
-  Drives electrolysis via LED channel D and periodically sparges CO2 via a
-  solenoid on PWM channel 4. Connect your electrode pair to LED channel D and
-  your CO2 solenoid to PWM channel 4. Electrolysis is paused during each
-  sparge cycle and resumed immediately afterwards.
+  Drives electrolysis on the configured LED channel (default D) and periodically
+  sparges CO2 via a solenoid on the configured PWM channel (default 4). Connect
+  your electrode pair to the configured LED channel and your CO2 solenoid to the
+  configured PWM channel. Electrolysis cycles ON/OFF on a user-defined schedule
+  and is also paused during each CO2 sparge cycle.
 published_settings:
   - key: electrolysis_power
     unit: "%"
     label: Electrolysis Power
     description: >
-      Power level for electrolysis as a percentage (0-10%) of LED channel D
-      full power. Values above 10 are clamped to 10 at runtime. Connect your
-      electrode pair to LED channel D. Set to 0 to disable electrolysis while
-      keeping CO2 sparging active.
+      Power level for electrolysis as a percentage (0-10%) of the configured LED
+      channel's full power. Values above 10 are clamped to 10 at runtime. Connect
+      your electrode pair to the configured LED channel (default D, set via
+      led_channel in config.ini). Set to 0 to disable electrolysis while keeping
+      CO2 sparging active.
+    type: numeric
+    display: true
+  - key: electrolysis_on_seconds
+    unit: s
+    label: Electrolysis ON Time
+    description: >
+      How long (in seconds) electrolysis stays ON during each ON/OFF cycle.
+      Mid-cycle changes apply to the next phase, not the in-flight one.
+    type: numeric
+    display: true
+  - key: electrolysis_off_seconds
+    unit: s
+    label: Electrolysis OFF Time
+    description: >
+      How long (in seconds) electrolysis stays OFF between ON phases. Set to 0
+      for continuous electrolysis (no OFF phase). Mid-cycle changes apply to the
+      next phase.
+    type: numeric
+    display: true
+  - key: od_pause_after_electrolysis_seconds
+    unit: s
+    label: OD Pause After Electrolysis
+    description: >
+      How long (in seconds) after each electrolysis ON phase ends before OD
+      reading resumes – i.e. the settle window after electrolysis. Negative
+      values resume OD reading before the ON phase ends (OD is measured during
+      electrolysis). A value less than or equal to the negative of the
+      electrolysis ON time disables this OD pause entirely (OD measured
+      throughout electrolysis).
     type: numeric
     display: true
   - key: sparge_duration_seconds
     unit: s
     label: Sparging Duration
     description: >
-      How long (in seconds) the CO2 solenoid on PWM channel 4 is held open
-      during each sparging cycle. Electrolysis is paused for this duration.
-      Mid-sparge changes apply to the next cycle, not the in-flight one.
+      How long (in seconds) the CO2 solenoid on the configured PWM channel is
+      held open during each sparging cycle. Electrolysis is paused for this
+      duration. Mid-sparge changes apply to the next cycle, not the in-flight one.
     type: numeric
     display: true
   - key: sparge_interval_minutes
@@ -50,8 +81,8 @@ published_settings:
   - key: reset_to_defaults
     label: Reset to Defaults
     description: >
-      Toggle on to reset Electrolysis Power, Sparging Duration, Sparging
-      Interval, and OD Pause After Sparge to the values defined in config.ini.
-      The toggle resets itself automatically after applying.
+      Toggle on to reset all electrolysis and sparging settings to the values
+      defined in config.ini. The toggle resets itself automatically after
+      applying.
     type: boolean
     display: true
