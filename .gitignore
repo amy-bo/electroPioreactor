@@ -10,3 +10,10 @@ __pycache__/
 .claude/
 .vibe/
 MCTests/
+# local scratch / session dirs (not for commit)
+.vss/
+.worktrees/
+scratchpad/
+scratch_co2/
+MixedElectroPioreactor/CHANGELOG.md
+MixedElectroPioreactor/Review.md
