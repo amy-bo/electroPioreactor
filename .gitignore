@@ -17,3 +17,14 @@ scratchpad/
 scratch_co2/
 MixedElectroPioreactor/CHANGELOG.md
 MixedElectroPioreactor/Review.md
+
+# Confidential / private working folders - never commit
+Martin/
+private-notes/
+
+# Local per-machine state and nested clones
+.vibe-repos
+aep/
+
+# Office (Excel/Word) owner/lock temp files
+~$*
