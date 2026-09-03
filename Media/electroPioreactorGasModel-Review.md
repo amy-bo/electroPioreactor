@@ -10,6 +10,375 @@ It sizes CO₂ dosing and O₂ management for an aseptic electro-bioreactor grow
 
 ---
 
+# Wave-4 review (2026-08-12) — workbook at `091ca50`
+
+Scope: the whole workbook (8 sheets, 394 defined names, 695 formula cells) plus the two Python
+companions, reviewed along four independent dimensions (chemistry; mass transfer + biology;
+geometry/electrochemistry/flows/calibrations; cross-cutting integrity and house rules). Live
+selector state behind every cached value: ed04 / Pt-Ti rod / UdG (mixed) / UdG phosphate,
+LED 3 %, stir **1000 rpm**, T **25 °C**.
+
+Nothing below is an arithmetic error. Every cached value in the workbook reproduces from its own
+formula; the headline chain (I_app → H₂/O₂ generation → O₂ surplus → duty floors → interval and
+pulse → Summary D13/D15) re-derives from first principles to machine precision. The findings are
+modelling-logic, wiring, provenance and verification-harness defects.
+
+## Blockers — these change a headline number or a safety verdict
+
+**B1. The 375 %-uncertain surface-kLa proxy still decides the headline interval — through a branch
+instead of a subtraction.** `Mass Transfer!D91` is
+`IF(spg_int_regime="SURFACE-HELD", spg_int_carbon, MIN(…, spg_int_max))`, and `spg_int_regime`
+(D134) is computed *from* `kLa_surf_used`. So the structural fix recorded in the 2026-06-26 wave
+(withhold the surface credit inside the guards, `O2_src_guard` = `O2_net_gen`) is satisfied in
+letter and defeated in effect: the shipped interval is **181.07 min against a 3.09 min O₂-limited
+fallback, a factor 58.5**. Two further problems compound it:
+
+- D134 tests `DO_ss_sawtooth` (D133, the *steady* surplus source) even though `E133`/`E134`/`E135`
+  all state the shipped guard sizes on the **lag** source. On the lag basis (D135) the SURFACE-HELD
+  verdict survives by only **×1.42** — inside the stated kL_surf uncertainty; at the operating point
+  the sheet's own notes and the Python twin are written for (500 rpm, 30 °C) the lag criterion
+  **fails** while the shipped steady criterion still reads SURFACE-HELD.
+- `E89` says the fallback "applies only if measured kL_surf < kL_surf_crit (D131)". D91 never
+  references D131, and D131 is `#N/A` because `DO_impair` is a data gap — the gate does not exist.
+
+**B2. The O₂ safety guard is sized on a default that appears only because the organism data is
+missing.** `target_DO_frac` (D84) falls back to **0.5** when `DO_opt`/`DO_toxic` are `#N/A` — which
+they are for every organism except partial *C. necator*. For the one organism with data the true
+ratio is 3/11.5 = **0.26**, so the fallback is ~1.9× *less* protective, and it scales `spg_int_max`
+and 1/`duty_O2vent` linearly. Summary D34 does flag the gap; the number in use is still the
+optimistic one, and `E84` reads "Input." on a formula and never mentions the fallback.
+
+**B3. No gas-phase O₂ back-pressure anywhere in the surface path** (`D73`, `D108`, `D131`, `D133`,
+`D135` all write flux = kLa·C, i.e. C\*_headspace ≡ 0). `D108` therefore predicts steady DO
+**1.372 mg/L**, below air saturation (8.15 mg/L at 25 °C from the sheet's own Henry constant) — and
+the real headspace between pulses is electrolytic gas at roughly 54 % H₂ / 27 % O₂ / 18 % CO₂, i.e.
+*worse* than air. The same sheet carries the analogous floor on the CO₂ side (`C_air_CO2`, D146,
+bounding D162), so the asymmetry is internal. With an air-equilibrium floor the regime flips to
+SPARGE-NEEDED, which is B1's other branch.
+
+**B4. The dissolved-CO₂ sawtooth is not mass-conserving, by 2.4×.** The two-compartment closed form
+(D151–D162) lets the headspace vent at `k_vent` independent of what the liquid absorbs. Peak liquid
+CO₂ during the gap is **17.42 mol/m³ at t ≈ 205 s = 2.61e-4 mol dissolved**, against **1.068e-4 mol
+delivered per pulse** (`CO2_pulse`, which by construction equals the entire headspace inventory
+`n_hs_gas`). Liquid capacity at `C_sat` is 4.7× the whole headspace inventory, so the missing
+depletion feedback is not a small correction. This sets `CO2aqc_ss` → Chemistry D5 → the endpoint pH
+on Summary D35.
+
+**B5. `Chemistry!D148` (`n_e_Cl`) asserts a 1-electron oxidation that cannot happen.** Chlorine goes
+Cl(−I) → Cl(+I): two electrons per HOCl on either route. The chloride-arrival-limited current in
+D132 correctly uses n = 1 *per arriving chloride*; D134 then divides by that same 1 instead of the
+2 electrons per HOCl formed. Correct form is `P_HOCl = I_Cl/(2·F·V)` unconditionally, and D148 is
+redundant. Recomputed: P_HOCl 7.729e-8 → **3.865e-8 mol/L/s**, C_eff 0.378 → **0.292 mg/L**
+(Summary D36). The verdict text ("sub-lethal") does not change. Note `E134` already states the
+correct 2F form, so note and formula disagree; the CHANGELOG records this as a fix correcting a
+"~2× under-count" — it is a regression.
+
+**B6. The pH solve uses infinite-dilution constants at I = 0.112 M.** Ionic strength at the root,
+computed from the full UdG speciation, is 0.112 M; Davies-corrected conditional constants move the
+same charge balance from **7.376 to ≈7.16** (phosphate pKa2 7.20 → 6.76 — the textbook "phosphate
+buffer is 6.8 at physiological ionic strength"). Nothing in column E discloses the assumption.
+`pH_band_flag` stays green either way; MC02 would land near 6.8. Note this partly offsets B4, which
+pushes the modelled pH the other way.
+
+**B7. The measured-kLa path is 3600× wrong.** `Calibrations!C46` labels `cal_kLa` **1/s**;
+`Mass Transfer!C97` labels `kLa_meas` **1/h** and `D98` divides by 3600. A researcher who follows the
+header and enters s⁻¹ has it divided by 3600 again — corrupting precisely the measurement that
+Summary improvement #1 ("HIGH … the single biggest lever") exists to feed.
+
+**B8. Two calibration routes are dead, and the protocols tell researchers to use them.**
+`cal_flow` (`Calibrations!D60`) is referenced by no formula anywhere — the flow actually used comes
+from the `CO2 flows` sheet by raw range (`Mass Transfer!D117`) — while `protocols/flow-calibration.md`
+states the Calibrations entry "feeds both the CO₂ dosing flow rate and the minimum sparge time".
+Likewise the vial-geometry headspace masses (`Calibrations!D66:D73`) are collected and discarded:
+`headspace_V` is still inferred from the modelled insert budget, which is the thing
+`protocols/vial-geometry.md` says the measurement exists to replace. Separately, `Calibrations!D60`
+and `D89` contain **`_xludf.MAXIFS`** — the unknown-user-function prefix, which Excel resolves as
+`#NAME?`; both are swallowed by `IFERROR`, so a completed calibration silently changes nothing.
+
+**B9. The Summary selectors have no data validation at all.** There is not a single
+`<dataValidation>` element on any sheet except Calibrations (four). Summary F2/F3 say "Choose from
+the values below. Dropdown." and there is no list below. A mistyped reactor, electrode, organism or
+medium produces an `#N/A` cascade rather than being blocked — the "error by design" the house rules
+require is only in the IF-chains, not at the input. Related: `ReactorList` = `Geometry!$A$59:$A$70`
+is stale against the 22-row reactor table, so ten reactors (ed07, ed08, imp07–imp12, nm01, nm02)
+cannot be entered in any calibration table even though Summary accepts them.
+
+## Wrong but contained
+
+- **`Mass Transfer!E76` states the opposite of what its own cell computes.** `DO_vent_eq` = **405.3 µM**
+  against the 364.77 µM ceiling — the kL-independent vent leg does *not* hold DO under the ceiling —
+  while E76 reads "~8.9 uM … well below the ~336 uM inhibition ceiling … a comfortable backstop".
+  Both figures are unreproducible at the live state. This is the wave-1 H-4 mislabel, fixed in the
+  formula and re-introduced in the note.
+- **`Electrochemistry!D45` takes the submerged electrode length from `elec_sub_L`** (defined at the
+  bare datum and labelled "For displacement bookkeeping"), not from the achieved level `h_actual`.
+  Wetted area 2.1445 cm² instead of 2.0134 cm² (**+6.5 %**), so every current density reads 6.5 % low.
+  Verdicts hold today; a case just under `j_opt_strain` would be reported green when it is amber.
+- **`spg_int_max` is an accumulation timescale presented as a removal guard.** `E89`'s premise is
+  "sparge vents all O₂", i.e. each pulse resets DO to zero. One pulse removes 7.8 % of the steady
+  accumulation and 2.6 % of the lag accumulation; balancing the lag source would need a 4.8 s
+  interval, 39× shorter than the 3.09 min the cell reports.
+- **`duty_opt` is vestigial in the shipped branch, and `E88` claims otherwise.** `duty_opt` = 7.22e-4
+  (O₂-vent-bound), but the recommended schedule runs at `duty_actual` = 7.22e-5 — one tenth of the
+  "least feasible CO₂" floor — because D91 bypasses duty entirely under SURFACE-HELD. E88 asserts
+  "O₂-venting now binds … true post-fix" while D94 reports "CARBON (surface holds DO)".
+- **`Calibrations!I23` omits the water-vapour correction its own protocol mandates**
+  (`faradaic-efficiency.md`: "n = (P_total − P_water)V/RT … significant"). etaF biased **high by
+  3.1 % at 25 °C / 4.2 % at 30 °C**, and the protocol treats etaF > 1 as the signature of a broken
+  measurement.
+- **`Electrochemistry!D18` (`etaF`) is a pink DATA-GAP cell returning an invented 1.0**, propagating
+  into `rH2_gen`, `O2_cathode_ORR` (forced to zero) and every O₂ figure. The correct pattern is two
+  sheets away: `Chemistry!D158` is left genuinely empty and guarded by `ISNUMBER`.
+- **`C_eff` is entirely chloride-pool-bound, so it does not "scale with current" as `E145` says.**
+  `NH2Cl_mgL` = MIN(14.60, 504.2, **9.454**) — the pool cap binds and combined chlorine is 99.97 % of
+  C_eff, leaving `km_Cl`, `A_anode`, `FE_CER` and `I_app` numerically inert at this operating point.
+  The block also mixes mass bases inside one `MIN()`: two arguments are mg/L as HOCl (52 460 mg/mol),
+  `5.06·NH3_N` is definitionally as Cl₂, and the 0.1/2 mg/L thresholds are free-chlorine values
+  conventionally reported as Cl₂ (≈1.35× understated).
+- **`Chemistry!D137` (`pKa_NH4` = 9.25) is not van 't Hoff corrected** while `Ka_NH4` (D18) is, so the
+  sheet uses two different ammonium pKa's simultaneously. Harmless at 25 °C; at 30 °C `NH3_free` is
+  1.4× understated.
+- **`Summary!D14`/`D16` return `#VALUE!` for an uncalibrated reactor.** D13/D15 fall back to the text
+  "calibrate this reactor first…", and `IF(D13>0.5, ROUND(D13,0), …)` takes the ROUND-of-text branch
+  (text sorts above any number in Excel). No `IFERROR` wrapper, and the conditional formatting cannot
+  fire either.
+- **17 `#DIV/0!` cells on the Calibrations tab** with no rows included, contradicting its own A3 note
+  ("the model falls back to its built-in default"). Every consumer is `IFERROR`-wrapped, so it is
+  cosmetic — but it is what a researcher opening the tab sees first.
+- **`CO2 flows`!J4 = 3.33 mL/s** — the single 15 s run — sets the whole schedule, while every
+  sub-second run in the same session reads 3.83–5.20 mL/s and the pulse it computes is 0.78 s. The
+  pulse spans 0.50–0.79 s across those values. The conservative pick may be right; no rule in the
+  sheet states it, and the eight per-run averages in column H are consumed by nothing.
+- **`Biology!D44`'s EXPLOSIVE flag is not an explosivity test** — it compares a dissolved-pool
+  turnover rate to 1 h⁻¹. It happens to be right everywhere reachable (turnover ≤ 1 needs I ≤ 0.64 mA
+  and Gerrit's Law floors I at 2.6 mA), and the "safe" branch is `"watch"`, never green — but the
+  criterion is a proxy, and `D19` returning 2.6 mA at 0 % intensity means "electrolysis off" still
+  generates gas downstream.
+
+## Verification harness — both Python companions are detached from the workbook
+
+- `electroPioreactorGasModel.py` prints **"92/92 outputs match the spreadsheet within 0.5 %"** against
+  **hard-coded literals**, not the workbook. Those literals were captured at 500 rpm / 30 °C; the
+  workbook has been at 1000 rpm / 25 °C since 2026-06-26. Compared against the workbook's actual
+  cached values, 43 of the 92 literals disagree — up to 41 % (`DO_ss`), 50 % (tip speed), 12 %
+  (carbon margin). Re-run at the workbook's live inputs it scores **86/92**, and the four substantive
+  misses are real: line 605 hard-codes `A_anode = 5` where `Chemistry!D130` now imports the
+  shape-aware 2.144 cm² (P_HOCl 2.33× out), and `pH_band_flag` returns "above optimum" on the
+  `pH < 6.5` branch. It is also a line-by-line transcription with cell refs in the comments, so it
+  cannot function as an independent check even when current.
+- `electroPioreactorGasModel-sensitivity.py` still implements the **superseded surf_strip-credited
+  guards** (its own comment says so) at 500 rpm, and prints `pulse_floor` where it means the computed
+  pulse ("0.25 s pulse" vs the model's 0.78 s). Every percentage in the Summary Improvements table —
+  the 375 % on kL_surf, 106 % on vial volume, 100 % on etaF, 43 % on etaF_OER, 27 % on pulse_floor —
+  comes from that superseded model, so the improvement ranking is not the current model's ranking.
+
+## Operating state and documentation drift
+
+- The workbook sits at **25 °C**, while `README.md`, `protocols/README.md` ("Run temperature — 30 °C")
+  and `dissolved-oxygen.md` (7.54 mg/L span, 30 °C compensation) all specify 30 °C, `Biology!E17`
+  says "C. necator optimum ~30 °C", and `Biology!E21` justifies the Henry constant by what it
+  "reproduces … at 30 degC". Three artefacts now disagree on the operating point: workbook
+  25 °C/1000 rpm, twin 30 °C/500 rpm, protocol pack 30 °C.
+- **Three water properties are frozen at 30 °C while T is live**: `sigma` (0.0712 N/m), `rho_L`
+  (995.65), `D_O2` (2.249e-9). At 25 °C the Han & Bartels fit the sheet itself cites gives
+  D_O2 = 1.998e-9 — **12 % high**, so `kL_surf` (∝ √D) is **6 % high**, biasing the very margin in B1.
+- The wave-1 status table above still lists H-2/H-3/H-4 as OPEN, and its headline numbers
+  (178 min, DO 1.94 mg/L, pH 6.31, HOCl 8.88 mg/L, margin 586×) no longer match the file
+  (181 min, 1.37 mg/L, 7.38, superseded, 669×).
+- Stale in-sheet cross-references: `E107`/`E125` name "Cl2_prod (D134)" and "free_HOCl (D139)" —
+  neither name exists (D134 is `P_HOCl`, D139 is `HOCl_ss`); `E132` says "~0.26 mA" where D132 is
+  0.112 mA (0.26 mA is the retired 5 cm² anode); `E89`/`E132`/`E134` cite "the shipped 2.85-min cap"
+  where D89 is 3.09 min and is not shipped; `E128` says "~100 % >50 mM" of a cell holding 0.5;
+  `E107`/`E125` claim "~40× overstatement" where the as-written ratio is 25.4×.
+
+## House-rule hygiene (CLAUDE.md)
+
+- **Colour conventions.** Summary D2:D8 — the seven cells a user is actually meant to edit — carry no
+  blue input font, along with ~25 further hand-entered cells. Purple (fixed-constant) font sits on
+  three formula cells (`Electrochemistry!D11`, `D12`, `Chemistry!D130`). The two headline ANSWER cells
+  (`Mass Transfer!E90`–`E92`) use a fill outside the six-level legend, so their confidence is
+  unreadable. Pink `FFFFC7CE` means DATA GAP in one Summary key and "Problem" in the other, and
+  `Biology!E44` deliberately reuses it for hazard.
+- **Data-gap flags on dead cells.** `Geometry!D16/D17` carry the pink flag and are, by their own
+  notes, read by no formula; the values actually consumed (reactor-type table `F84:F87`, `D84:D87`,
+  `G84:G87`) carry no confidence fill and no source at all.
+- **Provenance.** ~28 named cells have no column-E note (including `DO_ss`, `spg_dur`, `spg_int`,
+  `CO2_sd_ratio`, and all four organism DO thresholds); `Mass Transfer!E99`–`E106` all read
+  "From Dosing." — including two handbook constants and a design assumption.
+- **Reference by name.** 58 cross-sheet references sit outside the sanctioned import blocks
+  (Summary's entire results/checks block, 35 of them), and every lookup table is addressed as a raw
+  range with a positional column index — inserting one column into `Geometry!$A$84:$I$87` or
+  `Electrochemistry!$A$35:$N$38` silently corrupts every dependent value, which is exactly what the
+  "cell position is irrelevant" rule exists to prevent.
+- **Embedded data.** `52460` in seven Chemistry formulas; `5.06` and `14007`; `298.15` in the van 't
+  Hoff row; the Gerrit fit constants 1.03 / 2.6 inside `IFERROR`; the knallgas 6/2/1 fallbacks;
+  `32` (O₂ g/mol), `1.5` (shear limit), `5` (OD window), `0.5` (target-DO fallback), `9999` sentinels
+  in Mass Transfer; `8.314`, `96485`, `273.15` and a water-density polynomial in Calibrations —
+  where `R_gas` and `F_const` exist as named cells and disagree in the 5th digit.
+- `R_gas` is defined twice with different values (`Chemistry!D9` = 8.314, `Mass Transfer!D101` =
+  8.3144626180). Six media-composition cells (`Chemistry!C25, C28, C33, D27, D29, D30`) hold a value,
+  carry no name, and appear in no SID/PT formula — a future non-zero entry there is silently ignored.
+- **Hyperlinks.** 5 of 63 internal links point at the wrong cell: `Summary!E36` → `Chemistry!D139`
+  where the value comes from `D145`, and a consistent off-by-one-row drift on `Geometry!E5`,
+  `Electrochemistry!E8`, `Biology!E7`, `Biology!E8`.
+- **Conditional formatting.** Four rules sit on numeric cells that cannot satisfy them while the
+  verdict they were written for is unformatted (`Electrochemistry!D13` vs `D20`; `Biology!D37` vs
+  `D44`; `Mass Transfer!D35` vs `D59`; `Mass Transfer!D72` vs `D95`); Geometry's only CF is on lookup
+  cells while `geom_check` has none; Chemistry has no CF at all despite three verdict cells;
+  `Summary!D26`'s passing state ("×2.0 OK") matches no rule.
+- `calcPr` carries no `fullCalcOnLoad`, and `_xludf.MAXIFS` plus the `#DIV/0!` caches show the last
+  write came from a non-Excel engine.
+
+## Changes applied (2026-08-12) — `electroPioreactorGasModel-wave4.xlsx`
+
+The fixes were applied to a **copy**, `Media/electroPioreactorGasModel-wave4.xlsx`, because a
+`~$electroPioreactorGasModel.xlsx` lock file shows the live workbook is open in Excel and the house
+rule is one editor at a time. Close Excel, check the new file, then swap it in:
+
+```
+mv Media/electroPioreactorGasModel-wave4.xlsx Media/electroPioreactorGasModel.xlsx
+```
+
+Every changed formula ships with its cached value dropped and `fullCalcOnLoad` set, so Excel
+recomputes the whole book on open; `calcChain.xml` was removed and rebuilds itself. New parameters
+were appended at the bottom of each sheet, which is what the cell-discipline rule sanctions.
+
+### The electrochemistry is now calculated rather than asserted
+
+This is the substantive change. The sheet previously contained no electrochemistry beyond Faraday
+bookkeeping on an empirical current fit: both faradaic efficiencies were set to 1, no electrode
+potential or cell voltage existed anywhere, and the peroxide the sheet's own 2-electron oxygen
+reduction implies was not modelled at all.
+
+- **Cathodic faradaic efficiency** (`Electrochemistry!etaF_calc`) is computed from the oxygen that
+  competes for the cathode current: `i = n·F·k_m·C·A` at the design dissolved-O₂ level, with k_m from
+  the Eisenberg–Tobias–Wilke correlation. **0.974** at the operating point, **0.900** if DO ever ran
+  to the inhibition ceiling. `etaF` now falls back to this instead of to 1, so the net-O₂ chain is
+  self-consistent for the first time.
+- **Anodic faradaic efficiency** is `1 − chlorine share − metal-dissolution share`; chlorine takes
+  **2.5%** of the anodic current at the chloride mass-transport limit, giving **0.975**. It is still
+  an upper bound while the metal-dissolution charge is a data gap — and that is now stated rather
+  than hidden behind a "chloride-free medium" note on a medium that contains chloride.
+- **Hydrogen peroxide** (new block): the 2-electron branch of that cathodic oxygen reduction produces
+  **0.94 mg/L/h**. A growing culture clears it — catalase gives a ~3 min half-life at 10⁸ cells/mL,
+  so the steady value is 0.064 mg/L against a 0.17 mg/L growth-inhibition threshold. **Lag phase does
+  not**: with no biomass to scavenge, peroxide passes that threshold in **11 minutes**. That is a
+  previously unmodelled, quantified stressor in the exact window where the culture is most exposed,
+  and it is a candidate explanation for the Exp-2 death alongside metal leaching. Precedent: Torella
+  2015 (PNAS 112:2337) and Liu 2016 (Science 352:1210) ran this architecture and changed cathode
+  material because reactive oxygen and metal leaching poisoned the culture.
+- **Cell-voltage budget** (new block): reversible 1.229 V + anodic Tafel overpotential 0.894 V +
+  cathodic 0.459 V − 0.15 V phosphate-buffer credit + 0.83 V ohmic drop = **3.26 V against the 5 V
+  rail**. The ohmic term comes from a Kohlrausch conductivity sum over the medium recipe
+  (**0.71 S/m**) and a parallel-cylinder resistance. This is a **testable prediction**: put a meter
+  across the electrodes. It also explains, independently, why Gerrit's Law is only validated to 25%
+  intensity — the budget runs out of headroom in that region.
+- **Electrode potentials at the operating pH**: chlorine evolution needs **0.74 V more** anodic
+  potential than oxygen evolution at this chloride level, so the chlorine current is a generous upper
+  bound; an O₂-evolving anode sits **0.50 V above** the Cu²⁺/Cu equilibrium, so copper dissolution is
+  thermodynamically allowed — which is what the corrosion suspicion needed.
+- **Electrode-surface pH** (new): the phosphate buffer's proton-acceptor flux limits the current
+  density to about **2.8 mA/cm²** at the modelled 40 µm diffusion layer — and the cell runs at
+  **2.83 mA/cm²**, i.e. the verdict cell reads **BUFFER EXCEEDED**. The anode surface acidifies away
+  from the bulk pH by an estimated 0.4–1.0 unit, which also pushes it off the phosphate-saturated
+  regime that makes neutral-pH oxygen evolution kinetically cheap, so the two effects compound. The
+  verdict flips across the factor-of-two uncertainty on the diffusion-layer thickness, so it is
+  undetermined until the mass-transfer measurement is done — but "undetermined, and sitting on the
+  line" is a far more useful statement than the silence it replaces.
+
+### The model corrections that followed
+
+- **Dissolved O₂ now has a headspace back-pressure term.** Surface stripping can only move oxygen
+  into the headspace, so DO cannot fall below equilibrium with it: `DO = H·y_O2·P + surplus/(kLa·V)`.
+  The old form assumed an oxygen-free headspace and so predicted a steady DO *below air saturation*
+  in a vessel whose headspace runs about a tenth oxygen.
+- **That dissolves the whole SURFACE-HELD/SPARGE-NEEDED branch.** The floor term is set by the CO₂
+  flush rate, not by the stirring, so the sparge schedule — not kL_surf — governs dissolved oxygen.
+  The interval is now the shortest of the carbon-supply bound (181 min) and the oxygen-dilution bound
+  (**16.5 min**), and kL_surf moves the answer continuously instead of switching which formula runs.
+  At the previously recommended 181 min this model puts DO at **12.5 mg/L, above the 11.7 mg/L inhibition ceiling** — the old recommendation was not merely optimistic, it was unsafe.
+- **The CO₂ limit cycle conserves mass.** One pooled inventory (liquid + headspace at Henry
+  equilibrium, justified by a liquid-uptake rate 10× the vent rate) decaying through the vent,
+  replacing a two-compartment form in which the liquid absorbed 2.4× the CO₂ ever delivered.
+- **The pH solve is activity-corrected.** Davies coefficients at the recipe's ionic strength
+  (0.1097 M) move phosphate pKa₂ from 7.20 to **6.76**, and a new `pH_meas` reports the activity-scale
+  value a glass electrode actually reads. At the new ~16.5-minute schedule the operating pH is **6.60** — inside the HOB band, but only just, which makes the DO-versus-pH trade-off visible for
+  the first time: shorter intervals hold oxygen down and push pH down with it.
+- **`n_e_Cl` is the constant 2**, water properties (σ, ρ, D_O₂, D_CO₂) track the temperature input
+  instead of being frozen at 30 °C, and the target-DO fraction has one definition on Biology with a
+  sourced 0.26 fallback instead of an unsourced 0.5.
+
+### Mechanical fixes
+
+`_xludf.MAXIFS` rewritten as the SUMPRODUCT idiom used elsewhere; all 17 `#DIV/0!` cells on
+Calibrations guarded; data validation restored on the four Summary selectors (`ElectrodeList` and
+`MediaList` defined, `ReactorList` widened to all 22 reactors); `Summary!D14`/`D16` no longer return
+`#VALUE!` for an uncalibrated reactor; five wrong hyperlink targets corrected; four mis-targeted
+conditional-format rules moved onto the verdict cells they were written for, Chemistry given the CF
+it never had, and the Summary green rule extended to match `×2.0 OK`; blue input font applied to the
+cells a user actually edits and purple removed from formula cells; the kLa unit contradiction
+resolved in favour of 1/h; `Electrochemistry!D45` now takes the submerged length from the achieved
+liquid level (+6.5% on every current density); the duplicate gas constant removed; the HOCl, Cl₂ and
+nitrogen molar masses and the breakpoint ratio moved out of formulas into named, sourced cells, with
+a new `C_eff_Cl2` giving the like-for-like comparison against thresholds quoted as Cl₂; and every
+column-E note that contradicted its own cell rewritten.
+
+Four measurement items were added to the Summary improvements table: the electrode mass-transfer
+coefficient (one ferricyanide limiting-current run), the electrode gap, a cell-voltage reading, and a
+dissolved-metal assay.
+
+### What remains open
+
+The revised workbook has not been through Excel. The structural checks it has passed are: XML
+well-formedness on every part, all 525 defined names resolving and in scope on the sheets that use
+them, no formula token unresolved, no orphaned shared-formula group, cells and rows in order, and a
+Python evaluation of every new block reproducing the numbers quoted above. What that cannot catch is
+an Excel-specific parse difference. **Open it, check the Summary reads sensibly, and save.**
+
+**Excel rejected the first delivery** (2026-08-12) with "repaired records: cell information" on
+Geometry, Electrochemistry and Biology. Cause: the editor used to make these changes preserved a
+cell's cached value while dropping its `t="str"` type attribute, so four `HYPERLINK` cells carried a
+cached string that Excel then tried to parse as a number. Those are exactly the four cells whose link
+target was corrected, on exactly those three sheets — Summary's fifth was rewritten later without a
+cached value, which is why that sheet came through clean. Fixed at source (the type attribute now
+travels with the value), the whole edit chain was rebuilt from the original workbook, and the
+structural check now rejects any non-numeric cached value that lacks a type attribute. Scientific
+notation was also normalised to Excel's uppercase-E form. **Discard the repaired copy Excel produced
+and use the re-delivered file** — Excel's repair removes content rather than fixing it.
+
+Two independent re-implementations (the Python twin, rewritten from the new formulas, and the
+sensitivity script) reproduce the electrochemistry block to 5–6 significant figures, and between them
+caught a regression introduced by these very fixes: the guard that stops the Calibrations tab showing
+`#DIV/0!` returns *text*, and text is not an error, so the consumers' `IFERROR(cal_x, default)`
+wrappers would never have fired — `etaF` would have become that message string and every arithmetic
+consumer would have gone `#VALUE!` on the first recalculation. All sixteen consumers now test
+`ISNUMBER`, which is what the CO₂-flow consumer already did. Worth stating plainly: a fix that looked
+purely cosmetic would have broken the workbook, and only an independent implementation caught it.
+
+---
+
+## Checked and clean
+
+Van 't Hoff form, signs and all eight ΔH/K₂₅ pairs (worst K error 2.5 % over 15–40 °C, on a constant
+irrelevant at pH 7); all nine molar masses within 0.014 g/mol; both media SID/PT/NT/Cl sums exactly,
+with NH₄⁺ correctly outside SID and NaHCO₃'s Na⁺ correctly a strong cation; the charge-residual
+expression species-by-species; the 51-row pH grid, its strict monotonicity, the `n_cross` guard and
+the interpolation (0.0009 pH against an exact bisection root — independently re-solved). All 76
+VLOOKUPs use exact match with correct column offsets; all four selector IF-chains cover exactly their
+list values and `NA()` otherwise. Faraday's law with z = 2/4 giving exactly 2:1 H₂:O₂, the ideal-gas
+conversion, the ORR split, the shape-aware wetted-area algebra, the current-density ladders and the
+"EXCEED at max power" verdict. Tate's law, Mendelson rise, Higbie penetration, holdup and interfacial
+area, the sub-mm bubble cut-out, carryover, tip-speed shear, the OD window (which correctly follows
+the schedule *in use*), and the pulse-floor and interval-validity checks. Henry constants and their
+van 't Hoff coefficients against Sander (2023); the O₂ ceiling chain 0.30 atm → 364.77 µM, with the
+lookup table honestly explaining its own 11.5 mg/L discrepancy. The knallgas 6:2:1 uptake against
+2:1 electrolytic gas — `O2_excess = CO2_cons` is a structural consequence, not a coincidence. No
+circular references; no undefined names; every `cal_*` output except `cal_flow` consumed; the
+Calibrations regression and averaging blocks key on the correct column in every table; sinter grade
+breakpoints match ISO 4793/DURAN exactly. Zero formula cells missing a cached value.
+
+---
+
 # Wave-1 adversarial review + independent cross-check (2026-06-25)
 
 This is the headline review record. It consolidates a multi-expert adversarial pass over `electroPioreactorGasModel.xlsx` (the **non-modular** workbook: 7 sheets, includes Chemistry) with a from-scratch independent Python reimplementation. The phase-by-phase change history from earlier passes follows below and is retained as the audit trail.

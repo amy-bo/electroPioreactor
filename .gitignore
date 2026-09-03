@@ -11,6 +11,7 @@ __pycache__/
 .vibe/
 MCTests/
 private-notes/
+Martin/
 
 # >>> vibe-managed runtime exclusions (auto-added; do not edit body) >>>
 # Files vibe writes to /workspace at runtime. Committing them
@@ -23,3 +24,11 @@ private-notes/
 
 # Office (Excel/Word) owner/lock temp files
 ~$*
+
+# Local scratch, worktrees and nested clones - never commit
+.worktrees/
+scratchpad/
+scratch_co2/
+.vss/
+.vibe-repos
+aep/
