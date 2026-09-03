@@ -19,13 +19,12 @@
 
 ## Before you start
 
-1. Procure Bill of Materials (contact us or [LabCrafter](https://labcrafter.co.uk) for the AEP0.2 BoM — base kit plus add-on kit)
+1. Procure Bill of Materials (contact us or [LabCrafter](https://labcrafter.co.uk) for the AEP0.2 BoM or procure directly from LabCrafter and add at least one [SodaStream blue screw in cylinder](https://sodastream.co.uk/products/refill) and two [250ml GL25 "Duran" Flasks](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate))
 2. Check your HOB are growing happily heterotrophically.
 
 ## Required Tools
 
-1. Computer with SD card reader
-2. microSD to SD adapter
+1. Computer with microSD card reader (or SD card reader and microSD to SD adapter)
 3. Phillips PH0 Screwdriver
 4. 28mm Gas cylinder wrench
 5. Vernier Callipers
@@ -39,19 +38,18 @@
 
 1. Multitool and/or needle nose pliers (for general assembly and tubing adjustment)
 2. Multimeter (for checking electrolysis)
-3. Banded oil filter wrench (for CO2 canister tightening)
+3. Banded oil filter wrench (optional - if you struggle with CO2 canister tightening)
 
 ## Method
 
 1. Connect empty dovetail platforms in raft, with dovetails always to front and left
    1. SodaStream at rear with expansion gap to right.
-   2. 250ml duran product bottle in front and to the left of the SodaStream.
-   3. 250ml duran media bottle in front and to the right of the SodaStream. (alternate media and waste if multiple AEPs, forming a backbone of media bottle dovetail platforms)
-   4. Peristaltic pumps in front of product bottle
+   2. 250ml GL45 "Duran" product bottle in front and to the left of the SodaStream.
+   3. 250ml GL45 "Duran" media bottle in front and to the right of the SodaStream. (alternate media and product if multiple AEPs, forming a backbone of media bottle dovetail platforms)
+   4. Peristaltic pumps centred in front of product and media bottles
    5. Pioreactor in front of Peristaltic pumps
    6. The setup should look like this:
 <img width="555" height="998" alt="image" src="https://github.com/user-attachments/assets/0f4a6756-ea78-466b-bb35-c8b1a1c2c4af" />
-
    7. The pumping dovetail platform has a cutout for the SD card. Check it clears your Raspberry Pi 5 before screwing anything down. <!-- TODO: confirm Pi 5 clearance on the current platform revision and photograph it | assignee: @Martin -->
 
 2. Follow the Pioreactor 40 ml v1.5 hardware setup guide: <https://docs.pioreactor.com/user-guide/40ml-v15-hardware-setup-intro>
