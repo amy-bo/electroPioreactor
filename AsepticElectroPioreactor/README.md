@@ -38,8 +38,8 @@ with [AMYBO](https://amybo.org) as design and training subcontractor/collaborato
 - 🗂 [**CARMA_PumpPriming/**](CARMA_PumpPriming) — AEP work under CARMA Hub Pump Priming
   - [Meetings.md](CARMA_PumpPriming/Meetings.md) — meeting notes
   - 🗂 [**Assembly/**](CARMA_PumpPriming/Assembly) — build procedures
-    - [README.md](CARMA_PumpPriming/Assembly/README.md) — **latest** assembly instructions (AEP0.1.1)
-    - [AEP0.1.1_Assembly.md](CARMA_PumpPriming/Assembly/AEP0.1.1_Assembly.md) — pointer to latest instructions
+    - [README.md](CARMA_PumpPriming/Assembly/README.md) — **latest** assembly instructions (AEP0.2)
+    - [AEP0.1.1_Assembly.md](CARMA_PumpPriming/Assembly/AEP0.1.1_Assembly.md) — archived AEP0.1.1 instructions
     - 🗂 [**Superseded/**](CARMA_PumpPriming/Assembly/Superseded) — earlier assembly docs
       - [AEP0.1_Assembly.md](CARMA_PumpPriming/Assembly/Superseded/AEP0.1_Assembly.md)
       - [AEP0.1 Assembly.opml](CARMA_PumpPriming/Assembly/Superseded/AEP0.1%20Assembly.opml)
