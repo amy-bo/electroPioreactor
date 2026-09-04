@@ -65,7 +65,8 @@
    1. The XR kit needs Pioreactor release 26.1.30 or later and the electroPioreactor plugin needs 26.5.0 or later, so treat **26.5.0 as the minimum** for an AEP0.2 and run `pio update` before going further.
    2. In the web UI open **Inventory** and set this unit's model to the XR variant. Until you do, OD readings are interpreted against the wrong channel map.
    3. Add the XR photodiode channel values to `config.ini`, as listed at the end of the [XR assembly guide](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly).
-   4. If the Precision Temperature Upgrade Kit is fitted, open **Plugins** in the Pioreactor UI and install `pioreactor-precision-temperature-plugin`. The equivalent from a shell on the unit is:
+   4. Install the [electroPioreactor plugin](../../../AEP-Plugin) following [AEP-Plugin/README.md](../../../AEP-Plugin/README.md). It replaces the AEP0.1.1 combination of `pioreactor-relay-plugin` and a hand-written experiment profile: one background job drives electrolysis on LED D, sparges CO₂ on the PWM 4 relay, pauses electrolysis for the duration of each sparge, and pauses OD reading for the sparge plus a settle window. Install it now — the electrolysis check in step 4 runs through it, so that the 10% power clamp is protecting the electrodes the first time they are ever driven.
+   5. If the Precision Temperature Upgrade Kit is fitted, open **Plugins** in the Pioreactor UI and install `pioreactor-precision-temperature-plugin`. The equivalent from a shell on the unit is:
 
       ```bash
       pio plugins install pioreactor-precision-temperature-plugin
@@ -82,8 +83,8 @@
    9. The electrodes should now protrude into the vial to the standard depth
    10. Record the distance from the plane of the top of the Vial Cap to the bottom of each electrode.
    11. Connect the electrodes to LED channel D (catch upwards)
-   12. With electrolyte solution in the Vial, check electrolysis by setting the LED channel D intensity to 3%, and verifying that roughly twice as many bubbles are forming on the cathode
-   13. Record the voltage across each electrode, and the current through the electrodes, adjust the LED channel D intensity to attain standard values if necessary
+   12. With electrolyte solution in the Vial, start **electroPioreactor** from the **Activities** tab of the *Manage* screen and verify that roughly twice as many bubbles form on the cathode as on the anode. Drive the electrodes from this job rather than setting LED channel D by hand: the job clamps electrolysis power to 10% at runtime, and nothing does so if you drive the channel directly. The CO₂ side of the job does nothing yet, since the solenoid is not connected until step 7 — set a long sparge interval so the relay is not actuating into thin air.
+   13. Record the voltage across each electrode and the current through them, adjusting **electrolysis power** in the job's **Settings** panel to reach the standard values if necessary
    14. Insert vial into Pioreactor once satisfied all vials have even electrolysis
 5. Set up nutrient solution flow
    1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
@@ -141,9 +142,10 @@
    24. Connect the filter's outlet to the head of the tubular MMO anode with a male-to-male luer lock adapter and the short 1 mm ID / 3 mm OD silicone feed tube. CO₂ enters through the anode and leaves through its open base, so the gas rises past the anode surface and clears oxygen bubbles from it without any separately positioned sparge tube. <!-- TODO: fix the feed tube length and ID once the first build is measured; frit dispersion at the anode base is deferred to AEP0.3 | assignee: @Martin -->
    25. Cap any unused luer lock with a luer lock cap
    26. Connect the solenoid connector to PWM channel 4 on the Pioreactor.
-8. Set up software for sparging and electrolysis
-   1. Install the [electroPioreactor plugin](../../../AEP-Plugin) following [AEP-Plugin/README.md](../../../AEP-Plugin/README.md). It replaces the AEP0.1.1 combination of `pioreactor-relay-plugin` and a hand-written experiment profile: one background job drives electrolysis on LED D, sparges CO₂ on the PWM 4 relay, pauses electrolysis for the duration of each sparge, and pauses OD reading for the sparge plus a settle window.
-   2. The plugin's installer patches `config.ini` for you. It should end up containing:
+8. Configure sparging and electrolysis
+
+   The plugin was installed at step 3.4 and has been driving the electrodes since step 4. Now set it up for the full cycle, with the CO₂ train built.
+   1. The plugin's installer patches `config.ini` for you. It should end up containing:
    ```ini
    [PWM]
    # map the PWM channels to externals.
@@ -160,8 +162,8 @@
    sparge_interval_minutes=60.0        ; cycle frequency (min)
    od_pause_after_sparge_seconds=5.0   ; OD settle window after sparge ends (s)
    ```
-   3. Start **electroPioreactor** from the **Activities** tab of the *Manage* screen. You should hear the solenoid open and CO₂ rush into the vial. All four parameters are editable live from the **Settings** panel.
-   4. Electrolysis power is clamped to 10% at runtime to protect the electrodes.
+   2. Restart **electroPioreactor** from the **Activities** tab of the *Manage* screen with the sparge interval you actually want. You should now hear the solenoid open and CO₂ rush into the vial. All four parameters are editable live from the **Settings** panel.
+   3. Electrolysis power stays clamped to 10% at runtime to protect the electrodes.
 9. Calibrate CO₂ flow
     1. Set regulator to 1 bar
     2. Adjust needle valve to give target flow rate
