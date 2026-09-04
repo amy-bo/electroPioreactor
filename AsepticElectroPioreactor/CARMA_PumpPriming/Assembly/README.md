@@ -65,13 +65,17 @@
    1. The XR kit needs Pioreactor release 26.1.30 or later and the electroPioreactor plugin needs 26.5.0 or later, so treat **26.5.0 as the minimum** for an AEP0.2 and run `pio update` before going further.
    2. In the web UI open **Inventory** and set this unit's model to the XR variant. Until you do, OD readings are interpreted against the wrong channel map.
    3. Add the XR photodiode channel values to `config.ini`, as listed at the end of the [XR assembly guide](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly).
-   4. Install the [electroPioreactor plugin](../../../AEP-Plugin) following [AEP-Plugin/README.md](../../../AEP-Plugin/README.md). It replaces the AEP0.1.1 combination of `pioreactor-relay-plugin` and a hand-written experiment profile: one background job drives electrolysis on LED D, sparges CO₂ on the PWM 4 relay, pauses electrolysis for the duration of each sparge, and pauses OD reading for the sparge plus a settle window. Install it now — the electrolysis check in step 4 runs through it, so that the 10% power clamp is protecting the electrodes the first time they are ever driven.
-   5. If the Precision Temperature Upgrade Kit is fitted, open **Plugins** in the Pioreactor UI and install `pioreactor-precision-temperature-plugin`. The equivalent from a shell on the unit is:
+   4. If the Precision Temperature Upgrade Kit is fitted, open **Plugins** in the Pioreactor UI and install `pioreactor-precision-temperature-plugin`. The equivalent from a shell on the unit is:
 
       ```bash
       pio plugins install pioreactor-precision-temperature-plugin
       ```
-4. Set up electrolysis (NOTE: ~struck through~ lines will already have been completed if you received a kit from LabCrafter)
+4. Install the [electroPioreactor plugin](../../../AEP-Plugin), following [AEP-Plugin/README.md](../../../AEP-Plugin/README.md)
+
+   This is the AEP's own plugin, not a Pioreactor one. It replaces the AEP0.1.1 combination of `pioreactor-relay-plugin` and a hand-written experiment profile: a single background job drives electrolysis on LED D, sparges CO₂ on the PWM 4 relay, pauses electrolysis for the duration of each sparge, and pauses OD reading for the sparge plus a settle window.
+
+   Install it before going any further. The electrolysis check in step 5 runs through this job, so that its 10% power clamp is protecting the electrodes the first time they are ever driven.
+5. Set up electrolysis (NOTE: ~struck through~ lines will already have been completed if you received a kit from LabCrafter)
    1. ~Seat the silicone septum in the [Vial Cap](../../../Components/Vial%20Cap)~ — one sheet seals the vial mouth, each electrode and every port, and self-heals sampling-needle tracks. There are no electrode o-rings and no cap o-ring in AEP0.2.
    2. ~Push each electrode through the septum and up into its journal bore in the one-piece cap and electrode holder~ — the MMO anode is the tube, the stainless steel rod is the cathode.
    3. ~Crimp a ring terminal onto each electrode cable~
@@ -83,10 +87,10 @@
    9. The electrodes should now protrude into the vial to the standard depth
    10. Record the distance from the plane of the top of the Vial Cap to the bottom of each electrode.
    11. Connect the electrodes to LED channel D (catch upwards)
-   12. With electrolyte solution in the Vial, start **electroPioreactor** from the **Activities** tab of the *Manage* screen and verify that roughly twice as many bubbles form on the cathode as on the anode. Drive the electrodes from this job rather than setting LED channel D by hand: the job clamps electrolysis power to 10% at runtime, and nothing does so if you drive the channel directly. The CO₂ side of the job does nothing yet, since the solenoid is not connected until step 7 — set a long sparge interval so the relay is not actuating into thin air.
+   12. With electrolyte solution in the Vial, start **electroPioreactor** from the **Activities** tab of the *Manage* screen and verify that roughly twice as many bubbles form on the cathode as on the anode. Drive the electrodes from this job rather than setting LED channel D by hand: the job clamps electrolysis power to 10% at runtime, and nothing does so if you drive the channel directly. The CO₂ side of the job does nothing yet, since the solenoid is not connected until step 8 — set a long sparge interval so the relay is not actuating into thin air.
    13. Record the voltage across each electrode and the current through them, adjusting **electrolysis power** in the job's **Settings** panel to reach the standard values if necessary
    14. Insert vial into Pioreactor once satisfied all vials have even electrolysis
-5. Set up nutrient solution flow
+6. Set up nutrient solution flow
    1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
    2. Follow the Pioreactor guide to attaching a 12V power supply: <https://docs.pioreactor.com/user-guide/external-power>
    3. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
@@ -94,7 +98,7 @@
    5. Fill vial with DI water via the pumps, then weigh vials and adjust tube lengths until vial volume is 30ml (the 40 ml vessel's working volume — 15 ml was the AEP0.1.1 figure)
    6. Measure electrodes immersion depths, if necessary adjust to the standard, and record the insertion depth of each electrode
    7. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
-6. Ports
+7. Ports
 
    The AEP0.2 cap carries eight ports, all stainless steel needles rather than the Flexelene 135C tubing used in AEP0.1:
 
@@ -107,7 +111,7 @@
    7. Inoculation (large) – syringe through the septum, no dedicated tube and no pinch slider
    8. Spare port (sealed)
 
-7. Set up carbon dioxide sparging
+8. Set up carbon dioxide sparging
    1. Unscrew John-Guest push-fit output from the regulator outlet port
 <img width="1330" height="1767" alt="image" src="https://github.com/user-attachments/assets/3cbc619c-be7c-4abb-87d3-048d8350dcfc" />
 
@@ -142,9 +146,9 @@
    24. Connect the filter's outlet to the head of the tubular MMO anode with a male-to-male luer lock adapter and the short 1 mm ID / 3 mm OD silicone feed tube. CO₂ enters through the anode and leaves through its open base, so the gas rises past the anode surface and clears oxygen bubbles from it without any separately positioned sparge tube. <!-- TODO: fix the feed tube length and ID once the first build is measured; frit dispersion at the anode base is deferred to AEP0.3 | assignee: @Martin -->
    25. Cap any unused luer lock with a luer lock cap
    26. Connect the solenoid connector to PWM channel 4 on the Pioreactor.
-8. Configure sparging and electrolysis
+9. Configure sparging and electrolysis
 
-   The plugin was installed at step 3.4 and has been driving the electrodes since step 4. Now set it up for the full cycle, with the CO₂ train built.
+   The plugin was installed at step 4 and has been driving the electrodes since step 5. Now set it up for the full cycle, with the CO₂ train built.
    1. The plugin's installer patches `config.ini` for you. It should end up containing:
    ```ini
    [PWM]
@@ -164,7 +168,7 @@
    ```
    2. Restart **electroPioreactor** from the **Activities** tab of the *Manage* screen with the sparge interval you actually want. You should now hear the solenoid open and CO₂ rush into the vial. All four parameters are editable live from the **Settings** panel.
    3. Electrolysis power stays clamped to 10% at runtime to protect the electrodes.
-9. Calibrate CO₂ flow
+10. Calibrate CO₂ flow
     1. Set regulator to 1 bar
     2. Adjust needle valve to give target flow rate
     3. Start the **electroPioreactor** job, or turn on the relay in the Pioreactor UI, to sparge
@@ -173,7 +177,7 @@
     6. Record time taken to fill measuring cylinder with CO₂ over water
     7. Determine the actual flow rate
     8. Adjust needle valve and repeat process until target flow rate is achieved
-10. Sterilise
+11. Sterilise
     1. <!-- TODO: PI's to approve process in accordance with departmental requirements | assignee: @Amir @Teo @Bingqiao @Chris @Sonja -->
 
 ## Spares
