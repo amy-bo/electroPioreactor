@@ -1,6 +1,6 @@
 # Aseptic electroPioreactor AEP0.2 Assembly instructions
 
-> AEP0.1.1 instructions are archived in [AEP0.1.1_Assembly.md](AEP0.1.1_Assembly.md).
+> Parts list: [BoM.md](BoM.md). AEP0.1.1 instructions are archived in [AEP0.1.1_Assembly.md](AEP0.1.1_Assembly.md).
 
 ## What changed from AEP0.1.1
 
@@ -19,7 +19,7 @@
 
 ## Before you start
 
-1. Procure Bill of Materials (contact us or [LabCrafter](https://labcrafter.co.uk) for the AEP0.2 BoM or procure directly from LabCrafter and add at least one [SodaStream blue screw in cylinder](https://sodastream.co.uk/products/refill) and two [250ml GL45 "Duran" Flasks](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate))
+1. Procure the [Bill of Materials](BoM.md) (contact us or [LabCrafter](https://labcrafter.co.uk) for the AEP0.2 BoM or procure directly from LabCrafter and add at least one [SodaStream blue screw in cylinder](https://sodastream.co.uk/products/refill) and two [250ml GL45 "Duran" Flasks](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate))
 2. Check your HOB are growing happily heterotrophically.
 
 ## Required Tools
