@@ -1,0 +1,11 @@
+id: sodastream-co2-cylinder
+name: "SodaStream CO₂ cylinder (blue screw-in)"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {thread: "TR21-4", type: "standard screw-in SodaStream-compatible"}
+derived_files: []
+supplier: {name: "SodaStream", url: "https://sodastream.co.uk/products/refill"}
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.7 (Regional consumable, not supplied by LabCrafter; AEP0.2). Buy locally; appears only where a step uses it, qty 1, cat consumable."}

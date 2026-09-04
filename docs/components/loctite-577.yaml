@@ -1,0 +1,10 @@
+id: loctite-577
+name: "Loctite 577 thread sealant"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {type: "one-part anaerobic, medium strength, thixotropic", gap_fill_mm: 0.25, fixture_time_min_at_22c: "10 to 60", full_cure_h: 24, hydrogen_rated: true}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.8 (Critical for gas-tight threaded joints with no o-ring seat; AEP0.2). BoM qty 'shared': one tube covers many builds; appears only where a step uses it, qty 1, cat consumable. Fixture on steel in 10 to 60 minutes at 22 °C, full pressure rating after 24 hours. Rated to 100% hydrogen (KIWA GASTEC QA AR 214)."}

@@ -1,0 +1,10 @@
+id: microsd-card
+name: "microSD card"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {capacity_gb_min: 32, speed_class: "A2 / U3 / V30", pioreactor_os_min: "26.5.0"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.6 (Generic; AEP0.2)."}

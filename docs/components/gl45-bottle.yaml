@@ -1,0 +1,11 @@
+id: gl45-bottle
+name: "250 ml GL45 borosilicate bottle"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {volume_ml: 250, thread: "GL45", od_mm: 70, material: "borosilicate"}
+derived_files: []
+supplier: {name: "The Consumables Company", url: "https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate"}
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.10 (Regional consumable, not supplied by LabCrafter; AEP0.2). GL45 thread, about 70 mm OD, to match 1.9 (gl45-bottle-holder) and 1.10 (gl45-cap)."}

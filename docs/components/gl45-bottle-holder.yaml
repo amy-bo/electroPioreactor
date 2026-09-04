@@ -1,0 +1,11 @@
+id: gl45-bottle-holder
+name: "Dovetail holders for GL45 bottles"
+kind: printed
+design_version: 1.1.0
+master_format: scad
+source_files: ["Components/GL45BottleHolder/GL45_holder.scad"]
+parameters: {bottle_ml: 250}
+derived_files: ["Components/GL45BottleHolder/GL45_holder_250ml.stl", "Components/GL45BottleHolder/GL45_holder_500ml.stl", "Components/GL45BottleHolder/GL45_holder_1000ml.stl"]
+changelog:
+  - {version: 1.0.0, date: 2026-05-27, note: "Imported from BoM.md item 1.9 (Generic on print settings, critical on bottle OD; AEP0.2). GL45_holder.scad fills the corner lettering of the upstream Duran holder (Printables 1058356) with smooth caps; see Components/GL45BottleHolder/README.md."}
+  - {version: 1.1.0, date: 2026-05-29, note: "bottle_ml size selector (250 / 500 / 1000) added; the three committed STLs are its outputs. AEP0.2 uses bottle_ml 250 for the 250 ml GL45 bottle (about 70 mm OD)."}

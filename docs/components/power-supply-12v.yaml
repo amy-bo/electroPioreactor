@@ -1,0 +1,10 @@
+id: power-supply-12v
+name: "12 V power supply"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {voltage_v_dc: 12, current_a_min: 1, plug: "2.1 mm x 5.5 mm barrel, centre-positive"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.4 (Generic; AEP0.2). Powers the solenoid, not the Pioreactor."}

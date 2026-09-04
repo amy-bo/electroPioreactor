@@ -1,0 +1,10 @@
+id: silicone-tubing
+name: "Silicone tubing, 50 cm"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {od_in: "1/8", id_in: "1/16", length_cm: 50, autoclavable: true}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.6 (Generic; AEP0.2). Autoclavable. Compatible with 10% acetic acid, CaCl2, H2O2, K2SO4, NaCl, 5.5% NaOCl and ZnCl2."}

@@ -1,0 +1,10 @@
+id: co2-needle-valve
+name: "CO₂ needle valve"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {thread: "1/8\" BSPP/NPS male", hose_mm: [4, 6], rated_bar: 4, working_bar: 1}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.1 (Critical; AEP0.2). Screws directly onto the regulator or solenoid outlet. Selection notes: Components/CO2 transfer/NeedleValves.md."}

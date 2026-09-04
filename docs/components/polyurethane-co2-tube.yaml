@@ -1,0 +1,10 @@
+id: polyurethane-co2-tube
+name: "Polyurethane CO₂ tube, 1 m"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {od_mm: 6, id_mm: 4, length_m: 1, rated_bar: 10}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.2 (Generic; AEP0.2)."}

@@ -1,0 +1,10 @@
+id: gas-cylinder-wrench
+name: "28mm Gas cylinder wrench"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {size_mm: 28}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from Assembly/README.md, Required Tools item 3 (not a BoM line; AEP0.2)."}

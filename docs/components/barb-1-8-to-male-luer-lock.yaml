@@ -1,0 +1,10 @@
+id: barb-1-8-to-male-luer-lock
+name: "1/8\" barb to male luer lock"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {barb_in: "1/8", luer: "male lock", grips_tube_od_mm: 4}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.5 (Critical on barb bore; AEP0.2). It must grip the 4 mm PU tube OD, or the joint leaks under pressure. Connects the CO2 line to the syringe filter. BoM qty 2; Method step 8 fits one."}

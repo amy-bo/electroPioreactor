@@ -1,0 +1,11 @@
+id: peristaltic-pump
+name: "12 V peristaltic pumps"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {voltage_v: 12, sold_as: "pair with pump tubing"}
+derived_files: []
+supplier: {name: "Pioreactor", url: "https://pioreactor.com/products/peristaltic-pump"}
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.7 (Critical; AEP0.2). Sold as a pair with pump tubing; a step that uses the pair lists qty 2. Must be the Pioreactor pump, so the HAT can drive it."}

@@ -1,0 +1,10 @@
+id: pioreactor-40ml
+name: "Pioreactor 40 ml v1.5"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {volume_ml: 40, hardware_version: "1.5", variant: "regional mains"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.1 (Critical; AEP0.2). Regional mains variant. Ships with vial, stir bar and caps, which are the kitted components pioreactor-vial-40ml, stir-bar and stock-vial-cap."}

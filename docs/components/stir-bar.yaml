@@ -1,0 +1,10 @@
+id: stir-bar
+name: "Stir bar"
+kind: kitted
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {coating: "PTFE", shape: "octagonal", length_mm: 10}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Kit sub-item of BoM.md item 1.1, named in Assembly/README.md the 'Ships with vial, stir bar and caps' specification (BoM 1.1) (AEP0.2). Fitted during the wetware assembly of Method step 2."}

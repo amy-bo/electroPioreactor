@@ -1,0 +1,11 @@
+id: pumping-dovetail-platform
+name: "Pumping dovetail platform"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {material: "PLA or PETG", layer_mm: 0.2, infill_pct: 20, sd_card_cutout: true}
+derived_files: []
+supplier: {name: "Pioreactor", url: "https://pioreactor.com/collections/accessories-and-parts/products/pioreactor-and-pump-dovetail-platform?variant=42835335872568"}
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.8 (Generic on print settings, critical on geometry; AEP0.2). Purchased Pioreactor part (Components/README.md links the pioreactor.com product page); no master in this repository."}

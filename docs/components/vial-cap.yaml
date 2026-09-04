@@ -1,0 +1,13 @@
+id: vial-cap
+name: "Vial cap and electrode holder"
+kind: printed
+design_version: 2.0.0
+master_format: scad
+source_files: ["Components/Vial Cap/Vial Cap.scad"]
+parameters: {electrodes: 2, el_d: 6.2, n_ports: 5, port_d: 2.2, openings: 1, seal: "septum", pieces: 1}
+derived_files: ["Components/Vial Cap/Vial Cap.stl"]
+depends_on: ["bosl2"]
+supersedes: electrode-top-stop@1.0.0
+changelog:
+  - {version: 1.0.0, date: 2025-10-16, note: "AEP0.1 o-ring generation: GPI 24-400 threaded cap with a cap o-ring and two electrode o-rings, used with the separate ElectrodeTopStop (electrode-top-stop). Still reproducible from the same source with seal = \"oring\", pieces = 2."}
+  - {version: 2.0.0, date: 2026-07-15, note: "Imported from BoM.md item 2.3 (Critical and custom; AEP0.2). Septum + top-stop one-piece generation (Components/Vial Cap/Vial Cap.scad, PR #25): one-piece PC-CF cap and electrode top-stop sealing on a full-width silicone septum, no cap or electrode o-rings, GPI 24-400 internal thread, Pioreactor-1.5 poka-yoke flange; electrode length and desired protrusion set the column height. Parameter check 2026-09-04 against the .scad defaults for the cap in use (2 electrode ports of 6 mm, 5 small ports, 1 large septum opening): electrodes = 2 (default 2, match), n_ports = 5 (default 5, match), openings = 1 (default 1, match), el_d = 6.2 (default 6.2: the modelled bore for the 6 mm OD electrodes of BoM 2.1 and 2.2, kept), port_d = 2.2 (default 2.2: the OD of the 75 mm needle ports of BoM 2.6, kept), seal = septum and pieces = 1 (defaults, set explicitly because they define this generation). The .scad names these n_ports and port_d, not ports and port_dia. Not set: el_len (default 60) and insertion_depth (default 23) - the BoM electrodes are 100 mm and the README's standard insertion depth is still a TODO, so the column height is left at the file defaults pending the first measured build."}

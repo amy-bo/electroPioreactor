@@ -1,0 +1,10 @@
+id: reducing-nipple
+name: "1/4\" to 1/8\" reducing hexagon nipple"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {end_a: "1/4\" male", end_b: "1/8\" male"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.5 (Critical; AEP0.2). Male to male, matching the regulator outlet on one end and the 1/8\" train on the other."}

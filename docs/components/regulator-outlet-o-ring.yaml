@@ -1,0 +1,10 @@
+id: regulator-outlet-o-ring
+name: "8mm ID 2mm CS o-ring"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {id_mm: 8, cs_mm: 2}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Named in Assembly/README.md Method step 8.2 ('Insert 8mm ID 2mm CS o-ring into the regulator outlet port'); there is no BoM.md line for it (BoM gap recorded in the generator report; AEP0.2)."}

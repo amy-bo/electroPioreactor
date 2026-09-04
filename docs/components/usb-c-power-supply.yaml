@@ -1,0 +1,10 @@
+id: usb-c-power-supply
+name: "27 W USB-C power supply"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {power_w: 27, voltage_v: 5.1, current_a: 5, connector: "USB-C PD", draw_w_per_unit: 15.3}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.5 (Generic; AEP0.2). Actual draw is about 15.3 W per Pioreactor; for four or more units, one multi-port GaN charger giving at least 15.3 W per port."}

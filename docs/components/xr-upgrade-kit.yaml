@@ -1,0 +1,10 @@
+id: xr-upgrade-kit
+name: "XR upgrade kit"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {scattering_angles_deg: [45, 90, 135]}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.2 (Critical unless the unit was ordered as an XR; AEP0.2). Kit sub-items named in the README (top vial holder, O-ring) are xr-top-vial-holder and xr-o-ring."}

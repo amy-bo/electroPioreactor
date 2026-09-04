@@ -1,0 +1,9 @@
+id: crimp-housing
+name: "Crimp housing"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 3.9 (Critical; AEP0.2). Matching series and pin count to 3.8 (crimp-connector), pinned out to the Pioreactor board."}

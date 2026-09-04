@@ -1,0 +1,11 @@
+id: co2-cylinder-dovetail-holder
+name: "Dovetail holder, CO₂ cylinder"
+kind: printed
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {fits: "SodaStream-diameter cylinder", rail: "standard Pioreactor dovetail"}
+derived_files: []
+supplier: {name: "Printables (community model 855700)", url: "https://www.printables.com/model/855700-sodastream-holder-for-pioreactor"}
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.1 (Generic on print settings; AEP0.2). 3D printed, sized for a SodaStream-diameter cylinder on the standard dovetail rail. No master in this repository; Components/README.md links the Printables model."}

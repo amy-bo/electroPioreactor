@@ -1,0 +1,9 @@
+id: crimp-connector
+name: "Crimp connector"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 3.8 (Critical; AEP0.2). Must carry the solenoid coil and electrode currents and match the housing at 3.9 (crimp-housing) and the Pioreactor header. Part numbers still to specify (BoM 'Still to specify')."}

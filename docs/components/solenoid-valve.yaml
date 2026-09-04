@@ -1,0 +1,10 @@
+id: solenoid-valve
+name: "Solenoid valve"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {ports: "1/8\"", coil_v_dc: 12, function: "3/2 venting", manual_override: true}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 3.1 (Critical; AEP0.2). 3-way venting (3/2) with manual override: a 2-way valve traps CO2 between the valve and the broth on closing; it dissolves and draws liquid back up the line. Why a venting valve: Components/CO2 transfer/VentingSolenoids.md."}

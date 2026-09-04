@@ -1,0 +1,5 @@
+theme: pioreactor
+guides:
+  - {id: aep, title: "Aseptic ElectroPioreactor (AEP0.2)", base: /AEP}
+  - {id: mep, title: "Mixed ElectroPioreactor", base: /MEP}
+byte_budget_kb: 150

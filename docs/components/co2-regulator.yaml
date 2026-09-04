@@ -1,0 +1,10 @@
+id: co2-regulator
+name: "CO₂ regulator"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {outlet: "3/8\" John Guest push-fit", pressure_relief_valve: true}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.2 (Critical on the outlet; AEP0.2). The inlet is a generic cylinder thread, not SodaStream-native, and pairs with the adapter at 4.3 (cylinder-regulator-adapter). Selection notes: Components/CO2 transfer/Regulators.md."}

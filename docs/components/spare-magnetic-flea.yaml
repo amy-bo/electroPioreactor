@@ -1,0 +1,10 @@
+id: spare-magnetic-flea
+name: "Spare magnetic flea"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {coating: "PTFE", shape: "octagonal", length_mm: 10}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.12 (Generic; AEP0.2). BoM qty '1 per n units': shared spare; listed as a consumable in step-00's spares list."}

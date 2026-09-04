@@ -1,0 +1,11 @@
+id: cylinder-regulator-adapter
+name: "Cylinder-to-regulator adapter"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {type: "pin-adjustment (thumbscrew pin)", inlet: "W21.8 male (UK and EU)", outlet: "TR21-4 female"}
+derived_files: []
+supplier: {name: "KegLand", mpn: "KL15578"}
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.3 (Critical and regional; AEP0.2). Pin-adjustment type, so the joint is made before gas is admitted. Method step 8.11 names the KegLand KL15578. Elsewhere, the equivalent for the local cylinder standard, for example CGA320 in North America."}

@@ -1,0 +1,10 @@
+id: needle-port
+name: "Stainless steel needle port"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {length_mm: 75, tip: "blunt", hub: "female luer-lock", grade: "304 (316 optional)"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 2.6 (Generic; AEP0.2). BoM qty 1 tops up the four that ship with each Pioreactor; Method step 7 uses four needle ports (Media In, Media Out, Gas Out, Gas Out - safety). 304 is standard; 316 is available for more acidic, basic or salty media."}

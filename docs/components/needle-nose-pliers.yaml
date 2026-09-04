@@ -1,0 +1,9 @@
+id: needle-nose-pliers
+name: "Multitool and/or needle nose pliers"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from Assembly/README.md, Recommended Tools item 1 (not a BoM line; AEP0.2). For general assembly and tubing adjustment."}

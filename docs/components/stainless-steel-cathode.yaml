@@ -1,0 +1,10 @@
+id: stainless-steel-cathode
+name: "Stainless steel cathode, 100 mm length x 6 mm diameter"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {length_mm: 100, diameter_mm: 6, grade: "316 stainless, marine grade", form: "round bar"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 2.2 (Critical; AEP0.2). 316 stainless round bar, marine grade. Must stay strictly cathodic: reversed, stainless corrodes quickly and leaches Cr, Ni and Fe into the culture."}

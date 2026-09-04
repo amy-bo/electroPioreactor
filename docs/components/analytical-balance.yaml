@@ -1,0 +1,10 @@
+id: analytical-balance
+name: "Analytical balance"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {accuracy_g: 0.1}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from Assembly/README.md, Required Tools item 5 (not a BoM line; AEP0.2). For pump calibration (Pioreactor docs only require 0.1g accuracy)."}

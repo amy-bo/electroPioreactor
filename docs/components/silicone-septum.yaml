@@ -1,0 +1,10 @@
+id: silicone-septum
+name: "Silicone septum, 2mm thick"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {thickness_mm: 2, material: "silicone", fits: "vial-cap seal = septum"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 2.4 (Critical and custom; AEP0.2). Full-width sheet sized to the cap's seal = \"septum\" mode: it seals the vial mouth, each electrode and every port, and self-heals sampling-needle tracks. Not a stock size."}
