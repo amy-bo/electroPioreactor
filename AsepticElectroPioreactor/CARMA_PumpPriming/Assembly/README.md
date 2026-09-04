@@ -19,7 +19,7 @@
 
 ## Before you start
 
-1. Procure the [Bill of Materials](BoM.md) (contact us or [LabCrafter](https://labcrafter.co.uk) for the AEP0.2 BoM or procure directly from LabCrafter and add at least one [SodaStream blue screw in cylinder](https://sodastream.co.uk/products/refill) and two [250ml GL45 "Duran" Flasks](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate))
+1. Procure the [Bill of Materials](BoM.md) ([LabCrafter](https://labcrafter.co.uk) can supply a kit that is only missing the required [SodaStream blue screw in cylinders](https://sodastream.co.uk/products/refill) and two [250ml GL45 "Duran" Flasks](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate))
 2. Check your HOB are growing happily heterotrophically.
 
 ## Required Tools

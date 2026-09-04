@@ -1,8 +1,6 @@
 # Aseptic electroPioreactor AEP0.2 — Bill of Materials
 
-Quantities are per one complete AEP0.2 unit. Build procedure: [README.md](README.md).
-
-**No prices, stock levels or supplier links.** A part is defined by its specification so it can be sourced anywhere. We only have the local presence to verify UK and EU suppliers, so publishing our own would push builders elsewhere in the world toward vendors we cannot vouch for. The two exceptions are the consumables LabCrafter does not supply, where an example is given because the item is a specific branded product rather than a spec.
+Quantities are per one complete AEP0.2 unit. See [assembly instructions](README.md).
 
 Items marked **Critical** must meet the specification. Items marked **Generic** are satisfied by anything meeting it.
 
@@ -13,7 +11,7 @@ Items marked **Critical** must meet the specification. Items marked **Generic** 
 | 1.1 | Pioreactor 40 ml v1.5 | 1 | **Critical.** Pioreactor 40 ml, hardware v1.5, regional mains variant. Ships with vial, stir bar and caps. The whole add-on is built around the 40 ml vial and the Pioreactor HAT. |
 | 1.2 | XR upgrade kit | 1 | **Critical** unless the unit was ordered as an XR. Adds 45° and 135° scattering alongside 90°, for the lower OD detection limit. |
 | 1.3 | Precision Temperature Upgrade Kit | 1 | **Optional.** MLX90632 far-infrared sensor replacing the thermistor, seating in the SPEC position. Only needed if the protocol calls for controlled temperature. |
-| 1.4 | Raspberry Pi 5 | 1 | **Generic.** 1 GB or larger; any Pi supported by the current Pioreactor OS. Pi 4 4 GB also proven. One per Pioreactor. |
+| 1.4 | Raspberry Pi 5 | 1 | **Generic.** 1 GB or larger; any Pi supported by the current Pioreactor OS. One per Pioreactor. |
 | 1.5 | 27 W USB-C power supply | 1 | **Generic.** 5.1 V / 5 A USB-C PD, regional plug. Actual draw is about 15.3 W per Pioreactor. For four or more units, one multi-port GaN charger giving at least 15.3 W per port. |
 | 1.6 | microSD card | 1 | **Generic.** 32 GB or larger, A2 / U3 / V30 class, flashed with Pioreactor OS 26.5.0 or later. |
 | 1.7 | 12 V peristaltic pumps | 1 pair | **Critical.** Must be the Pioreactor pump, so the HAT can drive it. Supplied as a pair with pump tubing. |
@@ -27,10 +25,10 @@ Items marked **Critical** must meet the specification. Items marked **Generic** 
 
 | Ref | Item | Qty | Specification |
 | --- | --- | --- | --- |
-| 2.1 | MMO anode, 100 mm | 1 | **Critical.** Titanium substrate with a mixed-metal-oxide (DSA) coating of iridium and tantalum oxide (IrO₂-Ta₂O₅), the valve-metal-stabilised OER coating, not the RuO₂ type. Hollow tube, open at the base: CO₂ enters the top and leaves through the base, so the part is both anode and CO₂ conduit. A solid rod is not a substitute. |
-| 2.2 | Stainless steel cathode, 100 mm | 1 | **Critical.** 316 stainless round bar, marine grade, 100 mm to match the anode. Must stay strictly cathodic: reversed, stainless corrodes quickly and leaches Cr, Ni and Fe into the culture. |
-| 2.3 | Vial cap and electrode holder | 1 | **Critical and custom.** One-piece 3D-printed cap and electrode top-stop sealing on a full-width silicone septum, with no cap or electrode o-rings. GPI 24-400 internal thread, Pioreactor-1.5 poka-yoke flange. Parametric OpenSCAD source at [Components/Vial Cap](../../../Components/Vial%20Cap); electrode length and desired protrusion set the column height, so insertion depth is built in. |
-| 2.4 | Silicone septum | 1 | **Critical and custom.** Full-width sheet sized to the cap's `seal = "septum"` mode: it seals the vial mouth, each electrode and every port, and self-heals sampling-needle tracks. Not a stock size. |
+| 2.1 | MMO anode, 100 mm length x 6 mm OD, 4mm ID | 1 | **Critical.** Titanium substrate with a mixed-metal-oxide (DSA) coating of iridium and tantalum oxide (IrO₂-Ta₂O₅), the valve-metal-stabilised OER coating, not the RuO₂ type. Hollow tube, open at the base: CO₂ enters the top and leaves through the base, so the part is both anode and CO₂ conduit. |
+| 2.2 | Stainless steel cathode, 100 mm length x 6 mm diameter | 1 | **Critical.** 316 stainless round bar, marine grade. Must stay strictly cathodic: reversed, stainless corrodes quickly and leaches Cr, Ni and Fe into the culture. |
+| 2.3 | Vial cap and electrode holder | 1 | **Critical and custom.** One-piece PCCF (poly carbonate blend filled with carbon fibers) 3D-printed cap and electrode top-stop sealing on a full-width silicone septum, with no cap or electrode o-rings. GPI 24-400 internal thread, Pioreactor-1.5 poka-yoke flange. Parametric OpenSCAD source at [Components/Vial Cap](../../../Components/Vial%20Cap); electrode length and desired protrusion set the column height, so insertion depth is built in. |
+| 2.4 | Silicone septum, 2mm thick | 1 | **Critical and custom.** Full-width sheet sized to the cap's `seal = "septum"` mode: it seals the vial mouth, each electrode and every port, and self-heals sampling-needle tracks. Not a stock size. |
 | 2.5 | 0.2 µm hydrophobic vent filters | 5 | **Critical.** 25 mm syringe filter, 0.2 µm PTFE membrane, female Luer-Lok inlet and male Luer-slip outlet. Pore size and membrane are the aseptic barrier. |
 | 2.6 | Stainless steel needle port | 1 | **Generic.** 75 mm blunt stainless needle with a female luer-lock hub. 304 is standard; 316 is available for more acidic, basic or salty media. Each Pioreactor already ships with four. |
 
@@ -82,12 +80,11 @@ Items marked **Critical** must meet the specification. Items marked **Generic** 
 
 These stop a third party sourcing or building the unit. @gniezen
 
-- [ ] **2.1 MMO anode.** Tube OD, wall thickness, coated (active) length against the 100 mm overall length, and whether the bore is stepped or tapered at the CO₂ inlet. Is it supplied cut to length?
-- [ ] **2.2 Cathode.** Rod diameter. The ordered variant was never recorded and the source listing spans 1 to 10 mm.
-- [ ] **2.3 Vial cap and electrode holder.** Print material and settings for the one-piece and two-piece variants, and the standard electrode insertion depth once a unit is built.
-- [ ] **2.4 Silicone septum.** Thickness, silicone grade, Shore hardness, temperature rating and autoclavability.
+- [ ] **2.1 MMO anode.** MMO specification IrO₂-Ta₂O₅ percentage. Coated (active) length against the 100 mm overall length and thickness.
+- [ ] **2.3 Vial cap and electrode holder.** Print settings, and the standard electrode insertion depth once a unit is built.
+- [ ] **2.4 Silicone septum.** Diameter, silicone grade, Shore hardness, temperature rating and autoclavability.
 - [ ] **3.8 / 3.9 Connector and housing.** Manufacturer part numbers, series, pin count, pitch and gender, plus the crimp contact part number and the tool needed.
-- [ ] **4.5 Reducing nipple.** Thread standard at both ends, BSPP or BSPT, and material. A wrong thread on a high-pressure CO₂ joint fails suddenly.
+- [ ] **4.5 Reducing nipple.** Thread standard at both ends, BSPP or BSPT, and material.
 - [ ] **5.9 Anode feed tube.** Exact length and confirmation that 1 mm ID / 3 mm OD suits the final anode.
 - [ ] **Printed parts.** Publish STL or STEP for 1.8, 1.9, 4.1 and 2.3 so the build is reproducible.
 
