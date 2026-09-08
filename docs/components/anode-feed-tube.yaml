@@ -1,10 +1,11 @@
 id: anode-feed-tube
 name: "Silicone feed tube, tubular anode"
 kind: off-the-shelf
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
-parameters: {id_mm: 1, od_mm: 3, material: "silicone"}
+parameters: {id_mm: 1, od_mm: 3, length_mm: 100, material: "silicone"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.9 (Critical on fit; AEP0.2). Carrying CO2 from the luer adapter into the top of the anode. Exact length still to specify."}
+  - {version: 1.0.1, date: 2026-09-08, note: "Gerrit's BoM answers of 2026-09-04 (commit 05ef02f): 100 mm length; 1 mm ID / 3 mm OD confirmed for the final anode."}

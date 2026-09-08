@@ -1,9 +1,12 @@
 id: crimp-connector
-name: "Crimp connector"
+name: "Crimp connector (TE Connectivity AMP 1-104479-0)"
 kind: off-the-shelf
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
+parameters: {manufacturer: "TE Connectivity AMP", part_number: "1-104479-0"}
 derived_files: []
+supplier: {name: "Digi-Key", url: "https://www.digikey.ca/en/products/detail/te-connectivity-amp-connectors/1-104479-0/1125892"}
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 3.8 (Critical; AEP0.2). Must carry the solenoid coil and electrode currents and match the housing at 3.9 (crimp-housing) and the Pioreactor header. Part numbers still to specify (BoM 'Still to specify')."}
+  - {version: 1.0.1, date: 2026-09-08, note: "Gerrit's BoM answers of 2026-09-04 (commit 05ef02f): TE Connectivity AMP 1-104479-0 (Digi-Key 1125892). Crimp contact part number and crimp tool still to specify."}

@@ -1,10 +1,11 @@
 id: mmo-anode
-name: "MMO anode, 100 mm length x 6 mm OD, 4mm ID"
+name: "MMO anode, 100 mm length x 6 mm OD, 4mm ID, 70mm active length"
 kind: off-the-shelf
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
-parameters: {length_mm: 100, od_mm: 6, id_mm: 4, substrate: "titanium", coating: "IrO2-Ta2O5 mixed metal oxide (DSA)", form: "hollow tube, open at the base"}
+parameters: {length_mm: 100, active_length_mm: 70, od_mm: 6, id_mm: 4, substrate: "grade 1 titanium", coating: "IrO2-Ta2O5 mixed metal oxide (DSA)", coating_thickness_um: 8, form: "hollow tube, open at the base"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 2.1 (Critical; AEP0.2). Titanium substrate with a mixed-metal-oxide (DSA) coating of iridium and tantalum oxide (IrO2-Ta2O5), the valve-metal-stabilised OER coating, not the RuO2 type. Hollow tube, open at the base: CO2 enters the top and leaves through the base, so the part is both anode and CO2 conduit."}
+  - {version: 1.0.1, date: 2026-09-08, note: "Gerrit's BoM answers of 2026-09-04 (commit 05ef02f): coated (active) length 70 mm of the 100 mm overall; coating thickness 8 um on grade 1 titanium."}

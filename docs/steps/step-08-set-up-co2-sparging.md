@@ -72,6 +72,6 @@ safety: |
 21. Measure the 4mm tubing cut length and ensure all other 4mm tubing is cut to the same length
 22. Insert a 1/8" hose barb to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
 23. Connect the luer lock to the CO₂ entry filter
-24. Connect the filter's outlet to the head of the tubular MMO anode with a male-to-male luer lock adapter and the short 1 mm ID / 3 mm OD silicone feed tube. CO₂ enters through the anode and leaves through its open base, so the gas rises past the anode surface and clears oxygen bubbles from it without any separately positioned sparge tube. <!-- TODO: fix the feed tube length and ID once the first build is measured; frit dispersion at the anode base is deferred to AEP0.3 | assignee: @Martin -->
+24. Connect the filter's outlet to the head of the tubular MMO anode with a male-to-male luer lock adapter and the 100 mm silicone feed tube (1 mm ID / 3 mm OD). CO₂ enters through the anode and leaves through its open base, so the gas rises past the anode surface and clears oxygen bubbles from it without any separately positioned sparge tube. <!-- TODO: frit dispersion at the anode base is deferred to AEP0.3 | assignee: @Martin -->
 25. Cap any unused luer lock with a luer lock cap
 26. Connect the solenoid connector to PWM channel 4 on the Pioreactor.

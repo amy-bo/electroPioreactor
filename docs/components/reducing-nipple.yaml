@@ -1,10 +1,11 @@
 id: reducing-nipple
-name: "1/4\" to 1/8\" reducing hexagon nipple"
+name: "1/4\" BSP to 1/8\" BSP reducing hexagon nipple"
 kind: off-the-shelf
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
-parameters: {end_a: "1/4\" male", end_b: "1/8\" male"}
+parameters: {end_a: "1/4\" BSP male", end_b: "1/8\" BSP male", material: "stainless steel"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.5 (Critical; AEP0.2). Male to male, matching the regulator outlet on one end and the 1/8\" train on the other."}
+  - {version: 1.0.1, date: 2026-09-08, note: "Gerrit's BoM answers of 2026-09-04 (commit 05ef02f): both ends BSP, stainless steel."}
