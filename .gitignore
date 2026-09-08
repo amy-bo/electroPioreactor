@@ -28,3 +28,20 @@ aep/
 
 # Office (Excel/Word) owner/lock temp files
 ~$*
+.vibe-signals/
+.claude/settings.local.json
+
+# >>> vibe-managed runtime exclusions (auto-added; do not edit body) >>>
+# Files vibe writes to /workspace at runtime. Committing them
+# leaks per-machine state into the repo (PR-review-noise risk).
+# Opt out: set VIBE_AUTO_GITIGNORE=0 before container start, or
+# delete this entire block (won't be re-added once removed).
+.claude/settings.local.json
+.vibe/
+.vibe-signals/
+.vibe-allow-ssh
+.vibe-allow-op
+# <<< vibe-managed <<<
+
+# docsandeye render output (regenerated from the .scad sources; see docs/README.md)
+build/
