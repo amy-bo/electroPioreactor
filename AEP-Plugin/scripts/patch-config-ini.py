@@ -27,21 +27,38 @@ DEFAULTS = {
 
 
 def main() -> int:
+    force = "--force" in sys.argv[1:]
+
     p = ConfigParserMod()
     p.read([PATH])
 
     if "PWM" not in p:
         p.add_section("PWM")
     existing = p["PWM"].get("4")
-    if existing not in (None, "relay"):
+    if existing not in (None, "relay") and not force:
         print(
             f"refusing to overwrite [PWM] 4 = {existing!r} in {PATH}; "
-            f"electroPioreactor needs [PWM] 4 = relay. "
-            f"Free PWM 4 (or wire the solenoid to a different channel and "
-            f"adjust this script) before re-running.",
+            f"electroPioreactor needs [PWM] 4 = relay.",
             file=sys.stderr,
         )
+        if existing == "waste":
+            print(
+                "'waste' is the stock Pioreactor default for channel 4, not "
+                "necessarily a pump you have wired. On an electroPioreactor the "
+                "CO2 solenoid takes channel 4, so unless a waste pump really is "
+                "on it, re-run with --force. If one is, move it to a free "
+                "channel in the UI's Configuration page first.",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                "Free PWM 4 (or wire the solenoid to a different channel and "
+                "adjust this script), or re-run with --force to take it anyway.",
+                file=sys.stderr,
+            )
         return 1
+    if existing not in (None, "relay"):
+        print(f"replacing [PWM] 4 = {existing!r} with 'relay'")
     p["PWM"]["4"] = "relay"
 
     sec = "electropioreactor.config"

@@ -188,8 +188,18 @@ raises its own WiFi to install over.
    will run under; use your own.
 
    On Linux, pass the boot partition's own mount point - only macOS's `/Volumes`
-   is auto-detected. On Windows, run it under WSL, or write the two files by hand
+   is auto-detected. On Windows, run it under WSL, or write the files by hand
    (what the script writes is in **What those two commands do** below).
+
+   To carry other Pioreactor plugins onto the card at the same time, name them
+   as a third argument. For an AEP0.2 with the Precision Temperature Upgrade Kit:
+
+   ```bash
+   bash AEP-Plugin/scripts/stage-sd-card.sh /Volumes/bootfs GB pioreactor-precision-temperature-plugin
+   ```
+
+   This computer needs internet for that - it fetches the wheels now so the
+   Pioreactor never needs PyPI.
 
 5. Eject the card (Finder, or `diskutil eject /Volumes/bootfs`), put it in the
    Pi, power up, and give it a few minutes: the HAT blinks its blue LED once
@@ -224,10 +234,11 @@ flag file, whose entire contents are the two-letter WiFi country code, and an
 `electropioreactor/` payload the Pi will see at `/boot/firmware/`. Nothing is
 executed and the image is not modified.
 
-`install.sh` pip-installs the staged source into the Pioreactor venv if it can
-build offline, and otherwise falls back to
+`install.sh` installs the staged wheels, which need no build backend - the image's
+venv has no setuptools, so building from source on the unit does not work. If no
+wheel was staged it tries the source anyway and then falls back to
 [Pioreactor's plugins folder](https://docs.pioreactor.com/developer-guide/plugins),
-which needs no build step. Either way it then deploys the UI descriptor to
+which needs no build step at all. Either way it then deploys the UI descriptor to
 `~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml`, patches `config.ini`,
 restarts `lighttpd` and runs the checks from **6. Verify** above.
 
@@ -252,10 +263,17 @@ the ext4 root. The card stage is preparation; the access point is the way in.
 <details>
 <summary>What no internet on the unit costs you</summary>
 
-`pio update` and `pio plugins install <anything from PyPI>` will fail, including
-`pioreactor-precision-temperature-plugin` at step 3 of the AEP0.2 guide - install
-that on a networked run beforehand if the temperature kit is fitted. Flash the
-latest image for the same reason; the plugin needs Pioreactor >= 26.5.0.
+`pio update` and `pio plugins install <anything from PyPI>` will fail on the
+unit, so flash the latest image - the plugin needs Pioreactor >= 26.5.0 and you
+will not be able to update on site.
+
+Other plugins are not lost, though: name them at step 4 and the staging script
+fetches their wheels while it still has internet. The installer then pip-installs
+each one, copies its UI descriptors into `~/.pioreactor/plugins/ui/`, merges its
+`additional_config.ini` into `config.ini` without overwriting anything already
+set, and runs its `post_install.sh` - the work `pio plugins install` would have
+done over the network. This is how the Precision Temperature Upgrade Kit's plugin
+gets on to an offline unit.
 
 There is also no NTP, so the clock and every timestamp in the UI will be wrong.
 From the Mac:
