@@ -26,7 +26,7 @@ temperature kit's plugin there.
 
 </details>
 
-<!-- TODO: the offline card-staging route this links to has not yet been run end to end on real hardware - stage a card, boot it and install from it once before relying on it for the AEP0.2 instruction video | assignee: @Martin -->
+<!-- TODO: the offline card-staging route this links to was first run on ed06 (2026-09-22): staging, the access point and the install all worked, and it turned up the missing setuptools on the unit, the unstaged temperature plugin and the stock [PWM] 4=waste collision. Those three fixes have not themselves been run on hardware yet - re-run the whole route once before relying on it for the AEP0.2 instruction video | assignee: @Martin -->
 
 <!-- TODO: hard-coded step numbers here and in step-05 ("step 8") and step-09 ("step 4", "step 5") will drift if the steps are ever reordered - reference by title or slug instead | assignee: @Martin -->
 
