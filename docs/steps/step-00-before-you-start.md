@@ -45,6 +45,8 @@ tools:
 1. Procure the [Bill of Materials](../components/) ([LabCrafter](https://labcrafter.co.uk) can supply a kit that is only missing the required [SodaStream blue screw in cylinders](https://sodastream.co.uk/products/refill), two [250ml GL45 "Duran" Flasks](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate), [nutrient solution](https://github.com/amy-bo/electroPioreactor/tree/main/Media) and inoculum)
 2. Check your HOB are growing happily heterotrophically.
 
+<!-- TODO: these tool lists duplicate the tools: block in this step's frontmatter - decide which is canonical before the renderer is written, or the two will drift | assignee: @Martin -->
+
 ## Required Tools
 
 1. Computer with microSD card reader (or SD card reader and microSD to SD adapter)

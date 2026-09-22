@@ -23,6 +23,8 @@ tools:
   - {component: phillips-ph0-screwdriver, qty: 1}
 ---
 
+<!-- TODO: this line restates the step title, which the site renders as the heading above it - cut it back to the bare guide link once the renderer's heading behaviour is settled (step-03 has the same duplication) | assignee: @Martin -->
+
 Follow the Pioreactor 40 ml v1.5 hardware setup guide: <https://docs.pioreactor.com/user-guide/40ml-v15-hardware-setup-intro>
 
 1. [Assembling the Raspberry Pi and the HAT](https://docs.pioreactor.com/user-guide/40ml-v15-rpi-hat-assembly) — use a Raspberry Pi 5 1GB with the 27 W USB-C supply.

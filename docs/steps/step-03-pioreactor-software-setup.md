@@ -10,6 +10,8 @@ tools:
   - {component: computer-with-microsd-reader, qty: 1}
 ---
 
+<!-- TODO: this line restates the step title - see the note in step-02 | assignee: @Martin -->
+
 Follow the Pioreactor software setup guide: <https://docs.pioreactor.com/user-guide/software-set-up>
 
 1. The XR kit needs Pioreactor release 26.1.30 or later and the electroPioreactor plugin needs 26.5.0 or later, so treat **26.5.0 as the minimum** for an AEP0.2 and run `pio update` before going further.
