@@ -14,6 +14,8 @@ tools:
 
 Follow the Pioreactor software setup guide: <https://docs.pioreactor.com/user-guide/software-set-up>
 
+> **If this Pioreactor cannot reach a network**, read [step 4](step-04-install-electropioreactor-plugin.md#if-the-pioreactor-cannot-reach-a-network) before you flash the card: the offline route changes what you set in Raspberry Pi Imager, and the plugins have to go onto the card while you still have internet.
+
 1. The XR kit needs Pioreactor release 26.1.30 or later and the electroPioreactor plugin needs 26.5.0 or later, so treat **26.5.0 as the minimum** for an AEP0.2 and run `pio update` before going further.
 2. In the web UI open **Inventory** and set this unit's model to the XR variant. Until you do, OD readings are interpreted against the wrong channel map.
 3. Add the XR photodiode channel values to `config.ini`, as listed at the end of the [XR assembly guide](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly).
