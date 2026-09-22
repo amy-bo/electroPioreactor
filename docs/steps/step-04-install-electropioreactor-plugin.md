@@ -17,14 +17,12 @@ This is the AEP's own plugin, not a Pioreactor one. It replaces the AEP0.1.1 com
 <details>
 <summary>No network at the build site</summary>
 
-The install above needs the unit on a LAN, and needs internet on the unit to
-`git clone`. Where neither is available – a field site, a filming day, a lab
-whose WiFi won't take a Raspberry Pi – stage the install onto the microSD card
-before it is ejected, and let the Pioreactor raise its own WiFi network to
-install over: [Offline: stage the install on the SD card](../../AEP-Plugin/README.md#offline-stage-the-install-on-the-sd-card-no-lan-no-internet).
-
-Decide this before step 3, not here: the same absence of internet stops
-`pio update` and the Precision Temperature Upgrade Kit's plugin at step 3.
+The install above needs the unit on a LAN, and internet on the unit to `git clone`.
+Without either, stage the install onto the microSD card before it is ejected and let
+the Pioreactor raise its own WiFi to install over: [Offline: stage the install on the
+SD card](../../AEP-Plugin/README.md#offline-stage-the-install-on-the-sd-card-no-lan-no-internet).
+Decide before step 3 - the same missing internet stops `pio update` and the
+temperature kit's plugin there.
 
 </details>
 

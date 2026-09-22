@@ -157,115 +157,95 @@ Then in your browser, hard-refresh `http://<hostname>.local/` (Ctrl/Cmd+Shift+R)
 
 ### Offline: stage the install on the SD card (no LAN, no internet)
 
-For a build site with no usable network – a field site, a filming day, a lab
-whose WiFi won't take a Raspberry Pi. Nothing here needs the Pioreactor to be
-reachable on a LAN, and nothing needs internet on the Pi.
+For a build site with no usable network. The card carries the plugin; the unit
+raises its own WiFi to install over.
 
-> ℹ️ **You cannot finish the install while the card is in the Mac.** macOS mounts
-> only the card's FAT boot partition (`/Volumes/bootfs`). The plugin has to land
-> in `/opt/pioreactor/venv` or `~/.pioreactor/`, both on the Linux ext4 root
-> partition, which macOS cannot mount at all. So the install itself happens on
-> the first boot. What you do before ejecting is stage everything the Pi will
-> need, so that the install is two commands and no network.
-
-**Before you leave the internet behind**, with the repo cloned on the Mac:
-
-- Confirm you have this repo checked out locally – the plugin source is the payload.
-- Optionally download the `local_access_point` file for your country from
-  [Pioreactor's local access point guide](https://docs.pioreactor.com/user-guide/local-access-point).
-  The staging script can write it for you instead: its entire contents are the
-  two-letter country code.
-
-**1. Flash the card** following step 1 above, with one change: **leave WiFi
-configuration disabled in Raspberry Pi Imager.** Pioreactor's own access point is
-what you will connect to, and an unreachable configured network only makes first
-boot slower. Set the hostname, username `pioreactor` and a password as usual.
-
-**2. Re-insert the card.** Imager ejects it when it finishes verifying. Pull it
-out and push it straight back in; `bootfs` remounts. If macOS offers to
-initialise or reformat the disk, say **no** – it is offering to format the Linux
-partition it cannot read.
-
-**3. Stage the card**, from the repo on the Mac:
+Flash as in step 1 above, but **leave WiFi configuration disabled in Imager**.
+Imager ejects the card when it finishes - pull it out and push it back in, then
+on the Mac, in this repo:
 
 ```bash
 bash AEP-Plugin/scripts/stage-sd-card.sh /Volumes/bootfs GB
 ```
 
-That writes two things to the boot partition:
-
-- `local_access_point` – Pioreactor's own flag file. With it present the unit
-  raises its own WiFi network on boot, so no router is involved.
-- `electropioreactor/` – the plugin source, the config patcher and an installer,
-  which the Pi will see at `/boot/firmware/electropioreactor/`.
-
-Both are just files on a FAT partition; nothing is executed on the Mac, and the
-Pioreactor image is not modified. Omit the country code if you have already
-dropped in the downloaded `local_access_point` file.
-
-**4. Eject, boot, connect.** Eject the card properly, put it in the Pi, power up,
-and wait for first boot (a few minutes; the HAT blinks a blue LED when it is
-done). Then, on the Mac, join the WiFi network **`pioreactor`**, password
-**`raspberry`**.
-
-**5. Install**, over SSH:
+Eject, put the card in the Pi, power up, wait for the blue LED. Join the WiFi
+network **`pioreactor`**, password **`raspberry`**, then:
 
 ```bash
 ssh pioreactor@<hostname>.local
 ```
 
-If that name doesn't resolve, the unit is `10.42.0.1` on its own access point:
-`ssh pioreactor@10.42.0.1`. Note that the Mac has no internet while it is joined
-to this network.
-
 ```bash
 bash /boot/firmware/electropioreactor/install.sh
 ```
 
-The installer pip-installs the staged source into the Pioreactor venv if it can
+The UI is then at `http://<hostname>.local`, and **electroPioreactor** is under
+**Activities**.
+
+<details>
+<summary>What those two commands do</summary>
+
+`stage-sd-card.sh` writes two things to the card's FAT boot partition: Pioreactor's
+[`local_access_point`](https://docs.pioreactor.com/user-guide/local-access-point)
+flag file, whose entire contents are the two-letter WiFi country code, and an
+`electropioreactor/` payload the Pi will see at `/boot/firmware/`. Nothing is
+executed and the image is not modified.
+
+`install.sh` pip-installs the staged source into the Pioreactor venv if it can
 build offline, and otherwise falls back to
-[Pioreactor's plugins folder](https://docs.pioreactor.com/developer-guide/plugins)
-(`~/.pioreactor/plugins/electropioreactor.py`), which needs no build step at all.
-Either way it then deploys the UI descriptor to
+[Pioreactor's plugins folder](https://docs.pioreactor.com/developer-guide/plugins),
+which needs no build step. Either way it then deploys the UI descriptor to
 `~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml`, patches `config.ini`,
-restarts `lighttpd`, and prints the same checks as **6. Verify** above. It says
-which of the two routes it took.
+restarts `lighttpd` and runs the checks from **6. Verify** above.
 
-The UI is then at `http://<hostname>.local` (or `http://pioreactor.local`, or
-`http://10.42.0.1`) over the same access point.
+The install cannot happen while the card is in the Mac: macOS mounts only the FAT
+partition, and the plugin lands in `/opt/pioreactor/venv` or `~/.pioreactor/` on
+the ext4 root. The card stage is preparation; the access point is the way in.
 
-**6. Set the clock.** With no internet the Pi has no NTP, so its clock – and
-every timestamp in the UI – will be wrong. From the Mac:
+</details>
+
+<details>
+<summary>If something doesn't come up</summary>
+
+- `<hostname>.local` not resolving: the unit is `10.42.0.1` on its own access point.
+  The UI also answers to `http://pioreactor.local`.
+- macOS offering to initialise or reformat the card: say **no**. It is offering to
+  format the Linux partition it cannot read.
+- The Mac has no internet while joined to the access point, and the point holds
+  about 4-8 clients at short range.
+
+</details>
+
+<details>
+<summary>What no internet on the unit costs you</summary>
+
+`pio update` and `pio plugins install <anything from PyPI>` will fail, including
+`pioreactor-precision-temperature-plugin` at step 3 of the AEP0.2 guide - install
+that on a networked run beforehand if the temperature kit is fitted. Flash the
+latest image for the same reason; the plugin needs Pioreactor >= 26.5.0.
+
+There is also no NTP, so the clock and every timestamp in the UI will be wrong.
+From the Mac:
 
 ```bash
 ssh pioreactor@<hostname>.local "sudo date -u -s '$(date -u +'%Y-%m-%d %H:%M:%S')'"
 ```
 
-#### What this route does not give you
+</details>
 
-- **No internet on the Pi.** `pio update` and `pio plugins install <anything
-  from PyPI>` will fail. That includes
-  `pioreactor-precision-temperature-plugin` at step 3 of the AEP0.2 guide – if
-  the Precision Temperature Upgrade Kit is fitted, install that plugin on a
-  networked run beforehand, or use the ethernet option below.
-- **Flash the latest image**, since you will not be able to `pio update` on
-  site, and the plugin needs Pioreactor ≥ 26.5.0.
-- The access point holds about 4–8 clients, and its range is short.
+<details>
+<summary>Alternative: an ethernet cable to the Mac</summary>
 
-#### Alternative: a cable to the Mac, and the normal instructions
+With a USB-C-to-ethernet dongle and a cable into the Pi 5's ethernet port, none of
+the staging is needed: see Pioreactor on
+[connecting with no network](https://docs.pioreactor.com/user-guide/zeroconf-networking)
+and on [internet sharing](https://docs.pioreactor.com/user-guide/internet-sharing),
+which gives the unit real internet. **Install** steps 2-6 at the top of this file
+then work exactly as written, and so do `pio update` and the temperature plugin.
+Prefer this when the hardware is to hand, and when demonstrating the documented
+install.
 
-If you have a USB-C-to-ethernet dongle and an ethernet cable, plug the Mac
-straight into the Pi's ethernet port instead. Pioreactor supports this directly –
-see [connecting with no network](https://docs.pioreactor.com/user-guide/zeroconf-networking)
-for the link-local case, and
-[internet sharing](https://docs.pioreactor.com/user-guide/internet-sharing) for
-turning on macOS Internet Sharing over that dongle, which gives the Pi real
-internet. With internet shared, none of the staging above is needed: **Install**
-steps 2–6 at the top of this file work exactly as written, and so do `pio
-update` and the temperature plugin. This is the better option when the hardware
-is to hand, and the one to prefer if you are demonstrating the documented
-install. It needs the Raspberry Pi 5 (or another model with an ethernet port)
-that AEP0.2 specifies.
+</details>
 
 ### From PyPI (future)
 
