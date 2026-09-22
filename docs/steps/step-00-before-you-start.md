@@ -22,7 +22,8 @@ tools:
 
 > Parts list: the [components](../components/) of this guide. AEP0.1.1 instructions are archived in [AEP0.1.1_Assembly.md](../../AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/AEP0.1.1_Assembly.md).
 
-## What changed from AEP0.1.1
+<details>
+<summary>What changed from AEP0.1.1</summary>
 
 | Area | AEP0.1.1 | AEP0.2 |
 | --- | --- | --- |
@@ -37,9 +38,11 @@ tools:
 | Sparging control | `pioreactor-relay-plugin` + experiment profile YAML | [electroPioreactor plugin](../../AEP-Plugin) (electrolysis, sparging and OD pausing in one job) |
 | Dropped | Bubble counter, pinch slider inoculation port, jubilee clips | Inoculation is now by syringe through the septum |
 
+</details>
+
 ## Before you start
 
-1. Procure the [Bill of Materials](../components/) ([LabCrafter](https://labcrafter.co.uk) can supply a kit that is only missing the required [SodaStream blue screw in cylinders](https://sodastream.co.uk/products/refill) and two [250ml GL45 "Duran" Flasks](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate))
+1. Procure the [Bill of Materials](../components/) ([LabCrafter](https://labcrafter.co.uk) can supply a kit that is only missing the required [SodaStream blue screw in cylinders](https://sodastream.co.uk/products/refill), two [250ml GL45 "Duran" Flasks](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate), [nutrient solution](https://github.com/amy-bo/electroPioreactor/tree/main/Media) and inoculum)
 2. Check your HOB are growing happily heterotrophically.
 
 ## Required Tools

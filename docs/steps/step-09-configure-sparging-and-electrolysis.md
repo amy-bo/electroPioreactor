@@ -29,4 +29,8 @@ The plugin was installed at step 4 and has been driving the electrodes since ste
    ```
 
 2. Restart **electroPioreactor** from the **Activities** tab of the *Manage* screen with the sparge interval you actually want. You should now hear the solenoid open and CO₂ rush into the vial. All four parameters are editable live from the **Settings** panel.
+
+   <img width="877" height="167" alt="image" src="https://github.com/user-attachments/assets/71183531-ccc0-4fb2-b36e-4153a897ce3b" />
+   <!-- TODO: AEP0.1.1 screenshot of the pioreactor-relay-plugin toggle, used as a placeholder - retake showing the electroPioreactor job in Activities and its Settings panel | assignee: @Martin -->
+
 3. Electrolysis power stays clamped to 10% at runtime to protect the electrodes.

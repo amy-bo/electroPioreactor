@@ -39,20 +39,31 @@ safety: |
 
 1. Unscrew John-Guest push-fit output from the regulator outlet port
 
-   *Reference photograph: the source README embeds an external image here, which is not ingested; see the shoot list in [docs/media/README.md](../media/README.md).*
+   <img width="1330" height="1767" alt="image" src="https://github.com/user-attachments/assets/3cbc619c-be7c-4abb-87d3-048d8350dcfc" />
+   <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
 2. Insert 8mm ID 2mm CS o-ring into the regulator outlet port
 
-   *Reference photograph: the source README embeds an external image here, which is not ingested; see the shoot list in [docs/media/README.md](../media/README.md).*
+   <img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/3316cd49-21c7-4fb3-a931-dd5c0798a27b" />
+   <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
 3. Screw in the 1/4" male to 1/8" male reducer to the regulator outlet port and tighten with wrench.
 
-   *Reference photograph: the source README embeds an external image here, which is not ingested; see the shoot list in [docs/media/README.md](../media/README.md).*
+   <img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/800812cb-2ccb-4a8f-8198-f8e381757552" />
+   <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-4. Apply Loctite 577 anaerobic thread sealant to the 1/8" male outlet thread. PTFE tape is no longer used anywhere in the gas train: applied correctly it seals, but the process is fiddly and it leaked often enough to be worth replacing. Use an o-ring wherever the joint has a seat for one, and Loctite 577 on every threaded joint that has not.
+4. Apply Loctite 577 anaerobic thread sealant to the 1/8" male outlet thread. Use an o-ring wherever the joint has a seat for one, and Loctite 577 on every threaded joint that has not.
+
+   <details>
+   <summary>Why not PTFE tape</summary>
+
+   PTFE tape is no longer used anywhere in the gas train: applied correctly it seals, but the process is fiddly and it leaked often enough to be worth replacing.
+
+   </details>
 5. Screw left port of the solenoid valve (with solenoid electronics to rear) into 1/8" male outlet. Ensure the solenoid manual override is closed (horizontal line pointing at 0 on the front of the solenoid).
 
-   *Reference photograph: the source README embeds an external image here, which is not ingested; see the shoot list in [docs/media/README.md](../media/README.md).*
+   <img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/ec433749-5866-476b-a965-ec070b80083e" />
+   <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
 6. Apply Loctite 577 to the needle valve inlet thread (the bare metal thread opposite the screw adjustor)
 7. Screw needle valve into 1/8" front port of solenoid valve

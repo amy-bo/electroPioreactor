@@ -19,6 +19,7 @@ viewer: {component: gl45-bottle-holder, format: glb}
 5. Pioreactor in front of Peristaltic pumps
 6. The setup should look like this:
 
-   *Reference photograph: the source README embeds an external image here, which is not ingested; see the shoot list in [docs/media/README.md](../media/README.md).*
+   <img width="555" height="998" alt="image" src="https://github.com/user-attachments/assets/0f4a6756-ea78-466b-bb35-c8b1a1c2c4af" />
+   <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
 7. The pumping dovetail platform has a cutout for the SD card. Check it clears your SD card before forcing anything down. <!-- TODO: confirm Pi 5 clearance on the current platform revision and photograph it | assignee: @Martin -->

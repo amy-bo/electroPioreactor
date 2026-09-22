@@ -18,9 +18,9 @@ tools:
 ---
 
 1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
-2. Follow the Pioreactor guide to attaching a 12V power supply: <https://docs.pioreactor.com/user-guide/external-power>
+2. Follow the Pioreactor guide to attaching a 12V power supply: <https://docs.pioreactor.com/user-guide/external-power> — the HAT's shunt connector was moved for this during hardware setup; check it before calibrating, because calibrating on the wrong supply means doing it twice.
 3. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
 4. Weigh dry empty vial
-5. Fill vial with DI water via the pumps, then weigh vials and adjust tube lengths until vial volume is 30ml (the 40 ml vessel's working volume — 15 ml was the AEP0.1.1 figure)
+5. Fill vial with DI water via the pumps, then weigh vials and adjust tube lengths until vial volume is 30ml
 6. Measure electrodes immersion depths, if necessary adjust to the standard, and record the insertion depth of each electrode
 7. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
