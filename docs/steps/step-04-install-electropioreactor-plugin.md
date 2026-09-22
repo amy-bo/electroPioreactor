@@ -14,6 +14,22 @@ This is the AEP's own plugin, not a Pioreactor one. It replaces the AEP0.1.1 com
 
 </details>
 
+<details>
+<summary>No network at the build site</summary>
+
+The install above needs the unit on a LAN, and needs internet on the unit to
+`git clone`. Where neither is available – a field site, a filming day, a lab
+whose WiFi won't take a Raspberry Pi – stage the install onto the microSD card
+before it is ejected, and let the Pioreactor raise its own WiFi network to
+install over: [Offline: stage the install on the SD card](../../AEP-Plugin/README.md#offline-stage-the-install-on-the-sd-card-no-lan-no-internet).
+
+Decide this before step 3, not here: the same absence of internet stops
+`pio update` and the Precision Temperature Upgrade Kit's plugin at step 3.
+
+</details>
+
+<!-- TODO: the offline card-staging route this links to has not yet been run end to end on real hardware - stage a card, boot it and install from it once before relying on it for the AEP0.2 instruction video | assignee: @Martin -->
+
 <!-- TODO: hard-coded step numbers here and in step-05 ("step 8") and step-09 ("step 4", "step 5") will drift if the steps are ever reordered - reference by title or slug instead | assignee: @Martin -->
 
 Install it before going any further. The electrolysis check in step 5 runs through this job, so that its 10% power clamp is protecting the electrodes the first time they are ever driven.
