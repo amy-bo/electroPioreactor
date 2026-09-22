@@ -160,27 +160,60 @@ Then in your browser, hard-refresh `http://<hostname>.local/` (Ctrl/Cmd+Shift+R)
 For a build site with no usable network. The card carries the plugin; the unit
 raises its own WiFi to install over.
 
-Flash as in step 1 above, but **leave WiFi configuration disabled in Imager**.
-Imager ejects the card when it finishes - pull it out and push it back in, then
-on the Mac, in this repo:
+1. Flash the card as in **1. Flash a fresh Pioreactor image** above, with one
+   change: on Imager's WiFi page, leave **WiFi configuration disabled**. Set the
+   hostname (e.g. `ed04`), username `pioreactor` and password as usual - the
+   hostname and password are needed at steps 6 and 8.
 
-```bash
-bash AEP-Plugin/scripts/stage-sd-card.sh /Volumes/bootfs GB
-```
+2. Imager ejects the card when it finishes verifying. Pull it out, push it back
+   in, and the `bootfs` volume remounts. If the computer offers to initialise or
+   reformat a disk, say **no** - it means the Linux partition it cannot read.
 
-Eject, put the card in the Pi, power up, wait for the blue LED. Join the WiFi
-network **`pioreactor`**, password **`raspberry`**, then:
+3. Clone this repo onto the computer with the card reader, if you have not
+   already:
 
-```bash
-ssh pioreactor@<hostname>.local
-```
+   ```bash
+   git clone https://github.com/amy-bo/electroPioreactor.git
+   ```
 
-```bash
-bash /boot/firmware/electropioreactor/install.sh
-```
+4. From the root of that checkout (the folder holding `AEP-Plugin/`):
 
-The UI is then at `http://<hostname>.local`, and **electroPioreactor** is under
-**Activities**.
+   ```bash
+   bash AEP-Plugin/scripts/stage-sd-card.sh /Volumes/bootfs GB
+   ```
+
+   `/Volumes/bootfs` is where macOS mounts the card's boot volume - it is
+   `/Volumes/boot` on older images, and if you leave the argument off the script
+   finds it itself. `GB` is the two-letter WiFi country code the access point
+   will run under; use your own.
+
+   On Linux, pass the boot partition's own mount point - only macOS's `/Volumes`
+   is auto-detected. On Windows, run it under WSL, or write the two files by hand
+   (what the script writes is in **What those two commands do** below).
+
+5. Eject the card (Finder, or `diskutil eject /Volumes/bootfs`), put it in the
+   Pi, power up, and give it a few minutes: the HAT blinks its blue LED once
+   first boot is done.
+
+6. On the computer, join the WiFi network **`pioreactor`**, password
+   **`raspberry`**. That computer has no internet while it is on this network.
+
+7. SSH in, with the hostname and password set at step 1:
+
+   ```bash
+   ssh pioreactor@<hostname>.local
+   ```
+
+8. Run the installer step 4 put on the card:
+
+   ```bash
+   bash /boot/firmware/electropioreactor/install.sh
+   ```
+
+   It prints its own checks and finishes with `Done (install mode: ...)`.
+
+9. Hard-refresh `http://<hostname>.local` (Ctrl/Cmd+Shift+R). **electroPioreactor**
+   is under **Pioreactors -> `<hostname>` -> Manage -> Activities**.
 
 <details>
 <summary>What those two commands do</summary>
