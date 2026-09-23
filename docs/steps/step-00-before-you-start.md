@@ -18,6 +18,8 @@ tools:
   - {component: needle-nose-pliers, qty: 1}
   - {component: multimeter, qty: 1}
   - {component: banded-oil-filter-wrench, qty: 1}
+receipt: true
+profile: true
 ---
 
 > Parts list: the [components](../components/) of this guide. AEP0.1.1 instructions are archived in [AEP0.1.1_Assembly.md](../../AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/AEP0.1.1_Assembly.md).

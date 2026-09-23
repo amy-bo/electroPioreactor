@@ -17,7 +17,7 @@ parts:
   - {component: xr-upgrade-kit, qty: 1, cat: part}
   - {component: xr-top-vial-holder, qty: 1, cat: part}
   - {component: xr-o-ring, qty: 1, cat: part}
-  - {component: precision-temperature-upgrade-kit, qty: 1, cat: part}
+  - {component: precision-temperature-upgrade-kit, qty: 1, cat: part, when: {temp-kit: true}}
   - {component: power-supply-12v, qty: 1, cat: part}
 tools:
   - {component: phillips-ph0-screwdriver, qty: 1}
@@ -47,5 +47,11 @@ Follow the Pioreactor 40 ml v1.5 hardware setup guide: <https://docs.pioreactor.
 
    </details>
 6. [Fit the XR upgrade kit](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly) (45° and 135° scattering in addition to 90°) — this is standard on AEP0.2 and gives the lower OD detection limit for earlier indication of growth.
+
+<!-- when temp-kit=true -->
+
 7. [Fit the Precision Temperature Upgrade Kit](https://docs.pioreactor.com/user-guide/precision-temperature-upgrade-kit) — the MLX90632 far-infrared sensor replaces the thermistor for faster, hotter, contactless temperature control. It seats in the SPEC position and chains off the nearest eye-spy over STEMMA-QT.
+
+<!-- /when -->
+
 8. Connect the 12V supply to the HAT's barrel jack — the solenoid needs more power than the Pi alone can supply, and the shunt was moved for it at sub-step 2: <https://docs.pioreactor.com/user-guide/external-power>. Four or more Pioreactors on one bench can be powered from a single multi-port charger rather than one supply each — see <https://docs.pioreactor.com/user-guide/powering-cluster>.
