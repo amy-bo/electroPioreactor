@@ -8,6 +8,20 @@ parts:
   - {component: co2-needle-valve, qty: 1, cat: prev}
   - {component: luer-lock-cap, qty: 1, cat: prev}
   - {component: silicone-tubing, qty: 1, cat: prev}
+checks_draft: true
+checks:
+  - id: one-bar
+    question: "Is the regulator set to 1 bar?"
+    issues:
+      - {problem: "It reads more or less", fix: "Adjust the regulator to 1 bar before touching the needle valve."}
+  - id: gas-at-vent
+    question: "While sparging, with one outlet vent plugged, does gas leave through the open vent?"
+    issues:
+      - {problem: "No gas leaves the open vent", fix: "Check the job is sparging (or the relay is on) and that the needle valve is open."}
+  - id: target-flow
+    question: "Does the measured flow rate match your target?"
+    issues:
+      - {problem: "It is off target", fix: "Adjust the needle valve and repeat the measurement until it matches."}
 ---
 
 1. Set regulator to 1 bar

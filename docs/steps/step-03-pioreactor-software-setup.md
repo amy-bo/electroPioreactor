@@ -8,6 +8,26 @@ parts:
   - {component: precision-temperature-upgrade-kit, qty: 1, cat: prev, when: {temp-kit: true}}
 tools:
   - {component: computer-with-microsd-reader, qty: 1}
+checks_draft: true
+checks:
+  - id: version-26-5
+    question: "Is the Pioreactor software at release 26.5.0 or later?"
+    issues:
+      - {problem: "It is older", fix: "Run `pio update` before going further."}
+      - {problem: "The unit has no internet, so `pio update` fails", fix: "Flash the latest image instead: an offline unit cannot be updated on site (see the offline route in the plugin install step)."}
+  - id: xr-model-set
+    question: "In Inventory, is this unit's model set to the XR variant?"
+    issues:
+      - {problem: "It still shows the standard model", fix: "Set it to the XR variant in Inventory: until you do, OD readings are interpreted against the wrong channel map."}
+  - id: xr-config
+    question: "Are the XR photodiode channel values in `config.ini`?"
+    issues:
+      - {problem: "They are missing", fix: "Add them as listed at the end of the XR assembly guide."}
+  - id: temp-plugin
+    when: {temp-kit: true}
+    question: "Is `pioreactor-precision-temperature-plugin` listed under Plugins in the Pioreactor UI?"
+    issues:
+      - {problem: "The install fails because the unit has no internet", fix: "Stage the plugin onto the card with the offline route in the plugin install step (name it as the third argument), or give the unit internet over an ethernet cable with Internet Sharing."}
 ---
 
 <!-- TODO: this line restates the step title - see the note in step-02 | assignee: @Martin -->

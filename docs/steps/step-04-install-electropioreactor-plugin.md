@@ -3,6 +3,22 @@ id: step-04-install-electropioreactor-plugin
 order: 4
 title: "Install the electroPioreactor plugin"
 guide: [aep]
+checks_draft: true
+checks:
+  - id: in-activities
+    question: "Under Pioreactors → your unit → Manage → Activities, do you see electroPioreactor?"
+    issues:
+      - {problem: "It is not listed", fix: "Hard-refresh the page (Ctrl/Cmd+Shift+R), then run the Verify checks in AEP-Plugin/README.md: `pio plugins list` should show `pioreactor-electropioreactor-plugin`, and `~/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml` should be present."}
+      - {problem: "The page at `<hostname>.local` will not load on the offline route", fix: "On its own access point the unit is at 10.42.0.1, and the UI also answers to http://pioreactor.local."}
+  - id: installer-done
+    question: "Did the install finish without stopping on an error (on the offline route, with `Done (install mode: ...)`)?"
+    issues:
+      - {problem: "It stopped on `[PWM] 4 = 'waste'`", fix: "That is the stock Pioreactor default. Re-run as `EP_FORCE_PWM4=1 bash /boot/firmware/electropioreactor/install.sh`, or, if a waste pump really is on channel 4, move it in the UI's Configuration page first."}
+      - {problem: "The computer offered to initialise or reformat the card", fix: "Click Ignore: it is offering to format the Linux part of the card, which it cannot read. Nothing needs formatting."}
+  - id: clock-right
+    question: "Does the unit show the correct date and time?"
+    issues:
+      - {problem: "The clock is wrong on an offline unit", fix: "With no internet the unit has no time source: set it from the computer with the `sudo date` command in sub-step 9 of the offline route."}
 ---
 
 Install the [electroPioreactor plugin](../../AEP-Plugin), following [AEP-Plugin/README.md](../../AEP-Plugin/README.md)

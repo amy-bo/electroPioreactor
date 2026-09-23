@@ -21,6 +21,26 @@ parts:
   - {component: power-supply-12v, qty: 1, cat: part}
 tools:
   - {component: phillips-ph0-screwdriver, qty: 1}
+checks_draft: true
+checks:
+  - id: shunt-moved
+    question: "Was the HAT's shunt connector moved to the position closest to the LED outputs before the vial holder assembly was mounted?"
+    issues:
+      - {problem: "The shunt was not moved and the unit is already assembled", fix: "Take the unit apart far enough to reach the shunt and move it now. Otherwise PWM channels 1 to 4 ignore the 12V supply and the CO₂ solenoid will not drive."}
+      - {problem: "Stirring or pumps were calibrated before the shunt was moved", fix: "Moving the shunt invalidates those calibrations: redo them."}
+  - id: xr-not-v15-optics
+    question: "Is the XR upgrade kit fitted, with the v1.5 optics left out?"
+    issues:
+      - {problem: "The v1.5 optics were fitted", fix: "Work through the XR disassembly guide linked in sub-step 5 to recover the parts the XR assembly reuses, then fit the XR kit."}
+  - id: temp-sensor-seated
+    when: {temp-kit: true}
+    question: "Is the Precision Temperature Upgrade Kit's sensor seated in the SPEC position and chained off the nearest eye-spy over STEMMA-QT?"
+    issues:
+      - {problem: "The sensor is elsewhere or not connected", fix: "Reseat it following the Precision Temperature Upgrade Kit guide linked in sub-step 7."}
+  - id: twelve-volt-connected
+    question: "Is the 12V supply plugged into the HAT's barrel jack?"
+    issues:
+      - {problem: "It is not connected", fix: "Connect it: the solenoid needs more power than the Pi alone can supply, and without it the CO₂ sparging step will look like a gas train fault rather than a power one."}
 ---
 
 <!-- TODO: this line restates the step title, which the site renders as the heading above it - cut it back to the bare guide link once the renderer's heading behaviour is settled (step-03 has the same duplication) | assignee: @Martin -->

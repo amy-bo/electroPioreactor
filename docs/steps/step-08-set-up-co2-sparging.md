@@ -35,6 +35,26 @@ safety: |
   **Important:** don all PPE including cryogenic gloves before tightening the cylinder joint, and [follow the instructions included with the SodaStream adapter](https://cdn.shopify.com/s/files/1/2268/6279/files/BrewKegTap_Sodastream_Adapter_Instructions.pdf?v=1763549894). Never fit a mismatched adapter to a high-pressure CO₂ joint: retention comes from full thread engagement, and a partial mismatched engagement fails suddenly.
   Ensure the solenoid manual override is closed (horizontal line pointing at 0 on the front of the solenoid).
   The solenoid valve must be 3-way venting (3/2). BoM 3.1: "A 2-way valve traps CO₂ between the valve and the broth on closing; it dissolves and draws liquid back up the line."
+checks_draft: true
+checks:
+  - id: joint-before-gas
+    question: "Was the regulator screwed fully onto the adapter, with the pin backed off, before any CO₂ was admitted?"
+    issues:
+      - {problem: "Gas escaped while tightening", fix: "Back the adapter's pin off to stop the gas, screw the regulator fully onto the adapter, then open the pin again. Never fit a mismatched adapter."}
+  - id: override-closed
+    question: "Is the solenoid manual override closed (horizontal line pointing at 0)?"
+    issues:
+      - {problem: "CO₂ flows all the time", fix: "Close the manual override."}
+  - id: gas-tight
+    question: "Once CO₂ is admitted, is the train free of hissing or leaks?"
+    issues:
+      - {problem: "A threaded joint leaks", fix: "Every threaded joint without an o-ring seat needs Loctite 577. It fixtures in 10 to 60 minutes at 22 °C and reaches full pressure rating after 24 hours."}
+      - {problem: "The 4 mm tube leaks at a barb or ferrule", fix: "Dip the tube end in hot water to soften it and reseat it; the 1/8\" barb must grip the 4 mm tube or the joint leaks under pressure."}
+      - {problem: "The blanking plug leaks", fix: "It seals on its o-ring, not on sealant: check the o-ring is present and tighten with the wrench."}
+  - id: pwm4
+    question: "Is the solenoid connector plugged into PWM channel 4?"
+    issues:
+      - {problem: "It is on another channel", fix: "Move it to PWM channel 4, which the plugin maps to the relay."}
 ---
 
 1. Unscrew John-Guest push-fit output from the regulator outlet port

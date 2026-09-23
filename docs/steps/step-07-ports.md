@@ -9,6 +9,16 @@ parts:
   - {component: stainless-steel-cathode, qty: 1, cat: prev}
   - {component: vial-cap, qty: 1, cat: prev}
   - {component: silicone-septum, qty: 1, cat: prev}
+checks_draft: true
+checks:
+  - id: eight-ports
+    question: "Can you identify all eight ports on the cap, with the spare port sealed?"
+    issues:
+      - {problem: "The spare port is open", fix: "Seal it: every unused opening is a route for contamination."}
+  - id: four-needles
+    question: "Are the four needle ports (Media In, Media Out, Gas Out and Gas Out – safety) through the septum?"
+    issues:
+      - {problem: "You have fewer than four needles", fix: "Each Pioreactor ships with four, and the BoM adds one more per unit: check the parts checklist in Before you start and use its Missing parts email if any are short."}
 ---
 
 The AEP0.2 cap carries eight ports, all stainless steel needles rather than the Flexelene 135C tubing used in AEP0.1:

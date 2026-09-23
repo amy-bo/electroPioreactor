@@ -15,6 +15,20 @@ parts:
 tools:
   - {component: analytical-balance, qty: 1}
   - {component: vernier-callipers, qty: 1}
+checks_draft: true
+checks:
+  - id: calibrated-on-12v
+    question: "Were the pumps calibrated with the 12V supply connected and the HAT's shunt moved?"
+    issues:
+      - {problem: "They were calibrated before the shunt was moved or the 12V supply connected", fix: "Move the shunt (see hardware setup), connect the 12V supply, and calibrate again: calibrating on the wrong supply means doing it twice."}
+  - id: thirty-ml
+    question: "Weighed against the dry empty vial, does the vial hold 30 ml when filled with DI water via the pumps?"
+    issues:
+      - {problem: "The volume is not 30 ml", fix: "Adjust the tube lengths and re-weigh until it is."}
+  - id: immersion-recorded
+    question: "Are both electrodes at the standard immersion depth, and is each insertion depth recorded?"
+    issues:
+      - {problem: "A depth is off", fix: "Adjust it to the standard and record the new insertion depth."}
 ---
 
 1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>

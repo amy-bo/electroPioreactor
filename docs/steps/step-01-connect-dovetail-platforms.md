@@ -10,6 +10,17 @@ parts:
 renders:
   - {id: gl45-bottle-holder-iso, component: gl45-bottle-holder, view: iso, explode: false, format: png}
 viewer: {component: gl45-bottle-holder, format: glb}
+checks_draft: true
+checks:
+  - id: raft-layout
+    question: "Is the SodaStream holder at the rear, the product bottle in front and to its left, the media bottle in front and to its right, with the pumps and then the Pioreactor in front of them?"
+    issues:
+      - {problem: "The layout differs", fix: "Rearrange the platforms in the order listed above, with dovetails always to the front and left."}
+      - {problem: "Several AEPs do not join into one raft", fix: "Alternate media and product bottles between units so that the media bottle platforms form the backbone of the raft."}
+  - id: sd-card-clearance
+    question: "Does the pumping dovetail platform sit down fully without pressing on the SD card?"
+    issues:
+      - {problem: "The platform catches on the SD card", fix: "Stop and check that the platform's SD card cutout clears your card before forcing anything down."}
 ---
 
 1. SodaStream at rear with expansion gap to right.

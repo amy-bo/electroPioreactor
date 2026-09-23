@@ -20,6 +20,18 @@ tools:
   - {component: banded-oil-filter-wrench, qty: 1}
 receipt: true
 profile: true
+checks_draft: true
+checks:
+  - id: parts-counted
+    question: "Does every row of the parts checklist on this page match what you received?"
+    issues:
+      - {problem: "A part is short or missing", fix: "Use the Missing parts panel under the checklist to email whoever you bought from; it lists each part and how many are missing."}
+      - {problem: "The SodaStream cylinders or the 250 ml GL45 bottles are missing from a LabCrafter kit", fix: "These are regional consumables that LabCrafter does not supply: buy them locally (see the links in item 1 above)."}
+  - id: tools-to-hand
+    question: "Do you have every Required Tool to hand, including PPE?"
+    issues:
+      - {problem: "The analytical balance is not accurate enough", fix: "Pioreactor's pump calibration only requires 0.1 g accuracy."}
+      - {problem: "A required tool is missing", fix: "Source it before starting: the Required Tools are needed in the steps that list them, and the cryogenic gloves and eye/face protection are needed before the CO₂ cylinder joint is made."}
 ---
 
 > Parts list: the [components](../components/) of this guide. AEP0.1.1 instructions are archived in [AEP0.1.1_Assembly.md](../../AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/AEP0.1.1_Assembly.md).

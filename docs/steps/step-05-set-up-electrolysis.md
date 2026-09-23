@@ -27,6 +27,23 @@ viewer: {component: vial-cap, format: glb}
 safety: |
   Fix the red cable's ring terminal to the MMO anode and the black cable's ring terminal to the stainless steel cathode. BoM 3.3: "Colour-code red anode, black cathode, and never swap." BoM 2.2: the stainless steel cathode "Must stay strictly cathodic: reversed, stainless corrodes quickly and leaches Cr, Ni and Fe into the culture."
   Drive the electrodes from this job rather than setting LED channel D by hand: the job clamps electrolysis power to 10% at runtime, and nothing does so if you drive the channel directly.
+checks_draft: true
+checks:
+  - id: polarity
+    question: "Is the red cable fixed to the MMO anode (the tube) and the black cable to the stainless steel cathode (the rod)?"
+    issues:
+      - {problem: "They are swapped", fix: "Stop the job and swap the ring terminals before driving the electrodes again. Reversed, the stainless steel corrodes quickly and leaches Cr, Ni and Fe into the culture."}
+  - id: bubbles
+    question: "With electroPioreactor running, do roughly twice as many bubbles form on the cathode as on the anode?"
+    issues:
+      - {problem: "No bubbles on either electrode", fix: "Check the electrodes are connected to LED channel D (catch upwards), the vial holds nutrient solution or bicarbonate of equal ionic strength, and the job was started from the Activities tab."}
+      - {problem: "More bubbles on the anode than the cathode", fix: "The leads are probably reversed: stop the job and check the red lead is on the anode and the black lead on the cathode."}
+      - {problem: "Bubbling is weak", fix: "Adjust electrolysis power in the job's Settings panel rather than setting LED channel D by hand: the job clamps power to 10% to protect the electrodes."}
+  - id: depth
+    question: "With the cap fully screwed on and the septum compressed evenly, are the electrode tops flush with the top of the vial cap?"
+    issues:
+      - {problem: "An electrode sits proud of or below the cap top", fix: "Push it through the septum until it seats in its journal bore with its top flush: the cap's column height sets the standard depth."}
+      - {problem: "The cap will not screw fully on", fix: "Check the septum lies flat across the vial mouth so it compresses evenly."}
 ---
 
 NOTE: ~struck through~ lines will already have been completed if you received a kit from LabCrafter

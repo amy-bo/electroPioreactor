@@ -5,6 +5,22 @@ title: "Configure sparging and electrolysis"
 guide: [aep]
 parts:
   - {component: solenoid-valve, qty: 1, cat: prev}
+checks_draft: true
+checks:
+  - id: config-ini
+    question: "Does `config.ini` show `4=relay` under `[PWM]` and an `[electropioreactor.config]` section?"
+    issues:
+      - {problem: "PWM 4 is still `waste`", fix: "Re-run the installer with `EP_FORCE_PWM4=1` (see the plugin install step), or change the channel in the UI's Configuration page."}
+      - {problem: "The `[electropioreactor.config]` section is missing", fix: "Re-run the plugin install (see the plugin install step): the installer patches `config.ini`."}
+  - id: solenoid-sparges
+    question: "When the job sparges, do you hear the solenoid open and CO₂ rush into the vial?"
+    issues:
+      - {problem: "No click from the solenoid", fix: "Check the 12V supply is in the HAT's barrel jack and the shunt was moved during hardware setup: without them PWM 4 cannot drive the solenoid."}
+      - {problem: "The solenoid clicks but no gas flows", fix: "Check the adapter pin is open, the regulator is open and the needle valve, closed while setting up CO₂ sparging, has been opened."}
+  - id: settings-live
+    question: "Can you see and change all four parameters in the job's Settings panel?"
+    issues:
+      - {problem: "A change to the OD pause does not seem to take effect", fix: "`od_pause_after_sparge_seconds` takes effect on the next sparge cycle, not the one in progress."}
 ---
 
 The plugin was installed at step 4 and has been driving the electrodes since step 5. Now set it up for the full cycle, with the CO₂ train built.
