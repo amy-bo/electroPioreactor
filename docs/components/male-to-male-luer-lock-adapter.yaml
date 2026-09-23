@@ -7,3 +7,8 @@ source_files: []
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.8 (Generic; AEP0.2). Joins the CO2 filter outlet to the anode feed tube. BoM qty 2; Method step 8 fits one."}
+receipt:
+  per: unit
+  qty: 2
+  from: [labcrafter, diy]
+  note: "One is fitted in the CO₂ sparging step; the other is a spare."

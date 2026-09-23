@@ -8,3 +8,9 @@ parameters: {sensor: "MLX90632 far-infrared", position: "SPEC"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.3 (Optional; AEP0.2)."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, pioreactor, diy]
+  when: {temp-kit: true}
+  note: "Optional kit; only if you ordered it."

@@ -7,3 +7,8 @@ source_files: []
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from Assembly/README.md, Required Tools item 7 (not a BoM line; AEP0.2)."}
+receipt:
+  per: kit
+  qty: 1
+  from: [diy]
+  note: "PPE, one per person."

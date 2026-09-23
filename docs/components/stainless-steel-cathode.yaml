@@ -8,3 +8,8 @@ parameters: {length_mm: 100, diameter_mm: 6, grade: "316 stainless, marine grade
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 2.2 (Critical; AEP0.2). 316 stainless round bar, marine grade. Must stay strictly cathodic: reversed, stainless corrodes quickly and leaches Cr, Ni and Fe into the culture."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]
+  note: "LabCrafter kits arrive with it already fitted in the vial cap."

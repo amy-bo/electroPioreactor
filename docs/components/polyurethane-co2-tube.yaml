@@ -8,3 +8,8 @@ parameters: {od_mm: 6, id_mm: 4, length_m: 1, rated_bar: 10}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.2 (Generic; AEP0.2)."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]
+  note: "1 m of 6 mm OD × 4 mm ID tube."

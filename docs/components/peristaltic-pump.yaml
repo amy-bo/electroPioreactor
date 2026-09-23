@@ -9,3 +9,8 @@ derived_files: []
 supplier: {name: "Pioreactor", url: "https://pioreactor.com/products/peristaltic-pump"}
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.7 (Critical; AEP0.2). Sold as a pair with pump tubing; a step that uses the pair lists qty 2. Must be the Pioreactor pump, so the HAT can drive it."}
+receipt:
+  per: unit
+  qty: 2
+  from: [labcrafter, pioreactor, diy]
+  note: "Sold as a pair with pump tubing: one pair per Pioreactor."

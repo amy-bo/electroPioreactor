@@ -9,3 +9,8 @@ derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.9 (Critical on fit; AEP0.2). Carrying CO2 from the luer adapter into the top of the anode. Exact length still to specify."}
   - {version: 1.0.1, date: 2026-09-08, note: "Gerrit's BoM answers of 2026-09-04 (commit 05ef02f): 100 mm length; 1 mm ID / 3 mm OD confirmed for the final anode."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]
+  note: "100 mm of 1 mm ID / 3 mm OD silicone."

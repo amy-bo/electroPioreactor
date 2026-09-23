@@ -8,3 +8,8 @@ parameters: {runs: 2, anode_colour: "red", cathode_colour: "black"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 3.3 (Generic cable, critical terminations; AEP0.2). BoM qty 1 covers both runs (one run per electrode); a step that fits both lists qty 2. Ring terminal at the electrode end and connector at the Pioreactor end. Colour-code red anode, black cathode, and never swap."}
+receipt:
+  per: unit
+  qty: 2
+  from: [labcrafter, diy]
+  note: "One red (anode), one black (cathode); LabCrafter kits arrive with them already fixed to the electrodes. DRAFT: the BoM counts the cable as 1 line covering both runs; 2 cables per unit assumed here."

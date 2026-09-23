@@ -9,3 +9,8 @@ derived_files: []
 supplier: {name: "SodaStream", url: "https://sodastream.co.uk/products/refill"}
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.7 (Regional consumable, not supplied by LabCrafter; AEP0.2). Buy locally; appears only where a step uses it, qty 1, cat consumable."}
+receipt:
+  per: unit
+  qty: 1
+  from: [diy]
+  note: "Regional consumable, not supplied by LabCrafter: buy locally."

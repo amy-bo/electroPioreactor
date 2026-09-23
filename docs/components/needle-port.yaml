@@ -8,3 +8,8 @@ parameters: {length_mm: 75, tip: "blunt", hub: "female luer-lock", grade: "304 (
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 2.6 (Generic; AEP0.2). BoM qty 1 tops up the four that ship with each Pioreactor; Method step 7 uses four needle ports (Media In, Media Out, Gas Out, Gas Out - safety). 304 is standard; 316 is available for more acidic, basic or salty media."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]
+  note: "A top-up to the four needles that ship with each Pioreactor, which are not counted here. DRAFT: whether LabCrafter bags the Pioreactor's own four needles together with this one is unconfirmed."

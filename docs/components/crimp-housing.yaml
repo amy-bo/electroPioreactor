@@ -10,3 +10,8 @@ supplier: {name: "Digi-Key", url: "https://www.digikey.ca/en/products/detail/te-
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 3.9 (Critical; AEP0.2). Matching series and pin count to 3.8 (crimp-connector), pinned out to the Pioreactor board."}
   - {version: 1.0.1, date: 2026-09-08, note: "Gerrit's BoM answers of 2026-09-04 (commit 05ef02f): TE Connectivity AMP 487526-1 (Digi-Key 469847), mating 3.8 (crimp-connector)."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]
+  note: "DRAFT: may arrive already fitted to the wiring."

@@ -9,3 +9,8 @@ derived_files: []
 supplier: {name: "The Consumables Company", url: "https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate"}
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.10 (Regional consumable, not supplied by LabCrafter; AEP0.2). GL45 thread, about 70 mm OD, to match 1.9 (gl45-bottle-holder) and 1.10 (gl45-cap)."}
+receipt:
+  per: unit
+  qty: 2
+  from: [diy]
+  note: "Regional consumable, not supplied by LabCrafter: one media and one product bottle per Pioreactor."

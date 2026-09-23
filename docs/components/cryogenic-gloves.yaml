@@ -8,3 +8,8 @@ parameters: {rated_to_c: -80}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from Assembly/README.md, Required Tools item 6 (not a BoM line; AEP0.2). Safe to at least -80°C."}
+receipt:
+  per: kit
+  qty: 1
+  from: [diy]
+  note: "PPE, safe to at least -80 °C."

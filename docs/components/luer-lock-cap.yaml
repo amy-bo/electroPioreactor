@@ -7,3 +7,7 @@ source_files: []
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.7 (Generic; AEP0.2). Caps an unused luer port."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]

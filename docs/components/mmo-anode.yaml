@@ -9,3 +9,8 @@ derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 2.1 (Critical; AEP0.2). Titanium substrate with a mixed-metal-oxide (DSA) coating of iridium and tantalum oxide (IrO2-Ta2O5), the valve-metal-stabilised OER coating, not the RuO2 type. Hollow tube, open at the base: CO2 enters the top and leaves through the base, so the part is both anode and CO2 conduit."}
   - {version: 1.0.1, date: 2026-09-08, note: "Gerrit's BoM answers of 2026-09-04 (commit 05ef02f): coated (active) length 70 mm of the 100 mm overall; coating thickness 8 um on grade 1 titanium."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]
+  note: "LabCrafter kits arrive with it already fitted in the vial cap."

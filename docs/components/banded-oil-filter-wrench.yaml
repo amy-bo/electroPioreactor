@@ -7,3 +7,8 @@ source_files: []
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from Assembly/README.md, Recommended Tools item 3 (not a BoM line; AEP0.2). Optional - if you struggle with CO2 canister tightening."}
+receipt:
+  per: kit
+  qty: 1
+  from: [diy]
+  note: "Optional tool, if CO₂ cylinder tightening is a struggle."

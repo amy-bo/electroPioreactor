@@ -3,3 +3,32 @@ guides:
   - {id: aep, title: "Aseptic ElectroPioreactor (AEP0.2)", base: /AEP}
   - {id: mep, title: "Mixed ElectroPioreactor", base: /MEP}
 byte_budget_kb: 150
+profile:
+  - id: units
+    type: number
+    label: "How many Pioreactors did you receive?"
+    default: 1
+    min: 1
+    max: 50
+  - id: temp-kit
+    type: boolean
+    label: "Do you have the Precision Temperature Upgrade Kit?"
+    default: false
+  - id: supplier
+    type: choice
+    label: "Where did your parts come from?"
+    options:
+      - {value: labcrafter, label: "LabCrafter kit"}
+      - {value: pioreactor, label: "Pioreactor (direct)"}
+      - {value: diy, label: "Sourced myself from the BoM"}
+    default: labcrafter
+receipt:
+  multiply_by: units
+  supplier_from: supplier
+contacts:
+  # verify: found at https://labcrafter.co.uk/pages/contact on 2026-09-23 (via search index; direct fetch refused)
+  labcrafter: {name: "LabCrafter", email: "info@labcrafter.co.uk", subject: "Missing parts: AEP0.2 kit"}
+  # verify: found at https://docs.pioreactor.com/user-guide/hardware-setup-intro on 2026-09-23 ("Missing a part? Email us at hello@pioreactor.com")
+  pioreactor: {name: "Pioreactor", email: "hello@pioreactor.com", subject: "Missing parts: Pioreactor order for an AEP0.2 build"}
+  # PLACEHOLDER — Martin to supply
+  project: {name: "electroPioreactor project", email: "aep-support@example.invalid", subject: "AEP0.2 guide: help with a step"}

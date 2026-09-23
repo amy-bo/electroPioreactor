@@ -9,3 +9,8 @@ derived_files: []
 supplier: {name: "KegLand", mpn: "KL15578"}
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.3 (Critical and regional; AEP0.2). Pin-adjustment type, so the joint is made before gas is admitted. Method step 8.11 names the KegLand KL15578. Elsewhere, the equivalent for the local cylinder standard, for example CGA320 in North America."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]
+  note: "Regional: the LabCrafter kit's adapter suits UK and EU cylinders (KegLand KL15578). Elsewhere source the local equivalent."

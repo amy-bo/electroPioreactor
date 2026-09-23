@@ -9,3 +9,8 @@ derived_files: []
 supplier: {name: "Printables (community model 855700)", url: "https://www.printables.com/model/855700-sodastream-holder-for-pioreactor"}
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.1 (Generic on print settings; AEP0.2). 3D printed, sized for a SodaStream-diameter cylinder on the standard dovetail rail. No master in this repository; Components/README.md links the Printables model."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]
+  note: "3D printed (Printables model 855700)."

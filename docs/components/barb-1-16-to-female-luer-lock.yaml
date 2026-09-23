@@ -8,3 +8,7 @@ parameters: {barb_in: "1/16", luer: "female lock"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.4 (Generic; AEP0.2). Barb size and luer gender are the critical match."}
+receipt:
+  per: unit
+  qty: 2
+  from: [labcrafter, diy]

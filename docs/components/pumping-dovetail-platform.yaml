@@ -10,3 +10,8 @@ supplier: {name: "Printables (community model 679663)", url: "https://www.printa
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.8 (Generic on print settings, critical on geometry; AEP0.2). Purchased Pioreactor part (Components/README.md links the pioreactor.com product page); no master in this repository."}
   - {version: 1.0.1, date: 2026-09-08, note: "Gerrit's BoM answers of 2026-09-04 (commit 05ef02f): print it from Printables model 679663 (Pioreactor platform with dovetails, B models) rather than buying the pioreactor.com part; PLA or PETG, 0.2 mm layer, ~20% infill. No master in this repository."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]
+  note: "3D printed (Printables model 679663). DRAFT: assumed printed and supplied in the LabCrafter kit, not in a Pioreactor-direct order."

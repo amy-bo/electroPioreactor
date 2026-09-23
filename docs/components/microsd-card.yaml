@@ -8,3 +8,8 @@ parameters: {capacity_gb_min: 32, speed_class: "A2 / U3 / V30", pioreactor_os_mi
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.6 (Generic; AEP0.2)."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, pioreactor, diy]
+  note: "32 GB or larger. DRAFT: whether a Pioreactor-direct order includes the card depends on the option chosen at checkout."

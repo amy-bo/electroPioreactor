@@ -8,3 +8,8 @@ parameters: {power_w: 27, voltage_v: 5.1, current_a: 5, connector: "USB-C PD", d
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.5 (Generic; AEP0.2). Actual draw is about 15.3 W per Pioreactor; for four or more units, one multi-port GaN charger giving at least 15.3 W per port."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, pioreactor, diy]
+  note: "27 W USB-C; four or more units may instead share one multi-port charger. DRAFT: whether a Pioreactor-direct order includes it depends on the option chosen; whether LabCrafter supplies one per unit or a multi-port charger for larger orders is unconfirmed."

@@ -8,3 +8,8 @@ parameters: {thread: "M3", material: "A2 or A4 stainless"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 3.6 (Generic; AEP0.2). A2 or A4 stainless to match the cathode."}
+receipt:
+  per: unit
+  qty: 2
+  from: [labcrafter, diy]
+  note: "LabCrafter kits arrive with these already fitted."

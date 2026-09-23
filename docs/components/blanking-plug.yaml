@@ -8,3 +8,7 @@ parameters: {thread: "1/8\" external", material: "nickel-plated brass", seal: "i
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.6 (Generic; AEP0.2). Seals on an integral NBR o-ring, so no thread sealant is needed."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]
