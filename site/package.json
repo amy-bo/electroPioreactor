@@ -1,0 +1,28 @@
+{
+  "name": "electropioreactor-docs",
+  "private": true,
+  "version": "0.2.0",
+  "description": "docs.electroPioreactor.org: the electroPioreactor assembly guides (AEP0.2 under /AEP), built with Starlight and Docs&I",
+  "type": "module",
+  "scripts": {
+    "build": "astro build",
+    "dev": "astro dev",
+    "preview": "astro preview",
+    "check": "docsandeye check --project .. --dist dist",
+    "vendor": "bash scripts/vendor-docsandeye.sh"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.42.0",
+    "@docsandeye/core": "file:vendor/docsandeye-core-0.1.0.tgz",
+    "@docsandeye/themes": "file:vendor/docsandeye-themes-0.1.0.tgz",
+    "astro": "7.3.1",
+    "docsandeye": "file:vendor/docsandeye-0.1.0.tgz",
+    "starlight-docsandeye": "file:vendor/starlight-docsandeye-0.1.0.tgz"
+  },
+  "overrides": {
+    "@docsandeye/core": "$@docsandeye/core"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
