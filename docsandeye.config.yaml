@@ -2,7 +2,9 @@ theme: pioreactor
 guides:
   - {id: aep, title: "Aseptic ElectroPioreactor (AEP0.2)", base: /AEP}
   - {id: mep, title: "Mixed ElectroPioreactor", base: /MEP}
-byte_budget_kb: 150
+# The parts-count page (step-00) carries the whole receipt table (~45 rows), which takes it just over
+# 150 KB; videos are YouTube click-to-load, so no page loads video bytes before play.
+byte_budget_kb: 175
 profile:
   - id: units
     type: number

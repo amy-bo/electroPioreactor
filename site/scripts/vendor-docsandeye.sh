@@ -11,4 +11,5 @@ for p in core themes starlight-docsandeye cli; do
   (cd "$SRC/packages/$p" && npm pack --pack-destination "$SITE/vendor" >/dev/null)
 done
 ls -1 "$SITE/vendor"
-(cd "$SITE" && rm -rf node_modules/@docsandeye node_modules/docsandeye node_modules/starlight-docsandeye && npm install)
+# Same version number, new contents: drop the lockfile so npm does not reinstall the cached old tarballs.
+(cd "$SITE" && rm -rf node_modules package-lock.json && npm install --no-audit --no-fund)
