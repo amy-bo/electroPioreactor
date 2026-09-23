@@ -36,7 +36,7 @@ checks:
     when: {temp-kit: true}
     question: "Is the Precision Temperature Upgrade Kit's sensor seated in the SPEC position and chained off the nearest eye-spy over STEMMA-QT?"
     issues:
-      - {problem: "The sensor is elsewhere or not connected", fix: "Reseat it following the Precision Temperature Upgrade Kit guide linked in sub-step 7."}
+      - {problem: "The sensor is elsewhere or not connected", fix: "Reseat it following the Precision Temperature Upgrade Kit guide linked after sub-step 6."}
   - id: twelve-volt-connected
     question: "Is the 12V supply plugged into the HAT's barrel jack?"
     issues:
@@ -70,8 +70,8 @@ Follow the Pioreactor 40 ml v1.5 hardware setup guide: <https://docs.pioreactor.
 
 <!-- when temp-kit=true -->
 
-7. [Fit the Precision Temperature Upgrade Kit](https://docs.pioreactor.com/user-guide/precision-temperature-upgrade-kit) — the MLX90632 far-infrared sensor replaces the thermistor for faster, hotter, contactless temperature control. It seats in the SPEC position and chains off the nearest eye-spy over STEMMA-QT.
+**If you have the Precision Temperature Upgrade Kit:** [fit it](https://docs.pioreactor.com/user-guide/precision-temperature-upgrade-kit) — the MLX90632 far-infrared sensor replaces the thermistor for faster, hotter, contactless temperature control. It seats in the SPEC position and chains off the nearest eye-spy over STEMMA-QT.
 
 <!-- /when -->
 
-8. Connect the 12V supply to the HAT's barrel jack — the solenoid needs more power than the Pi alone can supply, and the shunt was moved for it at sub-step 2: <https://docs.pioreactor.com/user-guide/external-power>. Four or more Pioreactors on one bench can be powered from a single multi-port charger rather than one supply each — see <https://docs.pioreactor.com/user-guide/powering-cluster>.
+7. Connect the 12V supply to the HAT's barrel jack — the solenoid needs more power than the Pi alone can supply, and the shunt was moved for it at sub-step 2: <https://docs.pioreactor.com/user-guide/external-power>. Four or more Pioreactors on one bench can be powered from a single multi-port charger rather than one supply each — see <https://docs.pioreactor.com/user-guide/powering-cluster>.
