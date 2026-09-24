@@ -2,6 +2,7 @@
 id: step-00-before-you-start
 order: 0
 title: "Before you start"
+media: [vid-01-preparation]
 guide: [aep]
 parts:
   - {component: spare-vial, qty: 1, cat: consumable}
