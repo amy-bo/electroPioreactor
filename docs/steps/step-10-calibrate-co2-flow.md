@@ -24,11 +24,24 @@ checks:
       - {problem: "It is off target", fix: "Adjust the needle valve and repeat the measurement until it matches."}
 ---
 
-1. Set regulator to 1 bar
-2. Adjust needle valve to give target flow rate
-3. Start the **electroPioreactor** job, or turn on the relay in the Pioreactor UI, to sparge
-4. Temporarily close one of two outlet gas vents with luer plug
-5. Run 1/16" tubing from outlet of open gas vent port to bath until water CO2 concentration is assumed (or if possible measured) to have equilibrated
-6. Record time taken to fill measuring cylinder with CO₂ over water
-7. Determine the actual flow rate
-8. Adjust needle valve and repeat process until target flow rate is achieved
+<!-- from video: session-21 0:45:37-0:47:14 - this calibration was described, not performed (no scales in the room) -->
+
+1. Set the regulator to 1 bar.
+2. Close one of the two gas outlets with a luer lock cap.
+3. Run 1/16" tubing from the open gas outlet into a water bath, under a measuring cylinder full of water.
+4. Start the **electroPioreactor** job, or turn on the relay in the Pioreactor UI, to sparge.
+5. Sparge until the water's CO₂ concentration is assumed (or if possible measured) to have equilibrated.
+6. Record the time taken to fill the measuring cylinder with CO₂.
+7. Work out the actual flow rate.
+8. Adjust the needle valve and repeat until the target flow rate is achieved.
+
+<details>
+<summary>Shutting the gas off after a session</summary>
+
+1. Turn the regulator anti-clockwise until its screw hangs loose: it is then fully off.
+2. Close the adapter's pin.
+3. Turn the solenoid override to 1 to vent the line to zero, then back to 0.
+
+<!-- from video: session-21 0:47:14-0:48:15 - shown on camera; "back to 0" is not heard in the transcript but the safety text requires the override closed -->
+
+</details>

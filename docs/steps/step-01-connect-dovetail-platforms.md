@@ -23,14 +23,20 @@ checks:
       - {problem: "The platform catches on the SD card", fix: "Stop and check that the platform's SD card cutout clears your card before forcing anything down."}
 ---
 
-1. SodaStream at rear with expansion gap to right.
-2. 250ml GL45 "Duran" product bottle in front and to the left of the SodaStream.
-3. 250ml GL45 "Duran" media bottle in front and to the right of the SodaStream. (alternate media and product if multiple AEPs, forming a backbone of media bottle dovetail platforms)
-4. Peristaltic pumps centred in front of product and media bottles
-5. Pioreactor in front of Peristaltic pumps
-6. The setup should look like this:
+1. Put the SodaStream holder at the rear, expansion slot to the right. <!-- from video: session-20 0:00:12 - the SodaStream holder "needs to go the wrong way", lugs pointing away from you and to the left, unlike the others; the transcript is garbled about the other platforms (0:00:54 says the pumps also go "away and to the left"), so check the picture against "dovetails to front and left" in the title and here -->
+2. Join the product bottle holder in front and to the left of it, dovetails to the front and left.
+3. Join the media bottle holder in front and to the right of it, the same way.
+4. Join the two pump holders to each other first, then centre them in front of the bottle holders. <!-- from video: session-14 0:05:04 and session-20 0:01:07 show two pump pieces plus a Pioreactor platform; the frontmatter lists one pumping-dovetail-platform -->
+5. Join the Pioreactor platform at the front, turned so the Pi's USB and ethernet ports have room.
+6. Press every joint down until the raft sits flat on the table; the last joint may need some force.
+7. Check the pumping dovetail platform's cutout clears your SD card before forcing anything down. <!-- TODO: confirm Pi 5 clearance on the current platform revision and photograph it | assignee: @Martin -->
 
-   <img width="555" height="998" alt="image" src="https://github.com/user-attachments/assets/0f4a6756-ea78-466b-bb35-c8b1a1c2c4af" />
-   <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
+<img width="555" height="998" alt="image" src="https://github.com/user-attachments/assets/0f4a6756-ea78-466b-bb35-c8b1a1c2c4af" />
+<!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-7. The pumping dovetail platform has a cutout for the SD card. Check it clears your SD card before forcing anything down. <!-- TODO: confirm Pi 5 clearance on the current platform revision and photograph it | assignee: @Martin -->
+<details>
+<summary>Several AEPs on one bench</summary>
+
+Alternate media and product bottles between units, so the media bottle holders form the backbone of the raft.
+
+</details>

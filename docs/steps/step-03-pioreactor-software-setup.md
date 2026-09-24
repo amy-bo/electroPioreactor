@@ -14,7 +14,7 @@ checks:
     question: "Is the Pioreactor software at release 26.5.0 or later?"
     issues:
       - {problem: "It is older", fix: "Run `pio update` before going further."}
-      - {problem: "The unit has no internet, so `pio update` fails", fix: "Flash the latest image instead: an offline unit cannot be updated on site (see the offline route in the plugin install step)."}
+      - {problem: "The unit has no internet, so `pio update` fails", fix: "Flash the latest image instead, or give the unit internet over an ethernet cable with Internet Sharing (see the plugin install step)."}
   - id: xr-model-set
     question: "In Inventory, is this unit's model set to the XR variant?"
     issues:
@@ -27,25 +27,34 @@ checks:
     when: {temp-kit: true}
     question: "Is `pioreactor-precision-temperature-plugin` listed under Plugins in the Pioreactor UI?"
     issues:
-      - {problem: "The install fails because the unit has no internet", fix: "Stage the plugin onto the card with the offline route in the plugin install step (name it as the third argument), or give the unit internet over an ethernet cable with Internet Sharing."}
+      - {problem: "The install fails because the unit has no internet", fix: "Give the unit internet over an ethernet cable with Internet Sharing (see the plugin install step), then install it."}
 ---
 
-<!-- TODO: this line restates the step title - see the note in step-02 | assignee: @Martin -->
+Follow Pioreactor's [software setup guide](https://docs.pioreactor.com/user-guide/software-set-up). To install the electroPioreactor plugin from the card, read [Install the electroPioreactor plugin](step-04-install-electropioreactor-plugin.md) before you click **Write**.
 
-Follow the Pioreactor software setup guide: <https://docs.pioreactor.com/user-guide/software-set-up>
-
-> **If this Pioreactor cannot reach a network**, read [step 4](step-04-install-electropioreactor-plugin.md#if-the-pioreactor-cannot-reach-a-network) before you flash the card: the offline route changes what you set in Raspberry Pi Imager, and the plugins have to go onto the card while you still have internet.
-
-1. The XR kit needs Pioreactor release 26.1.30 or later and the electroPioreactor plugin needs 26.5.0 or later, so treat **26.5.0 as the minimum** for an AEP0.2 and run `pio update` before going further.
-2. In the web UI open **Inventory** and set this unit's model to the XR variant. Until you do, OD readings are interpreted against the wrong channel map.
-3. Add the XR photodiode channel values to `config.ini`, as listed at the end of the [XR assembly guide](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly).
+1. In Raspberry Pi Imager, open **App options**, edit **Content repository**, choose **Use custom URL**, paste the URL from Pioreactor's guide, then **Apply and restart**.
+2. Choose **Raspberry Pi 5**, then the latest Pioreactor OS: **Leader and worker** for the first unit, **Worker** for the rest.
+3. Set the hostname (for example `ed06`), username `pioreactor` and a password, and note them.
+4. Leave WiFi configuration disabled if the unit will not join a network; enable SSH with password authentication.
+5. Write the card, put it in the Pi and power up.
+6. Treat **26.5.0 as the minimum** (the XR kit needs 26.1.30, the plugin 26.5.0): run `pio update` before going further.
+7. In the web UI open **Inventory** and set this unit's model to the XR variant.
+8. Add the XR photodiode channel values to `config.ini`, as listed at the end of the [XR assembly guide](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly).
 
 <!-- when temp-kit=true -->
 
-4. If the Precision Temperature Upgrade Kit is fitted, open **Plugins** in the Pioreactor UI and install `pioreactor-precision-temperature-plugin`. The equivalent from a shell on the unit is:
+9. If the Precision Temperature Upgrade Kit is fitted, open **Plugins** in the Pioreactor UI and install `pioreactor-precision-temperature-plugin`. The equivalent from a shell on the unit is:
 
    ```bash
    pio plugins install pioreactor-precision-temperature-plugin
    ```
 
 <!-- /when -->
+
+<details>
+<summary>Notes</summary>
+
+- On the recording the unit was named `ed06`: location (Edinburgh) plus unit number.
+- Until the model is set to XR in Inventory, OD readings are interpreted against the wrong channel map.
+
+</details>

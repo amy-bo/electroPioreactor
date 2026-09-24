@@ -31,10 +31,23 @@ checks:
       - {problem: "A depth is off", fix: "Adjust it to the standard and record the new insertion depth."}
 ---
 
-1. Follow Pioreactor peristaltic pump setup guide: <https://docs.pioreactor.com/user-guide/using-pumps>
-2. Follow the Pioreactor guide to attaching a 12V power supply: <https://docs.pioreactor.com/user-guide/external-power> — the HAT's shunt connector was moved for this during hardware setup; check it before calibrating, because calibrating on the wrong supply means doing it twice.
-3. Calibrate peristaltic pumps as per <https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration>
-4. Weigh dry empty vial
-5. Fill vial with DI water via the pumps, then weigh vials and adjust tube lengths until vial volume is 30ml
-6. Measure electrodes immersion depths, if necessary adjust to the standard, and record the insertion depth of each electrode
-7. Set up Pioreactor in turbidostat mode: <https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat>
+Follow Pioreactor's [peristaltic pump setup guide](https://docs.pioreactor.com/user-guide/using-pumps), with these channels.
+
+1. On the unit's **Configuration** page, set `[PWM]` channel 3 to `waste`, leave 4 as `relay`, and save. <!-- from video: session-20 0:05:46 - "we've currently got relay in four ... three then needs to become waste" -->
+2. Seat the pumps, plug the media pump into PWM 2 and the product pump into PWM 3, and lead the cables out through the notches. <!-- from video: session-14 0:07:57 - the product pump is the one labelled "waste" -->
+3. Put the media and product bottles into their holders.
+4. Connect each bottle to its pump with the silicone tubing and luer fittings. <!-- TODO: add a connector diagram (which luer goes where; male ends mark outlets) - the recording stalled on it (session-20 0:08:20-0:13:04) | assignee: @Martin -->
+5. Check the 12V supply is in the HAT's barrel jack and the shunt moved ([external power](https://docs.pioreactor.com/user-guide/external-power)) before calibrating.
+6. [Calibrate the pumps](https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration).
+7. Weigh the dry empty vial.
+8. Fill the vial with DI water via the pumps, weigh it, and adjust the tube lengths until it holds 30 ml.
+9. Measure the electrode immersion depths, adjust to the standard if necessary, and record each insertion depth.
+10. Set up the Pioreactor in [turbidostat mode](https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat).
+
+<details>
+<summary>Notes</summary>
+
+- Calibrating on the wrong supply means calibrating twice.
+- The kit's in-line parts on the media lines are non-return valves, not filters. <!-- from video: session-20 0:12:45 -->
+
+</details>

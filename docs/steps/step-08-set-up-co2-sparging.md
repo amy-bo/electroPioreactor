@@ -57,52 +57,57 @@ checks:
       - {problem: "It is on another channel", fix: "Move it to PWM channel 4, which the plugin maps to the relay."}
 ---
 
-1. Unscrew John-Guest push-fit output from the regulator outlet port
+1. Work in a well-ventilated room.
+2. Put the SodaStream cylinder into its holder at the rear of the raft.
+3. Put on all PPE, including cryogenic gloves.
+4. Back the KegLand adapter's pin off (thumbscrew out and loose).
+5. Seat the o-ring on top of the cylinder, then screw the adapter on and tighten it with the gas cylinder wrench. <!-- from video: session-21 0:18:57 - "the critical thing we need is the o-ring ... I tend to just put the o-ring on top of the cylinder"; no component names this o-ring -->
+6. Turn the cylinder so the adapter faces the front.
+7. Unscrew the John Guest push-fit from the regulator outlet port.
 
    <img width="1330" height="1767" alt="image" src="https://github.com/user-attachments/assets/3cbc619c-be7c-4abb-87d3-048d8350dcfc" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-2. Insert 8mm ID 2mm CS o-ring into the regulator outlet port
+8. Insert the 8mm ID 2mm CS o-ring into the regulator outlet port. <!-- from video: session-21 0:21:23-0:23:50 - there was no o-ring in the kit, and Martin was unsure it would reach the tapered seat; the reducer went in on Loctite 577 alone -->
 
    <img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/3316cd49-21c7-4fb3-a931-dd5c0798a27b" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-3. Screw in the 1/4" male to 1/8" male reducer to the regulator outlet port and tighten with wrench.
+9. Screw the 1/4" male to 1/8" male reducer into the regulator outlet port and tighten with the wrench (with no o-ring, put Loctite 577 on its second thread first).
 
    <img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/800812cb-2ccb-4a8f-8198-f8e381757552" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-4. Apply Loctite 577 anaerobic thread sealant to the 1/8" male outlet thread. Use an o-ring wherever the joint has a seat for one, and Loctite 577 on every threaded joint that has not.
+10. Apply Loctite 577 to the second thread (not the end one) of the reducer's 1/8" male outlet.
+11. Screw the solenoid valve's left port onto it, electronics to the rear, working up to vertical rather than past it and back.
 
-   <details>
-   <summary>Why not PTFE tape</summary>
+    <img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/ec433749-5866-476b-a965-ec070b80083e" />
+    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-   PTFE tape is no longer used anywhere in the gas train: applied correctly it seals, but the process is fiddly and it leaked often enough to be worth replacing.
+12. Screw the blanking plug into the solenoid's right port with a 5 mm hex key, holding the solenoid; no sealant. <!-- from video: session-21 0:28:08 - the blanking plug went in before the needle valve; the text had it after -->
+13. Apply Loctite 577 to the needle valve's inlet thread (second thread), screw it into the solenoid's front port, and stop with it pointing straight up.
+14. Close the needle valve clockwise.
+15. Check the solenoid manual override is at 0.
+16. Close the regulator (flathead screw fully anti-clockwise).
+17. Screw the regulator onto the adapter and tighten.
+18. Open the adapter's pin to admit CO₂: the cylinder gauge reads about 60 bar when full. If the adapter leaks, tighten it further. <!-- from video: session-21 0:33:43-0:36:13 - the adapter leaked until tightened further -->
+19. Screw the regulator in until its outlet gauge reads about 1 bar.
+20. Remove the compression nut and ferrule from the top of the needle valve.
+21. Thread the nut onto the 4mm tube, then push the tube fully onto the needle valve (dip it in hot water if it will not go).
+22. Refit the ferrule and screw the nut down.
+23. Cut the tube just long enough to run over the regulator and down to the vial's CO₂ inlet; cut every other unit's tube to the same length.
+24. Push a 1/8" hose barb to male luer lock adapter into the free end (hot water if necessary).
+25. Attach the male end of an 0.2 μm vent filter to the female luer on the CO₂ inlet, and connect the tube's luer to the filter. <!-- from video: session-20 0:12:45-0:13:34 and session-21 0:39:47 - the kit had no vent filters, so the tube went straight onto the CO₂ inlet -->
+26. Attach the female ends of two 0.2 μm vent filters to the male luers on the two gas outlets.
+27. Cap any unused luer lock with a luer lock cap.
+28. Plug the solenoid lead into PWM channel 4, routed down behind the Pioreactor and through the pumps.
 
-   </details>
-5. Screw left port of the solenoid valve (with solenoid electronics to rear) into 1/8" male outlet. Ensure the solenoid manual override is closed (horizontal line pointing at 0 on the front of the solenoid).
+<details>
+<summary>Notes</summary>
 
-   <img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/ec433749-5866-476b-a965-ec070b80083e" />
-   <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
+- The solenoid override: 0 is normal (closed without power), 1 is always open.
+- Use an o-ring wherever the joint has a seat for one, and Loctite 577 on every threaded joint that has not. Loctite 577 is anaerobic thread sealant, not glue; missing the end thread keeps it out of the gas path. Clean the threads with ethanol first where you can.
+- PTFE tape is no longer used anywhere in the gas train: applied correctly it seals, but the process is fiddly and it leaked often enough to be worth replacing.
+- CO₂ enters through the anode and leaves through its open base, so the gas rises past the anode surface and clears oxygen bubbles from it without a separately positioned sparge tube. <!-- TODO: frit dispersion at the anode base is deferred to AEP0.3 | assignee: @Martin -->
 
-6. Apply Loctite 577 to the needle valve inlet thread (the bare metal thread opposite the screw adjustor)
-7. Screw needle valve into 1/8" front port of solenoid valve
-8. Close needle valve clockwise
-9. Fit the o-ring blanking plug to the right port of the solenoid valve and tighten with wrench. The plug seals on its o-ring, so it needs no thread sealant.
-10. Close regulator (turn flathead screw fully anti-clockwise)
-11. Fit the KegLand KL15578 pin-adjustment SodaStream adapter to the cylinder with the pin **backed off**, then screw the regulator onto the adapter. Tightening no longer races escaping CO₂ — the joint is made first and gas is admitted afterwards.
-12. **Important:** don all PPE including cryogenic gloves before tightening the cylinder joint, and [follow the instructions included with the SodaStream adapter](https://cdn.shopify.com/s/files/1/2268/6279/files/BrewKegTap_Sodastream_Adapter_Instructions.pdf?v=1763549894). Never fit a mismatched adapter to a high-pressure CO₂ joint: retention comes from full thread engagement, and a partial mismatched engagement fails suddenly.
-13. With the joint made and the regulator closed, open the adapter's thumbscrew pin to admit CO₂ to the regulator.
-14. Place SodaStream in dovetail raft
-15. Remove compression nut from the top of the needle valve
-16. Attach the 4mm tubing to the needle valve ferrule - dip in hot water to soften if necessary
-17. Reattach the compression nut
-18. Attach the male end of an 0.2 μm vent filter to the female luer lock on the vial CO₂ entry port
-19. Attach the female ends of two 0.2 μm vent filters to the two male luer locks on the vial exhaust ports
-20. Cut the 4mm tubing just long enough to run over the regulator and down to the CO₂ entry filter
-21. Measure the 4mm tubing cut length and ensure all other 4mm tubing is cut to the same length
-22. Insert a 1/8" hose barb to male luer lock adapter in the free end of the 4mm tubing - dip in hot water to soften if necessary
-23. Connect the luer lock to the CO₂ entry filter
-24. Connect the filter's outlet to the head of the tubular MMO anode with a male-to-male luer lock adapter and the 100 mm silicone feed tube (1 mm ID / 3 mm OD). CO₂ enters through the anode and leaves through its open base, so the gas rises past the anode surface and clears oxygen bubbles from it without any separately positioned sparge tube. <!-- TODO: frit dispersion at the anode base is deferred to AEP0.3 | assignee: @Martin -->
-25. Cap any unused luer lock with a luer lock cap
-26. Connect the solenoid connector to PWM channel 4 on the Pioreactor.
+</details>

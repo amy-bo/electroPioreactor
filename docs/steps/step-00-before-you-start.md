@@ -36,6 +36,28 @@ checks:
 
 > Parts list: the [components](../components/) of this guide. AEP0.1.1 instructions are archived in [AEP0.1.1_Assembly.md](../../AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/AEP0.1.1_Assembly.md).
 
+1. Procure the [Bill of Materials](../components/). A [LabCrafter](https://labcrafter.co.uk) kit lacks only the [SodaStream blue screw-in cylinders](https://sodastream.co.uk/products/refill), two [250ml GL45 "Duran" flasks](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate), [nutrient solution](https://github.com/amy-bo/electroPioreactor/tree/main/Media) and inoculum.
+2. Check your HOB are growing happily heterotrophically.
+3. Unpack the kit and tick every part off the checklist on this page.
+4. Gather the tools and PPE listed on this page.
+
+<details>
+<summary>Notes on the tools</summary>
+
+- Required: the computer needs a microSD reader (or an SD reader and a microSD-to-SD adapter); the gas cylinder wrench is 28 mm; the analytical balance only needs 0.1 g accuracy for Pioreactor's pump calibration, so a jewellery scale will do; cryogenic gloves must be safe to at least -80°C; add any other PPE your supervisor, department, employer or H&S advisor directs.
+- Recommended, not required: a multitool and/or needle-nose pliers (general assembly and tubing), a multimeter (checking electrolysis), and a banded oil filter wrench (only if you struggle to tighten the CO₂ cylinder).
+
+<!-- from video: session-14 0:02:14 - Martin says the callipers were "much more necessary in previous versions ... for this version you hopefully don't need those"; the tools list still has them as required -->
+
+</details>
+
+<details>
+<summary>Spares</summary>
+
+Carry boxed spares of the fragile and consumable items: at minimum a spare vial and a spare magnetic flea per few units, and spare silicone septa. A vial was dropped and smashed during the AEP0.1 training.
+
+</details>
+
 <details>
 <summary>What changed from AEP0.1.1</summary>
 
@@ -53,32 +75,3 @@ checks:
 | Dropped | Bubble counter, pinch slider inoculation port, jubilee clips | Inoculation is now by syringe through the septum |
 
 </details>
-
-## Before you start
-
-1. Procure the [Bill of Materials](../components/) ([LabCrafter](https://labcrafter.co.uk) can supply a kit that is only missing the required [SodaStream blue screw in cylinders](https://sodastream.co.uk/products/refill), two [250ml GL45 "Duran" Flasks](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate), [nutrient solution](https://github.com/amy-bo/electroPioreactor/tree/main/Media) and inoculum)
-2. Check your HOB are growing happily heterotrophically.
-
-<!-- TODO: these tool lists duplicate the tools: block in this step's frontmatter - decide which is canonical before the renderer is written, or the two will drift | assignee: @Martin -->
-
-## Required Tools
-
-1. Computer with microSD card reader (or SD card reader and microSD to SD adapter)
-2. Phillips PH0 Screwdriver
-3. 28mm Gas cylinder wrench
-4. Vernier Callipers
-5. Analytical balance for pump calibration (Pioreactor docs only require 0.1g accuracy)
-6. Cryogenic gloves (safe to at least -80°C)
-7. Eye/face protection
-8. Lab coat
-9. Other PPE as directed by your supervisor/department/employer/H&S advisor
-
-## Recommended Tools
-
-1. Multitool and/or needle nose pliers (for general assembly and tubing adjustment)
-2. Multimeter (for checking electrolysis)
-3. Banded oil filter wrench (optional - if you struggle with CO2 canister tightening)
-
-## Spares
-
-Carry boxed spares of the fragile and consumable items — at minimum a spare vial and a spare magnetic flea per few units. A vial was dropped and smashed during the AEP0.1 training.
