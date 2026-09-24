@@ -1,7 +1,7 @@
 ---
 id: step-02-pioreactor-hardware-setup
 order: 2
-title: "Follow the Pioreactor 40 ml v1.5 hardware setup guide"
+title: "Pioreactor hardware setup"
 guide: [aep]
 parts:
   - {component: pioreactor-40ml, qty: 1, cat: part}

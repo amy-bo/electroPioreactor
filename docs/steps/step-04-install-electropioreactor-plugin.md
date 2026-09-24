@@ -1,7 +1,7 @@
 ---
 id: step-04-install-electropioreactor-plugin
 order: 4
-title: "Install the electroPioreactor plugin"
+title: "Check the plugin"
 guide: [aep]
 checks_draft: true
 checks:

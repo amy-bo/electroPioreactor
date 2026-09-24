@@ -1,7 +1,7 @@
 ---
 id: step-01-connect-dovetail-platforms
 order: 1
-title: "Connect empty dovetail platforms in raft, with dovetails always to front and left"
+title: "Connect the platforms"
 guide: [aep, mep, baep]
 parts:
   - {component: pumping-dovetail-platform, qty: 1, cat: part}

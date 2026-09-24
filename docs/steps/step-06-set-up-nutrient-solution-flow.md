@@ -1,7 +1,7 @@
 ---
 id: step-06-set-up-nutrient-solution-flow
 order: 6
-title: "Set up nutrient solution flow"
+title: "Nutrient solution"
 guide: [aep]
 parts:
   - {component: peristaltic-pump, qty: 2, cat: part}

@@ -1,7 +1,7 @@
 ---
 id: step-08-set-up-co2-sparging
 order: 8
-title: "Set up carbon dioxide sparging"
+title: "CO₂ sparging"
 guide: [aep]
 parts:
   - {component: co2-regulator, qty: 1, cat: part}

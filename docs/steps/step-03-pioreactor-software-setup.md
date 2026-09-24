@@ -1,7 +1,7 @@
 ---
 id: step-03-pioreactor-software-setup
 order: 3
-title: "Follow the Pioreactor software setup guide"
+title: "Pioreactor software setup"
 guide: [aep]
 parts:
   - {component: microsd-card, qty: 1, cat: part}
