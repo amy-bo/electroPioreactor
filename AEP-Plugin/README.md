@@ -34,7 +34,9 @@ Pause/resume is done by publishing `JobState.SLEEPING`/`READY` to `od_reading`'s
 
 Needs a Pioreactor OS release with boot-partition plugin support (proposed at https://github.com/amy-bo/CustoPiZer/tree/bootfs-plugins and accepted by Pioreactor; until it ships, use the SSH route below).
 
-1. Two changes to Pioreactor's guide, which you follow next: if the unit will make its own Wi-Fi rather than join a lab network, leave Imager's Wi-Fi page blank; and before you click **Write**, untick **Eject media when finished** in Imager's options. Then follow [Pioreactor's software set-up guide](https://docs.pioreactor.com/user-guide/software-set-up) up to **Write**, and come back here while the card writes.
+1. Follow [Pioreactor's software set-up guide](https://docs.pioreactor.com/user-guide/software-set-up) up to **Write**, with two changes. At its step 3, in **App Options**, also switch off **Eject media when finished** (1) while you set the **Content Repository** (2), so the card stays mounted after the write. At its step 15, leave the Wi-Fi page blank if you can't add devices to your lab's Wi-Fi then reach them through it (typical at universities); the leader Pioreactor then makes its own network. Come back here while the card writes.
+
+   ![Imager's App Options: 1 Eject media when finished switched off, 2 Content Repository Edit](docs/imager-app-options.png)
 2. Download and unzip the [AEP card bundle](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-AEP-card-bundle.zip).
 3. When the write finishes, drag the `pioreactor` folder from the bundle onto the `bootfs` drive. For a unit that makes its own Wi-Fi, also open `local_access_point` in a text editor, replace `GB` with your two-letter country code, save, and drag it on too. If the card was ejected anyway, remove and reinsert it.
 4. Eject the card. One change to the rest of Pioreactor's guide: for a unit that makes its own Wi-Fi, join the network `pioreactor` (password `raspberry`) and open `http://pioreactor.local`. Then continue the guide from its step 18; the model dialog at its step 21 does not appear, because the bundle has set the model. **electroPioreactor** is under **Activities** on the unit's *Manage* page, and the precision temperature plugin is installed.
@@ -43,7 +45,7 @@ MEP kit: the same steps with the [MEP card bundle](https://github.com/amy-bo/ele
 
 If it is missing, put the card back in your computer: `pioreactor/plugins/failed/` on `bootfs` holds the wheel and a log of what went wrong.
 
-Worker-only units: the same steps with a **Worker** image. The plugin installs when you add the unit from the leader's **Inventory** page.
+Worker-only units: the same steps with a **Worker** image. The plugin installs when you add the unit from the leader's **Inventory** page. Hotspot cluster: boot the leader first, flash each worker with the Wi-Fi page set to network `pioreactor`, password `raspberry`, and do not put `local_access_point` on a worker's card.
 
 ### Over SSH
 
