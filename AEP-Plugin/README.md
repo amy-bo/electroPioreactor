@@ -34,11 +34,9 @@ Pause/resume is done by publishing `JobState.SLEEPING`/`READY` to `od_reading`'s
 
 Needs a Pioreactor OS release with boot-partition plugin support (proposed at https://github.com/amy-bo/CustoPiZer/tree/bootfs-plugins and accepted by Pioreactor; until it ships, use the SSH route below).
 
-1. Open Raspberry Pi Imager and click **App Options** (bottom left). Switch off **Eject media when finished** (1), so the card stays mounted after the write, and set the **Content Repository** (2) to Pioreactor's, as [Pioreactor's software set-up guide](https://docs.pioreactor.com/user-guide/software-set-up) explains. Save.
+1. Follow [Pioreactor's software set-up guide](https://docs.pioreactor.com/user-guide/software-set-up) up to **Write**, with two changes. At its step 3, in **App Options**, also switch off **Eject media when finished** (1) while you set the **Content Repository** (2), so the card stays mounted after the write. And if the unit will make its own Wi-Fi rather than join a lab network, leave the Wi-Fi page blank. Come back here while the card writes.
 
    ![Imager's App Options: 1 Eject media when finished switched off, 2 Content Repository Edit](docs/imager-app-options.png)
-
-   Then follow Pioreactor's guide up to **Write**, with one change: if the unit will make its own Wi-Fi rather than join a lab network, leave the Wi-Fi page blank. Come back here while the card writes.
 2. Download and unzip the [AEP card bundle](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-AEP-card-bundle.zip).
 3. When the write finishes, drag the `pioreactor` folder from the bundle onto the `bootfs` drive. For a unit that makes its own Wi-Fi, also open `local_access_point` in a text editor, replace `GB` with your two-letter country code, save, and drag it on too. If the card was ejected anyway, remove and reinsert it.
 4. Eject the card. One change to the rest of Pioreactor's guide: for a unit that makes its own Wi-Fi, join the network `pioreactor` (password `raspberry`) and open `http://pioreactor.local`. Then continue the guide from its step 18; the model dialog at its step 21 does not appear, because the bundle has set the model. **electroPioreactor** is under **Activities** on the unit's *Manage* page, and the precision temperature plugin is installed.
