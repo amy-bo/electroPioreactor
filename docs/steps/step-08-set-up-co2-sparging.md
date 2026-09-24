@@ -68,12 +68,12 @@ checks:
    <img width="1330" height="1767" alt="image" src="https://github.com/user-attachments/assets/3cbc619c-be7c-4abb-87d3-048d8350dcfc" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-8. Insert the 8mm ID 2mm CS o-ring into the regulator outlet port. <!-- from video: session-21 0:21:23-0:23:50 - there was no o-ring in the kit, and Martin was unsure it would reach the tapered seat; the reducer went in on Loctite 577 alone -->
+8. Insert the o-ring into the regulator outlet port; it seats against the reducer, so this joint needs no Loctite. <!-- kits from 2026-09-24 include this o-ring; the recorded build had none and used Loctite 577 instead -->
 
    <img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/3316cd49-21c7-4fb3-a931-dd5c0798a27b" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-9. Screw the 1/4" male to 1/8" male reducer into the regulator outlet port and tighten with the wrench (with no o-ring, put Loctite 577 on its second thread first).
+9. Screw the 1/4" male to 1/8" male reducer into the regulator outlet port and tighten with the wrench.
 
    <img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/800812cb-2ccb-4a8f-8198-f8e381757552" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
@@ -97,7 +97,7 @@ checks:
 22. Refit the ferrule and screw the nut down.
 23. Cut the tube just long enough to run over the regulator and down to the vial's CO₂ inlet; cut every other unit's tube to the same length.
 24. Push a 1/8" hose barb to male luer lock adapter into the free end (hot water if necessary).
-25. Attach the male end of an 0.2 μm vent filter to the female luer on the CO₂ inlet, and connect the tube's luer to the filter. <!-- from video: session-20 0:12:45-0:13:34 and session-21 0:39:47 - the kit had no vent filters, so the tube went straight onto the CO₂ inlet -->
+25. Attach the male end of an 0.2 μm vent filter to the female luer on the CO₂ inlet, and connect the tube's luer to the filter. <!-- kits from 2026-09-24 include six vent filters; the recorded build had none -->
 26. Attach the female ends of two 0.2 μm vent filters to the male luers on the two gas outlets.
 27. Cap any unused luer lock with a luer lock cap.
 28. Plug the solenoid lead into PWM channel 4, routed down behind the Pioreactor and through the pumps.

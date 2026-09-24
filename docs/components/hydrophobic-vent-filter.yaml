@@ -10,6 +10,6 @@ changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 2.5 (Critical; AEP0.2). BoM qty 5 per unit; Method step 8 fits three (one CO2 entry, two exhaust). Pore size and membrane are the aseptic barrier."}
 receipt:
   per: unit
-  qty: 5
+  qty: 6
   from: [labcrafter, diy]
-  note: "Three are fitted in the CO₂ sparging step; the other two are spares."
+  note: "Media bottle vent, product bottle vent, CO₂ in, two gas out, one spare (kits from 2026-09-24)."

@@ -10,6 +10,7 @@ parts:
   - {component: silicone-tubing, qty: 1, cat: part}
   - {component: barb-1-16-to-male-luer-lock, qty: 2, cat: part}
   - {component: barb-1-16-to-female-luer-lock, qty: 2, cat: part}
+  - {component: hydrophobic-vent-filter, qty: 2, cat: part}
   - {component: power-supply-12v, qty: 1, cat: prev}
   - {component: pioreactor-vial-40ml, qty: 1, cat: prev}
 tools:
@@ -35,7 +36,7 @@ Follow Pioreactor's [peristaltic pump setup guide](https://docs.pioreactor.com/u
 
 1. On the unit's **Configuration** page, set `[PWM]` channel 3 to `waste`, leave 4 as `relay`, and save. <!-- from video: session-20 0:05:46 - "we've currently got relay in four ... three then needs to become waste" -->
 2. Seat the pumps, plug the media pump into PWM 2 and the product pump into PWM 3, and lead the cables out through the notches. <!-- from video: session-14 0:07:57 - the product pump is the one labelled "waste" -->
-3. Put the media and product bottles into their holders.
+3. Put the media and product bottles into their holders, with a 0.2 μm vent filter on each cap's vent port.
 4. Connect each bottle to its pump with the silicone tubing and luer fittings. <!-- TODO: add a connector diagram (which luer goes where; male ends mark outlets) - the recording stalled on it (session-20 0:08:20-0:13:04) | assignee: @Martin -->
 5. Check the 12V supply is in the HAT's barrel jack and the shunt moved ([external power](https://docs.pioreactor.com/user-guide/external-power)) before calibrating.
 6. [Calibrate the pumps](https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration).
