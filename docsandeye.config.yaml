@@ -28,9 +28,8 @@ receipt:
   multiply_by: units
   supplier_from: supplier
 contacts:
-  # verify: found at https://labcrafter.co.uk/pages/contact on 2026-09-23 (via search index; direct fetch refused)
+  # info@labcrafter.co.uk: listed for LabCrafter on Pioreactor's distributors page and in LabCrafter's own search listing (2026-09-24)
   labcrafter: {name: "LabCrafter", email: "info@labcrafter.co.uk", subject: "Missing parts: AEP0.2 kit"}
   # verify: found at https://docs.pioreactor.com/user-guide/hardware-setup-intro on 2026-09-23 ("Missing a part? Email us at hello@pioreactor.com")
   pioreactor: {name: "Pioreactor", email: "hello@pioreactor.com", subject: "Missing parts: Pioreactor order for an AEP0.2 build"}
-  # PLACEHOLDER — Martin to supply
-  project: {name: "electroPioreactor project", email: "aep-support@example.invalid", subject: "AEP0.2 guide: help with a step"}
+  project: {name: "AMYBO", email: "hello@amybo.org", subject: "AEP0.2 guide: help with a step"}
