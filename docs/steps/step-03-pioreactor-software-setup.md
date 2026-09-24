@@ -30,26 +30,28 @@ checks:
       - {problem: "The install fails because the unit has no internet", fix: "Give the unit internet over an ethernet cable with Internet Sharing (see the plugin install step), then install it."}
 ---
 
-Follow Pioreactor's [software setup guide](https://docs.pioreactor.com/user-guide/software-set-up). To install the electroPioreactor plugin from the card, read [Install the electroPioreactor plugin](step-04-install-electropioreactor-plugin.md) before you click **Write**.
+The plugins go onto the card while you flash it, so the unit boots ready. Three things to do while following Pioreactor's software set-up guide, which comes at the end of this list:
 
-1. In Raspberry Pi Imager, open **App options**, edit **Content repository**, choose **Use custom URL**, paste the URL from Pioreactor's guide, then **Apply and restart**.
-2. Choose **Raspberry Pi 5**, then the latest Pioreactor OS: **Leader and worker** for the first unit, **Worker** for the rest.
-3. Set the hostname (for example `ed06`), username `pioreactor` and a password, and note them.
-4. Leave WiFi configuration disabled if the unit will not join a network; enable SSH with password authentication.
-5. Write the card, put it in the Pi and power up.
-6. Treat **26.5.0 as the minimum** (the XR kit needs 26.1.30, the plugin 26.5.0): run `pio update` before going further.
-7. In the web UI open **Inventory** and set this unit's model to the XR variant.
-8. Add the XR photodiode channel values to `config.ini`, as listed at the end of the [XR assembly guide](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly).
+1. Before you start, download and unzip the card bundle for your kit: [AEP](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-AEP-card-bundle.zip) (electroPioreactor, XR settings and the precision temperature plugin) or [MEP](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-MEP-card-bundle.zip).
+2. At Pioreactor's step 3, in **App Options**, switch off **Eject media when finished** before you set the **Content Repository**, so the card stays mounted after the write.
 
-<!-- when temp-kit=true -->
+   ![Imager's App Options: 1 Eject media when finished switched off, 2 Content Repository Edit](https://raw.githubusercontent.com/amy-bo/electroPioreactor/main/AEP-Plugin/docs/imager-app-options.png)
 
-9. If the Precision Temperature Upgrade Kit is fitted, open **Plugins** in the Pioreactor UI and install `pioreactor-precision-temperature-plugin`. The equivalent from a shell on the unit is:
+3. At its step 15, for your leader, leave the Wi-Fi page blank if you can't add devices to your lab's Wi-Fi then reach them through it (typical at universities); the leader then makes its own network. Workers: set the Wi-Fi page to network `pioreactor`, password `raspberry`, and boot the leader first.
+4. Choose **Raspberry Pi 5**, Pioreactor OS **Leader and worker** for the first unit and **Worker** for the rest, a hostname (for example `ed06`), username `pioreactor` and a password; note them.
+5. When the write finishes, drag the `pioreactor` folder from the bundle onto the `bootfs` drive. If you left the Wi-Fi page blank, also drag across the `local_access_point` file, after changing `GB` in it to your country code\*. Do not drag it across for workers, or if your Pioreactors join a Wi-Fi network. If the card was ejected anyway, remove and reinsert it.
+6. Eject the card, put it in the Pi and power up. For a leader that makes its own network, join `pioreactor` (password `raspberry`) on your computer and open `http://pioreactor.local`; otherwise continue Pioreactor's guide from its step 18. The model dialog does not appear: the bundle has set the model.
 
-   ```bash
-   pio plugins install pioreactor-precision-temperature-plugin
-   ```
+With those in mind, follow [Pioreactor's software set-up guide](https://docs.pioreactor.com/user-guide/software-set-up).
 
-<!-- /when -->
+\* If your country code is not GB, open `local_access_point` in TextEdit/Notepad and replace `GB` with the ISO two-letter code (CA, IE, DE, AU, NZ, GL, US, etc.; see https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) and save; the file should contain just those two letters. Do nothing if you live in the United Kingdom of Great Britain and Northern Ireland (GB).
+
+<details>
+<summary>Without the card bundle (older Pioreactor OS)</summary>
+
+Pioreactor OS needs boot-partition plugin support for the card route. On an older release: flash and boot as Pioreactor's guide says, run `pio update` (26.5.0 is the minimum), set the unit's model to the XR variant in **Inventory**, add the XR photodiode channel values to `config.ini` from the end of the [XR assembly guide](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly), and install the plugins over SSH as in [AEP-Plugin/README.md](../../AEP-Plugin/README.md#over-ssh).
+
+</details>
 
 <details>
 <summary>Notes</summary>

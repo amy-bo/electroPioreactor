@@ -21,11 +21,11 @@ checks:
       - {problem: "The clock is wrong on an offline unit", fix: "With no internet the unit has no time source: set it from the computer with the `sudo date` command in this step."}
 ---
 
-Install the [electroPioreactor plugin](../../AEP-Plugin) before going further: the electrolysis check in [Set up electrolysis](step-05-set-up-electrolysis.md) runs through its job, so its 10% power clamp protects the electrodes the first time they are driven.
+The plugin installed itself from the card at the previous step. Check it, because the electrolysis check in [Set up electrolysis](step-05-set-up-electrolysis.md) runs through its job, whose 10% power clamp protects the electrodes the first time they are driven.
 
-1. Install it by one of the two routes in [AEP-Plugin/README.md](../../AEP-Plugin/README.md): [From the card](../../AEP-Plugin/README.md#from-the-card) straight after flashing, or [Over SSH](../../AEP-Plugin/README.md#over-ssh) on a unit that is already running.
-2. Open the unit's web interface and hard-refresh (Ctrl/Cmd+Shift+R).
-3. Check **electroPioreactor** is listed under **Pioreactors → your unit → Manage → Activities**.
+1. Open the unit's web interface and hard-refresh (Ctrl/Cmd+Shift+R).
+2. Check **electroPioreactor** is listed under **Pioreactors → your unit → Manage → Activities**.
+3. If it is missing, put the card back in your computer: `pioreactor/plugins/failed/` on `bootfs` holds the wheel and a log. Install over SSH instead, as in [AEP-Plugin/README.md](../../AEP-Plugin/README.md#over-ssh).
 4. If the unit has no internet, set its clock from the computer:
 
    ```bash
