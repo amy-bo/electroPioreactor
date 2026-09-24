@@ -34,10 +34,12 @@ Pause/resume is done by publishing `JobState.SLEEPING`/`READY` to `od_reading`'s
 
 Needs a Pioreactor OS release with boot-partition plugin support (proposed at https://github.com/amy-bo/CustoPiZer/tree/bootfs-plugins and accepted by Pioreactor; until it ships, use the SSH route below).
 
-1. Flash a Pioreactor image following [Pioreactor's software set-up guide](https://docs.pioreactor.com/user-guide/software-set-up). Before you click **Write**, untick **Eject media when finished** in Imager's options.
-2. While the card writes, download and unzip the [card bundle](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-card-bundle.zip).
-3. When the write finishes, drag the `pioreactor` folder from the bundle onto the `bootfs` drive. If the card was ejected anyway, remove and reinsert it.
-4. Eject the card and continue Pioreactor's guide from its step 18. When the web interface loads, **electroPioreactor** is under **Activities** on the unit's *Manage* page.
+1. Two changes to Pioreactor's guide, which you follow next: if the unit will make its own Wi-Fi rather than join a lab network, leave Imager's Wi-Fi page blank; and before you click **Write**, untick **Eject media when finished** in Imager's options. Then follow [Pioreactor's software set-up guide](https://docs.pioreactor.com/user-guide/software-set-up) up to **Write**, and come back here while the card writes.
+2. Download and unzip the [AEP card bundle](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-AEP-card-bundle.zip).
+3. When the write finishes, drag the `pioreactor` folder from the bundle onto the `bootfs` drive. For a unit that makes its own Wi-Fi, also open `local_access_point` in a text editor, replace `GB` with your two-letter country code, save, and drag it on too. If the card was ejected anyway, remove and reinsert it.
+4. Eject the card. One change to the rest of Pioreactor's guide: for a unit that makes its own Wi-Fi, join the network `pioreactor` (password `raspberry`) and open `http://pioreactor.local`. Then continue the guide from its step 18; the model dialog at its step 21 does not appear, because the bundle has set the model. **electroPioreactor** is under **Activities** on the unit's *Manage* page, and the precision temperature plugin is installed.
+
+MEP kit: the same steps with the [MEP card bundle](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-MEP-card-bundle.zip); there is no precision temperature plugin.
 
 If it is missing, put the card back in your computer: `pioreactor/plugins/failed/` on `bootfs` holds the wheel and a log of what went wrong.
 
@@ -47,13 +49,15 @@ Worker-only units: the same steps with a **Worker** image. The plugin installs w
 
 For a unit that is already running, or an OS release without boot-partition plugin support.
 
-1. Download and unzip the [card bundle](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-card-bundle.zip) on your computer.
+1. Download and unzip the [AEP card bundle](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-AEP-card-bundle.zip) (or the [MEP card bundle](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-MEP-card-bundle.zip)) on your computer.
 2. In a terminal, from the unzipped `pioreactor/plugins` folder, with `<hostname>` replaced by the unit's name. Each command asks for the unit's password; answer `yes` if asked about a fingerprint.
 
    ```bash
-   scp pioreactor_electropioreactor_plugin-*.whl pioreactor@<hostname>.local:
-   ssh pioreactor@<hostname>.local '/opt/pioreactor/venv/bin/pio plugins install pioreactor-electropioreactor-plugin --source pioreactor_electropioreactor_plugin-*.whl'
+   scp *.whl pioreactor@<hostname>.local:
+   ssh pioreactor@<hostname>.local 'for w in *.whl; do n=${w%%-*}; /opt/pioreactor/venv/bin/pio plugins install ${n//_/-} --source "$w"; done'
    ```
+
+   The second command installs every wheel in the folder, naming each plugin from its file.
 
 3. Refresh the unit's web interface: **electroPioreactor** is under **Activities** on the *Manage* page.
 

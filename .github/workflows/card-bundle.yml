@@ -21,16 +21,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - name: Build the card bundle
-        run: bash AEP-Plugin/scripts/make-card-bundle.sh
+      - name: Build the card bundles
+        run: bash card-bundle/make-card-bundles.sh
       - name: Attach to the release
         if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" AEP-Plugin/dist/electroPioreactor-card-bundle.zip --clobber
-      - name: Keep as an artifact
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/*.zip --clobber
+      - name: Keep as artifacts
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
-          name: electroPioreactor-card-bundle
-          path: AEP-Plugin/dist/electroPioreactor-card-bundle.zip
+          name: card-bundles
+          path: dist/*.zip
