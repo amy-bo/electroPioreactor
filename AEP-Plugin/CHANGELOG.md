@@ -1,5 +1,18 @@
 # electroPioreactor Plugin — Changelog
 
+## Unreleased — card install route
+
+No code change. Documents the card install route in `README.md`: flash a
+stock Pioreactor image, drag the `pioreactor` folder from the card bundle
+onto the `bootfs` drive, boot. Adds `scripts/make-card-bundle.sh` and a
+`card-bundle` GitHub workflow that builds
+`electroPioreactor-card-bundle.zip` (the plugin wheel under
+`pioreactor/plugins/`) and attaches it to each GitHub release. Depends on
+boot-partition plugin support in the Pioreactor image, proposed upstream
+from <https://github.com/amy-bo/CustoPiZer/tree/bootfs-plugins> and accepted
+in principle by Pioreactor on 2026-09-24. The SSH route remains documented
+for older images.
+
 ## v0.6.7 (2026-05-10) — preserve key case in config.ini writes
 
 Pre-v0.6.7 the plugin used a default `configparser.ConfigParser()` in
