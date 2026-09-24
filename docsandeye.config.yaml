@@ -6,6 +6,13 @@ guides:
 # 150 KB; videos are YouTube click-to-load, so no page loads video bytes before play.
 byte_budget_kb: 175
 profile:
+  - id: model
+    type: choice
+    label: "Which electroPioreactor are you building?"
+    options:
+      - {value: aep-0-2, label: "AEP0.2 (aseptic, 2026)"}
+      - {value: aep-0-1-1, label: "AEP0.1.1 (aseptic, 2025)"}
+    default: aep-0-2
   - id: units
     type: number
     label: "How many Pioreactors did you receive?"

@@ -16,6 +16,20 @@ export default defineConfig({
 			plugins: [docsandeye({ projectRoot: '..' })],
 			components: { ThemeSelect: '@docsandeye/themes/ThemeSelect.astro' },
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/amy-bo/electroPioreactor' }],
+			sidebar: [
+				{
+					label: 'Aseptic (AEP)',
+					items: [
+						{ label: 'Assembly', link: '/AEP/' },
+						{ slug: 'aep/protocol' },
+						{ label: 'Bill of materials', link: 'https://github.com/amy-bo/electroPioreactor/tree/main/AsepticElectroPioreactor' },
+					],
+				},
+				{
+					label: 'Mixed-culture (MEP)',
+					items: [{ label: 'Assembly', link: '/MEP/' }, { slug: 'mep/protocol' }],
+				},
+			],
 		}),
 	],
 });
