@@ -30,14 +30,21 @@ Pause/resume is done by publishing `JobState.SLEEPING`/`READY` to `od_reading`'s
 
 ## Installation
 
-Skip step 1 if your Pioreactor is already imaged and reachable on its network.
+There are two routes.
 
-### 1. (Optional) Flash a fresh Pioreactor image
+- **Card install** (steps 1–3 below): flash the card, drag one folder onto it, boot. No SSH, no network access needed on the Pioreactor. This needs a Pioreactor image with boot-partition plugin support, which is [proposed upstream](https://github.com/amy-bo/CustoPiZer/tree/bootfs-plugins) and accepted in principle by Pioreactor; until it ships in a release, use the manual route.
+- **Manual install over SSH** (further down): for a unit that is already imaged and reachable on its network, or an image without card install support.
+
+Before step 1, download the card bundle so it is ready when the write finishes: <https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-card-bundle.zip>. Unzip it; you will get a folder named `pioreactor`. (To build it yourself instead, run `bash scripts/make-card-bundle.sh` in `AEP-Plugin/`.)
+
+### 1. Flash a fresh Pioreactor image
 
 > ⚠️ **Warning**
 > Flashing wipes the SD card. Only do this if you are starting from scratch and have **no data on the unit you want to keep** – any experiments, calibrations, or local config on the SD card will be lost.
 
 Follow [Pioreactor's official software-installation guide](https://docs.pioreactor.com/user-guide/software-set-up). The steps below mirror that doc verbatim; if Pi Imager's UI changes, that page is the source of truth.
+
+> ⚠️ **Leave the card in the reader when the write finishes.** Imager ejects the card automatically by default, and step 2 needs it mounted. Untick **Eject media when finished** in Imager's options before you click **Write**. If the card is ejected anyway, unplug the reader (or remove the card) and plug it back in: a drive called `bootfs` reappears.
 
 On your Mac/Windows/Linux machine, install [Raspberry Pi Imager](https://www.raspberrypi.com/software/), then:
 
@@ -50,12 +57,12 @@ On your Mac/Windows/Linux machine, install [Raspberry Pi Imager](https://www.ras
    https://pioreactor.com/imager/os-list.json
    ```
 5. Click **Apply & restart**.
-6. Choose your RPi model and click **Next** (Raspberry Pi Zero 2 W for current ed04 hardware).
+6. Choose your RPi model and click **Next** (Raspberry Pi Zero 2 W for current AEP hardware).
 7. Choose the operating system **Pioreactor**
 8. Choose the **latest** OS on the list (at the top)
-9. Choose **Leader + Worker** and click **Next**. (Use **Worker** instead if this unit will join an existing cluster as a worker only; **Leader** if you want a leader that doesn't itself run experiments. For a stand-alone unit like ed04, pick Leader + Worker.)
+9. Choose **Leader + Worker** and click **Next**. (Use **Worker** instead if this unit will join an existing cluster as a worker only; **Leader** if you want a leader that doesn't itself run experiments. For a stand-alone unit, pick Leader + Worker.)
 10. Insert your microSD card and select it as your **Storage** device.
-11. Input a unique hostname for this unit (e.g. `ed04`). **Do not use `pioreactor` or `raspberrypi`** – those names are reserved and will break mDNS resolution. Click **Next**.
+11. Input a unique hostname for this unit (e.g. `aep01`). **Do not use `pioreactor` or `raspberrypi`** – those names are reserved and will break mDNS resolution. Click **Next**.
 12. Change localization preferences (time zone, keyboard layout) and click **Next**.
 13. enter **Username**: `pioreactor` (do not change – the Pioreactor image hardcodes this username and several plugin install paths assume it).
 14. enter **Password**: Pioreactor's docs use `raspberry`; pick something stronger for any unit that will run real experiments. Enter password again and click **Next**.
@@ -63,13 +70,36 @@ On your Mac/Windows/Linux machine, install [Raspberry Pi Imager](https://www.ras
 16. Confirm **Enable SSH** is active and **Use password authentication** is selected. Click **Next**.
 17. Click **Write** to begin imaging. Accept any permission prompts. Writing takes up to 5 minutes.
 
-When the write finishes, eject the card and insert it into the Raspberry Pi (HAT attached, power unplugged). The microSD slot is on the PWM side. Plug power in; after a few minutes the Pioreactor HAT will briefly blink a blue LED to indicate first-boot is complete.
+While it writes, unzip the card bundle if you have not already.
 
-In a browser, navigate to `http://<hostname>.local` (e.g. `http://ed04.local`) – the Pioreactor lighttpd web UI loads unauthenticated when ready. When the UI loads you'll be prompted by an **Update Pioreactor model** dialog: select the correct model and hardware version, then click **Save**.
+### 2. Put the plugin on the card
+
+When Imager reports the write is complete, a drive called **`bootfs`** is mounted on your computer (Finder sidebar on macOS, a new drive letter on Windows, `/media/<you>/bootfs` on Linux). It is the Pioreactor's boot partition.
+
+1. Drag the `pioreactor` folder from the unzipped bundle onto the `bootfs` drive. If asked to merge, say yes.
+2. Check the drive now contains `pioreactor/plugins/pioreactor_electropioreactor_plugin-<version>-py3-none-any.whl`.
+
+This is the same drive where Pioreactor's own pre-boot files go, so a [`wifi.ini`](https://docs.pioreactor.com/user-guide/networking-tools) or [`config.ini`](https://docs.pioreactor.com/user-guide/configuration-via-config-ini) can be dropped alongside in the same step.
+
+### 3. Boot and verify
+
+Eject the card and insert it into the Raspberry Pi (HAT attached, power unplugged). The microSD slot is on the PWM side. Plug power in; after a few minutes the Pioreactor HAT will briefly blink a blue LED to indicate first-boot is complete.
+
+In a browser, navigate to `http://<hostname>.local` (e.g. `http://aep01.local`) – the Pioreactor lighttpd web UI loads unauthenticated when ready. When the UI loads you'll be prompted by an **Update Pioreactor model** dialog: select the correct model and hardware version, then click **Save**.
 
 > ℹ️ **The Pioreactor image is headless by design.** A connected monitor will stay blank even on a fully working unit (HDMI output, ACT LED, and boot splash are all disabled in `/boot/firmware/config.txt`). Don't troubleshoot from screen output – verify boot via the brief blue LED flash, by `ping <hostname>.local` from another device on the same network, or by the web UI loading.
 
-### 2. SSH in and install the plugin
+Then open the **Plugins** page: **pioreactor-electropioreactor-plugin** should be listed as installed. On the *Manage* screen for the unit, **electroPioreactor** appears under **Activities**. The plugin installed itself on first boot and the `pioreactor/plugins/` folder on the card is now empty.
+
+If it is not listed, put the card back in your computer. A failed install leaves the wheel and a `.log` of the attempt in `pioreactor/plugins/failed/` on the `bootfs` drive; that log is what to send when asking for help.
+
+> ℹ️ **Worker-only units.** Do exactly the same three steps with a **Worker** image. A worker cannot install anything until it has a configuration, so the install happens the moment you add the unit from the leader's **Inventory** page, not at first boot. Nothing else is needed.
+
+### Manual install over SSH
+
+Use this for a unit that is already imaged and reachable on its network, or an image without card install support. Do step 1 above (without the card bundle) if you have not already, then:
+
+#### 2. SSH in and install the plugin
 
 **On your Mac/Windows/Linux shell**, open the SSH session:
 
@@ -101,17 +131,17 @@ git clone https://github.com/amy-bo/electroPioreactor.git
 /opt/pioreactor/venv/bin/pip show pioreactor-electropioreactor-plugin | grep Version
 ```
 
-The last line should print `Version: 0.6.6` (or later).
+The last line should print `Version: 0.6.7` (or later).
 
 > ℹ️ **Worker-only units stop here.** Steps 3–6 set up the web UI and `config.ini`, which live on the **leader**. A worker has no web UI of its own and receives its `config.ini` from the leader when you add it to the cluster, so running these steps on a worker fails with `Configuration file at .../config.ini is missing`. Install the plugin (step 2), then add the unit from the leader's **Inventory** – the leader's UI descriptor and config reach the worker through the cluster. Run steps 3–6 only on a **Leader** or **Leader + Worker** unit.
 
-### 3. Deploy the UI job descriptor
+#### 3. Deploy the UI job descriptor
 
 ```bash
 bash /home/pioreactor/electroPioreactor/AEP-Plugin/scripts/deploy-ui-yaml.sh
 ```
 
-### 4. Patch `config.ini` (idempotent)
+#### 4. Patch `config.ini` (idempotent)
 
 Adds `[PWM] 4=relay` and the four `[electropioreactor.config]` defaults. Re-runs are safe; existing keys are preserved.
 
@@ -121,13 +151,13 @@ Adds `[PWM] 4=relay` and the four `[electropioreactor.config]` defaults. Re-runs
 
 See **Configuration** below for what these values mean.
 
-### 5. Restart `lighttpd`
+#### 5. Restart `lighttpd`
 
 ```bash
 sudo systemctl restart lighttpd
 ```
 
-### 6. Verify
+#### 6. Verify
 
 ```bash
 export DOT_PIOREACTOR=/home/pioreactor/.pioreactor
@@ -137,7 +167,7 @@ export DOT_PIOREACTOR=/home/pioreactor/.pioreactor
 /opt/pioreactor/venv/bin/pio plugins list 2>&1 | grep electro
 ```
 
-Expected: `pioreactor-electropioreactor-plugin==0.6.6` (or later).
+Expected: `pioreactor-electropioreactor-plugin==0.6.7` (or later).
 
 ```bash
 ls -la /home/pioreactor/.pioreactor/plugins/ui/jobs/20_electropioreactor.yaml
@@ -169,9 +199,9 @@ Or on the whole cluster:
 pios plugin install pioreactor-electropioreactor-plugin
 ```
 
-### Pre-built OS image (future)
+### Pre-built OS image
 
-A Raspberry Pi OS image with the plugin pre-installed and pre-configured is published from the `electroPioreactorOS` branch of this repo. See `electropioreactor-image/README.md` on that branch, or flash via Raspberry Pi Imager using the custom URL `https://amy-bo.github.io/electroPioreactor/os-list.json` (available after the OS branch is merged and the first release is cut).
+Considered and dropped. A fork-built image would have to be rebuilt and re-verified for every Pioreactor release, and a stale image is worst for exactly the offline university users it was meant to help. The card install route above gives the same one-drag experience on stock Pioreactor images instead.
 
 ### Local development (off-device)
 

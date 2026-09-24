@@ -1,0 +1,36 @@
+name: Card bundle
+
+# Builds electroPioreactor-card-bundle.zip (the folder users drag onto the
+# bootfs drive of a freshly flashed Pioreactor card) and attaches it to the
+# GitHub release that triggered the run. On manual dispatch the zip is kept as
+# a workflow artifact instead.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Build the card bundle
+        run: bash AEP-Plugin/scripts/make-card-bundle.sh
+      - name: Attach to the release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" AEP-Plugin/dist/electroPioreactor-card-bundle.zip --clobber
+      - name: Keep as an artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: electroPioreactor-card-bundle
+          path: AEP-Plugin/dist/electroPioreactor-card-bundle.zip

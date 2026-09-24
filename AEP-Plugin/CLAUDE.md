@@ -54,8 +54,11 @@ Tests use a conftest that stubs the entire `pioreactor` package.
 
 ## Device install
 
-End-user install steps are in `README.md`. For development, an editable
-install off a local checkout is convenient:
+End-user install steps are in `README.md`: the card install route (drag the
+`pioreactor` folder from the card bundle onto the `bootfs` drive of a freshly
+flashed card; built by `scripts/make-card-bundle.sh` and the `card-bundle`
+workflow on each GitHub release) and the manual SSH route. For development, an
+editable install off a local checkout is convenient:
 
 ```bash
 /opt/pioreactor/venv/bin/pip install -e /path/to/electroPioreactor/AEP-Plugin
