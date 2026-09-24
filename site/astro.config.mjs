@@ -29,6 +29,7 @@ export default defineConfig({
 					label: 'Mixed-culture (MEP)',
 					items: [{ label: 'Assembly', link: '/MEP/' }, { slug: 'mep/protocol' }],
 				},
+				{ label: 'Budget aseptic (BAEP)', items: [{ label: 'Assembly', link: '/BAEP/' }] },
 			],
 		}),
 	],
