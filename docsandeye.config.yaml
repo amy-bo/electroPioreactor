@@ -8,7 +8,7 @@ guides:
   - {id: baep, title: "Budget aseptic electroPioreactor (BAEP)", base: /BAEP}
 # The parts-count page (step-00) carries the whole receipt table (~45 rows), which takes it just over
 # 150 KB, and its tooltips and check-off rows add a little more; videos are YouTube click-to-load, so no page loads video bytes before play.
-byte_budget_kb: 190
+byte_budget_kb: 200  # step 00 carries the whole parts table plus a video poster
 profile:
   - id: model
     type: choice
