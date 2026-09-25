@@ -59,27 +59,13 @@ Follow Pioreactor's [40 ml v1.5 hardware setup guide](https://docs.pioreactor.co
    AEP0.2 is XR from the start; the XR upgrade would only have you strip the v1.5 optics back out. From the v1.5 kit, the XR assembly reuses 2 eye-spys, 3 optics covers, 12x 8 mm screws, 1 LED cap and the 50 mm STEMMA-QT wire. The XR kit supplies the other eye-spys, its own top vial holder and the O-ring. Upgrading a Pioreactor that is already built? Follow [the XR disassembly guide](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-disassembly) to recover those parts.
 
    </details>
-4. [Wetware assembly](https://docs.pioreactor.com/user-guide/40ml-v15-wetware-assembly), with these changes:
-   - Set the vial's own cap aside.
-   - Skip the stainless steel ports.
-   - Fit the X-section o-ring into the XR top vial holder and the round o-ring into the bottom vial holder.
-5. [Fit the XR upgrade kit](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly):
-   - Fix each eye-spy under an optics cover with four 8 mm screws: 0x4B at 45°, white-marked at REF, unmarked at 90°, the last at 135°.
-   - Fit the heater PCB, thermal pad, LED and LED cap.
-   - Connect the STEMMA-QT chain, yellow wire down.
-6. [Attach the wetware to the HAT assembly](https://docs.pioreactor.com/user-guide/40ml-v15-putting-it-together):
-   - Drive four screws into the square nuts until flush, and no further.
-   - Fit the 10 mm screw under the button extension and the four 8 mm corner screws.
-   - Push the flat flex cable into the orange connector.
-   - Plug the stirrer into PWM channel 1.
+4. [Wetware assembly](https://docs.pioreactor.com/user-guide/40ml-v15-wetware-assembly), with these changes. Set the vial's own cap aside and skip the stainless steel ports. Fit the X-section o-ring into the XR top vial holder and the round o-ring into the bottom vial holder.
+5. [Fit the XR upgrade kit](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly). Fix each eye-spy under an optics cover with four 8 mm screws: 0x4B at 45°, white-marked at REF, unmarked at 90°, the last at 135°. Fit the heater PCB, thermal pad, LED and LED cap, then connect the STEMMA-QT chain, yellow wire down.
+6. [Attach the wetware to the HAT assembly](https://docs.pioreactor.com/user-guide/40ml-v15-putting-it-together). Drive four screws into the square nuts until flush, and no further. Fit the 10 mm screw under the button extension and the four 8 mm corner screws, push the flat flex cable into the orange connector, and plug the stirrer into PWM channel 1.
 
 <!-- when temp-kit=true -->
 
-**If you have the Precision Temperature Upgrade Kit**, [fit it](https://docs.pioreactor.com/user-guide/precision-temperature-upgrade-kit):
-
-- Lift the cover off the SPEC position.
-- Run the STEMMA-QT wire from the sensor PCB to the nearest eye-spy.
-- Seat the sensor in SPEC, LED pad to the right.
+**If you have the Precision Temperature Upgrade Kit**, [fit it](https://docs.pioreactor.com/user-guide/precision-temperature-upgrade-kit). Lift the cover off the SPEC position, run the STEMMA-QT wire from the sensor PCB to the nearest eye-spy, and seat the sensor in SPEC, LED pad to the right.
 
 <!-- /when -->
 
