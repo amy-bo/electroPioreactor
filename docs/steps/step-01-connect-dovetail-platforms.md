@@ -32,8 +32,8 @@ On every platform except the SodaStream holder (see item 5), the male dovetails 
 5. Orient the SodaStream holder to suit the cylinder:
    - Loose cylinder: dovetails away from you and to the left, like the rest.
    - Tight cylinder: rotate the holder so they point away and to the right. Its gap is then free to open for larger cylinders.
-6. Press every joint down until the raft sits flat on the table. The last joint may need some force.
-7. Check the pumping dovetail platform's cutout clears your SD card before forcing anything down. <!-- TODO: confirm Pi 5 clearance on the current platform revision and photograph it | assignee: @Martin -->
+6. Check the pumping dovetail platform's cutout clears your SD card before forcing anything down. <!-- TODO: confirm Pi 5 clearance on the current platform revision and photograph it | assignee: @Martin -->
+7. Press every joint down until the raft sits flat on the table. The last joint may need some force.
 
 <!-- The recording (session-20 0:00:12) built the raft SodaStream-first; this order is the corrected one from Martin, 2026-09-24. -->
 
