@@ -30,6 +30,7 @@ profile:
     max: 50
   - id: temp-kit
     type: boolean
+    guides: [aep]
     label: "Do you have the Precision Temperature Upgrade Kit?"
     short: "temperature kit"
     default: false
