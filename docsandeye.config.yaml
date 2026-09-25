@@ -4,11 +4,12 @@ guides:
   - {id: mep, title: "Mixed ElectroPioreactor", base: /MEP}
   - {id: baep, title: "Budget Aseptic ElectroPioreactor (BAEP)", base: /BAEP}
 # The parts-count page (step-00) carries the whole receipt table (~45 rows), which takes it just over
-# 150 KB; videos are YouTube click-to-load, so no page loads video bytes before play.
-byte_budget_kb: 175
+# 150 KB, and its tooltips and check-off rows add a little more; videos are YouTube click-to-load, so no page loads video bytes before play.
+byte_budget_kb: 190
 profile:
   - id: model
     type: choice
+    guides: [aep]
     label: "Which electroPioreactor are you building?"
     short: "model"
     options:
