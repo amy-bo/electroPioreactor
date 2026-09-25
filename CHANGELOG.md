@@ -2,6 +2,10 @@
 
 Done-work log for the electroPioreactor repository, newest first. Open work stays in the "Still to specify" list of the AEP0.2 [BoM](AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/BoM.md) and in the `<!-- TODO -->` comments of the step files under `docs/steps/`.
 
+## 2026-09-25
+
+- [x] **MEP and BAEP guides: full step sets** — the MEP guide had only the shared platform step. `2b89be6` adds MEP steps 0 to 10 (`docs/steps/step-NN-mep-*.md`, guides `mep` and `baep`) modelled on the AEP0.2 steps, with the MEP hardware and settings from `MixedElectroPioreactor/` and the AEP0.1.1 assembly: Pioreactor 20 ml v1.1, MEP card bundle, O-ring vial cap with ElectrodeTopStop, 60 mm platinum-plated titanium anode and stainless steel cathode at 33 mm, 14 ml working volume set by the waste line, PWM 2 waste and 3 media, FZone fixed-pressure regulator with the needle valve as the only flow control. AEP-only steps (needle ports, sterilisation, temperature kit, XR) are left out; 13 components added. The BAEP guide is the MEP steps plus step 12, now five 25 mm vent filters. `fbd95c0` writes the MEP protocol page out from Calibration.md and Operation.md and adds a BAEP protocol page; `2ce84f0` adds glossary tips. The kit questions (units, supplier) are now AEP-only.
+
 ## 2026-09-24
 
 - [x] **AEP0.2 steps made concise and matched to the recording** — each step body is now a numbered list of one-line actions in the order they were done on camera (sessions 14 to 21, 22 Sept), with explanation moved into `<details>` blocks. Where the recording and the text disagreed the recording wins, and an `<!-- from video: ... -->` comment gives the session and time: washer order in step 5, PWM 2 = media and 3 = waste in steps 6 and 9, blanking plug before needle valve and no regulator-outlet o-ring or vent filters in the kit in step 8, 80 mm outlet needle in step 7. Step 4's offline route is replaced by a pointer to the plugin README's "From the card" and "Over SSH" routes, and the checks that pointed at it are updated to match.
