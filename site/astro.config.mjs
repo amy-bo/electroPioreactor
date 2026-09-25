@@ -21,13 +21,13 @@ export default defineConfig({
 					label: 'Aseptic electroPioreactor (AEP0.2)',
 					items: [
 						{ label: 'Assembly', link: '/AEP/' },
-						{ slug: 'aep/protocol' },
+						{ slug: 'AEP/protocol' },
 						{ label: 'Bill of materials', link: 'https://github.com/amy-bo/electroPioreactor/tree/main/AsepticElectroPioreactor' },
 					],
 				},
 				{
 					label: 'Mixed-culture electroPioreactor (MEP)',
-					items: [{ label: 'Assembly', link: '/MEP/' }, { slug: 'mep/protocol' }],
+					items: [{ label: 'Assembly', link: '/MEP/' }, { slug: 'MEP/protocol' }],
 				},
 				{ label: 'Budget aseptic electroPioreactor (BAEP)', items: [{ label: 'Assembly', link: '/BAEP/' }] },
 			],

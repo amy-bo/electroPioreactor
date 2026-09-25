@@ -1,4 +1,5 @@
 ---
+slug: AEP/protocol
 title: AEP protocol
 description: Running an experiment on an assembled Aseptic electroPioreactor.
 ---

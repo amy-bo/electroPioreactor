@@ -28,7 +28,7 @@ private-notes/
 .vibe-repos
 aep/
 # the docs site keeps its AEP pages under site/src/content/docs/AEP (the aep/ rule above is for the plugin build dir)
-!site/src/content/docs/AEP/
+!site/src/content/docs/aep-protocol.md
 
 # Office (Excel/Word) owner/lock temp files
 ~$*

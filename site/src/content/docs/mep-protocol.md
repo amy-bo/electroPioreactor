@@ -1,4 +1,5 @@
 ---
+slug: MEP/protocol
 title: MEP protocol
 description: Operating a Mixed-culture electroPioreactor.
 ---

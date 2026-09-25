@@ -1,9 +1,10 @@
 theme: pioreactor
 project:
   repo: "https://github.com/amy-bo/electroPioreactor"
+  branch: AEP02
 guides:
-  - {id: aep, title: "Aseptic electroPioreactor (AEP0.2)", base: /AEP}
-  - {id: mep, title: "Mixed-culture electroPioreactor (MEP)", base: /MEP}
+  - {id: aep, title: "Aseptic electroPioreactor (AEP0.2)", base: /AEP, pages: [{label: "Protocol", slug: AEP/protocol}]}
+  - {id: mep, title: "Mixed-culture electroPioreactor (MEP)", base: /MEP, pages: [{label: "Protocol", slug: MEP/protocol}]}
   - {id: baep, title: "Budget aseptic electroPioreactor (BAEP)", base: /BAEP}
 # The parts-count page (step-00) carries the whole receipt table (~45 rows), which takes it just over
 # 150 KB, and its tooltips and check-off rows add a little more; videos are YouTube click-to-load, so no page loads video bytes before play.
