@@ -15,13 +15,13 @@ checks:
       - {problem: "Flow is low whatever the setting", fix: "Look for a kinked line, then a leak at a Loctite 577 joint: pipette washing-up liquid in water onto each joint and watch for bubbles."}
 ---
 
-The FZone regulator's outlet pressure is fixed, so the needle valve alone sets the flow.
+The FZone regulator's outlet pressure is fixed, so the needle valve alone sets the flow. Aim for the flow of an AEP0.1.1 at 1 bar, so experiments port across. BAEP: fit the vent filters first; they change the flow.
 
 1. Check the cylinder is open: the adapter's pin screw is fully down.
 2. Cap one of the two gas outlets with a luer lock cap.
 3. Run 1/16" tubing from the open gas outlet into a water bath, under a measuring cylinder full of water.
-4. Sparge until the water is saturated with CO₂ (when its pH stops falling, if you can measure it).
-5. Open the solenoid for a fixed time: turn on the relay in the Pioreactor UI, or run a sparge from the **electroPioreactor** job.
+4. Open the solenoid: turn on the relay in the Pioreactor UI, or run sparges from the **electroPioreactor** job.
+5. Sparge until the water is saturated with CO₂ (when its pH stops falling, if you can measure it), then open the solenoid for a fixed time.
 6. Record the volume of CO₂ collected.
 7. Calculate the flow rate, in ml of CO₂ per second of solenoid open time.
 8. Adjust the needle valve, and repeat until you reach the target flow rate.

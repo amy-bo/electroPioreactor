@@ -1,0 +1,10 @@
+id: flexelene-tubing
+name: "Flexelene tubing"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {grade: "135C"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-25, note: "Port tubing of the O-ring vial cap ('What changed from AEP0.1.1': Ports, Flexelene 135C tubing). Five lengths per cap."}

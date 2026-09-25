@@ -1,6 +1,6 @@
 ---
 id: step-12-add-vent-filters
-order: 12
+order: 8
 title: "Add the vent filters"
 guide: [baep]
 parts:

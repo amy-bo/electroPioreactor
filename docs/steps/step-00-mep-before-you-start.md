@@ -7,6 +7,7 @@ tools:
   - {component: computer-with-microsd-reader, qty: 1}
   - {component: phillips-ph0-screwdriver, qty: 1}
   - {component: hex-key-2-5mm, qty: 1}
+  - {component: hex-key-5mm, qty: 1}
   - {component: gas-cylinder-wrench, qty: 1}
   - {component: vernier-callipers, qty: 1}
   - {component: analytical-balance, qty: 1}
@@ -20,7 +21,7 @@ checks:
   - id: parts-to-hand
     question: "Do you have every part the steps of this guide list?"
     issues:
-      - {problem: "A part is missing", fix: "Each step lists its parts. The MEP folder in the repository links the suppliers."}
+      - {problem: "A part is missing", fix: "Each step lists its parts. [Components/README.md](../../Components/README.md) links suppliers for most of them."}
   - id: tools-to-hand
     question: "Are the tools under **Tools** to hand, including cryogenic gloves and eye protection?"
     issues:
@@ -41,7 +42,7 @@ The Budget aseptic electroPioreactor (BAEP) is an MEP with five 0.2 μm vent fil
 <summary>Tool notes</summary>
 
 - The computer needs a microSD reader, or an SD reader with a microSD adapter, and Raspberry Pi Imager to flash the card.
-- The 2.5 mm hex key fits the ElectrodeTopStop's M3 bolts.
+- The 2.5 mm hex key fits the ElectrodeTopStop's M3 bolts; the 5 mm hex key fits the blanking plug.
 - The gas cylinder wrench is 28 mm.
 - The analytical balance needs only 0.1 g accuracy, for pump calibration: a jewellery scale will do.
 - The vernier callipers set the electrode depth.
@@ -69,10 +70,10 @@ Keep spares: at least one vial and one magnetic stir bar per few units. Vials br
 | Vial cap | One-piece cap and electrode holder, single silicone septum | [O-ring vial cap](../../Components/Vial%20Cap) + [ElectrodeTopStop](../../Components/ElectrodeTopStop), cap O-ring + 2 electrode O-rings |
 | Electrodes | MMO tube anode and stainless steel cathode, 100 mm | Platinum-plated titanium anode and stainless steel cathode, 60 mm |
 | Electrode fixing | Ring terminal + thumb screw, M3 nut and spring washer | M3 bolt through a captive nut in the ElectrodeTopStop |
-| Ports | Stainless steel needles through the septum | Luer ports on the cap |
+| Ports | Stainless steel needles through the septum | Tubes through the cap's five 3.2 mm ports |
 | CO₂ regulator | Adjustable, set to about 1 bar | FZone, fixed outlet pressure: the needle valve alone sets the flow |
 | Pumps | PWM 2 media, PWM 3 waste | PWM 2 waste, PWM 3 media |
 | Card bundle | AEP bundle: sets the model, adds the precision temperature plugin | MEP bundle: electroPioreactor plugin only |
-| Not in the MEP | Precision Temperature Upgrade Kit, vent filters, sterilisation | |
+| Not in the MEP | Precision Temperature Upgrade Kit; vent filters (see the BAEP) | |
 
 </details>

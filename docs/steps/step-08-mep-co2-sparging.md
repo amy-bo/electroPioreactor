@@ -18,16 +18,19 @@ tools:
   - {component: gas-cylinder-wrench, qty: 1}
   - {component: cryogenic-gloves, qty: 1}
   - {component: eye-face-protection, qty: 1}
+  - {component: hex-key-5mm, qty: 1}
 safety: |
   Fit and open the CO₂ cylinder only in a well-ventilated room, wearing eye protection and cryogenic gloves.
+  Keep the solenoid manual override closed (horizontal line pointing at 0 on the front of the solenoid) except when venting.
+  The solenoid valve must be 3-way venting (3/2). A 2-way valve traps CO₂ between the valve and the broth on closing; the CO₂ dissolves and draws liquid back up the line.
 checks_draft: true
 checks:
   - id: loctite-cured
     question: "Did the Loctite 577 fixture (10 to 60 minutes at 22 °C) before you admitted gas?"
     issues:
-      - {problem: "Gas went in sooner", fix: "Close the adapter's pin screw, vent the line with the solenoid override, and leave the joints to fixture. Full pressure rating takes 24 hours."}
+      - {problem: "Gas went in sooner", fix: "Unscrew the adapter's pin screw to close the cylinder, set the override to 1 to vent the line, then back to 0, and leave the joints to fixture. Full pressure rating takes 24 hours."}
   - id: no-leak
-    question: "With the needle valve closed, does the regulator's right-hand gauge hold steady for 60 seconds?"
+    question: "Needle valve closed and override at 1, does the regulator's right-hand gauge hold steady for 60 seconds?"
     issues:
       - {problem: "It drops", fix: "A joint upstream of the needle valve leaks. Pipette washing-up liquid in water onto each Loctite 577 joint and watch for bubbles."}
   - id: pwm4
@@ -37,20 +40,21 @@ checks:
 ---
 
 1. Apply Loctite 577 to the second thread (not the end one) of the joint between the regulator outlet and the solenoid valve's left port, and screw the solenoid valve on, electronics to the rear. Work up to vertical; do not pass it and turn back. <!-- TODO: confirm how the FZone outlet meets the solenoid (direct 1/8" thread, or a reducing nipple as on the AEP) | assignee: @Martin -->
-2. Holding the solenoid, screw the blanking plug into its right port with a 5 mm hex key. Use no sealant: the plug has its own O-ring.
+2. Holding the solenoid, apply Loctite 577 to the blanking plug's second thread and screw it into the solenoid's right port with the 5 mm hex key.
 3. Apply Loctite 577 to the needle valve's inlet thread (second thread), and screw it into the solenoid's front port, stopping with it pointing straight up.
 4. Close the needle valve (clockwise), and check the solenoid manual override is at 0.
 5. Wait for the Loctite 577 to fixture before admitting gas: 10 to 60 minutes at 22 °C. It reaches full pressure rating after 24 hours.
 6. Work in a well-ventilated room. Put the SodaStream cylinder into its holder at the rear of the raft.
 7. Put on all PPE, including cryogenic gloves.
 8. Screw the regulator onto the right-angle cylinder adapter.
-9. Back off the adapter's pin screw, screw the adapter onto the cylinder in one swift, decisive move, and tighten it with the gas cylinder wrench, regulator to the front and the solenoid to its right.
+9. Back off the adapter's pin screw, seat the adapter's washer, screw the adapter onto the cylinder in one swift, decisive move, and tighten it with the gas cylinder wrench, regulator to the front and the solenoid to its right. <!-- TODO: confirm what seals the adapter at the cylinder (washer as on AEP0.1.1, or o-ring as on AEP0.2) | assignee: @Martin -->
 10. Open the cylinder: screw the adapter's pin screw fully down. If the adapter leaks, tighten it further.
 11. Read the two gauges. The left shows the cylinder pressure, your warning that it is running out; the right shows the pressure reaching the solenoid. The FZone's outlet pressure is fixed, so there is nothing to set.
-12. Remove the compression nut and ferrule from the top of the needle valve, thread the nut onto the 4 mm polyurethane CO₂ tube, and push the tube fully onto the needle valve (dip it in hot water if it will not go). Refit the ferrule, and screw the nut down.
-13. Cut the tube just long enough to run over the regulator and down to the vial cap's CO₂ inlet (cut every other unit's tube to the same length), and push a 1/8" hose barb to male luer lock adapter into the free end (hot water if needed).
-14. Connect the tube's luer to the vial cap's CO₂ inlet luer.
-15. Route the solenoid lead down behind the Pioreactor and through the pumps, and plug it into PWM channel 4.
+12. Check for leaks: with the needle valve closed, turn the solenoid override to 1 and watch the right-hand gauge for 60 seconds. Any drop means a leak upstream of the needle valve. Turn the override back to 0.
+13. Remove the compression nut and ferrule from the top of the needle valve, thread the nut onto the 4 mm polyurethane CO₂ tube, and push the tube fully onto the needle valve (dip it in hot water if it will not go). Refit the ferrule, and screw the nut down.
+14. Cut the tube just long enough to run over the regulator and down to the vial cap's CO₂ inlet (cut every other unit's tube to the same length), and push a 1/8" hose barb to male luer lock adapter into the free end (hot water if needed).
+15. Connect the tube's luer to the vial cap's CO₂ inlet luer.
+16. Route the solenoid lead down behind the Pioreactor and through the pumps, and plug it into PWM channel 4.
 
 <details>
 <summary>Notes</summary>

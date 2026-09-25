@@ -17,7 +17,7 @@ checks:
     question: "Front to back, is the raft Pioreactor, pumps, product bottle (left) and media bottle (right), then the SodaStream holder?"
     issues:
       - {problem: "The layout differs", fix: "Rearrange the platforms in the order above, male dovetails away from you and to the left (SodaStream holder as in action 5)."}
-      - {problem: "Several AEPs do not join into one raft", fix: "Alternate media and product bottles between units, so the media bottle platforms form the backbone of the raft."}
+      - {problem: "Several units do not join into one raft", fix: "Alternate media and product bottles between units, so the media bottle platforms form the backbone of the raft."}
   - id: sd-card-clearance
     question: "Does the pumping dovetail platform sit down fully without pressing on the SD card?"
     issues:
@@ -26,7 +26,7 @@ checks:
 
 On every platform except the SodaStream holder (see item 5), the male dovetails point away from you and to the left.
 
-1. Place the Pioreactor platform first, turned so the Pi's USB and ethernet ports have room.
+1. Place the Pioreactor platform first, turned so the Pi's ports have room.
 2. Join the pump platform to it, so the pump leads reach the PWM channels.
 3. Join the 250 ml media and product bottle platforms directly behind the pumps.
 4. Join the SodaStream holder at the back, centred on the Pioreactor platform.
@@ -42,7 +42,7 @@ On every platform except the SodaStream holder (see item 5), the male dovetails 
 <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
 <details>
-<summary>Several AEPs on one bench</summary>
+<summary>Several units on one bench</summary>
 
 Alternate media and product bottles between units, so the media bottle holders form the backbone of the raft.
 
