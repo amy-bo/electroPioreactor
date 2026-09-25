@@ -15,7 +15,7 @@ checks:
   - id: raft-layout
     question: "Front to back, is the raft Pioreactor, pumps, product bottle (left) and media bottle (right), then the SodaStream holder?"
     issues:
-      - {problem: "The layout differs", fix: "Rearrange the platforms in the order above, dovetails to the front and left."}
+      - {problem: "The layout differs", fix: "Rearrange the platforms in the order above, male dovetails away from you and to the left (SodaStream holder as in action 5)."}
       - {problem: "Several AEPs do not join into one raft", fix: "Alternate media and product bottles between units, so the media bottle platforms form the backbone of the raft."}
   - id: sd-card-clearance
     question: "Does the pumping dovetail platform sit down fully without pressing on the SD card?"
