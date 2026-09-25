@@ -20,12 +20,12 @@ checks:
     issues:
       - {problem: "It still shows the standard model", fix: "Set it to the XR variant in Inventory: until you do, OD readings are interpreted against the wrong channel map."}
   - id: xr-config
-    question: "Are the XR photodiode channel values in `config.ini`?"
+    question: "Are the XR photodiode channel values in config.ini?"
     issues:
       - {problem: "They are missing", fix: "Add them as listed at the end of the XR assembly guide."}
   - id: temp-plugin
     when: {temp-kit: true}
-    question: "Is `pioreactor-precision-temperature-plugin` listed under Plugins in the Pioreactor UI?"
+    question: "Is pioreactor-precision-temperature-plugin listed under Plugins in the Pioreactor UI?"
     issues:
       - {problem: "The install fails because the unit has no internet", fix: "Give the unit internet over an ethernet cable with Internet Sharing (see the plugin install step), then install it."}
 ---

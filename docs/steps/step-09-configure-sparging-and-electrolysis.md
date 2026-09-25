@@ -8,7 +8,7 @@ parts:
 checks_draft: true
 checks:
   - id: config-ini
-    question: "Does `config.ini` show `4=relay` under `[PWM]` and an `[electropioreactor.config]` section?"
+    question: "Does config.ini show 4=relay under [PWM] and an [electropioreactor.config] section?"
     issues:
       - {problem: "PWM 4 is still `waste`", fix: "Set it to `relay` in the UI's Configuration page (see the plugin install step)."}
       - {problem: "The `[electropioreactor.config]` section is missing", fix: "Re-run the plugin install (see the plugin install step): the installer patches `config.ini`."}
