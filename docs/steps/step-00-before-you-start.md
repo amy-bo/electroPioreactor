@@ -20,14 +20,13 @@ tools:
   - {component: multimeter, qty: 1}
   - {component: banded-oil-filter-wrench, qty: 1}
 receipt: true
-profile: true
 checks_draft: true
 checks:
   - id: parts-counted
     question: "Does every row of the parts checklist on this page match what you received?"
     issues:
-      - {problem: "A part is short or missing", fix: "Use the **Missing parts** panel under the checklist to email your supplier: it lists each missing part and quantity."}
-      - {problem: "The SodaStream cylinders or the 250 ml GL45 bottles are missing from a LabCrafter kit", fix: "LabCrafter does not supply these regional consumables. Buy them locally (links in item 1)."}
+      - {problem: "A part is short or missing", fix: "Email your supplier from the **Missing something?** line under the checklist."}
+      - {problem: "The SodaStream cylinders or the 250 ml GL45 bottles are missing from a LabCrafter kit", fix: "LabCrafter does not supply these regional consumables. Buy them locally (links in **Buy the Bill of Materials**)."}
   - id: tools-to-hand
     question: "Do you have every Required Tool to hand, including PPE?"
     issues:
@@ -62,7 +61,7 @@ checks:
 <details>
 <summary>Spares</summary>
 
-Keep boxed spares of the fragile and consumable parts: at least one spare vial and one spare magnetic flea per few units, and spare silicone septa. Vials break.
+Keep boxed spares of the fragile and consumable parts: at least one spare vial and one spare magnetic stir bar per few units, and spare silicone septa. Vials break.
 
 </details>
 

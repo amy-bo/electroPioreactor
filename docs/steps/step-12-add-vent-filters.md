@@ -1,7 +1,7 @@
 ---
 id: step-12-add-vent-filters
 order: 12
-title: "Add the vent filters (budget AEP)"
+title: "Add the vent filters"
 guide: [baep]
 parts:
   - {component: hydrophobic-vent-filter, qty: 5, cat: part}

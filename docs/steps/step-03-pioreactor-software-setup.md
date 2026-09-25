@@ -11,7 +11,7 @@ tools:
 checks_draft: true
 checks:
   - id: version-26-5
-    question: "Is the Pioreactor software at release 26.5.0 or later?"
+    question: "If you used the fallback route (no card bundle), is the Pioreactor software at release 26.5.0 or later? The card route needs no check here."
     issues:
       - {problem: "It is older", fix: "Run `pio update` before going further."}
       - {problem: "The unit has no internet, so `pio update` fails", fix: "Flash the latest image instead, or give the unit internet over an ethernet cable with Internet Sharing (see the plugin install step)."}
@@ -20,7 +20,7 @@ checks:
     issues:
       - {problem: "It still shows the standard model", fix: "Set it to the XR variant in Inventory: until you do, OD readings are interpreted against the wrong channel map."}
   - id: xr-config
-    question: "Are the XR photodiode channel values in config.ini?"
+    question: "If you used the fallback route (no card bundle), are the XR photodiode channel values in config.ini? The card bundle sets them."
     issues:
       - {problem: "They are missing", fix: "Add them as listed at the end of the XR assembly guide."}
   - id: temp-plugin

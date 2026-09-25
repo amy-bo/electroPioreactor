@@ -37,7 +37,7 @@ On every platform except the SodaStream holder (see item 5), the male dovetails 
 
 <!-- The recording (session-20 0:00:12) built the raft SodaStream-first; this order is the corrected one from Martin, 2026-09-24. -->
 
-<img width="555" height="998" alt="image" src="https://github.com/user-attachments/assets/0f4a6756-ea78-466b-bb35-c8b1a1c2c4af" />
+<img width="555" height="998" alt="Dovetail platforms joined into one raft on a bench (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/0f4a6756-ea78-466b-bb35-c8b1a1c2c4af" />
 <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
 <details>

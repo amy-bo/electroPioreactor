@@ -18,7 +18,7 @@ checks:
   - id: clock-right
     question: "Does the unit show the correct date and time?"
     issues:
-      - {problem: "The clock is wrong on an offline unit", fix: "An offline unit has no time source. Set its clock from the computer with the `sudo date` command in item 5."}
+      - {problem: "The clock is wrong on an offline unit", fix: "An offline unit has no time source. Set its clock from the computer with the `sudo date` command under **If the unit has no internet, set its clock**."}
 ---
 
 The plugin installed itself from the card in the previous step. Check it now: [Set up electrolysis](step-05-set-up-electrolysis.md) runs the electrodes through its job, whose 10% power clamp protects them.

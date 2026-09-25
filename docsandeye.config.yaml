@@ -1,8 +1,10 @@
 theme: pioreactor
+project:
+  repo: "https://github.com/amy-bo/electroPioreactor"
 guides:
-  - {id: aep, title: "Aseptic ElectroPioreactor (AEP0.2)", base: /AEP}
-  - {id: mep, title: "Mixed ElectroPioreactor", base: /MEP}
-  - {id: baep, title: "Budget Aseptic ElectroPioreactor (BAEP)", base: /BAEP}
+  - {id: aep, title: "Aseptic electroPioreactor (AEP0.2)", base: /AEP}
+  - {id: mep, title: "Mixed-culture electroPioreactor (MEP)", base: /MEP}
+  - {id: baep, title: "Budget aseptic electroPioreactor (BAEP)", base: /BAEP}
 # The parts-count page (step-00) carries the whole receipt table (~45 rows), which takes it just over
 # 150 KB, and its tooltips and check-off rows add a little more; videos are YouTube click-to-load, so no page loads video bytes before play.
 byte_budget_kb: 190
@@ -16,8 +18,8 @@ profile:
       - {value: aep-0-2, label: "AEP0.2 (2026): XR kit and precision temperature kit included", implies: {temp-kit: true}}
       - {value: aep-0-1-1, label: "AEP0.1.1 (2025)", implies: {temp-kit: false}}
       - {value: custom, label: "Custom build: I'll say what I have"}
-      - {value: mep, label: "Mixed-culture electroPioreactor: use the MEP guide", href: /MEP/}
-      - {value: baep, label: "Budget aseptic electroPioreactor: use the BAEP guide", href: /BAEP/}
+      - {value: mep, label: "Mixed-culture electroPioreactor (MEP): use the MEP guide", href: /MEP/}
+      - {value: baep, label: "Budget aseptic electroPioreactor (BAEP): use the BAEP guide", href: /BAEP/}
     default: aep-0-2
   - id: units
     type: number

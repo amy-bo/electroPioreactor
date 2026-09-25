@@ -15,21 +15,12 @@ parts:
   - {component: pioreactor-vial-40ml, qty: 1, cat: prev}
 tools:
   - {component: analytical-balance, qty: 1}
-  - {component: vernier-callipers, qty: 1}
 checks_draft: true
 checks:
   - id: calibrated-on-12v
     question: "Were the pumps calibrated with the 12V supply connected and the HAT's shunt moved?"
     issues:
       - {problem: "They were calibrated before the shunt was moved or the 12V supply connected", fix: "Move the shunt (see hardware setup), connect the 12V supply, and calibrate again."}
-  - id: thirty-ml
-    question: "Filled with DI water via the pumps and weighed against the dry empty vial, does the vial hold 30 ml?"
-    issues:
-      - {problem: "The volume is not 30 ml", fix: "Adjust the tube lengths and re-weigh until it is."}
-  - id: immersion-recorded
-    question: "Are both electrodes at the standard immersion depth, and is each insertion depth recorded?"
-    issues:
-      - {problem: "A depth is off", fix: "Adjust it to the standard and record the new insertion depth."}
 ---
 
 Follow Pioreactor's [peristaltic pump setup guide](https://docs.pioreactor.com/user-guide/using-pumps), with these channels.
@@ -49,10 +40,4 @@ Follow Pioreactor's [peristaltic pump setup guide](https://docs.pioreactor.com/u
    :::caution
    Calibrate only after this. Calibrating on the wrong supply means calibrating twice.
    :::
-8. [Calibrate the pumps](https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration).
-9. Weigh the dry empty vial.
-10. Fill the vial with DI water via the pumps, and weigh it.
-11. Adjust the tube lengths until the vial holds 30 ml.
-12. Measure the electrode immersion depths, and adjust them to the standard if needed.
-13. Record each insertion depth.
-14. Set up the Pioreactor in [turbidostat mode](https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat).
+8. [Calibrate the pumps](https://docs.pioreactor.com/user-guide/hardware-calibrations#pump-calibration). The vial is filled and levelled in [Ports](step-07-ports.md), once its needles are in.

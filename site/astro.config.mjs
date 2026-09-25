@@ -18,7 +18,7 @@ export default defineConfig({
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/amy-bo/electroPioreactor' }],
 			sidebar: [
 				{
-					label: 'Aseptic (AEP)',
+					label: 'Aseptic electroPioreactor (AEP0.2)',
 					items: [
 						{ label: 'Assembly', link: '/AEP/' },
 						{ slug: 'aep/protocol' },
@@ -26,10 +26,10 @@ export default defineConfig({
 					],
 				},
 				{
-					label: 'Mixed-culture (MEP)',
+					label: 'Mixed-culture electroPioreactor (MEP)',
 					items: [{ label: 'Assembly', link: '/MEP/' }, { slug: 'mep/protocol' }],
 				},
-				{ label: 'Budget aseptic (BAEP)', items: [{ label: 'Assembly', link: '/BAEP/' }] },
+				{ label: 'Budget aseptic electroPioreactor (BAEP)', items: [{ label: 'Assembly', link: '/BAEP/' }] },
 			],
 		}),
 	],

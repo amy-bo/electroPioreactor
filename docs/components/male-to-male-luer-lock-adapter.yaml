@@ -1,14 +1,15 @@
 id: male-to-male-luer-lock-adapter
 name: "Male-to-male luer lock adapter"
 kind: off-the-shelf
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.8 (Generic; AEP0.2). Joins the CO2 filter outlet to the anode feed tube. BoM qty 2; Method step 8 fits one."}
+  - {version: 1.0.1, date: 2026-09-25, note: "Use settled against the steps: the vent filters on the two gas outlets need male luers and the needle hubs are female, so both adapters go on the gas outlet needles (Ports step). The CO2 inlet joins the tube's male luer to the filter directly."}
 receipt:
   per: unit
   qty: 2
   from: [labcrafter, diy]
-  note: "One is fitted in the CO₂ sparging step; the other is a spare."
+  note: "One on each of the two gas outlet needles, fitted in the Ports step."

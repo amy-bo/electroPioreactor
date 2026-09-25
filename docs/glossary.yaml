@@ -47,12 +47,25 @@
   tip: "A small 4-pin plug-and-socket standard for sensor boards. The eye-spys and the temperature sensor daisy-chain over it."
 
 - term: Precision Temperature Upgrade Kit
-  terms: [Precision Temperature kit, temperature kit, precision temperature plugin]
+  terms: [Precision Temperature kit, temperature kit]
   tip: "An optional Pioreactor kit. Its MLX90632 far-infrared sensor reads the vial's temperature without contact, replacing the thermistor."
   link: https://docs.pioreactor.com/user-guide/precision-temperature-upgrade-kit
 
+- term: precision temperature plugin
+  terms: [pioreactor-precision-temperature-plugin, temperature plugin]
+  tip: "The Pioreactor software plugin that runs the Precision Temperature Upgrade Kit's sensor. The AEP card bundle installs it; the MEP bundle has none."
+
+- term: SPEC
+  terms: [SPEC position]
+  tip: "A sensor position on the vial holder, covered when not in use. In this build the Precision Temperature Upgrade Kit's sensor seats there."
+
+- term: REF
+  terms: [REF position]
+  tip: "The reference photodiode position on the vial holder (photodiode channel 1=REF in config.ini). Its eye-spy is the white-marked one."
+
 - term: OD
   terms: [optical density]
+  exclude: ["mm OD", "OD,", "OD x", "OD ×", "OD)"]
   tip: "Optical density: how cloudy the culture is, read from scattered light. It tracks cell growth."
   link: https://docs.pioreactor.com/user-guide/calibrate-od600
 
@@ -153,3 +166,27 @@
 
 - term: GL45
   tip: "A standard 45 mm screw thread on lab bottles such as Duran. The media and product bottles and their multi-port caps use it."
+
+- term: John Guest push-fit
+  terms: [push-fit]
+  tip: "A push-in tube fitting: push the tube in and it grips and seals. The regulator's outlet port comes with one, which this build unscrews and replaces with the reducer."
+
+- term: DI water
+  terms: [deionised water]
+  tip: "Deionised water: water with its dissolved ions removed. Used here to set the vial level by weight, 1 g per ml."
+
+- term: journal bore
+  tip: "The close-fitting hole in the vial cap's column that each electrode seats in. The column height sets how far the electrode reaches into the vial."
+
+- term: BSP
+  tip: "British Standard Pipe, the thread standard of the regulator outlet and the 1/4\" to 1/8\" reducer in the gas train."
+
+- term: Shore A
+  terms: [Shore]
+  tip: "A hardness scale for rubber and soft plastics: the higher the number, the harder the material. The septum is 60 Shore A silicone."
+
+- term: PC-CF
+  tip: "A polycarbonate blend filled with carbon fibres: the 3D-printing filament the one-piece vial cap is printed in, at 100% infill and 0.16 mm layers."
+
+- term: wheel
+  tip: "A Python package file (.whl). The card bundle carries the plugins as wheels; one that fails to install lands in pioreactor/plugins/failed/ on bootfs, with a log."

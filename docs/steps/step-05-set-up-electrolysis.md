@@ -18,6 +18,7 @@ parts:
   - {component: pioreactor-vial-40ml, qty: 1, cat: prev}
   - {component: pioreactor-40ml, qty: 1, cat: prev}
 tools:
+  - {component: analytical-balance, qty: 1}
   - {component: vernier-callipers, qty: 1}
   - {component: multimeter, qty: 1}
 renders:
@@ -25,7 +26,7 @@ renders:
   - {id: vial-cap-exploded, component: vial-cap, view: iso, explode: true, format: png}
 viewer: {component: vial-cap, format: glb}
 safety: |
-  Fix the red cable's ring terminal to the MMO anode and the black cable's to the stainless steel cathode. Never swap them (BoM 3.3). Reversed, the stainless steel cathode corrodes quickly and leaches Cr, Ni and Fe into the culture (BoM 2.2).
+  Fix the red cable's ring terminal to the MMO anode and the black cable's to the stainless steel cathode. Never swap them. Reversed, the stainless steel cathode corrodes quickly and leaches Cr, Ni and Fe into the culture.
   Drive the electrodes from the electroPioreactor job, never by setting LED channel D by hand: only the job clamps electrolysis power to 10%.
 checks_draft: true
 checks:
@@ -51,14 +52,14 @@ checks:
 :::
 
 1. ~Seat the silicone septum in the [Vial Cap](../../Components/Vial%20Cap).~
-2. Push the stainless steel cathode (the rod) up through the septum from below until its top is flush with the top of the cap. Level it with a flat edge.
-3. Tighten it in place: firmly, not hard. <!-- from video: session-17 0:55:17 - "you tighten that ... not massively"; which fastener is not clear from the transcript -->
-4. Repeat with the MMO anode (the tube).
+2. ~Push the stainless steel cathode (the rod) up through the septum from below until its top is flush with the top of the cap. Level it with a flat edge.~
+3. ~Tighten the thumb screw to hold it in place: firmly, not hard.~ <!-- from video: session-17 0:55:17 - "you tighten that ... not massively"; which fastener is not clear from the transcript; the reviewer named the thumb screw -->
+4. ~Repeat with the MMO anode (the tube).~
 5. ~Crimp a ring terminal onto each electrode cable.~
-6. Fix the red cable to the MMO anode: ring terminal, spring washer, flat washer, then M3 nut. <!-- from video: session-17 0:57:04 - this washer order, and the kit's cables came fitted the wrong way round (black on the anode), so they were swapped on camera; the text had "M3 nut and spring washer, tightened by thumb screw" and no flat washer, which is not in the parts list either --> <!-- TODO: add the flat washer to the parts list, or confirm it is part of an existing component | assignee: @Martin -->
-7. Fix the black cable to the stainless steel cathode the same way.
+6. ~Fix the red cable to the MMO anode: ring terminal, spring washer, then M3 nut.~ <!-- from video: session-17 0:57:04 - this washer order, and the kit's cables came fitted the wrong way round (black on the anode), so they were swapped on camera; the text had "M3 nut and spring washer, tightened by thumb screw" and no flat washer, which is not in the parts list either --> <!-- TODO: add the flat washer to the parts list, or confirm it is part of an existing component | assignee: @Martin -->
+7. ~Fix the black cable to the stainless steel cathode the same way.~
 8. Check both electrode tops are still flush with the cap top. <!-- TODO: record the AEP0.2 standard depth here once the first build is measured | assignee: @Bingqiao @Amir @Teo @Martin -->
-9. Fill the vial with nutrient solution, or bicarbonate of equal ionic strength.
+9. Weigh the dry empty vial and note its weight, then fill it to about 30 ml, the working volume, with nutrient solution or bicarbonate of equal ionic strength.
 10. Screw the Vial Cap fully onto the vial, compressing the septum evenly.
 11. Record the distance from the top of the Vial Cap to the bottom of each electrode.
 12. Connect the electrodes to LED channel D, catch upwards.

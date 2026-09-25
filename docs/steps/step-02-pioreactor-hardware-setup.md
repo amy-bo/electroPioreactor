@@ -31,12 +31,12 @@ checks:
   - id: xr-not-v15-optics
     question: "Is the XR upgrade kit fitted, with the v1.5 optics left out?"
     issues:
-      - {problem: "The v1.5 optics were fitted", fix: "Follow the XR disassembly guide linked in item 3 to recover the parts the XR assembly reuses, then fit the XR kit."}
+      - {problem: "The v1.5 optics were fitted", fix: "Follow the XR disassembly guide linked under **Do not fit the v1.5 optics** to recover the parts the XR assembly reuses, then fit the XR kit."}
   - id: temp-sensor-seated
     when: {temp-kit: true}
     question: "Is the Precision Temperature Upgrade Kit's sensor seated in the SPEC position and chained off the nearest eye-spy over STEMMA-QT?"
     issues:
-      - {problem: "The sensor is elsewhere or not connected", fix: "Reseat it using the Precision Temperature Upgrade Kit guide linked after item 6."}
+      - {problem: "The sensor is elsewhere or not connected", fix: "Reseat it using the guide linked in **If you have the Precision Temperature Upgrade Kit**."}
   - id: twelve-volt-connected
     question: "Is the 12V supply plugged into the HAT's barrel jack?"
     issues:
@@ -45,7 +45,7 @@ checks:
 
 Follow Pioreactor's [40 ml v1.5 hardware setup guide](https://docs.pioreactor.com/user-guide/40ml-v15-hardware-setup-intro), with these changes.
 
-1. [Assemble the Raspberry Pi and the HAT](https://docs.pioreactor.com/user-guide/40ml-v15-rpi-hat-assembly) on a Raspberry Pi 5 1GB. Use the kit's 8 mm screws where the guide says 10 mm, with a hex nut on all four (two for a Zero 2W). <!-- from video: session-15 0:03:45 - the kit had 8 mm screws, not the 10 mm the guide names -->
+1. [Assemble the Raspberry Pi and the HAT](https://docs.pioreactor.com/user-guide/40ml-v15-rpi-hat-assembly) on a Raspberry Pi 5 1GB. Use the kit's 8 mm screws where the guide says 10 mm, with a hex nut on all four. <!-- from video: session-15 0:03:45 - the kit had 8 mm screws, not the 10 mm the guide names -->
 2. **Move the HAT's shunt connector to the position closest to the LED outputs, now, while the HAT is bare** ([external power](https://docs.pioreactor.com/user-guide/external-power)). <!-- from video: session-15 0:11:31 - Martin describes it as bridging "the two closest to the power supply"; Pioreactor's external-power page says "closest to the LED outputs", kept here -->
 
    :::caution[Miss this and you take the unit apart again]
@@ -60,16 +60,15 @@ Follow Pioreactor's [40 ml v1.5 hardware setup guide](https://docs.pioreactor.co
 
    </details>
 4. [Wetware assembly](https://docs.pioreactor.com/user-guide/40ml-v15-wetware-assembly), with these changes. Set the vial's own cap aside and skip the stainless steel ports. Fit the X-section o-ring into the XR top vial holder and the round o-ring into the bottom vial holder.
-5. [Fit the XR upgrade kit](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly). Fix each eye-spy under an optics cover with four 8 mm screws: 0x4B at 45°, white-marked at REF, unmarked at 90°, the last at 135°. Fit the heater PCB, thermal pad, LED and LED cap, then connect the STEMMA-QT chain, yellow wire down.
+5. [Fit the XR upgrade kit](https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly). Fix each eye-spy under an optics cover with four 8 mm screws: the one labelled 0x4B at 45°, the white-marked one at REF, the unmarked one at 90°, the last at 135°. Fit the heater PCB, thermal pad, LED and LED cap, then connect the STEMMA-QT chain, yellow wire down.
 6. [Attach the wetware to the HAT assembly](https://docs.pioreactor.com/user-guide/40ml-v15-putting-it-together). Drive four screws into the square nuts until flush, and no further. Fit the 10 mm screw under the button extension and the four 8 mm corner screws, push the flat flex cable into the orange connector, and plug the stirrer into PWM channel 1.
+7. Connect the 12V supply to the HAT's barrel jack ([external power](https://docs.pioreactor.com/user-guide/external-power)).
 
 <!-- when temp-kit=true -->
 
 **If you have the Precision Temperature Upgrade Kit**, [fit it](https://docs.pioreactor.com/user-guide/precision-temperature-upgrade-kit). Lift the cover off the SPEC position, run the STEMMA-QT wire from the sensor PCB to the nearest eye-spy, and seat the sensor in SPEC, LED pad to the right.
 
 <!-- /when -->
-
-7. Connect the 12V supply to the HAT's barrel jack ([external power](https://docs.pioreactor.com/user-guide/external-power)).
 
 <details>
 <summary>Notes</summary>

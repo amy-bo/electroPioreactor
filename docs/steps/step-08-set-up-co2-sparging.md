@@ -16,8 +16,8 @@ parts:
   - {component: polyurethane-co2-tube, qty: 1, cat: part}
   - {component: hydrophobic-vent-filter, qty: 3, cat: part}
   - {component: barb-1-8-to-male-luer-lock, qty: 1, cat: part}
-  - {component: male-to-male-luer-lock-adapter, qty: 1, cat: part}
-  - {component: anode-feed-tube, qty: 1, cat: part}
+  - {component: anode-feed-tube, qty: 1, cat: prev}
+  - {component: male-to-male-luer-lock-adapter, qty: 2, cat: prev}
   - {component: luer-lock-cap, qty: 1, cat: part}
   - {component: solenoid-wiring, qty: 1, cat: part}
   - {component: co2-cylinder-dovetail-holder, qty: 1, cat: prev}
@@ -34,7 +34,7 @@ tools:
 safety: |
   Put on all PPE, including cryogenic gloves, before tightening the cylinder joint. [Follow the instructions included with the SodaStream adapter](https://cdn.shopify.com/s/files/1/2268/6279/files/BrewKegTap_Sodastream_Adapter_Instructions.pdf?v=1763549894). Never fit a mismatched adapter to a high-pressure CO₂ joint: only full thread engagement holds it, and a partial, mismatched engagement fails suddenly.
   Keep the solenoid manual override closed (horizontal line pointing at 0 on the front of the solenoid).
-  The solenoid valve must be 3-way venting (3/2). A 2-way valve traps CO₂ between the valve and the broth on closing; the CO₂ dissolves and draws liquid back up the line (BoM 3.1).
+  The solenoid valve must be 3-way venting (3/2). A 2-way valve traps CO₂ between the valve and the broth on closing; the CO₂ dissolves and draws liquid back up the line.
 checks_draft: true
 checks:
   - id: joint-before-gas
@@ -63,35 +63,35 @@ checks:
 4. Screw the adapter on, tighten it with the gas cylinder wrench, and turn the cylinder so the adapter faces the front.
 5. Unscrew the John Guest push-fit from the regulator outlet port.
 
-   <img width="1330" height="1767" alt="image" src="https://github.com/user-attachments/assets/3cbc619c-be7c-4abb-87d3-048d8350dcfc" />
+   <img width="1330" height="1767" alt="The regulator outlet port with the John Guest push-fit unscrewed (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/3cbc619c-be7c-4abb-87d3-048d8350dcfc" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
 6. Insert the o-ring into the regulator outlet port. It seats against the reducer, so this joint needs no Loctite. <!-- kits from 2026-09-24 include this o-ring; the recorded build had none and used Loctite 577 instead -->
 
-   <img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/3316cd49-21c7-4fb3-a931-dd5c0798a27b" />
+   <img width="1767" height="1330" alt="The o-ring seated inside the regulator outlet port (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/3316cd49-21c7-4fb3-a931-dd5c0798a27b" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
 7. Screw the 1/4" male to 1/8" male reducer into the regulator outlet port, and tighten with the wrench.
 
-   <img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/800812cb-2ccb-4a8f-8198-f8e381757552" />
+   <img width="1767" height="1330" alt="The reducer screwed into the regulator outlet port (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/800812cb-2ccb-4a8f-8198-f8e381757552" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
 8. Apply Loctite 577 to the second thread (not the end one) of the reducer's 1/8" male outlet, and screw the solenoid valve's left port onto it, electronics to the rear. Work up to vertical; do not pass it and turn back.
 
-   <img width="1767" height="1330" alt="image" src="https://github.com/user-attachments/assets/ec433749-5866-476b-a965-ec070b80083e" />
+   <img width="1767" height="1330" alt="The solenoid valve screwed onto the reducer by its left port, electronics to the rear (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/ec433749-5866-476b-a965-ec070b80083e" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
 9. Holding the solenoid, screw the blanking plug into its right port with a 5 mm hex key. Use no sealant. <!-- from video: session-21 0:28:08 - the blanking plug went in before the needle valve; the text had it after -->
 10. Apply Loctite 577 to the needle valve's inlet thread (second thread), and screw it into the solenoid's front port, stopping with it pointing straight up.
 11. Close the needle valve (clockwise), and check the solenoid manual override is at 0.
 12. Close the regulator (turn its flathead screw fully anti-clockwise), then screw it onto the adapter and tighten.
-13. Open the adapter's pin to admit CO₂. The cylinder gauge reads about 60 bar when full. If the adapter leaks, tighten it further. <!-- from video: session-21 0:33:43-0:36:13 - the adapter leaked until tightened further -->
-14. Screw the regulator in until its outlet gauge reads about 1 bar.
-15. Remove the compression nut and ferrule from the top of the needle valve, thread the nut onto the 4 mm tube, and push the tube fully onto the needle valve. If it will not go, dip it in hot water.
-16. Refit the ferrule, and screw the nut down.
+13. Let the Loctite 577 fixture before admitting gas: 10 to 60 minutes at 22 °C. It reaches full pressure rating after 24 hours.
+14. Open the adapter's pin to admit CO₂. The cylinder gauge reads about 60 bar when full. If the adapter leaks, tighten it further. <!-- from video: session-21 0:33:43-0:36:13 - the adapter leaked until tightened further -->
+15. Screw the regulator in until its outlet gauge reads about 1 bar.
+16. Remove the compression nut and ferrule from the top of the needle valve, thread the nut onto the 4 mm tube, and push the tube fully onto the needle valve (dip it in hot water if it will not go). Refit the ferrule, and screw the nut down.
 17. Cut the tube just long enough to run over the regulator and down to the vial's CO₂ inlet (cut every other unit's tube to the same length), and push a 1/8" hose barb to male luer lock adapter into the free end (hot water if needed).
 18. Fit the male end of a 0.2 μm vent filter to the female luer on the CO₂ inlet, and connect the tube's luer to that filter. <!-- kits from 2026-09-24 include six vent filters; the recorded build had none -->
-19. Fit the female ends of two 0.2 μm vent filters to the male luers on the two gas outlets, and cap any unused luer lock with a luer lock cap.
+19. Fit the female ends of two 0.2 μm vent filters to the male-to-male adapters on the two gas outlets (fitted in [Ports](step-07-ports.md)), and cap any unused luer lock with a luer lock cap.
 20. Route the solenoid lead down behind the Pioreactor and through the pumps, and plug it into PWM channel 4.
 
 <details>

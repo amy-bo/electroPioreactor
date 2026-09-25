@@ -48,7 +48,7 @@ checks:
 5. Watching the bubbles in the vial, open the needle valve until the flow looks right.
 6. Set your working sparge interval and duration in the job's **Settings** panel.
 
-   <img width="877" height="167" alt="image" src="https://github.com/user-attachments/assets/71183531-ccc0-4fb2-b36e-4153a897ce3b" />
+   <img width="877" height="167" alt="The pioreactor-relay-plugin on/off toggle in the Pioreactor UI (AEP0.1.1 screenshot)" src="https://github.com/user-attachments/assets/71183531-ccc0-4fb2-b36e-4153a897ce3b" />
    <!-- TODO: AEP0.1.1 screenshot of the pioreactor-relay-plugin toggle, used as a placeholder - retake showing the electroPioreactor job in Activities and its Settings panel | assignee: @Martin -->
 
 <details>
