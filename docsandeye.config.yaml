@@ -5,7 +5,7 @@ project:
 guides:
   - {id: aep, title: "Aseptic electroPioreactor (AEP0.2)", base: /AEP, pages: [{label: "Protocol", slug: AEP/protocol}]}
   - {id: mep, title: "Mixed-culture electroPioreactor (MEP)", base: /MEP, pages: [{label: "Protocol", slug: MEP/protocol}]}
-  - {id: baep, title: "Budget aseptic electroPioreactor (BAEP)", base: /BAEP}
+  - {id: baep, title: "Budget aseptic electroPioreactor (BAEP)", base: /BAEP, pages: [{label: "Protocol", slug: BAEP/protocol}]}
 # The parts-count page (step-00) carries the whole receipt table (~45 rows), which takes it just over
 # 150 KB, and its tooltips and check-off rows add a little more; videos are YouTube click-to-load, so no page loads video bytes before play.
 byte_budget_kb: 200  # step 00 carries the whole parts table plus a video poster
