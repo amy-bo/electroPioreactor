@@ -29,7 +29,7 @@ Follow Pioreactor's [peristaltic pump setup guide](https://docs.pioreactor.com/u
 2. Seat the pumps.
 3. Plug the media pump into PWM 2 and the product pump into PWM 3. <!-- from video: session-14 0:07:57 - the product pump is the one labelled "waste" -->
 4. Lead the cables out through the notches.
-5. Put the media and product bottles into their holders, with a 0.2 μm vent filter on each cap's vent port.
+5. Put the media and product bottles into their holders, with a 0.2 μm vent filter on each GL45 cap's vent port.
 6. Connect each bottle to its pump with the silicone tubing and luer fittings. <!-- TODO: add a connector diagram (which luer goes where; male ends mark outlets) - the recording stalled on it (session-20 0:08:20-0:13:04) | assignee: @Martin -->
 
    :::note

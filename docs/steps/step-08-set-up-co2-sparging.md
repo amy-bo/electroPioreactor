@@ -71,7 +71,7 @@ checks:
    <img width="1767" height="1330" alt="The o-ring seated inside the regulator outlet port (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/3316cd49-21c7-4fb3-a931-dd5c0798a27b" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-7. Screw the 1/4" male to 1/8" male reducer into the regulator outlet port, and tighten with the wrench.
+7. Screw the reducing nipple (1/4" male to 1/8" male) into the regulator outlet port, and tighten with the wrench.
 
    <img width="1767" height="1330" alt="The reducer screwed into the regulator outlet port (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/800812cb-2ccb-4a8f-8198-f8e381757552" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
@@ -88,7 +88,7 @@ checks:
 13. Wait for the Loctite 577 to fixture before admitting gas: 10 to 60 minutes at 22 °C. It reaches full pressure rating after 24 hours.
 14. Open the adapter's pin to admit CO₂. The cylinder gauge reads about 60 bar when full. If the adapter leaks, tighten it further. <!-- from video: session-21 0:33:43-0:36:13 - the adapter leaked until tightened further -->
 15. Screw the regulator in until its outlet gauge reads about 1 bar.
-16. Remove the compression nut and ferrule from the top of the needle valve, thread the nut onto the 4 mm tube, and push the tube fully onto the needle valve (dip it in hot water if it will not go). Refit the ferrule, and screw the nut down.
+16. Remove the compression nut and ferrule from the top of the needle valve, thread the nut onto the 4 mm polyurethane CO₂ tube, and push the tube fully onto the needle valve (dip it in hot water if it will not go). Refit the ferrule, and screw the nut down.
 17. Cut the tube just long enough to run over the regulator and down to the vial's CO₂ inlet (cut every other unit's tube to the same length), and push a 1/8" hose barb to male luer lock adapter into the free end (hot water if needed).
 18. Fit the male end of a 0.2 μm vent filter to the female luer on the CO₂ inlet, and connect the tube's luer to that filter. <!-- kits from 2026-09-24 include six vent filters; the recorded build had none -->
 19. Fit the female ends of two 0.2 μm vent filters to the male-to-male adapters on the two gas outlets (fitted in [Ports](step-07-ports.md)), and cap any unused luer lock with a luer lock cap.
