@@ -20,7 +20,7 @@ checks:
   - id: calibrated-on-12v
     question: "Were the pumps calibrated with the 12V supply connected and the HAT's shunt moved?"
     issues:
-      - {problem: "They were calibrated before the shunt was moved or the 12V supply connected", fix: "Move the shunt (see hardware setup), connect the 12V supply, and calibrate again."}
+      - {problem: "They were calibrated before the shunt was moved or the 12V supply connected", fix: "Move the shunt (see **Pioreactor hardware setup**), connect the 12V supply, and calibrate again."}
 ---
 
 Follow Pioreactor's [peristaltic pump setup guide](https://docs.pioreactor.com/user-guide/using-pumps), with these channels.

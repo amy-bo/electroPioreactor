@@ -48,7 +48,7 @@ checks:
 ---
 
 :::note[LabCrafter kits]
-~Struck-through~ items are already done in a kit from LabCrafter.
+~Struck-through~ items are already done in a LabCrafter kit.
 :::
 
 1. ~Seat the silicone septum in the [Vial Cap](../../Components/Vial%20Cap).~
@@ -59,16 +59,17 @@ checks:
 6. ~Fix the red cable to the MMO anode: ring terminal, spring washer, then M3 nut.~ <!-- from video: session-17 0:57:04 - this washer order, and the kit's cables came fitted the wrong way round (black on the anode), so they were swapped on camera; the text had "M3 nut and spring washer, tightened by thumb screw" and no flat washer, which is not in the parts list either --> <!-- TODO: add the flat washer to the parts list, or confirm it is part of an existing component | assignee: @Martin -->
 7. ~Fix the black cable to the stainless steel cathode the same way.~
 8. Check both electrode tops are still flush with the cap top. <!-- TODO: record the AEP0.2 standard depth here once the first build is measured | assignee: @Bingqiao @Amir @Teo @Martin -->
-9. Weigh the dry empty vial and note its weight, then fill it to about 30 ml, the working volume, with nutrient solution or bicarbonate of equal ionic strength.
-10. Screw the Vial Cap fully onto the vial, compressing the septum evenly.
-11. Record the distance from the top of the Vial Cap to the bottom of each electrode.
-12. Connect the electrodes to LED channel D, catch upwards.
-13. Start **electroPioreactor** from **Activities** on the **Manage** screen. Set a long sparge interval until CO₂ is set up.
-14. Raise **electrolysis power** in the job's **Settings** panel until bubbles form. <!-- from video: session-17 1:18 (file 023 35:00-39:00) - power raised from 2.5 to 3.5% -->
-15. Check roughly twice as many bubbles form on the cathode as on the anode.
-16. Measure the voltage across the electrodes with a multimeter, and record it. <!-- from video: session-18 0:03:28 - 2.82 V at 3.5%; current not measured, as it needs a lead broken into -->
-17. If you can break into a lead, measure and record the current too.
-18. Insert the vial into the Pioreactor once all vials show even electrolysis.
+9. Weigh the dry empty vial and record its weight.
+10. Fill it to about 30 ml, the working volume, with nutrient solution or bicarbonate of equal ionic strength.
+11. Screw the Vial Cap fully onto the vial, compressing the septum evenly.
+12. Record the distance from the top of the Vial Cap to the bottom of each electrode.
+13. Connect the electrodes to LED channel D, catch upwards.
+14. Start **electroPioreactor** from **Activities** on the **Manage** screen. Set a long sparge interval until CO₂ is set up.
+15. Raise **electrolysis power** in the job's **Settings** panel until bubbles form. <!-- from video: session-17 1:18 (file 023 35:00-39:00) - power raised from 2.5 to 3.5% -->
+16. Check roughly twice as many bubbles form on the cathode as on the anode.
+17. Measure the voltage across the electrodes with a multimeter, and record it. <!-- from video: session-18 0:03:28 - 2.82 V at 3.5%; current not measured, as it needs a lead broken into -->
+18. If you can break into a lead, measure and record the current too.
+19. Insert the vial into the Pioreactor once all vials show even electrolysis.
 
 <details>
 <summary>Notes</summary>

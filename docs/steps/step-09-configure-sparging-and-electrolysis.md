@@ -10,13 +10,13 @@ checks:
   - id: config-ini
     question: "Does config.ini show 4=relay under [PWM] and an [electropioreactor.config] section?"
     issues:
-      - {problem: "PWM 4 is still `waste`", fix: "Set it to `relay` on the UI's **Configuration** page (see the plugin install step)."}
-      - {problem: "The `[electropioreactor.config]` section is missing", fix: "Re-run the plugin install (see the plugin install step). The installer patches `config.ini`."}
+      - {problem: "PWM 4 is still `waste`", fix: "Set it to `relay` on the UI's **Configuration** page (see **Check the plugin**)."}
+      - {problem: "The `[electropioreactor.config]` section is missing", fix: "Re-run the plugin install (see **Check the plugin**). The installer patches `config.ini`."}
   - id: solenoid-sparges
     question: "When the job sparges, do you hear the solenoid open and CO₂ rush into the vial?"
     issues:
-      - {problem: "No click from the solenoid", fix: "Check the 12V supply is in the HAT's barrel jack and the shunt was moved during hardware setup. Without both, PWM 4 cannot drive the solenoid."}
-      - {problem: "The solenoid clicks but no gas flows", fix: "Check the adapter pin and the regulator are open. The needle valve was closed during CO₂ sparging setup: open it."}
+      - {problem: "No click from the solenoid", fix: "Check the 12V supply is in the HAT's barrel jack and the shunt was moved in **Pioreactor hardware setup**. Without both, PWM 4 cannot drive the solenoid."}
+      - {problem: "The solenoid clicks but no gas flows", fix: "Check the adapter pin and the regulator are open, then open the needle valve: **CO₂ sparging** left it closed."}
   - id: settings-live
     question: "Can you see and change all four parameters in the job's **Settings** panel?"
     issues:
@@ -43,9 +43,9 @@ checks:
    ```
 
 2. Open **electroPioreactor** from **Activities** on the **Manage** screen.
-3. For a test, set the sparge interval to 1 minute and the sparge duration to 1 second.
+3. Set a test sparge in the job's **Settings** panel: interval 1 minute, duration 1 second.
 4. Listen for the solenoid clicking open at each sparge.
-5. Watching the bubbles in the vial, open the needle valve until the flow looks right.
+5. Open the needle valve while watching the vial, until the bubbling looks right.
 6. Set your working sparge interval and duration in the job's **Settings** panel.
 
    <img width="877" height="167" alt="The pioreactor-relay-plugin on/off toggle in the Pioreactor UI (AEP0.1.1 screenshot)" src="https://github.com/user-attachments/assets/71183531-ccc0-4fb2-b36e-4153a897ce3b" />

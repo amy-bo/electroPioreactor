@@ -85,7 +85,7 @@ checks:
 10. Apply Loctite 577 to the needle valve's inlet thread (second thread), and screw it into the solenoid's front port, stopping with it pointing straight up.
 11. Close the needle valve (clockwise), and check the solenoid manual override is at 0.
 12. Close the regulator (turn its flathead screw fully anti-clockwise), then screw it onto the adapter and tighten.
-13. Let the Loctite 577 fixture before admitting gas: 10 to 60 minutes at 22 °C. It reaches full pressure rating after 24 hours.
+13. Wait for the Loctite 577 to fixture before admitting gas: 10 to 60 minutes at 22 °C. It reaches full pressure rating after 24 hours.
 14. Open the adapter's pin to admit CO₂. The cylinder gauge reads about 60 bar when full. If the adapter leaks, tighten it further. <!-- from video: session-21 0:33:43-0:36:13 - the adapter leaked until tightened further -->
 15. Screw the regulator in until its outlet gauge reads about 1 bar.
 16. Remove the compression nut and ferrule from the top of the needle valve, thread the nut onto the 4 mm tube, and push the tube fully onto the needle valve (dip it in hot water if it will not go). Refit the ferrule, and screw the nut down.
@@ -99,7 +99,7 @@ checks:
 
 - Solenoid override: 0 is normal (closed without power); 1 is always open.
 - Use an o-ring wherever the joint has a seat for one, and Loctite 577 on every other threaded joint. Loctite 577 is anaerobic thread sealant, not glue. Skipping the end thread keeps it out of the gas path. Clean the threads with ethanol first where you can.
-- PTFE tape is no longer used in the gas train. Applied correctly it seals, but it is fiddly and leaked often enough to replace.
+- Do not use PTFE tape in the gas train. Applied correctly it seals, but it is fiddly and leaks too often.
 - CO₂ enters through the anode and leaves through its open base. The gas rises past the anode surface and clears oxygen bubbles from it, with no separate sparge tube. <!-- TODO: frit dispersion at the anode base is deferred to AEP0.3 | assignee: @Martin -->
 
 </details>

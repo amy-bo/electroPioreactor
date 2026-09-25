@@ -15,9 +15,9 @@ checks:
     issues:
       - {problem: "It reads more or less", fix: "Adjust the regulator to 1 bar before touching the needle valve."}
   - id: gas-at-vent
-    question: "While sparging, with one outlet vent plugged, does gas leave through the open vent?"
+    question: "While sparging, with one gas outlet capped, does gas leave the other?"
     issues:
-      - {problem: "No gas leaves the open vent", fix: "Check the job is sparging (or the relay is on) and the needle valve is open."}
+      - {problem: "No gas leaves the open outlet", fix: "Check the job is sparging (or the relay is on) and the needle valve is open."}
   - id: target-flow
     question: "Does the measured flow rate match your target?"
     issues:
@@ -27,12 +27,12 @@ checks:
 <!-- from video: session-21 0:45:37-0:47:14 - this calibration was described, not performed (no scales in the room) -->
 
 1. Set the regulator to 1 bar.
-2. Close one of the two gas outlets with a luer lock cap.
+2. Cap one of the two gas outlets with a luer lock cap.
 3. Run 1/16" tubing from the open gas outlet into a water bath, under a measuring cylinder full of water.
 4. Start the **electroPioreactor** job, or turn on the relay in the Pioreactor UI.
 5. Sparge until the water's CO₂ concentration has equilibrated (assumed, or measured if you can).
 6. Record how long the CO₂ takes to fill the measuring cylinder.
-7. Work out the actual flow rate.
+7. Calculate the flow rate.
 8. Adjust the needle valve, and repeat until you reach the target flow rate.
 
 <details>

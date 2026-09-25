@@ -18,13 +18,13 @@ tools:
 checks_draft: true
 checks:
   - id: eight-ports
-    question: "Can you identify all eight ports on the cap, with the spare port left unpierced?"
+    question: "Can you identify all eight ports on the cap, with the spare left unpierced?"
     issues:
       - {problem: "A needle went into the spare port", fix: "Pull it out. The septum self-heals the needle track and keeps the port sealed."}
   - id: four-needles
     question: "Are the four needle ports (Media In, Media Out, Gas Out and Gas Out – safety) through the septum?"
     issues:
-      - {problem: "You have fewer than four needles", fix: "Each Pioreactor ships with four, and the BoM adds one per unit. Check the parts checklist in Before you start, and use the **Missing something?** line under it if any are short."}
+      - {problem: "You have fewer than four needles", fix: "Each Pioreactor ships with four, and the BoM adds one per unit. Check **Count what you received** in **Before you start**; if any are short, use the **Missing something?** line under it."}
   - id: thirty-ml
     question: "Filled with DI water via the pumps and weighed against the dry empty vial, does the vial hold 30 ml?"
     issues:

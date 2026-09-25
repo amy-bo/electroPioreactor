@@ -12,4 +12,4 @@ receipt:
   per: unit
   qty: 1
   from: [labcrafter, diy]
-  note: "12 V barrel-jack supply for the HAT; separate from the USB-C supply."
+  note: "Barrel jack, for the HAT; separate from the USB-C supply."

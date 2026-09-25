@@ -26,11 +26,11 @@ checks:
     question: "Does every row of the parts checklist on this page match what you received?"
     issues:
       - {problem: "A part is short or missing", fix: "Email your supplier from the **Missing something?** line under the checklist."}
-      - {problem: "The SodaStream cylinders or the 250 ml GL45 bottles are missing from a LabCrafter kit", fix: "LabCrafter does not supply these regional consumables. Buy them locally (links in **Buy the Bill of Materials**)."}
+      - {problem: "The SodaStream cylinders or the 250 ml GL45 bottles are missing from a LabCrafter kit", fix: "LabCrafter does not supply these regional consumables. Buy them locally: links in item 1."}
   - id: tools-to-hand
-    question: "Do you have every Required Tool to hand, including PPE?"
+    question: "Is every item under **Tools** to hand, including the PPE?"
     issues:
-      - {problem: "The analytical balance is not accurate enough", fix: "Pump calibration needs only 0.1 g accuracy: a jewellery scale will do."}
+      - {problem: "You have no analytical balance", fix: "Pump calibration needs only 0.1 g accuracy: a jewellery scale will do."}
       - {problem: "A required tool is missing", fix: "Get it before the step that lists it. You need the cryogenic gloves and eye/face protection before making the CO₂ cylinder joint."}
 ---
 
@@ -38,15 +38,19 @@ checks:
 
 1. Buy the [Bill of Materials](../components/). A [LabCrafter](https://labcrafter.co.uk) kit lacks only the [SodaStream blue screw-in cylinders](https://sodastream.co.uk/products/refill), two [250 ml GL45 "Duran" bottles](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate), [nutrient solution](https://github.com/amy-bo/electroPioreactor/tree/main/Media) and inoculum.
 2. Check your HOB culture grows well heterotrophically.
-3. Unpack the kit and tick off every part in the checklist on this page.
-4. Gather the tools and PPE listed on this page.
+3. Unpack the kit and tick off every part under **Count what you received**.
+4. Gather everything under **Tools**.
+
+:::note[AEP0.2 kits]
+An AEP0.2 kit includes the XR upgrade kit and the Precision Temperature Upgrade Kit.
+:::
 
 <details>
 <summary>Tool notes</summary>
 
 - The computer needs a microSD reader, or an SD reader with a microSD adapter, and Raspberry Pi Imager to flash the card.
 - The gas cylinder wrench is 28 mm.
-- The analytical balance needs only 0.1 g accuracy for Pioreactor's pump calibration, so a jewellery scale will do.
+- The analytical balance needs only 0.1 g accuracy, for pump calibration: a jewellery scale will do.
 - Cryogenic gloves must be safe to at least -80 °C.
 - Add any other PPE your supervisor, department, employer or H&S advisor requires.
 - Recommended, not required:
@@ -61,7 +65,7 @@ checks:
 <details>
 <summary>Spares</summary>
 
-Keep boxed spares of the fragile and consumable parts: at least one spare vial and one spare magnetic stir bar per few units, and spare silicone septa. Vials break.
+Keep spares: at least one vial and one magnetic stir bar per few units, and silicone septa. Vials break.
 
 </details>
 

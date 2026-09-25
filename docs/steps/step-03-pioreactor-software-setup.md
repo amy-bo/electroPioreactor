@@ -11,23 +11,23 @@ tools:
 checks_draft: true
 checks:
   - id: version-26-5
-    question: "If you used the fallback route (no card bundle), is the Pioreactor software at release 26.5.0 or later? The card route needs no check here."
+    question: "Fallback route only (no card bundle): is the Pioreactor software 26.5.0 or later?"
     issues:
-      - {problem: "It is older", fix: "Run `pio update` before going further."}
-      - {problem: "The unit has no internet, so `pio update` fails", fix: "Flash the latest image instead, or give the unit internet over an ethernet cable with Internet Sharing (see the plugin install step)."}
+      - {problem: "It is older", fix: "Run `pio update`."}
+      - {problem: "The unit has no internet, so `pio update` fails", fix: "Flash the latest image instead, or give the unit internet over a cable: see **Internet over an ethernet cable** in **Check the plugin**."}
   - id: xr-model-set
     question: "In Inventory, is this unit's model set to the XR variant?"
     issues:
-      - {problem: "It still shows the standard model", fix: "Set it to the XR variant in Inventory: until you do, OD readings are interpreted against the wrong channel map."}
+      - {problem: "It still shows the standard model", fix: "Set it to the XR variant in Inventory. Until then, OD readings are interpreted against the wrong channel map."}
   - id: xr-config
-    question: "If you used the fallback route (no card bundle), are the XR photodiode channel values in config.ini? The card bundle sets them."
+    question: "Fallback route only (no card bundle): are the XR photodiode channel values in config.ini?"
     issues:
       - {problem: "They are missing", fix: "Add them as listed at the end of the XR assembly guide."}
   - id: temp-plugin
     when: {temp-kit: true}
     question: "Is pioreactor-precision-temperature-plugin listed under Plugins in the Pioreactor UI?"
     issues:
-      - {problem: "The install fails because the unit has no internet", fix: "Give the unit internet over an ethernet cable with Internet Sharing (see the plugin install step), then install it."}
+      - {problem: "The install fails because the unit has no internet", fix: "Give the unit internet over a cable (see **Internet over an ethernet cable** in **Check the plugin**), then install it."}
 ---
 
 The plugins go onto the card while you flash it, so the unit boots ready. Text as in [AEP-Plugin/README.md](../../AEP-Plugin/README.md#from-the-card).

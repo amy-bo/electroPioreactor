@@ -7,4 +7,4 @@ guide: [aep]
 
 <!-- TODO: PI's to approve process in accordance with departmental requirements | assignee: @Amir @Teo @Bingqiao @Chris @Sonja -->
 
-The AEP0.2 sterilisation procedure is awaiting approval by the PIs. It will appear here once approved.
+The AEP0.2 sterilisation procedure is awaiting PI approval.

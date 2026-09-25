@@ -16,9 +16,9 @@ profile:
     label: "Which electroPioreactor are you building?"
     short: "model"
     options:
-      - {value: aep-0-2, label: "AEP0.2 (2026): XR kit and precision temperature kit included", implies: {temp-kit: true}}
+      - {value: aep-0-2, label: "AEP0.2 (2026), kits included", implies: {temp-kit: true}}
       - {value: aep-0-1-1, label: "AEP0.1.1 (2025)", implies: {temp-kit: false}}
-      - {value: custom, label: "Custom build: I'll say what I have"}
+      - {value: custom, label: "Custom build"}
       - {value: mep, label: "Mixed-culture electroPioreactor (MEP): use the MEP guide", href: /MEP/}
       - {value: baep, label: "Budget aseptic electroPioreactor (BAEP): use the BAEP guide", href: /BAEP/}
     default: aep-0-2

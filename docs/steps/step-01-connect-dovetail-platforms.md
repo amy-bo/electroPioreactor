@@ -13,7 +13,7 @@ viewer: {component: gl45-bottle-holder, format: glb}
 checks_draft: true
 checks:
   - id: raft-layout
-    question: "Front to back: Pioreactor, pumps, then product bottle (left) and media bottle (right), with the SodaStream holder at the rear?"
+    question: "Front to back, is the raft Pioreactor, pumps, product bottle (left) and media bottle (right), then the SodaStream holder?"
     issues:
       - {problem: "The layout differs", fix: "Rearrange the platforms in the order above, dovetails to the front and left."}
       - {problem: "Several AEPs do not join into one raft", fix: "Alternate media and product bottles between units, so the media bottle platforms form the backbone of the raft."}
