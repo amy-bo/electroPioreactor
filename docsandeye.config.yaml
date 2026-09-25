@@ -24,6 +24,7 @@ profile:
     default: aep-0-2
   - id: units
     type: number
+    guides: [aep]
     label: "How many Pioreactors did you receive?"
     short: "Pioreactors"
     unit_label: "Pioreactor"
@@ -39,6 +40,7 @@ profile:
     default: false
   - id: supplier
     type: choice
+    guides: [aep]
     label: "Where did your parts come from?"
     short: "supplier"
     options:

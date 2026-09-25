@@ -6,19 +6,18 @@ guide: [baep]
 parts:
   - {component: hydrophobic-vent-filter, qty: 5, cat: part}
   - {component: gl45-cap, qty: 2, cat: prev}
-  - {component: vial-cap, qty: 1, cat: prev}
+  - {component: vial-cap-oring, qty: 1, cat: prev}
 checks_draft: true
 checks:
   - id: five-fitted
     question: "Are five filters fitted: one on each bottle cap vent, one on the CO₂ inlet, one on each of the two gas outlets?"
     issues:
-      - {problem: "A luer will not take the filter", fix: "Each filter has a male and a female end; the male end goes into a female luer. Where both sides are female, add a male-to-male adapter."}
+      - {problem: "A luer will not take the filter", fix: "Each filter has a female inlet and a male outlet. Where two female luers would meet, add a male-to-male luer lock adapter."}
 ---
 
-Filter every gas path to turn a Mixed-culture electroPioreactor into a budget aseptic one, with the six 0.2 μm hydrophobic vent filters in the kit: fit five, keep one spare.
+Filter every gas path with five 25 mm, 0.2 μm hydrophobic vent filters, the ones the AEP0.2 uses. This turns a Mixed-culture electroPioreactor into a budget aseptic one.
 
 1. Fit one to the media bottle cap's vent port.
 2. Fit one to the product bottle cap's vent port.
-3. Fit one between the gas line and the vial cap's CO₂ inlet luer.
-4. Fit one to each of the vial cap's two gas outlet luers.
-5. Keep the sixth filter as a spare, unfitted.
+3. Take the CO₂ tube's luer off the vial cap's CO₂ inlet, fit the male end of a filter to the inlet, and connect the tube's luer to the filter.
+4. Fit the female end of a filter to each of the vial cap's two gas outlet luers.

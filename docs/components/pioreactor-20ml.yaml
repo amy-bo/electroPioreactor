@@ -1,0 +1,10 @@
+id: pioreactor-20ml
+name: "Pioreactor 20 ml v1.1"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {volume_ml: 20, hardware_version: "1.1"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-25, note: "MEP bioreactor (Components/README.md, 'Pioreactor 20ml'; AEP0.1.1 used the same unit). Ships with vial and stir bar, which are the kitted components pioreactor-vial-20ml and stir-bar."}

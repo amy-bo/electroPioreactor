@@ -1,0 +1,11 @@
+id: vial-cap-oring
+name: "O-ring vial cap"
+kind: printed
+design_version: 1.0.0
+master_format: scad
+source_files: ["Components/Vial Cap/Vial Cap.scad"]
+parameters: {seal: "oring", pieces: 2, electrodes: 2, el_d: 6.1, n_ports: 5, port_d: 3.2}
+derived_files: ["Components/Vial Cap/2x6.1 + 5x3.2mm ports/Vial Cap 2x6.1 + 5x3.2 v2.stl"]
+depends_on: ["bosl2"]
+changelog:
+  - {version: 1.0.0, date: 2026-09-25, note: "MEP and AEP0.1.1 cap: cap O-ring, two electrode O-rings, two 6.1 mm electrode bores and five 3.2 mm tube ports, with the separate electrode-top-stop. Vial Cap.scad reproduces it with seal = oring."}

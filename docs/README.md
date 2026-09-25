@@ -8,14 +8,8 @@ To build: run `docsandeye check` from the repository root to validate the schema
 
 One file per assembly step, `steps/step-NN-<slug>.md`, where `NN` is the step's `order` and the title is the heading of the corresponding numbered step in the AEP0.2 assembly instructions (Method steps 1 to 11); `steps/step-00-before-you-start.md` carries the "What changed from AEP0.1.1", "Before you start", tools and spares sections. Bodies keep the instructions' wording; frontmatter lists the parts, tools, renders, viewer and safety notes. (This section lives here rather than in `steps/README.md` because the loader treats every `*.md` under `steps/` as a step.)
 
-### Steps shared with the MEP guide
+### MEP and BAEP steps
 
-A step is marked `guide: [aep, mep]` only where `MixedElectroPioreactor/Assembly-EdMSc26.md` performs the same operation. The `mep` guide has no step files of its own yet.
+The `mep` guide (Mixed-culture electroPioreactor, `/MEP`) has its own step files, `steps/step-NN-mep-<slug>.md`, marked `guide: [mep, baep]`, written from the AEP0.2 steps with the MEP hardware and settings from `MixedElectroPioreactor/` (Assembly, Operation, Calibration, Pre-Transport Check): Pioreactor 20 ml v1.1, O-ring vial cap with ElectrodeTopStop, 60 mm platinum-plated titanium anode and stainless steel cathode at 33 mm below the cap, PWM 2 waste and 3 media, FZone fixed-pressure regulator, MEP card bundle. AEP-only steps with no MEP counterpart (ports through the septum, sterilisation) are left out. `step-01-connect-dovetail-platforms` is shared by all three guides.
 
-- `step-01-connect-dovetail-platforms` — shared. Evidence: Assembly-EdMSc26.md lines 16–17 ("Place the dovetail raft on the bench with dovetails to front and left" and the raft layout: SodaStream at the rear, product container to the left of the media container, peristaltic pumps in front, electroPioreactor at the very front) match AEP Assembly/README.md lines 45–50.
-
-Considered and not shared this cycle (same purpose, different hardware or only a sub-step):
-
-- `step-05-set-up-electrolysis` — Assembly-EdMSc26.md lines 23–25 (add bicarbonate, screw the cap fully, seat the vial) and 40–55 (electrode installation, red to anode, black to cathode, polarity) cover the same purpose as AEP README lines 78–92, but with the AEP0.1-generation cap, o-rings and top stop; the AEP0.2 text would misdirect an MEP builder.
-- `step-06-set-up-nutrient-solution-flow` — Assembly-EdMSc26.md line 18 (12 V PSU to the HAT barrel jack) matches only sub-step 6.2 (README line 95); lines 27–28 are a PWM channel note, not the pump setup.
-- Steps 2, 3, 4, 7, 8, 9, 10 and 11 — no equivalent operation in Assembly-EdMSc26.md (its CO₂ stack arrives pre-built, line 3).
+The `baep` guide (Budget aseptic electroPioreactor, `/BAEP`) is the MEP steps plus `step-12-add-vent-filters`: five of the AEP's 25 mm, 0.2 µm vent filters.
