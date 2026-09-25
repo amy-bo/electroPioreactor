@@ -13,24 +13,26 @@ viewer: {component: gl45-bottle-holder, format: glb}
 checks_draft: true
 checks:
   - id: raft-layout
-    question: "Is the SodaStream holder at the rear, the product bottle in front and to its left, the media bottle in front and to its right, with the pumps and then the Pioreactor in front of them?"
+    question: "Front to back: Pioreactor, pumps, then product bottle (left) and media bottle (right), with the SodaStream holder at the rear?"
     issues:
-      - {problem: "The layout differs", fix: "Rearrange the platforms in the order listed above, with dovetails always to the front and left."}
-      - {problem: "Several AEPs do not join into one raft", fix: "Alternate media and product bottles between units so that the media bottle platforms form the backbone of the raft."}
+      - {problem: "The layout differs", fix: "Rearrange the platforms in the order above, dovetails to the front and left."}
+      - {problem: "Several AEPs do not join into one raft", fix: "Alternate media and product bottles between units, so the media bottle platforms form the backbone of the raft."}
   - id: sd-card-clearance
     question: "Does the pumping dovetail platform sit down fully without pressing on the SD card?"
     issues:
-      - {problem: "The platform catches on the SD card", fix: "Stop and check that the platform's SD card cutout clears your card before forcing anything down."}
+      - {problem: "The platform catches on the SD card", fix: "Stop. Check the platform's SD card cutout clears your card before forcing anything down."}
 ---
 
-Male dovetails face away from you and to the left on every platform except the SodaStream holder (see 5).
+On every platform except the SodaStream holder (see item 5), the male dovetails point away from you and to the left.
 
-1. Start with the Pioreactor platform, turned so the Pi's USB and ethernet ports have room.
-2. Join the pump platform to it, so the pump leads can reach the PWM channels.
-3. Join the 250 ml media and product flask platforms straight behind the pumps.
+1. Place the Pioreactor platform first, turned so the Pi's USB and ethernet ports have room.
+2. Join the pump platform to it, so the pump leads reach the PWM channels.
+3. Join the 250 ml media and product bottle platforms directly behind the pumps.
 4. Join the SodaStream holder at the back, centred on the Pioreactor platform.
-5. SodaStream holder orientation: if the cylinder sits loose, dovetails away from you and to the left like the rest; if it is tight, rotate the holder so they face away from you and to the right, which leaves its gap free to open for larger cylinders.
-6. Press every joint down until the raft sits flat on the table; the last joint may need some force.
+5. Orient the SodaStream holder to suit the cylinder:
+   - Loose cylinder: dovetails away from you and to the left, like the rest.
+   - Tight cylinder: rotate the holder so they point away and to the right. Its gap is then free to open for larger cylinders.
+6. Press every joint down until the raft sits flat on the table. The last joint may need some force.
 7. Check the pumping dovetail platform's cutout clears your SD card before forcing anything down. <!-- TODO: confirm Pi 5 clearance on the current platform revision and photograph it | assignee: @Martin -->
 
 <!-- The recording (session-20 0:00:12) built the raft SodaStream-first; this order is the corrected one from Martin, 2026-09-24. -->

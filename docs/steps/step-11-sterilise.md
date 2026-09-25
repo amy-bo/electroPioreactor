@@ -8,9 +8,9 @@ checks:
   - id: pi-approved
     question: "Has your PI approved the sterilisation procedure for your department?"
     issues:
-      - {problem: "Not yet", fix: "Do not proceed: the procedure is pending PI approval in accordance with departmental requirements."}
+      - {problem: "Not yet", fix: "Do not proceed. The procedure awaits PI approval under departmental requirements."}
 ---
 
 <!-- TODO: PI's to approve process in accordance with departmental requirements | assignee: @Amir @Teo @Bingqiao @Chris @Sonja -->
 
-Sterilisation procedure, pending PI approval.
+The sterilisation procedure is pending PI approval.

@@ -25,8 +25,8 @@ renders:
   - {id: vial-cap-exploded, component: vial-cap, view: iso, explode: true, format: png}
 viewer: {component: vial-cap, format: glb}
 safety: |
-  Fix the red cable's ring terminal to the MMO anode and the black cable's ring terminal to the stainless steel cathode. BoM 3.3: "Colour-code red anode, black cathode, and never swap." BoM 2.2: the stainless steel cathode "Must stay strictly cathodic: reversed, stainless corrodes quickly and leaches Cr, Ni and Fe into the culture."
-  Drive the electrodes from this job rather than setting LED channel D by hand: the job clamps electrolysis power to 10% at runtime, and nothing does so if you drive the channel directly.
+  Fix the red cable's ring terminal to the MMO anode and the black cable's to the stainless steel cathode. Never swap them (BoM 3.3). Reversed, the stainless steel cathode corrodes quickly and leaches Cr, Ni and Fe into the culture (BoM 2.2).
+  Drive the electrodes from the electroPioreactor job, never by setting LED channel D by hand: only the job clamps electrolysis power to 10%.
 checks_draft: true
 checks:
   - id: polarity
@@ -36,40 +36,44 @@ checks:
   - id: bubbles
     question: "With electroPioreactor running, do roughly twice as many bubbles form on the cathode as on the anode?"
     issues:
-      - {problem: "No bubbles on either electrode", fix: "Check the electrodes are connected to LED channel D (catch upwards), the vial holds nutrient solution or bicarbonate of equal ionic strength, and the job was started from the Activities tab."}
-      - {problem: "More bubbles on the anode than the cathode", fix: "The leads are probably reversed: stop the job and check the red lead is on the anode and the black lead on the cathode."}
-      - {problem: "Bubbling is weak", fix: "Adjust electrolysis power in the job's Settings panel rather than setting LED channel D by hand: the job clamps power to 10% to protect the electrodes."}
+      - {problem: "No bubbles on either electrode", fix: "Check the electrodes are on LED channel D (catch upwards), the vial holds nutrient solution or bicarbonate of equal ionic strength, and the job was started from **Activities**."}
+      - {problem: "More bubbles on the anode than the cathode", fix: "The leads are probably reversed. Stop the job and check red is on the anode, black on the cathode."}
+      - {problem: "Bubbling is weak", fix: "Raise electrolysis power in the job's **Settings** panel, not by setting LED channel D by hand: the job clamps power to 10% to protect the electrodes."}
   - id: depth
     question: "With the cap fully screwed on and the septum compressed evenly, are the electrode tops flush with the top of the vial cap?"
     issues:
-      - {problem: "An electrode sits proud of or below the cap top", fix: "Push it through the septum until it seats in its journal bore with its top flush: the cap's column height sets the standard depth."}
+      - {problem: "An electrode sits proud of or below the cap top", fix: "Push it through the septum until it seats in its journal bore, top flush. The cap's column height sets the standard depth."}
       - {problem: "The cap will not screw fully on", fix: "Check the septum lies flat across the vial mouth so it compresses evenly."}
 ---
 
-NOTE: ~struck through~ lines will already have been completed if you received a kit from LabCrafter.
+:::note[LabCrafter kits]
+~Struck-through~ items are already done in a kit from LabCrafter.
+:::
 
-1. ~Seat the silicone septum in the [Vial Cap](../../Components/Vial%20Cap)~
-2. Push the stainless steel rod (the cathode) up through the septum from below until its top is flush with the top of the cap; level it with a flat edge.
-3. Tighten it in place, firmly but not hard. <!-- from video: session-17 0:55:17 - "you tighten that ... not massively"; which fastener is not clear from the transcript -->
-4. Do the same with the MMO anode (the tube).
-5. ~Crimp a ring terminal onto each electrode cable~
-6. Fix the red cable to the MMO anode: ring terminal, then spring washer, then flat washer, then M3 nut. <!-- from video: session-17 0:57:04 - this washer order, and the kit's cables came fitted the wrong way round (black on the anode), so they were swapped on camera; the text had "M3 nut and spring washer, tightened by thumb screw" and no flat washer, which is not in the parts list either --> <!-- TODO: add the flat washer to the parts list, or confirm it is part of an existing component | assignee: @Martin -->
+1. ~Seat the silicone septum in the [Vial Cap](../../Components/Vial%20Cap).~
+2. Push the stainless steel cathode (the rod) up through the septum from below until its top is flush with the top of the cap. Level it with a flat edge.
+3. Tighten it in place: firmly, not hard. <!-- from video: session-17 0:55:17 - "you tighten that ... not massively"; which fastener is not clear from the transcript -->
+4. Repeat with the MMO anode (the tube).
+5. ~Crimp a ring terminal onto each electrode cable.~
+6. Fix the red cable to the MMO anode: ring terminal, spring washer, flat washer, then M3 nut. <!-- from video: session-17 0:57:04 - this washer order, and the kit's cables came fitted the wrong way round (black on the anode), so they were swapped on camera; the text had "M3 nut and spring washer, tightened by thumb screw" and no flat washer, which is not in the parts list either --> <!-- TODO: add the flat washer to the parts list, or confirm it is part of an existing component | assignee: @Martin -->
 7. Fix the black cable to the stainless steel cathode the same way.
 8. Check both electrode tops are still flush with the cap top. <!-- TODO: record the AEP0.2 standard depth here once the first build is measured | assignee: @Bingqiao @Amir @Teo @Martin -->
-9. Add nutrient solution (or equal ionic strength bicarbonate) to the vial.
+9. Fill the vial with nutrient solution, or bicarbonate of equal ionic strength.
 10. Screw the Vial Cap fully onto the vial, compressing the septum evenly.
 11. Record the distance from the top of the Vial Cap to the bottom of each electrode.
-12. Connect the electrodes to LED channel D (catch upwards).
-13. Start **electroPioreactor** from **Activities** on the *Manage* screen, with a long sparge interval until CO₂ is set up.
-14. Raise **electrolysis power** in the job's **Settings** panel until bubbles form, and check roughly twice as many form on the cathode as on the anode. <!-- from video: session-17 1:18 (file 023 35:00-39:00) - power raised from 2.5 to 3.5% -->
-15. Measure and record the voltage across the electrodes with a multimeter, and the current through them if you can break into a lead. <!-- from video: session-18 0:03:28 - 2.82 V at 3.5%; current not measured, as it needs a lead broken into -->
-16. Insert the vial into the Pioreactor once all vials show even electrolysis.
+12. Connect the electrodes to LED channel D, catch upwards.
+13. Start **electroPioreactor** from **Activities** on the **Manage** screen. Set a long sparge interval until CO₂ is set up.
+14. Raise **electrolysis power** in the job's **Settings** panel until bubbles form. <!-- from video: session-17 1:18 (file 023 35:00-39:00) - power raised from 2.5 to 3.5% -->
+15. Check roughly twice as many bubbles form on the cathode as on the anode.
+16. Measure the voltage across the electrodes with a multimeter, and record it. <!-- from video: session-18 0:03:28 - 2.82 V at 3.5%; current not measured, as it needs a lead broken into -->
+17. If you can break into a lead, measure and record the current too.
+18. Insert the vial into the Pioreactor once all vials show even electrolysis.
 
 <details>
 <summary>Notes</summary>
 
-- One septum seals the vial mouth, each electrode and every port, and self-heals sampling-needle tracks. There are no electrode o-rings and no cap o-ring in AEP0.2.
-- The cap's column height sets the electrode length and protrusion into the vial, so flush tops give every unit the same standard depth.
-- If the unit misbehaves before electrolysis starts (fan starting and stopping, no response), run a self test from its *Manage* screen and power-cycle it if that hangs.
+- One septum seals the vial mouth, each electrode and every port, and self-heals sampling-needle tracks. AEP0.2 has no electrode o-rings and no cap o-ring.
+- The cap's column height sets each electrode's length and protrusion into the vial, so flush tops give every unit the same standard depth.
+- If the unit misbehaves before electrolysis starts (fan starting and stopping, no response), run a self test from its **Manage** screen. Power-cycle it if that hangs.
 
 </details>

@@ -26,27 +26,34 @@ checks:
   - id: parts-counted
     question: "Does every row of the parts checklist on this page match what you received?"
     issues:
-      - {problem: "A part is short or missing", fix: "Use the Missing parts panel under the checklist to email whoever you bought from; it lists each part and how many are missing."}
-      - {problem: "The SodaStream cylinders or the 250 ml GL45 bottles are missing from a LabCrafter kit", fix: "These are regional consumables that LabCrafter does not supply: buy them locally (see the links in item 1 above)."}
+      - {problem: "A part is short or missing", fix: "Use the **Missing parts** panel under the checklist to email your supplier: it lists each missing part and quantity."}
+      - {problem: "The SodaStream cylinders or the 250 ml GL45 bottles are missing from a LabCrafter kit", fix: "LabCrafter does not supply these regional consumables. Buy them locally (links in item 1)."}
   - id: tools-to-hand
     question: "Do you have every Required Tool to hand, including PPE?"
     issues:
-      - {problem: "The analytical balance is not accurate enough", fix: "Pioreactor's pump calibration only requires 0.1 g accuracy."}
-      - {problem: "A required tool is missing", fix: "Source it before starting: the Required Tools are needed in the steps that list them, and the cryogenic gloves and eye/face protection are needed before the CO₂ cylinder joint is made."}
+      - {problem: "The analytical balance is not accurate enough", fix: "Pump calibration needs only 0.1 g accuracy: a jewellery scale will do."}
+      - {problem: "A required tool is missing", fix: "Get it before the step that lists it. You need the cryogenic gloves and eye/face protection before making the CO₂ cylinder joint."}
 ---
 
-> Parts list: the [components](../components/) of this guide. AEP0.1.1 instructions are archived in [AEP0.1.1_Assembly.md](../../AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/AEP0.1.1_Assembly.md).
+> Parts: the [components](../components/) of this guide. Archived AEP0.1.1 instructions: [AEP0.1.1_Assembly.md](../../AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/AEP0.1.1_Assembly.md).
 
-1. Procure the [Bill of Materials](../components/). A [LabCrafter](https://labcrafter.co.uk) kit lacks only the [SodaStream blue screw-in cylinders](https://sodastream.co.uk/products/refill), two [250ml GL45 "Duran" flasks](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate), [nutrient solution](https://github.com/amy-bo/electroPioreactor/tree/main/Media) and inoculum.
-2. Check your HOB are growing happily heterotrophically.
-3. Unpack the kit and tick every part off the checklist on this page.
+1. Buy the [Bill of Materials](../components/). A [LabCrafter](https://labcrafter.co.uk) kit lacks only the [SodaStream blue screw-in cylinders](https://sodastream.co.uk/products/refill), two [250 ml GL45 "Duran" bottles](https://www.theconsumablescompany.com/250ml-reagent-bottle-borosilicate), [nutrient solution](https://github.com/amy-bo/electroPioreactor/tree/main/Media) and inoculum.
+2. Check your HOB culture grows well heterotrophically.
+3. Unpack the kit and tick off every part in the checklist on this page.
 4. Gather the tools and PPE listed on this page.
 
 <details>
-<summary>Notes on the tools</summary>
+<summary>Tool notes</summary>
 
-- Required: the computer needs a microSD reader (or an SD reader and a microSD-to-SD adapter); the gas cylinder wrench is 28 mm; the analytical balance only needs 0.1 g accuracy for Pioreactor's pump calibration, so a jewellery scale will do; cryogenic gloves must be safe to at least -80°C; add any other PPE your supervisor, department, employer or H&S advisor directs.
-- Recommended, not required: a multitool and/or needle-nose pliers (general assembly and tubing), a multimeter (checking electrolysis), and a banded oil filter wrench (only if you struggle to tighten the CO₂ cylinder).
+- The computer needs a microSD reader, or an SD reader with a microSD adapter, and Raspberry Pi Imager to flash the card.
+- The gas cylinder wrench is 28 mm.
+- The analytical balance needs only 0.1 g accuracy for Pioreactor's pump calibration, so a jewellery scale will do.
+- Cryogenic gloves must be safe to at least -80 °C.
+- Add any other PPE your supervisor, department, employer or H&S advisor requires.
+- Recommended, not required:
+  - a multitool or needle-nose pliers, for assembly and tubing;
+  - a multimeter, for checking electrolysis;
+  - a banded oil filter wrench, only if the CO₂ cylinder is hard to tighten.
 
 <!-- from video: session-14 0:02:14 - Martin says the callipers were "much more necessary in previous versions ... for this version you hopefully don't need those"; the tools list still has them as required -->
 
@@ -55,7 +62,7 @@ checks:
 <details>
 <summary>Spares</summary>
 
-Carry boxed spares of the fragile and consumable items: at minimum a spare vial and a spare magnetic flea per few units, and spare silicone septa. A vial was dropped and smashed during the AEP0.1 training.
+Keep boxed spares of the fragile and consumable parts: at least one spare vial and one spare magnetic flea per few units, and spare silicone septa. Vials break.
 
 </details>
 

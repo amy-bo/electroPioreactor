@@ -10,30 +10,36 @@ profile:
   - id: model
     type: choice
     label: "Which electroPioreactor are you building?"
+    short: "model"
     options:
       - {value: aep-0-2, label: "AEP0.2 (2026): XR kit and precision temperature kit included", implies: {temp-kit: true}}
       - {value: aep-0-1-1, label: "AEP0.1.1 (2025)", implies: {temp-kit: false}}
-      - {value: custom, label: "Custom build: I will say what I have"}
+      - {value: custom, label: "Custom build: I'll say what I have"}
       - {value: mep, label: "Mixed-culture electroPioreactor: use the MEP guide", href: /MEP/}
       - {value: baep, label: "Budget aseptic electroPioreactor: use the BAEP guide", href: /BAEP/}
     default: aep-0-2
   - id: units
     type: number
     label: "How many Pioreactors did you receive?"
+    short: "Pioreactors"
+    unit_label: "Pioreactor"
+    unit_label_plural: "Pioreactors"
     default: 1
     min: 1
     max: 50
   - id: temp-kit
     type: boolean
     label: "Do you have the Precision Temperature Upgrade Kit?"
+    short: "temperature kit"
     default: false
   - id: supplier
     type: choice
     label: "Where did your parts come from?"
+    short: "supplier"
     options:
       - {value: labcrafter, label: "[LabCrafter](https://labcrafter.co.uk)"}
       - {value: pioreactor, label: "[Pioreactor](https://pioreactor.com)"}
-      - {value: diy, label: "Sourced myself from [the BoM](https://github.com/amy-bo/electroPioreactor/tree/main/AsepticElectroPioreactor)"}
+      - {value: diy, label: "Self-sourced from [the BoM](https://github.com/amy-bo/electroPioreactor/tree/main/AsepticElectroPioreactor)"}
     default: labcrafter
 receipt:
   multiply_by: units

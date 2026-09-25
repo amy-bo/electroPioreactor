@@ -1,5 +1,5 @@
 id: silicone-septum
-name: "Silicone septum, 2mm thick, 60 shore"
+name: "Silicone septum, 2 mm thick, 60 Shore A"
 kind: off-the-shelf
 design_version: 1.0.1
 master_format: none
@@ -13,4 +13,4 @@ receipt:
   per: unit
   qty: 1
   from: [labcrafter, diy]
-  note: "LabCrafter kits arrive with it already seated in the vial cap."
+  note: "Arrives seated in the vial cap in LabCrafter kits."

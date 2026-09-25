@@ -12,4 +12,4 @@ receipt:
   per: unit
   qty: 2
   from: [labcrafter, diy]
-  note: "One red (anode), one black (cathode); LabCrafter kits arrive with them already fixed to the electrodes. DRAFT: the BoM counts the cable as 1 line covering both runs; 2 cables per unit assumed here."
+  note: "One red (anode), one black (cathode); fixed to the electrodes in LabCrafter kits. DRAFT: the BoM counts the cable as 1 line covering both runs; 2 cables per unit assumed here."

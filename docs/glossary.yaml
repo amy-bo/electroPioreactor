@@ -1,0 +1,155 @@
+# Glossary tooltips for the step pages. The first use of each term (or alias) in a step body,
+# check or receipt note becomes a tooltip. Tips: plain text, 240 characters at most.
+
+- term: HOB
+  terms: [hydrogen-oxidising bacteria]
+  tip: "Hydrogen-oxidising bacteria: microbes that grow on hydrogen and CO₂. The electroPioreactor is built to grow them as a sustainable protein source."
+
+- term: heterotrophically
+  terms: [heterotrophic]
+  tip: "Growing on organic carbon, such as sugars, instead of on hydrogen and CO₂. A quick way to check a HOB culture is alive before it goes into the reactor."
+
+- term: Raspberry Pi Imager
+  terms: [Imager]
+  tip: "The free Raspberry Pi app that writes the Pioreactor operating system image onto the microSD card."
+  link: https://docs.pioreactor.com/user-guide/software-set-up
+
+- term: dovetail
+  terms: [dovetails]
+  tip: "The sliding joint that locks the printed platforms into one raft. A male dovetail on one platform drops into the female slot on the next."
+
+- term: HAT
+  tip: "The Pioreactor circuit board that plugs onto the Raspberry Pi's pin header. It carries the PWM and LED outputs and the 12V barrel jack."
+
+- term: shunt
+  terms: [shunt connector]
+  tip: "A small jumper on the HAT. In the position closest to the LED outputs it feeds the 12V supply to PWM channels 1 to 4."
+  link: https://docs.pioreactor.com/user-guide/external-power
+
+- term: PWM channel
+  terms: [PWM channels, PWM]
+  tip: "One of the HAT's five switched power outputs. In this build: 1 stirring, 2 media pump, 3 waste (product) pump, 4 CO₂ solenoid (relay), 5 heating."
+
+- term: LED channel D
+  terms: [LED D]
+  tip: "One of the HAT's four LED outputs, A to D. The electroPioreactor job drives the electrodes from channel D, clamped to 10% power."
+
+- term: XR upgrade kit
+  terms: [XR kit]
+  tip: "Pioreactor's extended-range optics. Extra eye-spys read light scattered at 45° and 135° as well as 90°, for a lower OD detection limit."
+  link: https://docs.pioreactor.com/user-guide/40ml-v15-to-XR-upgrade-assembly
+
+- term: eye-spy
+  terms: [eye-spys]
+  tip: "A small Pioreactor sensor board that reads light from the vial. The eye-spys are chained together with STEMMA-QT wires."
+
+- term: STEMMA-QT
+  tip: "A small 4-pin plug-and-socket standard for sensor boards. The eye-spys and the temperature sensor daisy-chain over it."
+
+- term: Precision Temperature Upgrade Kit
+  terms: [Precision Temperature kit, temperature kit, precision temperature plugin]
+  tip: "An optional Pioreactor kit. Its MLX90632 far-infrared sensor reads the vial's temperature without contact, replacing the thermistor."
+  link: https://docs.pioreactor.com/user-guide/precision-temperature-upgrade-kit
+
+- term: OD
+  terms: [optical density]
+  tip: "Optical density: how cloudy the culture is, read from scattered light. It tracks cell growth."
+  link: https://docs.pioreactor.com/user-guide/calibrate-od600
+
+- term: card bundle
+  tip: "A zip from the electroPioreactor releases page. Copied onto the card's bootfs drive, it installs the plugins and sets the model on first boot."
+
+- term: bootfs
+  tip: "The small boot partition of the flashed microSD card, and the only part a Mac or PC can open. The card bundle's files go here."
+
+- term: leader
+  tip: "The Pioreactor that hosts the web interface and config.ini for a cluster. A single stand-alone unit is its own leader (Leader + Worker)."
+
+- term: worker
+  terms: [workers]
+  tip: "A Pioreactor that runs experiments under a leader. It has no web interface of its own and takes its config.ini from the leader."
+
+- term: local access point
+  terms: [access point, hotspot, own Wi-Fi]
+  tip: "The leader makes its own Wi-Fi network, pioreactor (password raspberry). Use it where you cannot add devices to the site Wi-Fi."
+  link: https://docs.pioreactor.com/user-guide/local-access-point
+
+- term: hostname
+  tip: "The unit's network name, chosen when flashing the card. Its web interface is then at http://hostname.local."
+  link: https://docs.pioreactor.com/user-guide/zeroconf-networking
+
+- term: SSH
+  tip: "Secure Shell: a command line on the Pioreactor from your computer's terminal, for example ssh pioreactor@hostname.local."
+
+- term: septum
+  terms: [septa]
+  tip: "The 2 mm silicone disc in the vial cap. It seals the vial mouth, both electrodes and every needle port, and self-heals needle holes."
+
+- term: MMO anode
+  terms: [anode]
+  tip: "The positive electrode: a titanium tube coated with mixed metal oxide (IrO₂-Ta₂O₅). Oxygen forms on it, and CO₂ flows down its bore into the vial."
+
+- term: cathode
+  tip: "The negative electrode: a stainless steel rod. Hydrogen forms on it, so it shows about twice the bubbles of the anode. It must never be wired as the anode."
+
+- term: electrolysis
+  tip: "Splitting water with an electric current: hydrogen at the cathode, oxygen at the anode. It supplies the hydrogen the HOB grow on."
+
+- term: self test
+  tip: "Pioreactor's built-in hardware check, run from the unit's Manage screen. It confirms each part of the unit responds."
+  link: https://docs.pioreactor.com/user-guide/pre-flight-hardware-check#step-1-run-a-self-test
+
+- term: peristaltic pump
+  terms: [peristaltic pumps]
+  tip: "A pump that squeezes liquid along flexible tubing with rollers, so the liquid never touches the pump."
+  link: https://docs.pioreactor.com/user-guide/using-pumps
+
+- term: vent filter
+  terms: [vent filters]
+  tip: "A 0.2 µm hydrophobic membrane on luer fittings. Gas passes; microbes and liquid do not, so each gas path stays sterile."
+
+- term: luer lock
+  terms: [luer, luers, male luer, female luer]
+  tip: "A standard medical screw fitting. A male luer (the spigot) screws into a female luer (the socket). In this build, male ends mark outlets."
+
+- term: turbidostat
+  tip: "A dosing mode that adds fresh media and removes culture to hold optical density at a set point."
+  link: https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat
+
+- term: KegLand adapter
+  tip: "The cylinder-to-regulator adapter (KegLand KL15578). Back its pin off while making the joint, then screw the pin in to let gas through."
+
+- term: regulator
+  tip: "Drops the cylinder's pressure (about 60 bar when full) to a working pressure, about 1 bar here. Its flathead screw fully anti-clockwise is closed."
+
+- term: reducer
+  terms: [reducing nipple]
+  tip: "The 1/4\" BSP to 1/8\" BSP hexagon nipple that joins the regulator outlet to the solenoid valve."
+
+- term: Loctite 577
+  terms: [thread sealant, anaerobic thread sealant]
+  tip: "An anaerobic thread sealant: it cures only without air, inside a tightened thread. Fixtures in 10 to 60 minutes at 22 °C; full pressure after 24 hours."
+
+- term: solenoid valve
+  terms: [solenoid]
+  tip: "An electric valve on PWM channel 4 that opens to sparge. It must be 3-way venting (3/2), so the line vents when it closes."
+
+- term: manual override
+  terms: [solenoid override]
+  tip: "The dial on the front of the solenoid. 0 is normal (closed without power); 1 holds the valve open."
+
+- term: blanking plug
+  tip: "A 1/8\" threaded plug that seals the solenoid's unused right port. It seals on its own o-ring, so it needs no sealant."
+
+- term: needle valve
+  tip: "A fine-adjustment valve on the solenoid's front port. It sets how fast CO₂ flows; turn clockwise to close."
+
+- term: ferrule
+  tip: "The ring inside a compression fitting. Tightening the nut squeezes it onto the tube to make a gas-tight seal."
+
+- term: sparging
+  terms: [sparge, sparges]
+  tip: "Bubbling gas through the culture. Here, CO₂ from the cylinder flows down the anode on a timer set in the electroPioreactor job."
+
+- term: GL45
+  tip: "A standard 45 mm screw thread on lab bottles such as Duran. The media and product bottles and their multi-port caps use it."

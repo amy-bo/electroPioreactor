@@ -1,5 +1,5 @@
 id: mmo-anode
-name: "MMO anode, 100 mm length x 6 mm OD, 4mm ID, 70mm active length"
+name: "MMO anode, 100 mm long, 6 mm OD, 4 mm ID, 70 mm active length"
 kind: off-the-shelf
 design_version: 1.0.1
 master_format: none
@@ -13,4 +13,4 @@ receipt:
   per: unit
   qty: 1
   from: [labcrafter, diy]
-  note: "LabCrafter kits arrive with it already fitted in the vial cap."
+  note: "Arrives fitted in the vial cap in LabCrafter kits."
