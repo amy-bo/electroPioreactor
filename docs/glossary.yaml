@@ -180,3 +180,12 @@
 
 - term: wheel
   tip: "A Python package file (.whl). The card bundle carries the plugins as wheels; one that fails to install lands in pioreactor/plugins/failed/ on bootfs, with a log."
+
+- term: ElectrodeTopStop
+  tip: "The printed block that sits on top of the MEP's O-ring vial cap. It holds both electrodes parallel and clamps each cable's ring terminal to its electrode with an M3 bolt through a captive nut."
+
+- term: FZone
+  tip: "The MEP's budget CO₂ regulator. Its outlet pressure is fixed, so the needle valve alone sets the CO₂ flow. Left gauge: cylinder pressure; right gauge: pressure reaching the solenoid."
+
+- term: captive nut
+  tip: "A nut held in a pocket in the printed part, so a bolt can be tightened into it with one tool."
