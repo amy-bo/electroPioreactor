@@ -1,6 +1,7 @@
 ---
 id: step-04-vial-holder-and-xr
 order: 4
+media: [vid-03b-vial-holder-and-xr]
 title: "Vial holder and XR optics"
 guide: [aep]
 parts:
@@ -69,7 +70,7 @@ Carry on with Pioreactor's [40 ml v1.5 hardware setup guide](https://docs.piorea
 
 <!-- /when -->
 
-<!-- VIDEO CUT: session-15 - this step starts after the shunt is moved (0:11:31). -->
+<!-- Video: vid-03b-vial-holder-and-xr plays Laura's Hardware setup video from 9:50 (start_s). -->
 
 <details>
 <summary>Notes</summary>

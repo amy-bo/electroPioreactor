@@ -29,4 +29,4 @@ Follow Pioreactor's [40 ml v1.5 hardware setup guide](https://docs.pioreactor.co
    No error shows. PWM channels 1 to 4 ignore the 12V supply, so the peristaltic pumps and the PWM 4 CO₂ solenoid run on the Pi's own supply. The solenoid will not drive, and sparging looks like a gas train fault. Moving the shunt later also invalidates any stirring and pump calibration.
    :::
 
-<!-- VIDEO CUT: session-15 - cut after the shunt is moved (0:11:31, item 2); the rest of the hardware build belongs to Vial holder and XR optics. -->
+<!-- Video: vid-03-hardware-setup plays to 9:50 (end_s); the next step plays the rest. -->
