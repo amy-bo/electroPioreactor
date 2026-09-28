@@ -44,7 +44,7 @@ On every platform except the SodaStream holder (see item 5), the male dovetails 
 6. Check the pumping dovetail platform's cutout clears your SD card before forcing anything down. <!-- TODO: confirm Pi 5 clearance on the current platform revision and photograph it | assignee: @Martin -->
 
 <!-- The recording (session-20 0:00:12) built the raft SodaStream-first; this order is the corrected one from Martin, 2026-09-24. -->
-<!-- VIDEO CUT: vid-02-platform-setup covers this step and the next. Cut it where the joints are pressed down (the next step's item 1); this step keeps the part before that. -->
+<!-- Video: vid-02-platform-setup plays to 1:20 (end_s); the next step plays the rest. -->
 
 <details>
 <summary>Several units on one bench</summary>

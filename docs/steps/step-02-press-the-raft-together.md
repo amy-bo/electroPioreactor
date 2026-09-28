@@ -2,7 +2,7 @@
 id: step-02-press-the-raft-together
 order: 2
 title: "Press the raft together"
-media: [photo-01-raft]
+media: [vid-02b-press-the-raft, photo-01-raft]
 guide: [aep, mep, baep]
 parts:
   - {component: pumping-dovetail-platform, qty: 1, cat: prev}
@@ -21,4 +21,4 @@ The layout was checked in [Connect the platforms](step-01-connect-dovetail-platf
 
 1. Press every joint down until the raft sits flat on the table. The last joint may need some force.
 
-<!-- VIDEO CUT: this step is the second half of vid-02-platform-setup, from where the joints are pressed down. -->
+<!-- Video: vid-02b-press-the-raft plays Laura's Platform setup video from 1:20 (start_s), no re-edit needed. -->
