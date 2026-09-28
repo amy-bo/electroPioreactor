@@ -25,11 +25,6 @@ checks:
       - {label: "Away from you and to the left", correct: true}
       - {label: "Away from you and to the right", fix: "Turn that platform round so they point away and to the left. Only the SodaStream holder may point right, for a tight cylinder (item 5)."}
       - {label: "Towards you and to the left", fix: "Turn that platform round so they point away from you and to the left."}
-  - id: sd-card-clearance
-    question: "Before anything is pressed down, what sits over the Pi's SD card?"
-    options:
-      - {label: "The pumping platform's cutout, with space round the card", correct: true}
-      - {label: "The pumping platform's solid edge, resting on the card", fix: "Stop: do not press down. Shift the platform until its cutout clears the card. If it cannot, contact us before forcing anything."}
 ---
 
 On every platform except the SodaStream holder (see item 5), the male dovetails point away from you and to the left. Slide each joint together, but do not press it down yet: **Press the raft together**, next, does that once the layout is checked.

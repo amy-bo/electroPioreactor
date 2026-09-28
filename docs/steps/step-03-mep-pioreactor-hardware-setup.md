@@ -20,10 +20,10 @@ checks:
       - {label: "The 12 V supply", correct: true}
       - {label: "Nothing yet", fix: "Set it up now, before any calibration, following Pioreactor's external power guide for your HAT. Without it the pumps and the PWM 4 CO₂ solenoid run on the Pi's own supply, and the solenoid will not drive."}
   - id: boots
-    question: "On a Zero 2 W, which socket is the Raspberry Pi power supply in?"
+    question: "Which socket is the Raspberry Pi power supply in?"
     options:
-      - {label: "The frontmost micro-USB on the bottom board", correct: true}
-      - {label: "The other micro-USB on the bottom board", fix: "Move it to the frontmost socket, with the Pioreactor logo facing you: that is the Pi's power socket. The unit then boots within about 90 seconds."}
+      - {label: "The Pi's own power socket (on a Zero 2 W, the frontmost micro-USB)", correct: true}
+      - {label: "The Zero 2 W's other micro-USB, the data socket", fix: "Move it to the frontmost socket, with the Pioreactor logo facing you: that is the Pi's power socket. The unit then boots within about 90 seconds."}
       - {label: "A socket on the HAT, not the Pi", fix: "The HAT takes the 12 V supply. Plug the Raspberry Pi supply into the Pi's own power socket: the frontmost micro-USB on the bottom board."}
 ---
 
