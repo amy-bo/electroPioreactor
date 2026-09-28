@@ -1,0 +1,7 @@
+id: photo-01-raft
+type: photo
+file: docs/media/photo-01-raft.jpg
+shot_date: 2026-09-22
+shot_by: "andeye (Laura Currie, edit; still from the Platform setup video)"
+hero: [pumping-dovetail-platform@1.0.1, gl45-bottle-holder@1.1.0, co2-cylinder-dovetail-holder@1.0.0]
+licence: "CC BY-SA 4.0"
