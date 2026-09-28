@@ -6,7 +6,6 @@ guide: [aep]
 parts:
   - {component: needle-port, qty: 4, cat: part}
   - {component: male-to-male-luer-lock-adapter, qty: 2, cat: part}
-  - {component: anode-feed-tube, qty: 1, cat: part}
   - {component: mmo-anode, qty: 1, cat: prev}
   - {component: stainless-steel-cathode, qty: 1, cat: prev}
   - {component: vial-cap, qty: 1, cat: prev}
@@ -65,15 +64,12 @@ The cap has eight ports. The electrodes already fill two, this step puts needles
    :::
 5. Push the two bent needles (Gas Out and Gas Out – safety) through the septum, above the liquid level. <!-- from video: session-21 0:11:35 - Bingqiao suggests the bent needles may stretch the septum unevenly -->
 6. Fit a male-to-male luer adapter to each of the two gas outlet needles, so outlets are marked as outlets.
-7. Thread the 1 mm-bore anode feed tube through the MMO anode, and pull it tight at the top.
-8. Trim the feed tube's lower end with sharp scissors. <!-- from video: session-21 0:12:53 - done after the vial was filled; Martin: "might have been clever to do this before we got the liquid in"; which end was trimmed is not clear from the transcript --> <!-- TODO: state the trim length | assignee: @Martin -->
-9. Push a female luer onto the feed tube's top end: this is the CO₂ inlet.
-10. Fill the vial with DI water via the pumps, and weigh it against the dry empty vial.
-11. Move the Media Out needle up or down until the vial holds 30 ml and Media Out just maintains that level while the pumps run.
-12. Measure the electrode immersion depths, adjust them to the standard if needed, and record each insertion depth. <!-- TODO: the AEP0.2 standard depth is still to be measured on the first build (BoM open item 2.3) | assignee: @Martin -->
-13. Check the Media Out needle is at the water level, every other needle is higher, and none is plugged with silicone.
+7. Fill the vial with DI water via the pumps, and weigh it against the dry empty vial.
+8. Move the Media Out needle up or down until the vial holds 30 ml and Media Out just maintains that level while the pumps run.
+9. Measure the electrode immersion depths, adjust them to the standard if needed, and record each insertion depth. <!-- TODO: the AEP0.2 standard depth is still to be measured on the first build (BoM open item 2.3) | assignee: @Martin -->
+10. Check the Media Out needle is at the water level, every other needle is higher, and none is plugged with silicone.
 
     :::tip[Bent needles]
     You cannot look through a bent needle. Blow gas or air through it at a steady pressure and compare the flow with a clear needle.
     :::
-14. Set up the Pioreactor in [turbidostat mode](https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat).
+11. Set up the Pioreactor in [turbidostat mode](https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat).

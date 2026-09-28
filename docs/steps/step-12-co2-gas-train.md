@@ -4,6 +4,8 @@ order: 12
 title: "CO₂ gas train"
 guide: [aep]
 parts:
+  - {component: anode-feed-tube, qty: 1, cat: part}
+  - {component: mmo-anode, qty: 1, cat: prev}
   - {component: co2-regulator, qty: 1, cat: part}
   - {component: regulator-outlet-o-ring, qty: 1, cat: part}
   - {component: reducing-nipple, qty: 1, cat: part}
@@ -41,37 +43,40 @@ checks:
 
 This step builds the gas train with the adapter's pin backed off, so no gas goes in. **Admit CO₂**, next, opens it.
 
-1. Work in a well-ventilated room. Put the SodaStream cylinder into its holder at the rear of the raft.
-2. Put on all PPE, including cryogenic gloves.
-3. Back off the KegLand adapter's pin (thumbscrew out and loose), and seat the o-ring on top of the cylinder. <!-- from video: session-21 0:18:57 - "the critical thing we need is the o-ring ... I tend to just put the o-ring on top of the cylinder"; no component names this o-ring -->
-4. Screw the adapter on, tighten it with the gas cylinder wrench, and turn the cylinder so the adapter faces the front.
-5. Unscrew the John Guest push-fit from the regulator outlet port.
+1. Thread the 1 mm-bore anode feed tube through the MMO anode, and pull it tight at the top.
+2. Trim the feed tube's lower end with sharp scissors. <!-- from video: session-21 0:12:53 - done after the vial was filled; Martin: "might have been clever to do this before we got the liquid in"; which end was trimmed is not clear from the transcript --> <!-- TODO: state the trim length | assignee: @Martin -->
+3. Push a female luer onto the feed tube's top end: this is the CO₂ inlet.
+4. Work in a well-ventilated room. Put the SodaStream cylinder into its holder at the rear of the raft.
+5. Put on all PPE, including cryogenic gloves.
+6. Back off the KegLand adapter's pin (thumbscrew out and loose), and seat the o-ring on top of the cylinder. <!-- from video: session-21 0:18:57 - "the critical thing we need is the o-ring ... I tend to just put the o-ring on top of the cylinder"; no component names this o-ring -->
+7. Screw the adapter on, tighten it with the gas cylinder wrench, and turn the cylinder so the adapter faces the front.
+8. Unscrew the John Guest push-fit from the regulator outlet port.
 
    <img width="1330" height="1767" alt="The regulator outlet port with the John Guest push-fit unscrewed (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/3cbc619c-be7c-4abb-87d3-048d8350dcfc" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-6. Insert the o-ring into the regulator outlet port. It seats against the reducer, so this joint needs no Loctite. <!-- kits from 2026-09-24 include this o-ring; the recorded build had none and used Loctite 577 instead -->
+9. Insert the o-ring into the regulator outlet port. It seats against the reducer, so this joint needs no Loctite. <!-- kits from 2026-09-24 include this o-ring; the recorded build had none and used Loctite 577 instead -->
 
    <img width="1767" height="1330" alt="The o-ring seated inside the regulator outlet port (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/3316cd49-21c7-4fb3-a931-dd5c0798a27b" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-7. Screw the reducing nipple (1/4" male to 1/8" male) into the regulator outlet port, and tighten with the wrench.
+10. Screw the reducing nipple (1/4" male to 1/8" male) into the regulator outlet port, and tighten with the wrench.
 
    <img width="1767" height="1330" alt="The reducer screwed into the regulator outlet port (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/800812cb-2ccb-4a8f-8198-f8e381757552" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-8. Apply Loctite 577 to the second thread (not the end one) of the reducer's 1/8" male outlet, and screw the solenoid valve's left port onto it, electronics to the rear. Work up to vertical; do not pass it and turn back.
+11. Apply Loctite 577 to the second thread (not the end one) of the reducer's 1/8" male outlet, and screw the solenoid valve's left port onto it, electronics to the rear. Work up to vertical; do not pass it and turn back.
 
    <img width="1767" height="1330" alt="The solenoid valve screwed onto the reducer by its left port, electronics to the rear (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/ec433749-5866-476b-a965-ec070b80083e" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-9. Holding the solenoid, screw the blanking plug into its right port with a 5 mm hex key. Use no sealant. <!-- from video: session-21 0:28:08 - the blanking plug went in before the needle valve; the text had it after -->
-10. Apply Loctite 577 to the needle valve's inlet thread (second thread), and screw it into the solenoid's front port, stopping with it pointing straight up.
-11. Close the needle valve (clockwise), and check the solenoid manual override is at 0.
-12. Close the regulator (turn its flathead screw fully anti-clockwise), then screw it onto the adapter and tighten.
-13. Wait for the Loctite 577 to fixture before admitting gas: 10 to 60 minutes at 22 °C. It reaches full pressure rating after 24 hours.
+12. Holding the solenoid, screw the blanking plug into its right port with a 5 mm hex key. Use no sealant. <!-- from video: session-21 0:28:08 - the blanking plug went in before the needle valve; the text had it after -->
+13. Apply Loctite 577 to the needle valve's inlet thread (second thread), and screw it into the solenoid's front port, stopping with it pointing straight up.
+14. Close the needle valve (clockwise), and check the solenoid manual override is at 0.
+15. Close the regulator (turn its flathead screw fully anti-clockwise), then screw it onto the adapter and tighten.
+16. Wait for the Loctite 577 to fixture before admitting gas: 10 to 60 minutes at 22 °C. It reaches full pressure rating after 24 hours.
 
-<!-- VIDEO CUT: session-21 - cut after the regulator is screwed onto the adapter (item 12), before the pin is opened to admit gas (about 0:33:43); Admit CO₂ starts there. -->
+<!-- VIDEO CUT: session-21 - cut after the regulator is screwed onto the adapter (item 15), before the pin is opened to admit gas (about 0:33:43); Admit CO₂ starts there. -->
 
 <details>
 <summary>Notes</summary>
