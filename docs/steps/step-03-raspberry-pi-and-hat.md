@@ -1,6 +1,7 @@
 ---
 id: step-03-raspberry-pi-and-hat
 order: 3
+media: [vid-03-hardware-setup]
 title: "Raspberry Pi and HAT"
 guide: [aep]
 parts:
