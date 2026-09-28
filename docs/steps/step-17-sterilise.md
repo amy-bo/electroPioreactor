@@ -1,6 +1,6 @@
 ---
-id: step-11-sterilise
-order: 11
+id: step-17-sterilise
+order: 17
 title: "Sterilise"
 guide: [aep]
 ---

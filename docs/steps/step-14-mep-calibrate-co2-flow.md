@@ -1,6 +1,6 @@
 ---
-id: step-10-mep-calibrate-co2-flow
-order: 10
+id: step-14-mep-calibrate-co2-flow
+order: 14
 title: "Calibrate CO₂ flow"
 guide: [mep, baep]
 parts:
@@ -9,10 +9,11 @@ parts:
 checks_draft: true
 checks:
   - id: target-reached
-    question: "Did you reach your target flow within sensible needle valve travel?"
-    issues:
-      - {problem: "The needle valve drifts", fix: "Needle valve creep: re-measure after a few sparges and adjust."}
-      - {problem: "Flow is low whatever the setting", fix: "Look for a kinked line, then a leak at a Loctite 577 joint: pipette washing-up liquid in water onto each joint and watch for bubbles."}
+    question: "As you adjust the needle valve and re-measure, how does the flow behave?"
+    options:
+      - {label: "It reaches the target and holds there on re-measuring", correct: true}
+      - {label: "It reaches the target, then drifts over later sparges", fix: "Needle valve creep: re-measure after a few sparges and adjust."}
+      - {label: "It stays low, whatever the needle valve setting", fix: "Look for a kinked line, then a leak at a Loctite 577 joint: pipette washing-up liquid in water onto each joint and watch for bubbles."}
 ---
 
 The FZone regulator's outlet pressure is fixed, so the needle valve alone sets the flow. Aim for the flow of an AEP0.1.1 at 1 bar, so experiments port across. BAEP: fit the vent filters first; they change the flow.

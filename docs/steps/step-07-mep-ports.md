@@ -1,6 +1,6 @@
 ---
-id: step-06-mep-ports
-order: 6
+id: step-07-mep-ports
+order: 7
 title: "Ports"
 guide: [mep, baep]
 parts:
@@ -12,13 +12,16 @@ parts:
 checks_draft: true
 checks:
   - id: five-tubes
-    question: "Are all five ports filled: Media In, Media Out and CO₂ In reaching into the vial, the two gas outlets above the liquid?"
-    issues:
-      - {problem: "A gas outlet dips into the liquid", fix: "Pull it up until it is clear of the liquid at 14 ml, or culture will be pushed out through it."}
+    question: "Where do the two gas outlet tubes end?"
+    options:
+      - {label: "Just below the cap, above the 14 ml level", correct: true}
+      - {label: "Down in the liquid, below the 14 ml level", fix: "Pull it up until it is clear of the liquid at 14 ml, or culture will be pushed out through it."}
   - id: co2-deep
-    question: "Does the CO₂ In tube end near the base of the vial, clear of the stir bar?"
-    issues:
-      - {problem: "It fouls the stir bar", fix: "Pull it up until the stir bar spins freely."}
+    question: "Where does the CO₂ In tube end?"
+    options:
+      - {label: "Near the base of the vial, clear of the stir bar", correct: true}
+      - {label: "Near the base of the vial, touching the stir bar", fix: "Pull it up until the stir bar spins freely."}
+      - {label: "Halfway down the vial, well above the stir bar", fix: "Push it down to near the base of the vial, clear of the stir bar."}
 ---
 
 The cap has seven openings: the electrodes fill two, and a tube goes through each of the five 3.2 mm ports.
@@ -31,7 +34,7 @@ The cap has seven openings: the electrodes fill two, and a tube goes through eac
 
 1. Cut five lengths of Flexelene tubing, and push one through each port from the top.
 2. Push Media In down until it is below the liquid level.
-3. Push Media Out down to the 14 ml level. It is fine-tuned in **Nutrient solution**.
+3. Push Media Out down to the 14 ml level. It is fine-tuned in **Calibrate the pumps and set the level**.
 4. Push CO₂ In down to near the base of the vial, clear of the stir bar.
 5. Leave both gas outlets just below the cap, above the liquid.
 6. Fit a female luer to the top of Media In, Media Out and CO₂ In, and a male luer to each gas outlet, so outlets are marked as outlets.

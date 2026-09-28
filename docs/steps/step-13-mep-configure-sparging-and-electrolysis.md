@@ -1,19 +1,21 @@
 ---
-id: step-09-mep-configure-sparging-and-electrolysis
-order: 9
+id: step-13-mep-configure-sparging-and-electrolysis
+order: 13
 title: "Configure sparging and electrolysis"
 guide: [mep, baep]
 checks_draft: true
 checks:
   - id: solenoid-clicks
-    question: "During the test sparge, does the solenoid click open each minute and bubbles enter the vial?"
-    issues:
-      - {problem: "No click", fix: "Check the solenoid lead is in PWM 4, `4=relay` is in `config.ini`, and the 12 V supply is connected."}
-      - {problem: "It clicks but no bubbles", fix: "Check the cylinder is open (pin screw fully down) and the needle valve is not closed."}
+    question: "During the test sparge, what do you hear and see each minute?"
+    options:
+      - {label: "A click, then bubbles entering the vial", correct: true}
+      - {label: "A click, but no bubbles entering the vial", fix: "Check the cylinder is open (pin screw fully down) and the needle valve is not closed."}
+      - {label: "No click, and no bubbles entering the vial", fix: "Check the solenoid lead is in PWM 4, `4=relay` is in `config.ini`, and the 12 V supply is connected."}
   - id: closes-cleanly
-    question: "Does the bubbling stop when the solenoid closes?"
-    issues:
-      - {problem: "It keeps bubbling", fix: "Check the solenoid override is at 0."}
+    question: "When the solenoid clicks shut, what does the bubbling do?"
+    options:
+      - {label: "Stops with the click", correct: true}
+      - {label: "Carries on after the click", fix: "Check the solenoid override is at 0."}
 ---
 
 1. On the **Configuration** page, check `config.ini` contains the following. The installer adds `4=relay` and the `[electropioreactor.config]` section; channels 2 and 3 were set in **Nutrient solution**.

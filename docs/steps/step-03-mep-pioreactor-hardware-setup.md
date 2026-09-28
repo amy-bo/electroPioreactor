@@ -1,6 +1,6 @@
 ---
-id: step-02-mep-pioreactor-hardware-setup
-order: 2
+id: step-03-mep-pioreactor-hardware-setup
+order: 3
 title: "Pioreactor hardware setup"
 guide: [mep, baep]
 parts:
@@ -15,13 +15,16 @@ tools:
 checks_draft: true
 checks:
   - id: external-power
-    question: "Is the 12 V supply in the HAT's barrel jack, set up as Pioreactor's external power guide says for your HAT?"
-    issues:
-      - {problem: "It is not", fix: "Set it up now, before any calibration. Without it the pumps and the PWM 4 CO₂ solenoid run on the Pi's own supply, and the solenoid will not drive."}
+    question: "What is plugged into the HAT's barrel jack?"
+    options:
+      - {label: "The 12 V supply", correct: true}
+      - {label: "Nothing yet", fix: "Set it up now, before any calibration, following Pioreactor's external power guide for your HAT. Without it the pumps and the PWM 4 CO₂ solenoid run on the Pi's own supply, and the solenoid will not drive."}
   - id: boots
-    question: "With both supplies connected, does the Pi boot within about 90 seconds?"
-    issues:
-      - {problem: "It does not boot", fix: "Check the Raspberry Pi power supply is in the Pi's own power socket, not the HAT."}
+    question: "On a Zero 2 W, which socket is the Raspberry Pi power supply in?"
+    options:
+      - {label: "The frontmost micro-USB on the bottom board", correct: true}
+      - {label: "The other micro-USB on the bottom board", fix: "Move it to the frontmost socket, with the Pioreactor logo facing you: that is the Pi's power socket. The unit then boots within about 90 seconds."}
+      - {label: "A socket on the HAT, not the Pi", fix: "The HAT takes the 12 V supply. Plug the Raspberry Pi supply into the Pi's own power socket: the frontmost micro-USB on the bottom board."}
 ---
 
 Follow Pioreactor's [20 ml v1.1 hardware setup guide](https://docs.pioreactor.com/user-guide/20ml-v11-hardware-setup-intro), with these changes.

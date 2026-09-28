@@ -1,6 +1,6 @@
 ---
-id: step-03-mep-pioreactor-software-setup
-order: 3
+id: step-04-mep-pioreactor-software-setup
+order: 4
 title: "Pioreactor software setup"
 guide: [mep, baep]
 parts:
@@ -10,18 +10,22 @@ tools:
 checks_draft: true
 checks:
   - id: model-set
-    question: "In Inventory, is this unit's model set to the Pioreactor 20 ml v1.1?"
-    issues:
-      - {problem: "It shows another model", fix: "Set it in Inventory. Until then, OD readings are interpreted against the wrong hardware."}
+    question: "In Inventory, which model does this unit show?"
+    options:
+      - {label: "Pioreactor 20 ml, v1.1", correct: true}
+      - {label: "Pioreactor 40 ml, v1.5", fix: "Set it to the 20 ml v1.1 in Inventory. Until then, OD readings are interpreted against the wrong hardware."}
+      - {label: "Pioreactor 40 ml, XR variant", fix: "Set it to the 20 ml v1.1 in Inventory. Until then, OD readings are interpreted against the wrong hardware."}
   - id: in-activities
-    question: "Is electroPioreactor listed under Pioreactors → your unit → Manage → Activities?"
-    issues:
-      - {problem: "It is not listed", fix: "Hard-refresh the page (Ctrl/Cmd+Shift+R). Otherwise put the card back in your computer; `pioreactor/plugins/failed/` on `bootfs` holds the wheel and a log of what went wrong."}
-      - {problem: "The log says `refusing to overwrite [PWM] 4 = 'waste'`", fix: "That is the stock Pioreactor default. Set PWM 4 to `relay` on the UI's **Configuration** page, then install again over SSH."}
+    question: "What does Pioreactors → your unit → Manage → Activities show?"
+    options:
+      - {label: "A list that includes **electroPioreactor**", correct: true}
+      - {label: "A list without **electroPioreactor**", fix: "Hard-refresh the page (Ctrl/Cmd+Shift+R). Otherwise put the card back in your computer; `pioreactor/plugins/failed/` on `bootfs` holds the wheel and a log of what went wrong."}
+      - {label: "A list without it; the log refuses `[PWM] 4 = 'waste'`", fix: "That is the stock Pioreactor default. Set PWM 4 to `relay` on the UI's **Configuration** page, then install again over SSH."}
   - id: clock-right
-    question: "Does the unit show the correct date and time?"
-    issues:
-      - {problem: "The clock is wrong on an offline unit", fix: "An offline unit has no time source. Set its clock from the computer with the `sudo date` command on this page."}
+    question: "Compared with your computer's clock, what date and time does the unit show?"
+    options:
+      - {label: "The same date and time, to the minute", correct: true}
+      - {label: "A different date, or a time minutes out", fix: "An offline unit has no time source. Set its clock from the computer with the `sudo date` command on this page."}
 ---
 
 The electroPioreactor plugin goes onto the card while you flash it, so the unit boots ready. Text as in [AEP-Plugin/README.md](../../AEP-Plugin/README.md#from-the-card).

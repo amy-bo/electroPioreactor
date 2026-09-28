@@ -1,6 +1,6 @@
 ---
-id: step-03-pioreactor-software-setup
-order: 3
+id: step-05-pioreactor-software-setup
+order: 5
 title: "Pioreactor software setup"
 guide: [aep]
 parts:
@@ -11,23 +11,30 @@ tools:
 checks_draft: true
 checks:
   - id: version-26-5
-    question: "Fallback route only (no card bundle): is the Pioreactor software 26.5.0 or later?"
-    issues:
-      - {problem: "It is older", fix: "Run `pio update`."}
-      - {problem: "The unit has no internet, so `pio update` fails", fix: "Flash the latest image instead, or give the unit internet over a cable: see **Internet over an ethernet cable** in **Check the plugin**."}
+    question: "Fallback route only (no card bundle): which Pioreactor software version is the unit running?"
+    options:
+      - {label: "26.5.0 or later", correct: true}
+      - {label: "Older than 26.5.0", fix: "Run `pio update`."}
+      - {label: "Older, and `pio update` fails offline", fix: "Flash the latest image instead, or give the unit internet over a cable: see **Internet over an ethernet cable** in **Check the plugin**."}
   - id: xr-model-set
-    question: "In Inventory, is this unit's model set to the XR variant?"
-    issues:
-      - {problem: "It still shows the standard model", fix: "Set it to the XR variant in Inventory. Until then, OD readings are interpreted against the wrong channel map."}
+    question: "In Inventory, which model does this unit show?"
+    options:
+      - {label: "Pioreactor 40 ml, XR variant", correct: true}
+      - {label: "Pioreactor 40 ml, standard v1.5", fix: "Set it to the XR variant in Inventory. Until then, OD readings are interpreted against the wrong channel map."}
+      - {label: "Pioreactor 20 ml, v1.1", fix: "Set it to the 40 ml XR variant in Inventory. Until then, OD readings are interpreted against the wrong hardware."}
   - id: xr-config
-    question: "Fallback route only (no card bundle): are the XR photodiode channel values in config.ini?"
-    issues:
-      - {problem: "They are missing", fix: "Add them as listed at the end of the XR assembly guide."}
+    question: "Fallback route only (no card bundle): which XR photodiode channel values does config.ini hold?"
+    options:
+      - {label: "All those listed at the end of the XR assembly guide", correct: true}
+      - {label: "Some of those listed at the end of the XR assembly guide", fix: "Add the rest, as listed at the end of the XR assembly guide."}
+      - {label: "None: only the stock v1.5 photodiode values", fix: "Add them as listed at the end of the XR assembly guide."}
   - id: temp-plugin
     when: {temp-kit: true}
-    question: "Is pioreactor-precision-temperature-plugin listed under Plugins in the Pioreactor UI?"
-    issues:
-      - {problem: "The install fails because the unit has no internet", fix: "Give the unit internet over a cable (see **Internet over an ethernet cable** in **Check the plugin**), then install it."}
+    question: "What does **Plugins** in the Pioreactor UI show for pioreactor-precision-temperature-plugin?"
+    options:
+      - {label: "Listed as installed", correct: true}
+      - {label: "Missing: the install needed internet", fix: "Give the unit internet over a cable (see **Internet over an ethernet cable** in **Check the plugin**), then install it."}
+      - {label: "Missing: the card's failed log names it", fix: "Read the log in `pioreactor/plugins/failed/` on the card's `bootfs` drive, then install it over SSH as in [AEP-Plugin/README.md](../../AEP-Plugin/README.md#over-ssh)."}
 ---
 
 The plugins go onto the card while you flash it, so the unit boots ready. Text as in [AEP-Plugin/README.md](../../AEP-Plugin/README.md#from-the-card).

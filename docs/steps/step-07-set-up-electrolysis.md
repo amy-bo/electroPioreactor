@@ -1,6 +1,6 @@
 ---
-id: step-05-set-up-electrolysis
-order: 5
+id: step-07-set-up-electrolysis
+order: 7
 title: "Set up electrolysis"
 guide: [aep]
 parts:
@@ -16,35 +16,28 @@ parts:
   - {component: crimp-connector, qty: 1, cat: part}
   - {component: crimp-housing, qty: 1, cat: part}
   - {component: pioreactor-vial-40ml, qty: 1, cat: prev}
-  - {component: pioreactor-40ml, qty: 1, cat: prev}
 tools:
   - {component: analytical-balance, qty: 1}
-  - {component: vernier-callipers, qty: 1}
-  - {component: multimeter, qty: 1}
 renders:
   - {id: vial-cap-iso, component: vial-cap, view: iso, explode: false, format: png}
   - {id: vial-cap-exploded, component: vial-cap, view: iso, explode: true, format: png}
 viewer: {component: vial-cap, format: glb}
 safety: |
   Fix the red cable's ring terminal to the MMO anode and the black cable's to the stainless steel cathode. Never swap them. Reversed, the stainless steel cathode corrodes quickly and leaches Cr, Ni and Fe into the culture.
-  Drive the electrodes from the electroPioreactor job, never by setting LED channel D by hand: only the job clamps electrolysis power to 10%.
 checks_draft: true
 checks:
   - id: polarity
-    question: "Is the red cable fixed to the MMO anode (the tube) and the black cable to the stainless steel cathode (the rod)?"
-    issues:
-      - {problem: "They are swapped", fix: "Stop the job and swap the ring terminals before driving the electrodes again. Reversed, the stainless steel corrodes quickly and leaches Cr, Ni and Fe into the culture."}
-  - id: bubbles
-    question: "With electroPioreactor running, do roughly twice as many bubbles form on the cathode as on the anode?"
-    issues:
-      - {problem: "No bubbles on either electrode", fix: "Check the electrodes are on LED channel D (catch upwards), the vial holds nutrient solution or bicarbonate of equal ionic strength, and the job was started from **Activities**."}
-      - {problem: "More bubbles on the anode than the cathode", fix: "The leads are probably reversed. Stop the job and check red is on the anode, black on the cathode."}
-      - {problem: "Bubbling is weak", fix: "Raise electrolysis power in the job's **Settings** panel, not by setting LED channel D by hand: the job clamps power to 10% to protect the electrodes."}
+    question: "Which electrode is the red cable's ring terminal fixed to?"
+    options:
+      - {label: "The MMO anode (the tube)", correct: true}
+      - {label: "The stainless steel cathode (the rod)", fix: "Swap the two ring terminals now, before anything drives the electrodes. Reversed, the stainless steel corrodes quickly and leaches Cr, Ni and Fe into the culture."}
   - id: depth
-    question: "With the cap fully screwed on and the septum compressed evenly, are the electrode tops flush with the top of the vial cap?"
-    issues:
-      - {problem: "An electrode sits proud of or below the cap top", fix: "Push it through the septum until it seats in its journal bore, top flush. The cap's column height sets the standard depth."}
-      - {problem: "The cap will not screw fully on", fix: "Check the septum lies flat across the vial mouth so it compresses evenly."}
+    question: "With the cap fully screwed on, where are the electrode tops?"
+    options:
+      - {label: "Both flush with the top of the cap", correct: true}
+      - {label: "One or both standing proud of the cap top", fix: "Push it down through the septum until it seats in its journal bore, top flush. The cap's column height sets the standard depth."}
+      - {label: "One or both sitting below the cap top", fix: "Unscrew the cap, push the electrode up through the septum until its top is flush, and screw the cap back on."}
+      - {label: "Uneven, as the cap will not screw fully on", fix: "Check the septum lies flat across the vial mouth so it compresses evenly."}
 ---
 
 :::note[LabCrafter kits]
@@ -62,20 +55,13 @@ checks:
 9. Weigh the dry empty vial and record its weight.
 10. Fill it to about 30 ml, the working volume, with nutrient solution or bicarbonate of equal ionic strength.
 11. Screw the Vial Cap fully onto the vial, compressing the septum evenly.
-12. Record the distance from the top of the Vial Cap to the bottom of each electrode.
-13. Connect the electrodes to LED channel D, catch upwards.
-14. Start **electroPioreactor** from **Activities** on the **Manage** screen. Set a long sparge interval until CO₂ is set up.
-15. Raise **electrolysis power** in the job's **Settings** panel until bubbles form. <!-- from video: session-17 1:18 (file 023 35:00-39:00) - power raised from 2.5 to 3.5% -->
-16. Check roughly twice as many bubbles form on the cathode as on the anode.
-17. Measure the voltage across the electrodes with a multimeter, and record it. <!-- from video: session-18 0:03:28 - 2.82 V at 3.5%; current not measured, as it needs a lead broken into -->
-18. If you can break into a lead, measure and record the current too.
-19. Insert the vial into the Pioreactor once all vials show even electrolysis.
+
+<!-- VIDEO CUT: session-17 - cut after the Vial Cap is screwed onto the filled vial (item 11), before the electrode distances are recorded; Test electrolysis starts there. -->
 
 <details>
 <summary>Notes</summary>
 
 - One septum seals the vial mouth, each electrode and every port, and self-heals sampling-needle tracks. AEP0.2 has no electrode o-rings and no cap o-ring.
 - The cap's column height sets each electrode's length and protrusion into the vial, so flush tops give every unit the same standard depth.
-- If the unit misbehaves before electrolysis starts (fan starting and stopping, no response), run a self test from its **Manage** screen. Power-cycle it if that hangs.
 
 </details>

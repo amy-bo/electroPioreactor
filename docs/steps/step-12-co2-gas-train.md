@@ -1,7 +1,7 @@
 ---
-id: step-08-set-up-co2-sparging
-order: 8
-title: "CO₂ sparging"
+id: step-12-co2-gas-train
+order: 12
+title: "CO₂ gas train"
 guide: [aep]
 parts:
   - {component: co2-regulator, qty: 1, cat: part}
@@ -13,24 +13,13 @@ parts:
   - {component: blanking-plug, qty: 1, cat: part}
   - {component: cylinder-regulator-adapter, qty: 1, cat: part}
   - {component: sodastream-co2-cylinder, qty: 1, cat: consumable}
-  - {component: polyurethane-co2-tube, qty: 1, cat: part}
-  - {component: hydrophobic-vent-filter, qty: 3, cat: part}
-  - {component: barb-1-8-to-male-luer-lock, qty: 1, cat: part}
-  - {component: anode-feed-tube, qty: 1, cat: prev}
-  - {component: male-to-male-luer-lock-adapter, qty: 2, cat: prev}
-  - {component: luer-lock-cap, qty: 1, cat: part}
-  - {component: solenoid-wiring, qty: 1, cat: part}
   - {component: co2-cylinder-dovetail-holder, qty: 1, cat: prev}
-  - {component: mmo-anode, qty: 1, cat: prev}
-  - {component: crimp-connector, qty: 1, cat: prev}
-  - {component: crimp-housing, qty: 1, cat: prev}
 tools:
   - {component: gas-cylinder-wrench, qty: 1}
   - {component: banded-oil-filter-wrench, qty: 1}
   - {component: cryogenic-gloves, qty: 1}
   - {component: eye-face-protection, qty: 1}
   - {component: lab-coat, qty: 1}
-  - {component: needle-nose-pliers, qty: 1}
 safety: |
   Put on all PPE, including cryogenic gloves, before tightening the cylinder joint. [Follow the instructions included with the SodaStream adapter](https://cdn.shopify.com/s/files/1/2268/6279/files/BrewKegTap_Sodastream_Adapter_Instructions.pdf?v=1763549894). Never fit a mismatched adapter to a high-pressure CO₂ joint: only full thread engagement holds it, and a partial, mismatched engagement fails suddenly.
   Keep the solenoid manual override closed (horizontal line pointing at 0 on the front of the solenoid).
@@ -38,24 +27,19 @@ safety: |
 checks_draft: true
 checks:
   - id: joint-before-gas
-    question: "Was the regulator screwed fully onto the adapter, pin backed off, before any CO₂ was admitted?"
-    issues:
-      - {problem: "Gas escaped while tightening", fix: "Back off the adapter's pin to stop the gas. Screw the regulator fully onto the adapter, then open the pin again. Never fit a mismatched adapter."}
+    question: "Before any gas goes in, where do the adapter's pin and the regulator stand?"
+    options:
+      - {label: "Pin backed off; regulator screwed fully onto the adapter", correct: true}
+      - {label: "Pin screwed in; regulator screwed fully onto the adapter", fix: "Back the pin off now (thumbscrew out and loose). The pin admits the gas, and **Admit CO₂** opens it once the Loctite 577 has fixtured."}
+      - {label: "Pin backed off; regulator part way onto the adapter", fix: "Screw the regulator fully onto the adapter and tighten it. Only full thread engagement holds a high-pressure joint. Never fit a mismatched adapter."}
   - id: override-closed
-    question: "Is the solenoid manual override closed (horizontal line pointing at 0)?"
-    issues:
-      - {problem: "CO₂ flows all the time", fix: "Close the manual override."}
-  - id: gas-tight
-    question: "Once CO₂ is admitted, is the train free of hissing or leaks?"
-    issues:
-      - {problem: "A threaded joint leaks", fix: "Every threaded joint without an o-ring seat needs Loctite 577. It fixtures in 10 to 60 minutes at 22 °C and reaches full pressure rating after 24 hours."}
-      - {problem: "The 4 mm tube leaks at a barb or ferrule", fix: "Soften the tube end in hot water and reseat it. The 1/8\" barb must grip the 4 mm tube, or the joint leaks under pressure."}
-      - {problem: "The blanking plug leaks", fix: "It seals on its o-ring, not on sealant. Check the o-ring is present, and tighten with the wrench."}
-  - id: pwm4
-    question: "Is the solenoid connector plugged into PWM channel 4?"
-    issues:
-      - {problem: "It is on another channel", fix: "Move it to PWM channel 4: the plugin maps that channel to the relay."}
+    question: "What does the solenoid's manual override point at?"
+    options:
+      - {label: "0 (horizontal line at 0)", correct: true}
+      - {label: "1 (horizontal line at 1)", fix: "Turn it to 0. At 1 the solenoid is always open, so CO₂ would flow all the time."}
 ---
+
+This step builds the gas train with the adapter's pin backed off, so no gas goes in. **Admit CO₂**, next, opens it.
 
 1. Work in a well-ventilated room. Put the SodaStream cylinder into its holder at the rear of the raft.
 2. Put on all PPE, including cryogenic gloves.
@@ -86,13 +70,8 @@ checks:
 11. Close the needle valve (clockwise), and check the solenoid manual override is at 0.
 12. Close the regulator (turn its flathead screw fully anti-clockwise), then screw it onto the adapter and tighten.
 13. Wait for the Loctite 577 to fixture before admitting gas: 10 to 60 minutes at 22 °C. It reaches full pressure rating after 24 hours.
-14. Open the adapter's pin to admit CO₂. The cylinder gauge reads about 60 bar when full. If the adapter leaks, tighten it further. <!-- from video: session-21 0:33:43-0:36:13 - the adapter leaked until tightened further -->
-15. Screw the regulator in until its outlet gauge reads about 1 bar.
-16. Remove the compression nut and ferrule from the top of the needle valve, thread the nut onto the 4 mm polyurethane CO₂ tube, and push the tube fully onto the needle valve (dip it in hot water if it will not go). Refit the ferrule, and screw the nut down.
-17. Cut the tube just long enough to run over the regulator and down to the vial's CO₂ inlet (cut every other unit's tube to the same length), and push a 1/8" hose barb to male luer lock adapter into the free end (hot water if needed).
-18. Fit the male end of a 0.2 μm vent filter to the female luer on the CO₂ inlet, and connect the tube's luer to that filter. <!-- kits from 2026-09-24 include six vent filters; the recorded build had none -->
-19. Fit the female ends of two 0.2 μm vent filters to the male-to-male adapters on the two gas outlets (fitted in [Ports](step-07-ports.md)), and cap any unused luer lock with a luer lock cap.
-20. Route the solenoid lead down behind the Pioreactor and through the pumps, and plug it into PWM channel 4.
+
+<!-- VIDEO CUT: session-21 - cut after the regulator is screwed onto the adapter (item 12), before the pin is opened to admit gas (about 0:33:43); Admit CO₂ starts there. -->
 
 <details>
 <summary>Notes</summary>
@@ -100,6 +79,5 @@ checks:
 - Solenoid override: 0 is normal (closed without power); 1 is always open.
 - Use an o-ring wherever the joint has a seat for one, and Loctite 577 on every other threaded joint. Loctite 577 is anaerobic thread sealant, not glue. Skipping the end thread keeps it out of the gas path. Clean the threads with ethanol first where you can.
 - Do not use PTFE tape in the gas train. Applied correctly it seals, but it is fiddly and leaks too often.
-- CO₂ enters through the anode and leaves through its open base. The gas rises past the anode surface and clears oxygen bubbles from it, with no separate sparge tube. <!-- TODO: frit dispersion at the anode base is deferred to AEP0.3 | assignee: @Martin -->
 
 </details>

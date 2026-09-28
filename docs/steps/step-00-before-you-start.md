@@ -23,15 +23,18 @@ receipt: true
 checks_draft: true
 checks:
   - id: parts-counted
-    question: "Does every row of the parts checklist on this page match what you received?"
-    issues:
-      - {problem: "A part is short or missing", fix: "Email your supplier from the **Missing something?** line under the checklist."}
-      - {problem: "The SodaStream cylinders or the 250 ml GL45 bottles are missing from a LabCrafter kit", fix: "LabCrafter does not supply these regional consumables. Buy them locally: links in item 1."}
+    question: "Checking the parts checklist on this page against the kit, what did you find?"
+    options:
+      - {label: "Every row ticked, nothing short", correct: true}
+      - {label: "One or more rows short of a part", fix: "Email your supplier from the **Missing something?** line under the checklist."}
+      - {label: "Only the SodaStream cylinders or GL45 bottles absent", fix: "LabCrafter does not supply these regional consumables. Buy them locally: links in item 1."}
   - id: tools-to-hand
-    question: "Is every item under **Tools** to hand, including the PPE?"
-    issues:
-      - {problem: "You have no analytical balance", fix: "Pump calibration needs only 0.1 g accuracy: a jewellery scale will do."}
-      - {problem: "A required tool is missing", fix: "Get it before the step that lists it. You need the cryogenic gloves and eye/face protection before making the CO₂ cylinder joint."}
+    question: "Which items under **Tools** are not yet to hand?"
+    options:
+      - {label: "None: every tool and all the PPE", correct: true}
+      - {label: "Only the analytical balance", fix: "Pump calibration needs only 0.1 g accuracy: a jewellery scale will do."}
+      - {label: "The cryogenic gloves or eye protection", fix: "Get them before **CO₂ gas train**: you need both before making the CO₂ cylinder joint."}
+      - {label: "Another tool on the list", fix: "Get it before the step that lists it."}
 ---
 
 > Parts: the [components](../components/) of this guide. Archived AEP0.1.1 instructions: [AEP0.1.1_Assembly.md](../../AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/AEP0.1.1_Assembly.md).

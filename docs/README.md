@@ -8,8 +8,16 @@ To build: run `docsandeye check` from the repository root to validate the schema
 
 One file per assembly step, `steps/step-NN-<slug>.md`, where `NN` is the step's `order` and the title is the heading of the corresponding numbered step in the AEP0.2 assembly instructions (Method steps 1 to 11); `steps/step-00-before-you-start.md` carries the "What changed from AEP0.1.1", "Before you start", tools and spares sections. Bodies keep the instructions' wording; frontmatter lists the parts, tools, renders, viewer and safety notes. (This section lives here rather than in `steps/README.md` because the loader treats every `*.md` under `steps/` as a step.)
 
+A step's `id` must equal its filename stem, and `NN` is its `order`, so renumbering a step changes its URL.
+
+### Step checks
+
+Checks are multiple choice: the question asks what the reader sees, and every option, right or wrong, is something a builder in a hurry could have done, worded alike so the phrasing does not give the answer away. Each wrong option carries a concrete fix.
+
+A check sits at the end of its step, so it must be fixable without undoing anything later in the same step. Where a later action covers or locks in an earlier one, the step is split at that point and the check ends the first half: the raft is checked before it is pressed together, the HAT's shunt before the vial holder covers it, the electrodes' polarity and depth before electrolysis runs, the pump channels and 12 V supply before calibration, the gas train before gas goes in, and the regulator pressure before the CO₂ flow is measured. The step's video is cut at the same point (`<!-- VIDEO CUT -->` comments in the step files).
+
 ### MEP and BAEP steps
 
-The `mep` guide (Mixed-culture electroPioreactor, `/MEP`) has its own step files, `steps/step-NN-mep-<slug>.md`, marked `guide: [mep, baep]`, written from the AEP0.2 steps with the MEP hardware and settings from `MixedElectroPioreactor/` (Assembly, Operation, Calibration, Pre-Transport Check): Pioreactor 20 ml v1.1, O-ring vial cap with ElectrodeTopStop, 60 mm platinum-plated titanium anode and stainless steel cathode at 33 mm below the cap, PWM 2 waste and 3 media, FZone fixed-pressure regulator, MEP card bundle. AEP-only steps (sterilisation, the temperature kit, XR) are left out; the MEP ports step fits tubes through the O-ring cap instead of needles through a septum. `step-01-connect-dovetail-platforms` is shared by all three guides.
+The `mep` guide (Mixed-culture electroPioreactor, `/MEP`) has its own step files, `steps/step-NN-mep-<slug>.md`, marked `guide: [mep, baep]`, written from the AEP0.2 steps with the MEP hardware and settings from `MixedElectroPioreactor/` (Assembly, Operation, Calibration, Pre-Transport Check): Pioreactor 20 ml v1.1, O-ring vial cap with ElectrodeTopStop, 60 mm platinum-plated titanium anode and stainless steel cathode at 33 mm below the cap, PWM 2 waste and 3 media, FZone fixed-pressure regulator, MEP card bundle. AEP-only steps (sterilisation, the temperature kit, XR) are left out; the MEP ports step fits tubes through the O-ring cap instead of needles through a septum. `step-01-connect-dovetail-platforms` and `step-02-press-the-raft-together` are shared by all three guides.
 
 The `baep` guide (Budget aseptic electroPioreactor, `/BAEP`) is the MEP steps plus `step-12-add-vent-filters`: five of the AEP's 25 mm, 0.2 µm vent filters.

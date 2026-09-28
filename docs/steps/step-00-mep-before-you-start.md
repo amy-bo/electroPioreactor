@@ -19,13 +19,17 @@ tools:
 checks_draft: true
 checks:
   - id: parts-to-hand
-    question: "Do you have every part the steps of this guide list?"
-    issues:
-      - {problem: "A part is missing", fix: "Each step lists its parts. [Components/README.md](../../Components/README.md) links suppliers for most of them."}
+    question: "Checking the parts each step of this guide lists, what is still missing?"
+    options:
+      - {label: "Nothing: every listed part is here", correct: true}
+      - {label: "One or more parts from a step's list", fix: "Each step lists its parts. [Components/README.md](../../Components/README.md) links suppliers for most of them."}
+      - {label: "Only the SodaStream cylinders or GL45 bottles", fix: "Buy them locally: links in item 1."}
   - id: tools-to-hand
-    question: "Are the tools under **Tools** to hand, including cryogenic gloves and eye protection?"
-    issues:
-      - {problem: "No cryogenic gloves", fix: "Do not fit the CO₂ cylinder without them. Everything up to **CO₂ sparging** can go ahead."}
+    question: "Which items under **Tools** are not yet to hand?"
+    options:
+      - {label: "None: every tool and all the PPE", correct: true}
+      - {label: "The cryogenic gloves or eye protection", fix: "Do not fit the CO₂ cylinder without them. Everything before **Admit CO₂** can go ahead."}
+      - {label: "Another tool on the list", fix: "Get it before the step that lists it."}
 ---
 
 > The Mixed-culture electroPioreactor (MEP) is the lower-cost electroPioreactor for mixed cultures. Source documents: [MixedElectroPioreactor](../../MixedElectroPioreactor/).
@@ -35,7 +39,7 @@ checks:
 3. Gather everything under **Tools**.
 
 :::note[BAEP]
-The Budget aseptic electroPioreactor (BAEP) is an MEP with five 0.2 μm vent filters on its gas and bottle vents. Its guide has the same steps, plus **Add the vent filters** at the end.
+The Budget aseptic electroPioreactor (BAEP) is an MEP with five 0.2 μm vent filters on its gas and bottle vents. Its guide has the same steps, plus **Add the vent filters** after **Admit CO₂**.
 :::
 
 <details>

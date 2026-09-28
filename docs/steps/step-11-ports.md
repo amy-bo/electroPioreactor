@@ -1,6 +1,6 @@
 ---
-id: step-07-ports
-order: 7
+id: step-11-ports
+order: 11
 title: "Ports"
 guide: [aep]
 parts:
@@ -18,21 +18,30 @@ tools:
 checks_draft: true
 checks:
   - id: eight-ports
-    question: "Can you identify all eight ports on the cap, with the spare left unpierced?"
-    issues:
-      - {problem: "A needle went into the spare port", fix: "Pull it out. The septum self-heals the needle track and keeps the port sealed."}
+    question: "Which of the cap's eight ports have nothing through them?"
+    options:
+      - {label: "Inoculation and the spare", correct: true}
+      - {label: "Inoculation only", fix: "A needle went into the spare port. Pull it out (the septum self-heals the needle track and keeps the port sealed) and put it through the port it belongs to."}
+      - {label: "The spare only", fix: "A needle went into the inoculation port. Pull it out: the inoculation syringe goes straight through the septum there. Put the needle through the port it belongs to."}
+      - {label: "Inoculation, the spare and a gas outlet", fix: "Push the second bent needle through as Gas Out – safety. Short of needles? Each Pioreactor ships with four, and the BoM adds one per unit: check **Count what you received** in **Before you start**, and use the **Missing something?** line under it."}
   - id: four-needles
-    question: "Are the four needle ports (Media In, Media Out, Gas Out and Gas Out – safety) through the septum?"
-    issues:
-      - {problem: "You have fewer than four needles", fix: "Each Pioreactor ships with four, and the BoM adds one per unit. Check **Count what you received** in **Before you start**; if any are short, use the **Missing something?** line under it."}
+    question: "Where do the needle tips sit relative to the water?"
+    options:
+      - {label: "Media Out at the surface, all the others above it", correct: true}
+      - {label: "Media In under the surface, the others above it", fix: "Pull Media In up above the water: only Media Out sits at the water level."}
+      - {label: "A bent gas needle at or under the surface", fix: "Pull it up above the liquid level: only Media Out sits at the water level."}
   - id: thirty-ml
-    question: "Filled with DI water via the pumps and weighed against the dry empty vial, does the vial hold 30 ml?"
-    issues:
-      - {problem: "The volume is not 30 ml", fix: "Move the Media Out needle up or down, run the pumps and re-weigh until it is."}
+    question: "Filled with DI water via the pumps and weighed against the dry empty vial, what does the vial hold while the pumps run?"
+    options:
+      - {label: "30 ml, holding steady", correct: true}
+      - {label: "More than 30 ml", fix: "Push the Media Out needle a little further down, run the pumps and re-weigh until it holds 30 ml."}
+      - {label: "Less than 30 ml", fix: "Pull the Media Out needle up a little, run the pumps and re-weigh until it holds 30 ml."}
   - id: immersion-recorded
-    question: "Are both electrodes at the standard immersion depth, and is each insertion depth recorded?"
-    issues:
-      - {problem: "A depth is off", fix: "Adjust it to the standard and record the new insertion depth."}
+    question: "What have you recorded for the electrodes in this step?"
+    options:
+      - {label: "Each insertion depth, after setting the standard immersion", correct: true}
+      - {label: "Each insertion depth, before setting the standard immersion", fix: "Adjust them to the standard immersion depth, then record the new insertion depths."}
+      - {label: "Nothing yet for either electrode", fix: "Measure the immersion depths, adjust them to the standard if needed, and record each insertion depth."}
 ---
 
 The cap has eight ports. The electrodes already fill two, this step puts needles through four, and the septum keeps the last two closed:

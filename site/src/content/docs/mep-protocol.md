@@ -14,10 +14,10 @@ Do these once per unit before the first experiment, and check the electrolysis v
 
 1. Run Pioreactor's [self test](https://docs.pioreactor.com/user-guide/pre-flight-hardware-check#step-1-run-a-self-test).
 2. [Calibrate stirring](https://docs.pioreactor.com/user-guide/hardware-calibrations#stirring-calibrations).
-3. Calibrate the pumps and set the level: done in the guide's **Nutrient solution** step.
+3. Calibrate the pumps and set the level: done in the guide's **Calibrate the pumps and set the level** step.
 4. Make an [OD600 standard curve](https://docs.pioreactor.com/user-guide/calibrate-od600) on the **Protocols** page (device `od90`), from vials of known OD600 measured on a benchtop spectrophotometer plus a media-only blank. Redo it every 6 months, or whenever the optics change.
 5. Calibrate the CO₂ flow: done in the guide's **Calibrate CO₂ flow** step.
-6. Record the electrolysis voltage and current at 2.5%: done in the guide's **Set up electrolysis** step.
+6. Record the electrolysis voltage and current at 2.5%: done in the guide's **Test electrolysis** step.
 
 ## Modes
 
@@ -45,7 +45,7 @@ Do these once per unit before the first experiment, and check the electrolysis v
 Start here only after a successful batch run.
 
 1. Set up as for batch, up to inoculation.
-2. Set the waste line to your level (see the guide's **Nutrient solution** step). The waste pump over-runs each dilution by design, so the line's height is the level.
+2. Set the waste line to your level (see the guide's **Calibrate the pumps and set the level** step). The waste pump over-runs each dilution by design, so the line's height is the level.
 3. In the **dosing automation**, choose chemostat, with an `exchange volume` (for example 0.5 ml) and a `duration` between doses. The dilution rate D (h⁻¹) = (`exchange volume` × 60 / `duration`) / 14.
 4. Start stirring, OD reading, **electroPioreactor** and the dosing automation.
 5. Over many hours OD settles to a steady state if D is below the culture's maximum growth rate; otherwise the culture washes out.
