@@ -26,6 +26,7 @@ export default defineConfig({
 	},
 	integrations: [
 		starlight({
+			routeMiddleware: './src/routeData.ts',
 			title: 'electroPioreactor',
 			description: 'Assembly and training guides for the electroPioreactor, an open aseptic electro-bioreactor built on the Pioreactor.',
 			plugins: [docsandeye({ projectRoot: '..' })],
