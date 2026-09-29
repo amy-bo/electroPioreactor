@@ -2,6 +2,7 @@
 id: step-08-test-electrolysis
 order: 8
 title: "Test electrolysis"
+media: [vid-06b-test-electrolysis]
 guide: [aep]
 parts:
   - {component: vial-cap, qty: 1, cat: prev}

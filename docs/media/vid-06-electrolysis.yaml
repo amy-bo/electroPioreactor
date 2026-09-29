@@ -1,0 +1,9 @@
+id: vid-06-electrolysis
+type: video
+youtube: 6cmmII6kir4
+end_s: 355
+poster: docs/media/vid-06-electrolysis.webp
+shot_date: 2026-09-22
+shot_by: "andeye (Laura Currie, edit; Martin Currie and Bingqiao Zhao on camera)"
+hero: [vial-cap@2.0.1, mmo-anode@1.0.1, stainless-steel-cathode@1.0.0, electrode-cable@1.0.0]
+licence: "CC BY-SA 4.0"

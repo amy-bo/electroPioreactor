@@ -2,6 +2,7 @@
 id: step-07-set-up-electrolysis
 order: 7
 title: "Set up electrolysis"
+media: [vid-06-electrolysis]
 guide: [aep]
 parts:
   - {component: silicone-septum, qty: 1, cat: part}

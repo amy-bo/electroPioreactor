@@ -1,0 +1,9 @@
+id: vid-06b-test-electrolysis
+type: video
+youtube: 6cmmII6kir4
+start_s: 355
+poster: docs/media/vid-06-electrolysis.webp
+shot_date: 2026-09-22
+shot_by: "andeye (Laura Currie, edit; Martin Currie and Bingqiao Zhao on camera)"
+hero: [vial-cap@2.0.1, pioreactor-vial-40ml@1.0.0, multimeter@1.0.0]
+licence: "CC BY-SA 4.0"
