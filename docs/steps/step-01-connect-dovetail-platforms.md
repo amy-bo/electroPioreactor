@@ -5,7 +5,8 @@ title: "Connect the platforms"
 media: [vid-02-platform-setup]
 guide: [aep, mep, baep]
 parts:
-  - {component: pumping-dovetail-platform, qty: 1, cat: part}
+  - {component: pioreactor-dovetail-platform, qty: 1, cat: printed}
+  - {component: pumping-dovetail-platform, qty: 2, cat: printed}
   - {component: gl45-bottle-holder, qty: 2, cat: printed}
   - {component: co2-cylinder-dovetail-holder, qty: 1, cat: printed}
 renders:

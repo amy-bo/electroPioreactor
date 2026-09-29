@@ -5,5 +5,5 @@ start_s: 177
 poster: docs/media/vid-07-nutrient-solution.webp
 shot_date: 2026-09-22
 shot_by: "andeye (Laura Currie, edit; Martin Currie and Bingqiao Zhao on camera)"
-hero: [needle-port@1.0.0, male-to-male-luer-lock-adapter@1.0.1, silicone-septum@1.0.1]
+hero: [needle-port@1.0.1, male-to-male-luer-lock-adapter@1.0.1, silicone-septum@1.0.1]
 licence: "CC BY-SA 4.0"

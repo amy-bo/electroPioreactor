@@ -45,7 +45,7 @@ checks:
 This step builds the gas train with the adapter's pin backed off, so no gas goes in. **Admit CO₂**, next, opens it.
 
 1. Thread the 1 mm-bore anode feed tube through the MMO anode, and pull it tight at the top.
-2. Trim the feed tube's lower end with sharp scissors. <!-- from video: session-21 0:12:53 - done after the vial was filled; Martin: "might have been clever to do this before we got the liquid in"; which end was trimmed is not clear from the transcript --> <!-- TODO: state the trim length | assignee: @Martin -->
+2. Trim the feed tube's lower end with sharp scissors, as close to the bottom of the anode as you can.
 3. Push a female luer onto the feed tube's top end: this is the CO₂ inlet.
 4. Work in a well-ventilated room. Put the SodaStream cylinder into its holder at the rear of the raft.
 5. Put on all PPE, including cryogenic gloves.

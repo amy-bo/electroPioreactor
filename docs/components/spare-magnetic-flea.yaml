@@ -1,15 +1,11 @@
 id: spare-magnetic-flea
 name: "Spare magnetic stir bar"
 kind: off-the-shelf
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
 parameters: {coating: "PTFE", shape: "octagonal", length_mm: 10}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.12 (Generic; AEP0.2). BoM qty '1 per n units': shared spare; listed as a consumable in step-00's spares list."}
-receipt:
-  per: kit
-  qty: 1
-  from: [labcrafter, pioreactor, diy]
-  note: "Shared spare, not one per unit. DRAFT: the BoM says '1 per n units' without fixing n; 1 per order assumed."
+  - {version: 1.0.1, date: 2026-09-29, note: "Spares listed separately from the kit (How many spares should I buy?), not counted."}

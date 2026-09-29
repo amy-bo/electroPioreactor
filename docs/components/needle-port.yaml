@@ -1,15 +1,11 @@
 id: needle-port
-name: "Stainless steel needle port"
+name: "Stainless steel needle port, 75 mm, 304"
 kind: off-the-shelf
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
 parameters: {length_mm: 75, tip: "blunt", hub: "female luer-lock", grade: "304 (316 optional)"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 2.6 (Generic; AEP0.2). BoM qty 1 tops up the four that ship with each Pioreactor; Method step 7 uses four needle ports (Media In, Media Out, Gas Out, Gas Out - safety). 304 is standard; 316 is available for more acidic, basic or salty media."}
-receipt:
-  per: unit
-  qty: 1
-  from: [labcrafter, diy]
-  note: "Tops up the four needles that ship with each Pioreactor (not counted here). DRAFT: whether LabCrafter bags the Pioreactor's own four needles together with this one is unconfirmed."
+  - {version: 1.0.1, date: 2026-09-29, note: "Counted as part of the Pioreactor Vial Cap S that ships with each Pioreactor; the added needle is the 80 mm 316 one (needle-80mm-316) (Martin, 2026-09-29)."}

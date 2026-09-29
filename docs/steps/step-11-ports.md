@@ -5,7 +5,8 @@ media: [vid-07b-ports]
 title: "Ports"
 guide: [aep]
 parts:
-  - {component: needle-port, qty: 4, cat: part}
+  - {component: needle-80mm-316, qty: 1, cat: part}
+  - {component: needle-port, qty: 3, cat: part}
   - {component: male-to-male-luer-lock-adapter, qty: 2, cat: part}
   - {component: mmo-anode, qty: 1, cat: prev}
   - {component: stainless-steel-cathode, qty: 1, cat: prev}

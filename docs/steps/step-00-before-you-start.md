@@ -4,9 +4,6 @@ order: 0
 title: "Before you start"
 media: [vid-01-preparation]
 guide: [aep]
-parts:
-  - {component: spare-vial, qty: 1, cat: consumable}
-  - {component: spare-magnetic-flea, qty: 1, cat: consumable}
 tools:
   - {component: computer-with-microsd-reader, qty: 1}
   - {component: phillips-ph0-screwdriver, qty: 1}
@@ -66,9 +63,15 @@ An AEP0.2 kit includes the XR upgrade kit and the Precision Temperature Upgrade 
 </details>
 
 <details>
-<summary>Spares</summary>
+<summary>How many spares should I buy?</summary>
 
-Keep spares: at least one vial and one magnetic stir bar per few units, and silicone septa. Vials break.
+Spares are not part of the per-unit kit. Buy spare [40 ml glass vials](https://pioreactor.com/products/40ml-glass-vial) and magnetic stir bars separately, at least one of each for a few units, and more if:
+
+- you or your students are prone to dropping things: vials are glass;
+- your lab floor is hard: a dropped vial rarely survives tiles or concrete;
+- your sink has no fine mesh strainer or steel drain cover: stir bars are small and slip down the drain when a vial is rinsed, and a steel cover holds them by their magnet.
+
+A spare [silicone septum](../components/) is worth having too: each needle track wears it a little.
 
 </details>
 

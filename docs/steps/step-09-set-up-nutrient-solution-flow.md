@@ -32,6 +32,12 @@ checks:
     options:
       - {label: "The 12V supply", correct: true}
       - {label: "Nothing: it came out", fix: "Plug the 12V supply back in before you calibrate. Calibrating on the Pi's own supply means calibrating twice."}
+  - id: pwm-rail-voltage
+    question: "With the 12V supply plugged in, what does **Manage** → **System** → **Voltage on PWM rail** read in the Pioreactor UI?"
+    options:
+      - {label: "About 12 V", correct: true}
+      - {label: "About 5 V", fix: "The PWM channels are on the Pi's supply: the HAT's shunt is not on the two pins closest to the LED outputs. Take the unit apart to reach the HAT and move it (see **Raspberry Pi and HAT**), then recalibrate anything already calibrated."}
+      - {label: "About 0 V", fix: "Check the 12V supply is switched on at the wall and fully pushed into the barrel jack."}
 ---
 
 Follow Pioreactor's [peristaltic pump setup guide](https://docs.pioreactor.com/user-guide/using-pumps), with these channels. Stop before calibrating: that is the next step, once this one's checks pass.
@@ -41,7 +47,7 @@ Follow Pioreactor's [peristaltic pump setup guide](https://docs.pioreactor.com/u
 3. Plug the media pump into PWM 2 and the product pump into PWM 3. <!-- from video: session-14 0:07:57 - the product pump is the one labelled "waste" -->
 4. Lead the cables out through the notches.
 5. Put the media and product bottles into their holders, with a 0.2 μm vent filter on each GL45 cap's vent port.
-6. Connect each bottle to its pump with the silicone tubing and luer fittings. <!-- TODO: add a connector diagram (which luer goes where; male ends mark outlets) - the recording stalled on it (session-20 0:08:20-0:13:04) | assignee: @Martin -->
+6. Connect each bottle to its pump with the Flexelene tubing and luer fittings. <!-- TODO: add a connector diagram (which luer goes where; male ends mark outlets) - the recording stalled on it (session-20 0:08:20-0:13:04) | assignee: @Martin -->
 
    :::note
    The kit's in-line parts on the media lines are non-return valves, not filters. <!-- from video: session-20 0:12:45 -->

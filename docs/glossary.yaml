@@ -65,7 +65,7 @@
 
 - term: OD
   terms: [optical density]
-  exclude: ["mm OD", "OD,", "OD x", "OD ×", "OD)"]
+  exclude: ["mm OD", "OD,", "OD x", "OD ×", "OD)", "\" OD", "OD:"]
   tip: "Optical density: how cloudy the culture is, read from scattered light. It tracks cell growth."
   link: https://docs.pioreactor.com/user-guide/calibrate-od600
 

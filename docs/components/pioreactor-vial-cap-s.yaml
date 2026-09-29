@@ -1,0 +1,15 @@
+id: pioreactor-vial-cap-s
+name: "Vial Cap S with 75 mm needle ports"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {ports: "75 mm 304 stainless, female luer lock"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-29, note: "Added from Martin's kit review of 2026-09-29."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, pioreactor, diy]
+  note: "In the Pioreactor 40 ml v1.5 box. Three of its 75 mm needles are used in Ports; the cap itself is not."

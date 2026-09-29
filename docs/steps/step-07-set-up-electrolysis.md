@@ -12,6 +12,7 @@ parts:
   - {component: electrode-cable, qty: 2, cat: part}
   - {component: ring-terminal, qty: 2, cat: part}
   - {component: m3-nut, qty: 2, cat: part}
+  - {component: m3-flat-washer, qty: 2, cat: part}
   - {component: m3-spring-washer, qty: 2, cat: part}
   - {component: thumb-screw, qty: 2, cat: part}
   - {component: crimp-connector, qty: 1, cat: part}
@@ -50,7 +51,7 @@ checks:
 3. ~Tighten the thumb screw to hold it in place: firmly, not hard.~ <!-- from video: session-17 0:55:17 - "you tighten that ... not massively"; which fastener is not clear from the transcript; the reviewer named the thumb screw -->
 4. ~Repeat with the MMO anode (the tube).~
 5. ~Crimp a ring terminal onto each electrode cable.~
-6. ~Fix the red cable to the MMO anode: ring terminal, spring washer, then M3 nut.~ <!-- from video: session-17 0:57:04 - this washer order, and the kit's cables came fitted the wrong way round (black on the anode), so they were swapped on camera; the text had "M3 nut and spring washer, tightened by thumb screw" and no flat washer, which is not in the parts list either --> <!-- TODO: add the flat washer to the parts list, or confirm it is part of an existing component | assignee: @Martin -->
+6. ~Fix the red cable to the MMO anode with its thumb screw: flat washer against the cap, then spring washer, then the ring terminal, in direct contact with the thumb screw's head.~
 7. ~Fix the black cable to the stainless steel cathode the same way.~
 8. Check both electrode tops are still flush with the cap top. <!-- TODO: record the AEP0.2 standard depth here once the first build is measured | assignee: @Bingqiao @Amir @Teo @Martin -->
 9. Weigh the dry empty vial and record its weight.

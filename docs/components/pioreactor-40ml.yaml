@@ -1,15 +1,11 @@
 id: pioreactor-40ml
 name: "Pioreactor 40 ml v1.5"
 kind: off-the-shelf
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
 parameters: {volume_ml: 40, hardware_version: "1.5", variant: "regional mains"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.1 (Critical; AEP0.2). Regional mains variant. Ships with vial, stir bar and caps, which are the kitted components pioreactor-vial-40ml, stir-bar and stock-vial-cap."}
-receipt:
-  per: unit
-  qty: 1
-  from: [labcrafter, pioreactor, diy]
-  note: "Boxed with its vial, stir bar and v1.5 optics parts; check those against Pioreactor's own contents list. DRAFT: assumes LabCrafter ships each Pioreactor in its own Pioreactor box; if the box contents are repacked into shared bags, the kitted parts need their own rows."
+  - {version: 1.0.1, date: 2026-09-29, note: "Its box contents are listed as their own rows in the parts count (Martin, 2026-09-29)."}
