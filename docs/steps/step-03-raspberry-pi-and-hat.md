@@ -16,7 +16,7 @@ checks:
     question: "Where is the HAT's shunt connector now?"
     options:
       - {label: "On the two pins closest to the LED outputs", correct: true}
-      - {label: "Where it was when the HAT arrived", fix: "Move it to the two pins closest to the LED outputs, now, while the HAT is bare."}
+      - {label: "On the two pins furthest from the LED outputs", fix: "Move it one pin along, to the two pins closest to the LED outputs, now, while the HAT is bare."}
       - {label: "Off the HAT, not on any of its pins", fix: "Find it and fit it on the two pins closest to the LED outputs, now, while the HAT is bare."}
 ---
 
