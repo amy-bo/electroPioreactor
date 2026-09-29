@@ -1,6 +1,7 @@
 ---
 id: step-11-ports
 order: 11
+media: [vid-07b-ports]
 title: "Ports"
 guide: [aep]
 parts:

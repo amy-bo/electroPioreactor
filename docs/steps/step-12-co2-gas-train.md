@@ -1,6 +1,7 @@
 ---
 id: step-12-co2-gas-train
 order: 12
+media: [vid-08-co2-gas-train]
 title: "CO₂ gas train"
 guide: [aep]
 parts:

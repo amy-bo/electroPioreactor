@@ -1,0 +1,10 @@
+id: vid-08-co2-gas-train
+type: video
+youtube: 21DxqaZrCrE
+start_s: 27
+end_s: 1172
+poster: docs/media/vid-08-co2-sparging.webp
+shot_date: 2026-09-22
+shot_by: "andeye (Laura Currie, edit; Martin Currie and Bingqiao Zhao on camera)"
+hero: [anode-feed-tube@1.0.1, co2-regulator@1.0.0, reducing-nipple@1.0.1, solenoid-valve@1.0.0, co2-needle-valve@1.0.0]
+licence: "CC BY-SA 4.0"

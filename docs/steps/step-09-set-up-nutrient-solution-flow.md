@@ -1,6 +1,7 @@
 ---
 id: step-09-set-up-nutrient-solution-flow
 order: 9
+media: [vid-07-nutrient-solution]
 title: "Nutrient solution"
 guide: [aep]
 parts:

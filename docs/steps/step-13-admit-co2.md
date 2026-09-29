@@ -1,6 +1,7 @@
 ---
 id: step-13-admit-co2
 order: 13
+media: [vid-08b-admit-co2]
 title: "Admit CO₂"
 guide: [aep]
 parts:
