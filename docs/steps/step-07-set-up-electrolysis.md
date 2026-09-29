@@ -51,7 +51,7 @@ checks:
 3. ~Tighten the thumb screw to hold it in place: firmly, not hard.~ <!-- from video: session-17 0:55:17 - "you tighten that ... not massively"; which fastener is not clear from the transcript; the reviewer named the thumb screw -->
 4. ~Repeat with the MMO anode (the tube).~
 5. ~Crimp a ring terminal onto each electrode cable.~
-6. ~Fix the red cable to the MMO anode with its thumb screw: flat washer against the cap, then spring washer, then the ring terminal, in direct contact with the thumb screw's head.~
+6. ~Fix the red cable to the MMO anode with its thumb screw: flat washer against the cap, then spring washer, then the ring terminal, in direct contact with the thumb screw's head. The thumb screw screws into an M3 nut slid up into the cap as a captive nut.~
 7. ~Fix the black cable to the stainless steel cathode the same way.~
 8. Check both electrode tops are still flush with the cap top. <!-- TODO: record the AEP0.2 standard depth here once the first build is measured | assignee: @Bingqiao @Amir @Teo @Martin -->
 9. Weigh the dry empty vial and record its weight.
