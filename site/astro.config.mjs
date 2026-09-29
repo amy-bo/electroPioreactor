@@ -9,6 +9,21 @@ import docsandeye from 'starlight-docsandeye';
 export default defineConfig({
 	site: 'https://docs.electropioreactor.org',
 	image: { service: passthroughImageService() },
+	vite: {
+		build: {
+			// The 3D model viewer is one ~1 MB chunk, loaded only when a reader opens a
+			// model (a dynamic import in docsandeye's docsi-model), so the size warning is noise.
+			chunkSizeWarningLimit: 1100,
+			rolldownOptions: {
+				// Astro marks MDX pages that import components with this directive and strips
+				// it itself; the bundler's warning about it is noise.
+				onwarn(warning, warn) {
+					if (warning.code === 'MODULE_LEVEL_DIRECTIVE' && warning.message.includes('astro:head-inject')) return;
+					warn(warning);
+				},
+			},
+		},
+	},
 	integrations: [
 		starlight({
 			title: 'electroPioreactor',
