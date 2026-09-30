@@ -57,9 +57,13 @@ The Budget aseptic electroPioreactor (BAEP) is an MEP with five 0.2 μm vent fil
 </details>
 
 <details>
-<summary>Spares</summary>
+<summary>How many spares should I buy?</summary>
 
-Keep spares: at least one vial and one magnetic stir bar per few units. Vials break.
+Spares are not part of the per-unit kit. Buy spare [20 ml glass vials](https://pioreactor.com/products/20ml-glass-vial) and magnetic stir bars separately, at least one of each for a few units, and more if:
+
+- you or your students are prone to dropping things: vials are glass;
+- your lab floor is hard: a dropped vial rarely survives tiles or concrete;
+- your sink has no fine mesh strainer or steel drain cover: stir bars are small and slip down the drain when a vial is rinsed, and a steel cover holds them by their magnet.
 
 </details>
 

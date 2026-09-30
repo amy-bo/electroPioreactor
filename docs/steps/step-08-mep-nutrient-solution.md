@@ -31,6 +31,12 @@ checks:
     options:
       - {label: "The 12 V supply", correct: true}
       - {label: "Nothing: it came out", fix: "Plug the 12 V supply back in (see **Pioreactor hardware setup**) before you calibrate. Calibrating on the Pi's own supply means calibrating twice."}
+  - id: pwm-rail-voltage
+    question: "With the 12 V supply plugged in, what does **Manage** → **System** → **Voltage on PWM rail** read in the Pioreactor UI?"
+    options:
+      - {label: "About 12 V", correct: true}
+      - {label: "About 5 V", fix: "The PWM channels are still on the Pi's supply. Set up external power as in Pioreactor's [external power guide](https://docs.pioreactor.com/user-guide/external-power) for your HAT, then recalibrate anything already calibrated."}
+      - {label: "About 0 V", fix: "Check the 12 V supply is switched on at the wall and fully pushed into the barrel jack."}
 ---
 
 Follow Pioreactor's [peristaltic pump setup guide](https://docs.pioreactor.com/user-guide/using-pumps), with these channels. Stop before calibrating: that is the next step, once this one's checks pass.
@@ -44,7 +50,7 @@ Follow Pioreactor's [peristaltic pump setup guide](https://docs.pioreactor.com/u
 3. Plug the product pump into PWM 2 and the media pump into PWM 3.
 4. Lead the cables out through the notches.
 5. Put the media and product bottles, with their GL45 caps, into their holders.
-6. Connect each bottle to its pump with the silicone tubing and luer fittings, then each pump to its tube on the vial cap: media to Media In, waste to Media Out.
+6. Connect each bottle to its pump with the 1/16" Flexelene tubing and luer fittings, then each pump to its tube on the vial cap: media to Media In, waste to Media Out.
 7. Check the 12 V supply is in the HAT's barrel jack ([external power](https://docs.pioreactor.com/user-guide/external-power)).
 
    :::caution
