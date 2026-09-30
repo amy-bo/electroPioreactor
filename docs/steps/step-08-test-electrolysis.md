@@ -22,14 +22,20 @@ checks:
       - {label: "On both, about twice as many on the anode", fix: "The leads are probably reversed. Stop the job and check red is on the anode, black on the cathode."}
       - {label: "On both, but only a few, and slowly", fix: "Raise electrolysis power in the job's **Settings** panel, not by setting LED channel D by hand: the job clamps power to 10% to protect the electrodes."}
       - {label: "On neither: no bubbles at all", fix: "Check the electrodes are on LED channel D (catch upwards), the vial holds nutrient solution or bicarbonate of equal ionic strength, and the job was started from **Activities**."}
+  - id: voltage
+    question: "At 3.5% electrolysis power, what does the multimeter read across the electrodes?"
+    options:
+      - {label: "About 2.8 to 3.05 V", correct: true}
+      - {label: "Well under 2.8 V", fix: "Check the multimeter is on DC volts with a probe on each ring terminal, and the power setting really is 3.5%."}
+      - {label: "Well over 3.05 V", fix: "Check the vial holds nutrient solution or bicarbonate of equal ionic strength, not plain water, and both electrodes reach into the liquid."}
 ---
 
 1. Record the distance from the top of the Vial Cap to the bottom of each electrode.
 2. Connect the electrodes to LED channel D, catch upwards.
 3. Start **electroPioreactor** from **Activities** on the **Manage** screen. Set a long sparge interval until CO₂ is set up.
-4. Raise **electrolysis power** in the job's **Settings** panel until bubbles form. <!-- from video: session-17 1:18 (file 023 35:00-39:00) - power raised from 2.5 to 3.5% -->
+4. Raise **electrolysis power** in the job's **Settings** panel until bubbles form: about 3.5%. <!-- from video: session-17 1:18 (file 023 35:00-39:00) - power raised from 2.5 to 3.5% -->
 5. Check roughly twice as many bubbles form on the cathode as on the anode.
-6. Measure the voltage across the electrodes with a multimeter, and record it. <!-- from video: session-18 0:03:28 - 2.82 V at 3.5%; current not measured, as it needs a lead broken into -->
+6. Measure the voltage across the electrodes with a multimeter, and record it. At 3.5% expect about 2.8 to 3.05 V. <!-- from video: session-18 0:03:28 - 2.82 V at 3.5%; current not measured, as it needs a lead broken into -->
 7. If you can break into a lead, measure and record the current too.
 8. Insert the vial into the Pioreactor once all vials show even electrolysis.
 

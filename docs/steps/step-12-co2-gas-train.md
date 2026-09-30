@@ -66,7 +66,7 @@ This step builds the gas train with the adapter's pin backed off, so no gas goes
    <img width="1767" height="1330" alt="The reducer screwed into the regulator outlet port (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/800812cb-2ccb-4a8f-8198-f8e381757552" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
 
-11. Apply Loctite 577 to the second thread (not the end one) of the reducer's 1/8" male outlet, and screw the solenoid valve's left port onto it, electronics to the rear. Work up to vertical; do not pass it and turn back.
+11. Wipe the threads with ethanol if you can. Apply Loctite 577 to the second thread (not the end one) of the reducer's 1/8" male outlet, and screw the solenoid valve's left port onto it, electronics to the rear. Work up to vertical; do not pass it and turn back.
 
    <img width="1767" height="1330" alt="The solenoid valve screwed onto the reducer by its left port, electronics to the rear (AEP0.1 photograph)" src="https://github.com/user-attachments/assets/ec433749-5866-476b-a965-ec070b80083e" />
    <!-- TODO: AEP0.1 photograph used as a placeholder - reshoot for AEP0.2 and commit through docs/media/ | assignee: @Martin -->
