@@ -4,7 +4,7 @@ kind: printed
 design_version: 2.0.1
 master_format: scad
 source_files: ["Components/Vial Cap/Vial Cap.scad"]
-parameters: {electrodes: 2, el_d: 6.2, n_ports: 5, port_d: 2.2, openings: 1, seal: "septum", pieces: 1}
+parameters: {rods: 2, rod_diameter: 6.2, num_ports: 5, port_diameter: 2.2, openings: 1, seal: "gasket", pieces: 1}
 derived_files: ["Components/Vial Cap/Vial Cap.stl"]
 depends_on: ["bosl2"]
 supersedes: electrode-top-stop@1.0.0
