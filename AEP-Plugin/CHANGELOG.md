@@ -4,6 +4,19 @@
 
 The v0.7.x line (electrolysis cycling, OD pause around electrolysis, configurable LED channel, the v0.7.1 orphaned-timer fix) had never reached the AEP02 or main branches, which still shipped v0.6.7. This release merges it into AEP02 together with the September offline-install work: `scripts/patch-config-ini.py` keeps its `--force` option for a stock `[PWM] 4 = waste`, stays without the self-heal repair (removed in v0.6.7 after Gerrit's review), and now also writes the v0.7.x defaults (`led_channel`, `electrolysis_on_seconds`, `electrolysis_off_seconds`, `od_pause_after_electrolysis_seconds`).
 
+## Card install route (2026-09-24, docs only, shipped v0.6.7)
+
+No code change. Documents the card install route in `README.md`: flash a
+stock Pioreactor image, drag the `pioreactor` folder from the card bundle
+onto the `bootfs` drive, boot. Adds `scripts/make-card-bundle.sh` and a
+`card-bundle` GitHub workflow that builds
+`electroPioreactor-card-bundle.zip` (the plugin wheel under
+`pioreactor/plugins/`) and attaches it to each GitHub release. Depends on
+boot-partition plugin support in the Pioreactor image, proposed upstream
+from <https://github.com/amy-bo/CustoPiZer/tree/bootfs-plugins> and accepted
+in principle by Pioreactor on 2026-09-24. The SSH route remains documented
+for older images.
+
 ## v0.7.1 (2026-06-26) — fix orphaned electrolysis OD-resume timer
 
 Bugfix on the v0.7.0 OD-pause-around-electrolysis path. `_begin_electrolysis_on`
