@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Idempotently add [PWM] 4=relay and the four [electropioreactor.config]
+"""Idempotently add [PWM] 4=relay and the [electropioreactor.config]
 defaults to ~/.pioreactor/config.ini. Re-runs preserve any existing values.
 
 Uses pioreactor.config.ConfigParserMod (the case-preserving subclass
@@ -19,7 +19,11 @@ DOT = os.environ.get("DOT_PIOREACTOR", str(Path.home() / ".pioreactor"))
 PATH = Path(DOT) / "config.ini"
 
 DEFAULTS = {
+    "led_channel": "D",
     "electrolysis_power": "2.5",
+    "electrolysis_on_seconds": "60.0",
+    "electrolysis_off_seconds": "0.0",
+    "od_pause_after_electrolysis_seconds": "5.0",
     "sparge_duration_seconds": "10.0",
     "sparge_interval_minutes": "60.0",
     "od_pause_after_sparge_seconds": "5.0",
