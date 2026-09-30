@@ -12,4 +12,5 @@ receipt:
   per: unit
   qty: 2
   from: [labcrafter, diy]
+  fitted: [labcrafter]
   note: "One per electrode, against the vial cap."

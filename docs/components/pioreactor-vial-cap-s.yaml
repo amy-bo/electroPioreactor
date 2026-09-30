@@ -12,4 +12,4 @@ receipt:
   per: unit
   qty: 1
   from: [labcrafter, pioreactor, diy]
-  note: "In the Pioreactor 40 ml v1.5 box. Three of its 75 mm needles are used in Ports; the cap itself is not."
+  note: "In the Pioreactor 40 ml v1.5 box. Not used in this build: its needles are counted on their own row."

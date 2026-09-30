@@ -13,4 +13,5 @@ receipt:
   per: unit
   qty: 1
   from: [labcrafter, diy]
+  fitted: [labcrafter]
   note: "Arrives seated in the vial cap in LabCrafter kits."

@@ -14,4 +14,5 @@ receipt:
   per: unit
   qty: 1
   from: [labcrafter, diy]
+  fitted: [labcrafter]
   note: "Arrives crimped onto the electrode cables in LabCrafter kits."

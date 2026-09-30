@@ -4,6 +4,7 @@ Done-work log for the electroPioreactor repository, newest first. Open work stay
 
 ## 2026-09-30
 
+- [x] **Kit count after Gerrit's answers** — LabCrafter readers no longer count parts that arrive built into a larger one (docsandeye `receipt.fitted`): the crimp connector and housing and ring terminals on the electrode cables, the M3 nuts, spring and flat washers and thumb screws, and the electrodes and septum in the vial cap; self-sourcing readers still count them. Needles: the 80 mm SS316 16G needle for Media Out and three 75 mm SS304 needles from the Pioreactor box (it holds four; the fourth is a spare); Ports says to put needles through the four needed ports only and leave the spare port sealed, and suggests a 21 to 23 gauge needle for inoculation. The raft photo is now WebP (53 KB to 29 KB), keeping Press the raft together within its 210 KB budget after the plugin update.
 - [x] **Steps checked against the new videos; MEP and BAEP brought level** — `5eff2d2`: AEP steps 7 to 13 compared with the transcripts of Laura's videos 6 to 8. Added what the footage states: about 3.5% electrolysis power and 2.8 to 3.05 V across the electrodes (Bingqiao's normal range), now also a Test electrolysis check; a syringe to blow silicone plugs out of the needles and to prove the bent gas needles clear; an ethanol wipe before Loctite 577. `e9c266d`: the MEP and BAEP guides get the same "How many spares should I buy?" box and "Voltage on PWM rail" check, and name the pump tubing as Flexelene.
 
 ## 2026-09-29

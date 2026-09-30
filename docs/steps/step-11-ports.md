@@ -53,8 +53,10 @@ The cap has eight ports. The electrodes already fill two, this step puts needles
 - Media Out
 - Gas Out
 - Gas Out – safety
-- Inoculation (the large port): a syringe goes straight through the septum, with no tube and no pinch slider
+- Inoculation (the large port): a syringe goes straight through the septum, with no tube and no pinch slider. A 21 to 23 gauge needle balances septum life against quick transfer.
 - Spare: left unpierced, so the septum seals it
+
+Put needles through Media In, Media Out and the two gas outlets only. The fourth 75 mm needle is a spare: keep it, and leave the spare port sealed.
 
 1. Push a female luer onto the media pump's inlet tubing. It is a tight fit (1 mm bore). <!-- from video: session-21 0:00:13 -->
 2. Push the 80 mm needle (Media Out) down through the septum to the liquid level you want: it sets the level. <!-- from video: session-21 0:01:07 - 80 mm 316 stainless for the outlet, 75 mm for the inlet; the needle-port component lists 75 mm, 304 -->

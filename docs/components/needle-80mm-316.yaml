@@ -1,10 +1,10 @@
 id: needle-80mm-316
-name: "Stainless steel needle port, 80 mm, 316"
+name: "Stainless steel needle, 80 mm, SS316, 16G"
 kind: off-the-shelf
 design_version: 1.0.0
 master_format: none
 source_files: []
-parameters: {length_mm: 80, tip: "blunt", hub: "female luer-lock", grade: "316"}
+parameters: {gauge: "16G", length_mm: 80, tip: "blunt", hub: "female luer-lock", grade: "316"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-29, note: "Added from Martin's kit review of 2026-09-29."}
