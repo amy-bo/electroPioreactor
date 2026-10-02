@@ -1,0 +1,10 @@
+id: needle-85mm-316
+name: "Stainless steel needle, 85 mm, SS316, 15G"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {gauge: "15G", length_mm: 85, hub: "female luer-lock", grade: "316"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-10-02, note: "Added: the fourth needle in the Pioreactor 40 ml v1.5 box (per pioreactor.com), counted on that row (pioreactor-40ml). Used for Media In, since needles that touch the media are 316 (Gerrit 2026-10-02)."}

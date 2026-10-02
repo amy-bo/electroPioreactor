@@ -6,7 +6,8 @@ title: "Ports"
 guide: [aep]
 parts:
   - {component: needle-80mm-316, qty: 1, cat: part}
-  - {component: needle-port, qty: 3, cat: part}
+  - {component: needle-85mm-316, qty: 1, cat: part}
+  - {component: needle-75mm-304, qty: 2, cat: part}
   - {component: male-to-male-luer-lock-adapter, qty: 2, cat: part}
   - {component: mmo-anode, qty: 1, cat: prev}
   - {component: stainless-steel-cathode, qty: 1, cat: prev}
@@ -56,11 +57,11 @@ The cap has eight ports. The electrodes already fill two, this step puts needles
 - Inoculation (the large port): a syringe goes straight through the septum, with no tube and no pinch slider. A 21 to 23 gauge needle balances septum life against quick transfer.
 - Spare: left unpierced, so the septum seals it
 
-Put needles through Media In, Media Out and the two gas outlets only. The fourth 75 mm needle is a spare: keep it, and leave the spare port sealed.
+Put needles through Media In, Media Out and the two gas outlets only. Needles that touch the media are 316 stainless: the 80 mm for Media Out and the 85 mm from the Pioreactor box for Media In. The 304 needles go in the gas outlets, and the third is a spare: keep it for the spare port, which stays sealed until you need it.
 
 1. Push a female luer onto the media pump's inlet tubing. It is a tight fit (1 mm bore). <!-- from video: session-21 0:00:13 -->
-2. Push the 80 mm needle (Media Out) down through the septum to the liquid level you want: it sets the level. <!-- from video: session-21 0:01:07 - 80 mm 316 stainless for the outlet, 75 mm for the inlet; the needle-port component lists 75 mm, 304 -->
-3. Push the 75 mm needle (Media In) straight through the septum.
+2. Push the 80 mm needle (Media Out) down through the septum to the liquid level you want: it sets the level. <!-- from video: session-21 0:01:07 - 80 mm 316 stainless for the outlet, 75 mm for the inlet; the needle-75mm-304 component lists 75 mm, 304 -->
+3. Push the 85 mm needle (Media In) straight through the septum, stopping above the liquid level.
 4. After each needle goes through, pull it back out, blow any silicone plug out with a syringe, and reinsert it through the same hole.
 
    :::tip
