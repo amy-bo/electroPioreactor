@@ -5,6 +5,7 @@ design_version: 1.0.0
 master_format: none
 source_files: []
 derived_files: []
+supplier: {name: "LabCrafter", url: "https://labcrafter.co.uk/products/luer-lock-end-cap"}
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.7 (Generic; AEP0.2). Caps an unused luer port."}
 receipt:

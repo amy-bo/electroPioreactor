@@ -6,6 +6,7 @@ master_format: none
 source_files: []
 parameters: {model: "Raspberry Pi 5", ram_gb_min: 1}
 derived_files: []
+supplier: {name: "LabCrafter", url: "https://labcrafter.co.uk/products/raspberry-pi-4-model-b-copy"}
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.4 (Generic; AEP0.2). 1 GB or larger; any Pi supported by the current Pioreactor OS. One per Pioreactor."}
 receipt:
