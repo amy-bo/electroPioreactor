@@ -1,16 +1,16 @@
 id: silicone-tubing
-name: "Flexelene 135C tubing, 50 cm"
+name: "1/8\" OD 1/16\" ID tubing"
 kind: off-the-shelf
-design_version: 1.0.1
+design_version: 1.0.2
 master_format: none
 source_files: []
-parameters: {od_in: "1/8", id_in: "1/16", length_cm: 50, material: "TPE (Flexelene 135C)", autoclavable: true}
+parameters: {od_in: "1/8", id_in: "1/16", length_cm: 50, autoclavable: true}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 5.6 (Generic; AEP0.2). Autoclavable. Compatible with 10% acetic acid, CaCl2, H2O2, K2SO4, NaCl, 5.5% NaOCl and ZnCl2."}
   - {version: 1.0.1, date: 2026-09-29, note: "It is Flexelene 135C (Eldon James FLXC1-2, TPE), not silicone (Martin, 2026-09-29)."}
+  - {version: 1.0.2, date: 2026-10-07, note: "Named by size only: AEP0.2 no longer uses Flexelene 135C (Eldon James FLXC1-2), so the material and the Eldon James receipt note are dropped (Gerrit 2026-10-07)."}
 receipt:
   per: unit
   qty: 1
   from: [labcrafter, diy]
-  note: "1/16\" ID, 1/8\" OD: Eldon James FLXC1-2, a TPE tubing autoclavable to 135 °C."
