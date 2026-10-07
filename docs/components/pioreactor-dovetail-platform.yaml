@@ -9,8 +9,3 @@ derived_files: []
 supplier: {name: "Printables (community model 679663)", url: "https://www.printables.com/model/679663-pioreactor-platform-with-dovetails-for-b-models/files"}
 changelog:
   - {version: 1.0.0, date: 2026-09-29, note: "Added from Martin's kit review of 2026-09-29."}
-receipt:
-  per: unit
-  qty: 1
-  from: [labcrafter, diy]
-  note: "3D printed (Printables model 679663: the Pioreactor piece)."

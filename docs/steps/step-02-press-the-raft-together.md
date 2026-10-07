@@ -5,7 +5,7 @@ title: "Press the raft together"
 media: [vid-02b-press-the-raft, photo-01-raft]
 guide: [aep, mep, baep]
 parts:
-  - {component: pumping-dovetail-platform, qty: 1, cat: prev}
+  - {component: pump-dovetail-holder, qty: 2, cat: prev}
   - {component: gl45-bottle-holder, qty: 2, cat: prev}
   - {component: co2-cylinder-dovetail-holder, qty: 1, cat: prev}
 checks_draft: true

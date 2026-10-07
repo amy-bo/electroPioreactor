@@ -14,4 +14,4 @@ receipt:
   per: unit
   qty: 1
   from: [labcrafter, pioreactor, diy]
-  note: "In the box: Pioreactor HAT; heating and temperature circuit board; stirring assembly with a 15 × 6 mm PTFE stir bar; Eye-Spy optics system; 40 ml borosilicate glass vial; Vial Cap S with three 75 mm 304 stainless 16G needles and one 85 mm 316 stainless 15G needle, all female luer lock; assembly screws, nuts and standoffs. This build uses the vial, the stir bar, the 85 mm needle (Media In) and two 75 mm needles (gas outlets), not the Vial Cap S; the third 75 mm needle is a spare."
+  note: "In the box: Pioreactor HAT; heating and temperature circuit board; stirring assembly with a 15 × 6 mm PTFE stir bar; Eye-Spy optics system; 40 ml borosilicate glass vial; Vial Cap S with three 75 mm 304 stainless 16G needles and one 85 mm 316 stainless 15G needle, all female luer lock; assembly screws, nuts and standoffs. This build uses the vial, the stir bar and the three 75 mm needles, not the Vial Cap S; the 85 mm 316 needle is a spare in case the 304 needles prove problematic."
