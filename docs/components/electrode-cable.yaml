@@ -1,15 +1,17 @@
 id: electrode-cable
 name: "Wiring, electrode cables"
 kind: off-the-shelf
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
-parameters: {runs: 2, anode_colour: "red", cathode_colour: "black"}
+parameters: {runs: 2, anode_colour: "red", cathode_colour: "black", length_cm: 30}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 3.3 (Generic cable, critical terminations; AEP0.2). BoM qty 1 covers both runs (one run per electrode); a step that fits both lists qty 2. Ring terminal at the electrode end and connector at the Pioreactor end. Colour-code red anode, black cathode, and never swap."}
+  - {version: 1.0.1, date: 2026-10-07, note: "Fitted in LabCrafter kits: they arrive attached to the electrodes in the vial cap, so LabCrafter readers count them on the vial cap row. Length 30 cm each (Gerrit 2026-10-07)."}
 receipt:
   per: unit
   qty: 2
   from: [labcrafter, diy]
-  note: "One red (anode), one black (cathode). LabCrafter kits ship them crimped, with connector and housing fitted."
+  fitted: [labcrafter]
+  note: "30 cm each: one red (anode), one black (cathode)."

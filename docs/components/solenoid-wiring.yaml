@@ -1,15 +1,17 @@
 id: solenoid-wiring
 name: "Wiring, solenoid"
 kind: off-the-shelf
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
-parameters: {cores: 2, rating_v_dc: 12}
+parameters: {cores: 2, rating_v_dc: 12, length_cm: 60}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 3.2 (Generic; AEP0.2). Two-core cable rated for a 12 V DC coil, crimped for the connector at 3.8 (crimp-connector)."}
+  - {version: 1.0.1, date: 2026-10-07, note: "Fitted in LabCrafter kits: the solenoid arrives with its lead and connector attached, so LabCrafter readers count it on the solenoid-valve row. Length 60 cm (Gerrit 2026-10-07)."}
 receipt:
   per: unit
   qty: 1
   from: [labcrafter, diy]
-  note: "DRAFT: finished length not yet specified; may arrive already crimped to its connector."
+  fitted: [labcrafter]
+  note: "60 cm."

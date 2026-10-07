@@ -13,7 +13,7 @@ parts:
   - {component: anode-feed-tube, qty: 1, cat: prev}
   - {component: male-to-male-luer-lock-adapter, qty: 2, cat: prev}
   - {component: luer-lock-cap, qty: 1, cat: part}
-  - {component: solenoid-wiring, qty: 1, cat: part}
+  - {component: solenoid-valve, qty: 1, cat: prev}
   - {component: mmo-anode, qty: 1, cat: prev}
   - {component: crimp-connector, qty: 1, cat: prev}
   - {component: crimp-housing, qty: 1, cat: prev}
