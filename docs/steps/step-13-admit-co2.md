@@ -15,7 +15,7 @@ parts:
   - {component: luer-lock-cap, qty: 1, cat: part}
   - {component: solenoid-valve, qty: 1, cat: prev}
   - {component: mmo-anode, qty: 1, cat: prev}
-  - {component: crimp-connector, qty: 1, cat: prev}
+  - {component: crimp-connector, qty: 2, cat: prev}
   - {component: crimp-housing, qty: 1, cat: prev}
 tools:
   - {component: gas-cylinder-wrench, qty: 1}

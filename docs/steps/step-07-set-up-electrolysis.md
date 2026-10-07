@@ -15,7 +15,7 @@ parts:
   - {component: m3-flat-washer, qty: 2, cat: part}
   - {component: m3-spring-washer, qty: 2, cat: part}
   - {component: thumb-screw, qty: 2, cat: part}
-  - {component: crimp-connector, qty: 1, cat: part}
+  - {component: crimp-connector, qty: 2, cat: part}
   - {component: crimp-housing, qty: 1, cat: part}
   - {component: pioreactor-vial-40ml, qty: 1, cat: prev}
 tools:
