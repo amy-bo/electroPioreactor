@@ -5,8 +5,7 @@ title: "Connect the platforms"
 media: [vid-02-platform-setup]
 guide: [aep, mep, baep]
 parts:
-  - {component: pioreactor-dovetail-platform, qty: 1, cat: printed}
-  - {component: pump-dovetail-holder, qty: 2, cat: printed}
+  - {component: pumping-dovetail-platform, qty: 1, cat: printed}
   - {component: gl45-bottle-holder, qty: 2, cat: printed}
   - {component: co2-cylinder-dovetail-holder, qty: 1, cat: printed}
 renders:
@@ -31,7 +30,7 @@ checks:
 On every platform except the SodaStream holder (see item 5), the male dovetails point away from you and to the left. Slide each joint together, but do not press it down yet: **Press the raft together**, next, does that once the layout is checked.
 
 1. Place the Pioreactor platform first, turned so the Pi's ports have room.
-2. Join the pump platform to it, so the pump leads reach the PWM channels.
+2. Join the two pump dovetail holders to it, so the pump leads reach the PWM channels.
 3. Join the 250 ml media and product bottle platforms directly behind the pumps.
 4. Join the SodaStream holder at the back, centred on the Pioreactor platform.
 5. Orient the SodaStream holder to suit the cylinder:
