@@ -1,7 +1,7 @@
 id: crimp-connector
-name: "Crimp connector (TE Connectivity AMP 1-104479-0)"
+name: "Crimp contact (TE Connectivity AMP 1-104479-0)"
 kind: off-the-shelf
-design_version: 1.0.1
+design_version: 1.0.2
 master_format: none
 source_files: []
 parameters: {manufacturer: "TE Connectivity AMP", part_number: "1-104479-0"}
@@ -10,9 +10,10 @@ supplier: {name: "Digi-Key", url: "https://www.digikey.ca/en/products/detail/te-
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 3.8 (Critical; AEP0.2). Must carry the solenoid coil and electrode currents and match the housing at 3.9 (crimp-housing) and the Pioreactor header. Part numbers still to specify (BoM 'Still to specify')."}
   - {version: 1.0.1, date: 2026-09-08, note: "Gerrit's BoM answers of 2026-09-04 (commit 05ef02f): TE Connectivity AMP 1-104479-0 (Digi-Key 1125892). Crimp contact part number and crimp tool still to specify."}
+  - {version: 1.0.2, date: 2026-10-07, note: "Renamed: 1-104479-0 is the crimp socket contact (Digi-Key: Socket Contact Gold 20-24 AWG Crimp), one per wire. Four per unit: two connections, the electrode cables and the solenoid lead, each a 487526-1 housing (crimp-housing) with two contacts. The solenoid lead had dropped out of the count (Gerrit 2026-10-07)."}
 receipt:
   per: unit
-  qty: 1
+  qty: 4
   from: [labcrafter, diy]
   fitted: [labcrafter]
-  note: "Arrives crimped onto the electrode cables in LabCrafter kits."
+  note: "Two per connection, one per wire: the electrode cables and the solenoid lead. Arrive crimped on in LabCrafter kits."

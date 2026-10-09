@@ -1,18 +1,19 @@
 id: pumping-dovetail-platform
-name: "Pump dovetail platform"
+name: "Pumping dovetail platform"
 kind: printed
-design_version: 1.0.2
+design_version: 1.0.3
 master_format: none
 source_files: []
 parameters: {material: "PLA or PETG", layer_mm: 0.2, infill_pct: 20, sd_card_cutout: true}
 derived_files: []
-supplier: {name: "Printables (community model 679663)", url: "https://www.printables.com/model/679663-pioreactor-platform-with-dovetails-for-b-models/files"}
+supplier: {name: "LabCrafter", url: "https://labcrafter.co.uk/products/pumping-dovetail-platform?variant=53116651340099"}
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.8 (Generic on print settings, critical on geometry; AEP0.2). Purchased Pioreactor part (Components/README.md links the pioreactor.com product page); no master in this repository."}
   - {version: 1.0.1, date: 2026-09-08, note: "Gerrit's BoM answers of 2026-09-04 (commit 05ef02f): print it from Printables model 679663 (Pioreactor platform with dovetails, B models) rather than buying the pioreactor.com part; PLA or PETG, 0.2 mm layer, ~20% infill. No master in this repository."}
   - {version: 1.0.2, date: 2026-09-29, note: "Two per unit, one per pump; the Pioreactor piece is now its own component, pioreactor-dovetail-platform (Martin, 2026-09-29)."}
+  - {version: 1.0.3, date: 2026-10-07, note: "The whole platform again, as pioreactor.com sells it (Pumping dovetail platform): one Pioreactor dovetail platform (pioreactor-dovetail-platform) and two pump dovetail holders (pump-dovetail-holder), counted as one row. Name and count only; the printed pieces are unchanged (Gerrit 2026-10-07)."}
 receipt:
   per: unit
-  qty: 2
+  qty: 1
   from: [labcrafter, diy]
-  note: "3D printed (Printables model 679663: the two pump pieces). One per pump."
+  note: "3D printed (Printables model 679663): one Pioreactor dovetail platform and two pump dovetail holders, one per pump."

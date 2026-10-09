@@ -5,5 +5,5 @@ end_s: 80
 poster: docs/media/vid-02-platform-setup.webp
 shot_date: 2026-09-22
 shot_by: "andeye (Laura Currie, edit; Martin Currie and Bingqiao Zhao on camera)"
-hero: [pumping-dovetail-platform@1.0.2, gl45-bottle-holder@1.1.0, co2-cylinder-dovetail-holder@1.0.0]
+hero: [pumping-dovetail-platform@1.0.3, gl45-bottle-holder@1.1.0, co2-cylinder-dovetail-holder@1.0.0]
 licence: "CC BY-SA 4.0"
