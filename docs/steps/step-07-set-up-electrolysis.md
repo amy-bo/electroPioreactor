@@ -50,7 +50,7 @@ checks:
 2. Push the stainless steel cathode (the rod) up through the septum from below until its top is flush with the top of the cap. Level it with a flat edge.
 3. Tighten the thumb screw to hold it in place: firmly, not hard. <!-- from video: session-17 0:55:17 - "you tighten that ... not massively"; which fastener is not clear from the transcript; the reviewer named the thumb screw -->
 4. Repeat with the MMO anode (the tube).
-5. ~Crimp a ring terminal onto each electrode cable.~
+5. ~Crimp a ring terminal onto one end of each electrode cable and a crimp contact onto the other. Push both contacts into a crimp housing: with its clip facing away from you, black on the left and red on the right.~
 6. ~Fix the red cable to the MMO anode with its thumb screw: flat washer against the cap, then spring washer, then the ring terminal, in direct contact with the thumb screw's head. The thumb screw screws into an M3 nut slid up into the cap as a captive nut.~
 7. ~Fix the black cable to the stainless steel cathode the same way.~
 8. Check both electrode tops are still flush with the cap top. <!-- TODO: record the AEP0.2 standard depth here once the first build is measured | assignee: @Bingqiao @Amir @Teo @Martin -->
