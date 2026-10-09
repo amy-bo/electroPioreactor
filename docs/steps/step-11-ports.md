@@ -61,19 +61,16 @@ Put needles through Media In, Media Out and the two gas outlets only. Media Out 
 1. Push a female luer onto the media pump's inlet tubing. It is a tight fit (1 mm bore). <!-- from video: session-21 0:00:13 -->
 2. Push the 80 mm needle (Media Out) down through the septum to the liquid level you want: it sets the level. <!-- from video: session-21 0:01:07 - 80 mm 316 stainless for the outlet, 75 mm for the inlet; the needle-75mm-304 component lists 75 mm, 304 -->
 3. Push a straight 75 mm needle (Media In) through the septum, stopping above the liquid level.
-4. After each needle goes through, pull it back out, blow any silicone plug out with a syringe, and reinsert it through the same hole.
+4. Push the two bent needles (Gas Out and Gas Out – safety) through the septum, above the liquid level. <!-- from video: session-21 0:11:35 - Bingqiao suggests the bent needles may stretch the septum unevenly -->
+5. Unscrew the vial cap and blow any silicone plug out of each needle with a syringe. Pushing a needle through the septum can cut a plug of silicone into it.
+6. Check every needle is clear: push air through each with a syringe at the same steady pressure and compare the flow. A needle that flows less than the others still has silicone in it: blow it clear again. Then screw the vial cap back on.
 
    :::tip
-   Light visible through the needle means it is clear. Otherwise blow it clear with a syringe.
+   Light visible through a straight needle means it is clear. You cannot see through the bent gas needles, so compare their flow with a straight one.
    :::
-5. Push the two bent needles (Gas Out and Gas Out – safety) through the septum, above the liquid level. <!-- from video: session-21 0:11:35 - Bingqiao suggests the bent needles may stretch the septum unevenly -->
-6. Fit a male-to-male luer adapter to each of the two gas outlet needles, so outlets are marked as outlets.
-7. Fill the vial with DI water via the pumps, and weigh it against the dry empty vial.
-8. Move the Media Out needle up or down until the vial holds 30 ml and Media Out just maintains that level while the pumps run.
-9. Measure the electrode immersion depths, adjust them to the standard if needed, and record each insertion depth. <!-- TODO: the AEP0.2 standard depth is still to be measured on the first build (BoM open item 2.3) | assignee: @Martin -->
-10. Check the Media Out needle is at the water level, every other needle is higher, and none is plugged with silicone. You cannot see light through the bent gas needles: push air through each with a syringe and check it flows freely.
-
-    :::tip[Bent needles]
-    You cannot look through a bent needle. Blow gas or air through it at a steady pressure and compare the flow with a clear needle.
-    :::
-11. Set up the Pioreactor in [turbidostat mode](https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat).
+7. Fit a male-to-male luer adapter to each of the two gas outlet needles, so outlets are marked as outlets.
+8. Fill the vial with DI water via the pumps, and weigh it against the dry empty vial.
+9. Move the Media Out needle up or down until the vial holds 30 ml and Media Out just maintains that level while the pumps run.
+10. Measure the electrode immersion depths, adjust them to the standard if needed, and record each insertion depth. <!-- TODO: the AEP0.2 standard depth is still to be measured on the first build (BoM open item 2.3) | assignee: @Martin -->
+11. Check the Media Out needle is at the water level and every other needle is higher.
+12. Set up the Pioreactor in [turbidostat mode](https://docs.pioreactor.com/user-guide/dosing-automations#turbidostat).
