@@ -1,13 +1,14 @@
 id: blanking-plug
-name: "1/8\" blanking plug"
+name: "1/8\" male head blanking plug"
 kind: off-the-shelf
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
 parameters: {thread: "1/8\" external", material: "nickel-plated brass", seal: "integral NBR o-ring"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 4.6 (Generic; AEP0.2). Seals on an integral NBR o-ring, so no thread sealant is needed."}
+  - {version: 1.0.1, date: 2026-10-02, note: "Renamed from 1/8\" blanking plug to 1/8\" male head blanking plug (Gerrit 2026-10-02)."}
 receipt:
   per: unit
   qty: 1

@@ -1,15 +1,11 @@
 id: pioreactor-vial-40ml
 name: "Pioreactor 40 ml glass vial"
 kind: kitted
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
 parameters: {volume_ml: 40, working_volume_ml: 30}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Kit sub-item of BoM.md item 1.1, named in Assembly/README.md Method steps 5 and 6 ('the Vial') (AEP0.2)."}
-receipt:
-  per: unit
-  qty: 1
-  from: [labcrafter, pioreactor, diy]
-  note: "In the Pioreactor 40 ml v1.5 box."
+  - {version: 1.0.1, date: 2026-10-02, note: "Counted on the Pioreactor 40 ml v1.5 row (pioreactor-40ml) (Gerrit 2026-10-02)."}

@@ -13,10 +13,11 @@ parts:
   - {component: anode-feed-tube, qty: 1, cat: prev}
   - {component: male-to-male-luer-lock-adapter, qty: 2, cat: prev}
   - {component: luer-lock-cap, qty: 1, cat: part}
+  - {component: solenoid-valve, qty: 1, cat: prev}
   - {component: solenoid-wiring, qty: 1, cat: part}
   - {component: mmo-anode, qty: 1, cat: prev}
-  - {component: crimp-connector, qty: 1, cat: prev}
-  - {component: crimp-housing, qty: 1, cat: prev}
+  - {component: crimp-connector, qty: 2, cat: part}
+  - {component: crimp-housing, qty: 1, cat: part}
 tools:
   - {component: gas-cylinder-wrench, qty: 1}
   - {component: cryogenic-gloves, qty: 1}
@@ -46,13 +47,18 @@ checks:
 
 The gas train was built and checked in [CO₂ gas train](step-12-co2-gas-train.md), with the pin backed off.
 
+:::note[LabCrafter kits]
+~Struck-through~ items are already done in a LabCrafter kit.
+:::
+
 1. Open the adapter's pin to admit CO₂. The cylinder gauge reads about 60 bar when full. If the adapter leaks, tighten it further. <!-- from video: session-21 0:33:43-0:36:13 - the adapter leaked until tightened further -->
 2. Screw the regulator in until its outlet gauge reads about 1 bar.
 3. Remove the compression nut and ferrule from the top of the needle valve, thread the nut onto the 4 mm polyurethane CO₂ tube, and push the tube fully onto the needle valve (dip it in hot water if it will not go). Refit the ferrule, and screw the nut down.
 4. Cut the tube just long enough to run over the regulator and down to the vial's CO₂ inlet (cut every other unit's tube to the same length), and push a 1/8" hose barb to male luer lock adapter into the free end (hot water if needed).
 5. Fit the male end of a 0.2 μm vent filter to the female luer on the CO₂ inlet, and connect the tube's luer to that filter. <!-- kits from 2026-09-24 include six vent filters; the recorded build had none -->
 6. Fit the female ends of two 0.2 μm vent filters to the male-to-male adapters on the two gas outlets (fitted in [Ports](step-11-ports.md)), and cap any unused luer lock with a luer lock cap.
-7. Route the solenoid lead down behind the Pioreactor and through the pumps, and plug it into PWM channel 4.
+7. ~Wire the solenoid: connect the two-core cable to the solenoid's screw terminals, red (positive) on the left. Crimp a contact onto each free end and push both into a crimp housing: with its clip facing away from you, black (or blue) on the left and red on the right, as for the electrodes.~
+8. Route the solenoid lead down behind the Pioreactor and through the pumps, and plug it into PWM channel 4.
 
 <!-- VIDEO CUT: session-21 - this step starts where the pin is opened (about 0:33:43). -->
 

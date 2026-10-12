@@ -50,7 +50,7 @@ Follow Pioreactor's [peristaltic pump setup guide](https://docs.pioreactor.com/u
 3. Plug the product pump into PWM 2 and the media pump into PWM 3.
 4. Lead the cables out through the notches.
 5. Put the media and product bottles, with their GL45 caps, into their holders.
-6. Connect each bottle to its pump with the 1/16" Flexelene tubing and luer fittings, then each pump to its tube on the vial cap: media to Media In, waste to Media Out.
+6. Connect each bottle to its pump with the 1/16" ID tubing and luer fittings, then each pump to its tube on the vial cap: media to Media In, waste to Media Out.
 7. Check the 12 V supply is in the HAT's barrel jack ([external power](https://docs.pioreactor.com/user-guide/external-power)).
 
    :::caution
