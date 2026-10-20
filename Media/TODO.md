@@ -12,7 +12,6 @@ Open backlog and parked items. Done work is in `CHANGELOG.md`. Bench SOPs for th
 - [ ] **Fill the HOB DO bands** for the non-necator organisms and the minimum-DO column (currently pink gaps).
 ### From the wave-4 review (2026-08-12; detail and derivations in `electroPioreactorGasModel-Review.md`)
 
-- [ ] **Re-base the sensitivity script's self-check onto the workbook file.** Its baseline matches Excel, but it compares itself against hard-coded "workbook" literals that were written by the wave-4 build script, not by Excel (e.g. DO_surf_excess 0.03630 hard-coded vs 0.03800 in Excel), and its "ETAF FEEDBACK" / "#VALUE! prediction" block describes an IFERROR defect that the workbook no longer has (every consumer already uses `IF(ISNUMBER(cal_X),...)`; a full Excel recalc returns no #VALUE!).
 - [ ] **Chlorine thresholds compare mixed units.** `C_eff` (Chemistry D145) is in mg/L as HOCl and `Cl_onset`/`Cl_kill` (0.1 / 2.0 mg/L) are tested against it, while the Summary reports `C_eff_Cl2` (D226, mg/L as Cl2, ×1.35). Free-chlorine kill thresholds are conventionally quoted as Cl2, so the verdict should test `C_eff_Cl2`.
 
 - [ ] **Measure the electrode mass-transfer coefficient** (ferricyanide limiting current, same vial, same rpm). It now sets the cathodic O2 loss, the peroxide source, the chlorine cap and the electrode-surface pH verdict — the single most load-bearing estimate in the new electrochemistry.

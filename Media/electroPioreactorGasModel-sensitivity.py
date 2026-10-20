@@ -15,14 +15,13 @@ WHAT THIS MODELS
     and it replaces the old SURFACE-HELD / SPARGE-NEEDED regime flip entirely.
 
 WHICH WORKBOOK VERSION IT MIRRORS
-    electroPioreactorGasModel.xlsx as at the wave-4 rebuild (stage7), with the live
+    electroPioreactorGasModel.xlsx (wave-4 logic, verified in Excel 2026-10-21), with the live
     selector state behind the values:
         ed04 / Pt-Ti rod / UdG (mixed) / UdG phosphate, LED 3 %, stir 1000 rpm, T 25 C.
     Formula logic is read directly out of the workbook part XML (Mass Transfer D178-D200,
     Electrochemistry D79-D122, Chemistry D166-D220). The workbook is the authority for
-    both LOGIC and BASELINE INPUTS in this revision; the older Python twin
-    (electroPioreactorGasModel.py) has NOT been re-based onto the new guard block and is
-    no longer the reference for anything in this file.
+    both LOGIC and BASELINE INPUTS. The full twin (electroPioreactorGasModel.py) is the
+    exhaustive cell-by-cell check; this script is the reduced model the sweeps run on.
 
 WHAT CHANGED IN THIS RE-BASE (vs the previous revision of this script)
     (a) The SURFACE-HELD / SPARGE-NEEDED branch is gone. Dissolved O2 now carries a
@@ -32,9 +31,9 @@ WHAT CHANGED IN THIS RE-BASE (vs the previous revision of this script)
         unmeasured coefficient switches one formula for another any more. The new
         discontinuity is spg_int_DO going #N/A when DO_target - DO_surf_excess <= 0.
     (b) The faradaic efficiencies are calculated, not asserted: etaF = 1 - i_ORR/I_app.
-        etaF is therefore no longer a free sweep input; km_O2 is swept in its place.
-        SEE THE "ETAF FEEDBACK" SECTION -- the workbook does not currently propagate the
-        calculated value, and that is a live defect, not a modelling choice.
+        etaF is therefore no longer a free sweep input; km_O2 is swept in its place. The
+        workbook propagates the calculated values (Electrochemistry D18 and D26 are
+        IF(ISNUMBER(cal_X), cal_X, calc)), and so does this script.
     (c) The CO2 limit cycle is mass-conserving (one pooled liquid+headspace inventory
         decaying through the vent) and the pH solve is activity-corrected, so both
         dissolved CO2 and pH respond strongly to the schedule. pH_meas is now a
@@ -49,9 +48,17 @@ STANDING RULE -- RE-BASE THIS FILE WHENEVER THE WORKBOOK MOVES
       (b) the baseline inputs (Summary D2:D10 -- reactor, electrode, organism, medium,
           LED %, stir rpm, temperature, volume, pressure)
     Every percentage this script prints becomes wrong the moment it drifts. The runtime
-    SELF_CHECK block fails loudly if the baseline stops reproducing the workbook, and the
+    self-check fails loudly if the baseline stops reproducing the workbook, and the
     sweep-bracket assertion fails loudly if a baseline input drifts outside its own sweep
     range. Do not silence either; re-base instead.
+
+SELF-CHECK CONTRACT
+    The workbook's own cached values (computed by Excel) are read from the .xlsx beside
+    this script at run time; nothing is transcribed. Before any analysis the BASE inputs
+    are compared with Summary D2:D10 (and the Geometry / Electrochemistry / Mass Transfer
+    cells they feed); on drift the offending pairs are printed and the script exits 1.
+    The baseline model() outputs are then compared with their workbook cells at 5e-5
+    relative; a missing cache, error value or mismatch is a failure, never a pass.
 
 Standard library only.  Run with:  python3 electroPioreactorGasModel-sensitivity.py
 
@@ -60,6 +67,11 @@ Each input carries an IGNORANCE tier -- DATA-GAP (unmeasured), ESTIMATE, LITERAT
 we know the value. KNOBs are control authority, reported separately.
 """
 import math
+import os
+import re
+import sys
+import zipfile
+import xml.etree.ElementTree as ET
 
 PI = math.pi
 INF = float('inf')
@@ -88,7 +100,6 @@ BASE = dict(
   km_O2=4.0e-3, km_exp=0.644,             # Eisenberg-Tobias-Wilke; k_m scales as D^0.644
   f_HOOH=0.15, k_cat_cells=0.0041, M_H2O2=34.0147,
   FE_CER=0.5, km_Cl=0.00405, corr_I_frac=0.0,
-  etaF_feedback=1.0,                      # 1 = calculated etaF propagates, as the workbook now does
   # --- biology ---
   bio_H2=6, bio_O2=2, bio_CO2=1,
   # --- O2 ceiling / Henry ---
@@ -188,10 +199,8 @@ def model(p):
     Cl_M = 2 * p['udg_CaCl2'] / MW['CaCl2']                              # Chemistry D42
     I_Cl = min(I_app * p['FE_CER'], p['F'] * p['km_Cl'] * (Cl_M / 1000) * A_wet)   # D133
     etaF_OER_calc = max(0.0, 1 - I_Cl / I_app - p['corr_I_frac'])        # D104
-    # THE CONTESTED SWITCH -- see the ETAF FEEDBACK section at the foot of the run.
-    fb = p['etaF_feedback']
-    etaF = 1.0 + fb * (etaF_calc - 1.0)
-    etaF_OER = 1.0 + fb * (etaF_OER_calc - 1.0)
+    etaF = etaF_calc                                                     # D18 (no calibration override)
+    etaF_OER = etaF_OER_calc                                             # D26
     rH2 = I_app * etaF / (p['z_e_H2'] * p['F']) * 3600
     rO2 = I_app * etaF_OER / (p['z_e_O2'] * p['F']) * 3600
     O2_cath = I_app * (1 - etaF) / (p['z_e_ORR'] * p['F']) * 3600
@@ -494,28 +503,105 @@ CRITICAL = ['spg_int_opt', 'DO_ss', 'pH_meas', 'r_H2O2', 'V_cell_est', 't_O2_cei
 ABSOLUTE_OUT = {'pH_meas': 1.0, 'V_cell_est': None}   # None => score as % of baseline
 WEIGHT = {'DATA-GAP': 1.0, 'ESTIMATE': 0.6, 'LITERATURE': 0.15, 'KNOB': 0.0}
 
-# Cached values read straight out of the workbook part XML at the live inputs
-# (ed04 / Pt-Ti rod / UdG (mixed) / UdG phosphate, 3 %, 1000 rpm, 25 C).
-# If any of these stops matching, this script has drifted -- re-base it, do not adjust
-# the tolerance.
+# Baseline model keys checked against the workbook's cached (Excel-computed) cells, read
+# at run time. (model key, label, sheet, cell). If any stops matching, this script has
+# drifted -- re-base it, do not adjust the tolerance.
 SELF_CHECK = [
-    ('D_O2',            'D_O2 (m2/s)',              1.99767e-9),
-    ('kLa_surf_used',   'kLa_surf_used (1/s)',      7.2001e-3),
-    ('etaF_calc',       'etaF_calc (-)',            0.977475),
-    ('DO_target',       'DO_target (mol/m3)',       0.0824697),
-    ('DO_surf_excess',  'DO_surf_excess (mol/m3)',  0.0362963),
-    ('y_O2_star',       'y_O2_star (-)',            0.0379947),
-    ('duty_DO',         'duty_DO (-)',              7.94346e-4),
-    ('spg_int_DO',      'spg_int_DO (min)',        16.4604),
-    ('spg_int_opt',     'spg_int_opt (min)',       16.4604),
-    ('spg_int_carbon',  'spg_int_carbon (min)',   185.899),
-    ('kLa_surf_req',    'kLa_surf_req (1/s)',       3.31777e-3),
-    ('DO_ss',           'DO_ss (mg/L)',             2.63903),
-    ('V_cell_est',      'V_cell_est (V)',           3.26376),
-    ('r_H2O2',          'r_H2O2 (mg/L/h)',          0.813297),
-    ('CO2_cyc_avg_new', 'CO2_cyc_avg_new (mol/m3)', 8.59021),
-    ('pH_meas',         'pH_meas (-)',              6.60395),
+    ('D_O2',            'D_O2 (m2/s)',              'Mass Transfer',    'D32'),
+    ('kLa_surf_used',   'kLa_surf_used (1/s)',      'Mass Transfer',    'D98'),
+    ('etaF_calc',       'etaF_calc (-)',            'Electrochemistry', 'D88'),
+    ('DO_target',       'DO_target (mol/m3)',       'Mass Transfer',    'D179'),
+    ('DO_surf_excess',  'DO_surf_excess (mol/m3)',  'Mass Transfer',    'D180'),
+    ('y_O2_star',       'y_O2_star (-)',            'Mass Transfer',    'D183'),
+    ('duty_DO',         'duty_DO (-)',              'Mass Transfer',    'D184'),
+    ('spg_int_DO',      'spg_int_DO (min)',         'Mass Transfer',    'D185'),
+    ('spg_int_opt',     'spg_int_opt (min)',        'Mass Transfer',    'D91'),
+    ('spg_int_carbon',  'spg_int_carbon (min)',     'Mass Transfer',    'D112'),
+    ('kLa_surf_req',    'kLa_surf_req (1/s)',       'Mass Transfer',    'D186'),
+    ('DO_ss',           'DO_ss (mg/L)',             'Mass Transfer',    'D108'),
+    ('V_cell_est',      'V_cell_est (V)',           'Electrochemistry', 'D119'),
+    ('r_H2O2',          'r_H2O2 (mg/L/h)',          'Electrochemistry', 'D93'),
+    ('CO2_cyc_avg_new', 'CO2_cyc_avg_new (mol/m3)', 'Mass Transfer',    'D200'),
+    ('pH_meas',         'pH_meas (-)',              'Chemistry',        'D220'),
 ]
+
+# BASE inputs vs the workbook (Summary selectors D2:D10 and the cells they feed).
+# (label, sheet, cell, value declared by this script). D9 / D10 are blank on Summary, so
+# the effective volume and pressure are checked on the cells that resolve them.
+SELECTORS = dict(reactor='ed04', electrode='Pt/Ti rod', organism='UdG (mixed)',
+                 media='UdG phosphate')
+INPUT_CELLS = [
+    ('Reactor_sel',   'Summary', 'D2', SELECTORS['reactor']),
+    ('electrode_sel', 'Summary', 'D3', SELECTORS['electrode']),
+    ('organism_sel',  'Summary', 'D4', SELECTORS['organism']),
+    ('media_sel',     'Summary', 'D5', SELECTORS['media']),
+    ('intensity',     'Summary', 'D6', BASE['intensity']),
+    ('stir_rpm',      'Summary', 'D7', BASE['stir_rpm']),
+    ('T_C',           'Summary', 'D8', BASE['T_C']),
+    ('media_volume',  'Summary', 'D9', None),     # blank -> recommended fill (V_max etc.)
+    ('P_atm_set',     'Summary', 'D10', None),    # blank -> 101325 Pa default
+    ('V_max',         'Geometry', 'D23', BASE['V_max']),
+    ('V_vial_total',  'Geometry', 'D24', BASE['V_vial_total']),
+    ('D_int',         'Geometry', 'D22', BASE['D_int']),
+    ('gerrit_slope',  'Electrochemistry', 'D11', BASE['gerrit_slope']),
+    ('gerrit_int',    'Electrochemistry', 'D12', BASE['gerrit_int']),
+    ('P_atm',         'Biology', 'D19', BASE['P_atm']),
+    ('Q_CO2',         'Mass Transfer', 'D102', BASE['Q_CO2']),
+]
+
+
+# ---------------------------------------------------------------------------
+# Minimal read-only .xlsx reader (standard library): the value Excel CACHED for a cell.
+# ---------------------------------------------------------------------------
+WORKBOOK_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             "electroPioreactorGasModel.xlsx")
+_NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+_RNS = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
+NO_CACHE = object()      # formula cell with no stored result
+ABSENT = object()        # cell not present / empty
+
+
+def _read_workbook(path):
+    """-> {sheet name: {cell ref: float | str | NO_CACHE | ABSENT-less}}; errors stay str."""
+    with zipfile.ZipFile(path) as z:
+        rels = {r.get("Id"): r.get("Target")
+                for r in ET.fromstring(z.read("xl/_rels/workbook.xml.rels"))}
+        shared = []
+        if "xl/sharedStrings.xml" in z.namelist():
+            shared = ["".join(t.text or "" for t in si.iter(_NS + "t"))
+                      for si in ET.fromstring(z.read("xl/sharedStrings.xml"))]
+        out = {}
+        for sh in ET.fromstring(z.read("xl/workbook.xml")).iter(_NS + "sheet"):
+            target = rels[sh.get(_RNS + "id")].lstrip("/")
+            part = target if target.startswith("xl/") else "xl/" + target
+            cells = {}
+            for c in ET.fromstring(z.read(part)).iter(_NS + "c"):
+                t, v = c.get("t"), c.find(_NS + "v")
+                if t == "inlineStr":
+                    val = "".join(x.text or "" for x in c.iter(_NS + "t"))
+                elif v is None or v.text is None:
+                    val = NO_CACHE if c.find(_NS + "f") is not None else ABSENT
+                elif t == "s":
+                    val = shared[int(v.text)]
+                elif t in ("str", "e"):
+                    val = v.text                      # t="e": '#N/A', '#VALUE!', ...
+                else:
+                    try:
+                        val = float(v.text)
+                    except ValueError:
+                        val = v.text
+                cells[c.get("r")] = val
+            out[sh.get("name")] = cells
+    return out
+
+
+def _cell(wb, sheet, ref):
+    return wb.get(sheet, {}).get(ref, ABSENT)
+
+
+def _fmt(v):
+    return ("no cached value" if v is NO_CACHE else "absent" if v is ABSENT
+            else f"{v:.10g}" if isinstance(v, float) else repr(v))
 
 
 def run(name, val):
@@ -534,11 +620,44 @@ _missing = [n for n, _lo, _hi, _t in SWEEP if n not in BASE]
 if _missing:
     raise SystemExit(f"SWEEP RANGE ERROR - swept input not in BASE: {_missing}")
 
+# --- runtime guard 2: BASE inputs must equal the workbook's, before anything runs ---
+try:
+    _wb = _read_workbook(WORKBOOK_PATH)
+except (OSError, KeyError, zipfile.BadZipFile, ET.ParseError) as _e:
+    raise SystemExit(f"CANNOT READ WORKBOOK {WORKBOOK_PATH}: {_e!r}")
+
+
+def _input_ok(declared, book):
+    if declared is None:                       # blank selector: workbook must be blank too
+        return book is ABSENT or book == ""
+    if isinstance(declared, str):
+        return isinstance(book, str) and book.strip() == declared
+    return isinstance(book, float) and abs(declared - book) <= 1e-9 * max(1.0, abs(book))
+
+
+_drift = [(n, f"{sh}!{ref}", d, _cell(_wb, sh, ref)) for n, sh, ref, d in INPUT_CELLS
+          if not _input_ok(d, _cell(_wb, sh, ref))]
+if _drift:
+    print("INPUT DRIFT - this script's BASE inputs differ from the workbook "
+          "(Summary D2:D10 and dependants):")
+    for n, where, d, bk in _drift:
+        print(f"   {n:14} {where:26} script={_fmt(d) if d is not None else 'blank'}  "
+              f"workbook={_fmt(bk)}")
+    print("   Re-base BASE (or restore the workbook selectors); no analysis was run.")
+    sys.exit(1)
+
 b = model(BASE)
 
-# --- runtime guard 2: the baseline must still reproduce the workbook -------------
-_fails = [f"   {lab}: this={b[k]:.6g}  workbook={v:.6g}"
-          for k, lab, v in SELF_CHECK if abs(b[k] - v) / abs(v) > 5e-5]
+# --- runtime guard 3: the baseline must still reproduce the workbook's cached values ---
+_fails, _checked = [], []
+for k, lab, sh, ref in SELF_CHECK:
+    v = _cell(_wb, sh, ref)
+    _checked.append(f"{sh}!{ref}")
+    if not isinstance(v, float):
+        _fails.append(f"   {lab}: this={b[k]:.6g}  workbook {sh}!{ref}={_fmt(v)}"
+                      + ("" if v is not NO_CACHE else "  (no cached value)"))
+    elif not (abs(b[k] - v) <= 5e-5 * abs(v)):
+        _fails.append(f"   {lab}: this={b[k]:.6g}  workbook {sh}!{ref}={v:.6g}")
 
 print("=" * 100)
 print("BASELINE - workbook live state: ed04 / Pt-Ti rod / UdG (mixed) / UdG phosphate,")
@@ -571,7 +690,8 @@ if _fails:
     print("   Re-base BASE / model() against the workbook before using any number below.")
 else:
     print(f"      self-check: all {len(SELF_CHECK)} baseline values reproduce the workbook "
-          "at 1000 rpm / 25 C")
+          "cached values (rel tol 5e-5); inputs match Summary D2:D10")
+    print("      cells checked: " + ", ".join(_checked))
 
 # ============================================================================
 # INFEASIBILITY CLIFF -- the single biggest non-linearity in the revised model.
@@ -765,53 +885,6 @@ for name, crit, flips, mm, cross in knobs:
     elif not math.isinf(mm) and mm < 1.6:
         extra = f"   (DO margin falls to x{mm:.2f})"
     print(f"   {name:18} max normalised span {crit:.0f}%" + extra)
-
-# ============================================================================
-# ETAF FEEDBACK -- a live defect in the workbook, not a modelling choice.
-#   Electrochemistry D18 is  etaF = IFERROR(cal_etaF, etaF_calc), and cal_etaF
-#   (Calibrations D31) is itself IFERROR(AVERAGEIFS(...), "no included runs ...").
-#   With no calibration rows entered, the inner IFERROR returns TEXT, which is not an
-#   error, so the outer IFERROR never fires and etaF_calc is never reached. The O2 chain
-#   the workbook actually ships is therefore still the etaF = 1 chain -- which is what the
-#   cached values, and this script's baseline, reproduce.
-#   The block below shows what the schedule becomes once that is fixed.
-# ============================================================================
-print("\n" + "=" * 100)
-print("ETAF FEEDBACK -- what changes when the calculated efficiencies actually propagate")
-p_fb = dict(BASE)
-p_fb['etaF_feedback'] = 1.0
-bf = model(p_fb)
-print(f"   as shipped (etaF = 1):        etaF {1.0:.5f}  etaF_OER {1.0:.5f}")
-print(f"   as intended (calculated):     etaF {b['etaF_calc']:.5f}  "
-      f"etaF_OER {b['etaF_OER_calc']:.5f}")
-print(f"{'output':22}{'as shipped':>14}{'as intended':>14}{'change':>12}")
-for k, unit in [('O2_excess', 'mol/h'), ('DO_surf_excess', 'mol/m3'), ('spg_int_DO', 'min'),
-                ('spg_int_opt', 'min'), ('DO_ss', 'mg/L'), ('do_margin', 'x'),
-                ('CO2_cyc_avg_new', 'mol/m3'), ('pH_meas', '-')]:
-    a, c = b[k], bf[k]
-    chg = (c - a) / a * 100 if a else NAN
-    print(f"   {k:19}{a:>14.6g}{c:>14.6g}{chg:>11.1f}%")
-print("   The schedule moves by ~43 % and the pH by ~0.08 units. Neither the workbook's")
-print("   cached values nor the baselines this script is checked against carry it, so")
-print("   the two are consistent with each other and both are wrong once D18 is fixed.")
-print("\n   THE DEFECT IS SYSTEMIC, NOT LOCAL TO etaF. Every Calibrations 'value in use'")
-print("   cell wraps its aggregate as IFERROR(AVERAGEIFS(...), \"no included runs ...\"),")
-print("   which turns the empty-table error into TEXT. Almost every consumer is then")
-print("   IFERROR(cal_X, default) -- and IFERROR cannot fire on text, so the default is")
-print("   never reached and the text propagates. With the calibration tables empty (their")
-print("   current state) that reaches gerrit_slope/gerrit_int (Echem D11/D12), V_vial_total")
-print("   and D_int (Geometry D24/D22), bio_H2/O2/CO2 (Biology D10-D12), etaF/etaF_OER")
-print("   (Echem D18/D26), por_grade_e (Echem D32) and kLa_meas (MT D97). kLa is the worst")
-print("   of them: Excel ranks text above every number, so kLa_meas>0 is TRUE and MT D98")
-print("   evaluates text/3600.")
-print("   PREDICTION, worth testing before trusting any cell: on the next full recalc in")
-print("   Excel this sheet returns #VALUE! across most of Mass Transfer, Biology and")
-print("   Electrochemistry. The cached values look healthy only because they were written")
-print("   by the build script, not computed by Excel.")
-print("   FIX: return NA() (not a text string) from the Calibrations 'value in use' cells")
-print("   and carry the researcher-facing message in column E/F, OR convert every consumer")
-print("   to the IF(ISNUMBER(cal_X), ...) form already used correctly at MT D117")
-print("   (flowrate_cal) -- that one cell is the pattern the rest should follow.")
 
 # ============================================================================
 # C_eff (effective biocidal chlorine) -- the four chlorine knobs.
