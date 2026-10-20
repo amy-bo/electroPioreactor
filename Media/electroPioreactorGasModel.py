@@ -1035,7 +1035,10 @@ S_D33 = I_valid                                         # D33 LED current-law ra
 S_D34 = ("inputs present" if (isnum(DO_min) and isnum(DO_opt) and isnum(DO_impair) and isnum(DO_toxic))
          else "DATA GAP - organism DO thresholds unmeasured; results unreliable")  # D34
 S_D35 = pH_meas                                         # D35 endpoint pH (activity scale) = Chemistry D220
-S_D36 = C_eff                                           # D36 effective biocidal chlorine (operative)
+M_HOCl_mg = 52460                                       # Chemistry D222 (mg/mol)
+M_Cl2_mg  = 70906                                       # Chemistry D223 (mg/mol)
+C_eff_Cl2 = C_eff * M_Cl2_mg / M_HOCl_mg                # Chemistry D226 (mg/L as Cl2)
+S_D36 = C_eff_Cl2                                       # D36 effective biocidal chlorine, as Cl2 = Chemistry D226
 S_D38 = DO_ss                                           # D38 steady-state DO
 S_D39 = spg_int_carbon                                  # D39 interval if O2 handled
 S_D40 = tip_speed                                       # D40 stir-bar tip speed
@@ -1274,7 +1277,7 @@ OUTPUTS = [
     ("Summary D33  LED current-law in range?",         S_D33),
     ("Summary D34  Organism DO data present?",         S_D34),
     ("Summary D35  Endpoint pH (activity scale)",      S_D35),
-    ("Summary D36  C_eff (mg/L)",                      S_D36),
+    ("Summary D36  C_eff_Cl2 (mg/L)",                  S_D36),
     ("Summary D38  Steady-state DO (mg/L)",            S_D38),
     ("Summary D39  Sparge interval if O2 handled (min)", S_D39),
     ("Summary D40  Stir-bar tip speed (m/s)",          S_D40),
@@ -1304,6 +1307,7 @@ OUTPUTS = [
     ("Chemistry D149  Cl_pool_mgL (mg/L)",             Cl_pool_mgL),
     ("Chemistry D156  C_eff_lo (mg/L)",                C_eff_lo),
     ("Chemistry D157  C_eff_hi (mg/L)",                C_eff_hi),
+    ("Chemistry D226  C_eff_Cl2 (mg/L)",               C_eff_Cl2),
     ("Chemistry D161  metal_leach_rate (mg/L/h)",      metal_leach_rate),
     ("Chemistry D163  metal_flag",                     metal_flag),
     # --- Chemistry: conductivity & activity (wave-4, rows 165-197) ---
