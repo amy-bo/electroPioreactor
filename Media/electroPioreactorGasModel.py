@@ -156,12 +156,20 @@ V_inserts    = (rod_n * (math.pi / 4 * rod_d ** 2) * elec_ins
                 + (math.pi / 4 * spg_OD ** 2) * spg_len
                 + (math.pi / 4 * (eff_OD ** 2 - eff_ID ** 2)) * (D_int - h_actual)
                 + xtube_n * (math.pi / 4 * xtube_OD ** 2) * xtube_pro) / 1000   # D48 (mL)
-headspace_V  = V_vial_total - V_charge - V_inserts  # D49 (mL)
+cal_hs, cal_hs_fill = None, None                   # Calibrations D76/D77 (no vial-geometry runs yet)
+if cal_hs is not None and cal_hs_fill is not None:  # D49: measured headspace, shifted to V_charge
+    headspace_V = cal_hs - (V_charge - cal_hs_fill)
+else:
+    headspace_V = V_vial_total - V_charge - V_inserts  # D49 (mL)
 stir_bar_L   = g["stir_L"]                          # D52 (mm)
 media_vol_warn = "MEDIA > MAX WORKING VOLUME" if V_charge > V_max else "OK"     # D54
 depth_warn     = "LIQUID OVER USABLE DEPTH" if h_actual > D_int else "OK"       # D55
-geom_check     = ("VIAL GEOMETRY INCONSISTENT - measure true fill volume & bore depth"
-                  if abs(A_x * D_int / 1000 - V_vial_total) > 3 else "OK")      # D90
+if abs(A_x * D_int / 1000 - V_vial_total) <= 3:                                # D90
+    geom_check = "OK"
+elif cal_hs is not None and cal_hs_fill is not None:
+    geom_check = "HEADSPACE MEASURED - bore depth still inconsistent (measure body volume)"
+else:
+    geom_check = "VIAL GEOMETRY INCONSISTENT - measure true fill volume & bore depth"
 # --- electrode geometry for the ohmic drop (wave-4, Geometry rows 91-93) ---
 elec_gap       = 14.0                               # D92 (mm) DATA GAP - centre-to-centre, measure with calipers
 elec_sub_L_act = max(0.0, h_actual - elec_clear)    # D93 (mm) submerged length at the ACHIEVED level

@@ -43,17 +43,17 @@ tags: [electropioreactor, protocol, geometry, headspace, calibration]
 
 1. Bring the vial and the deionised water to the run temperature, 30 °C, and hold them there throughout.
 2. Assemble the vial exactly as for a real run, every insert seated to its normal depth, and weigh it empty. You need not tare, though taring before you add water is fine if it helps.
-3. Meter in the working volume for that reactor type (about 15 mL for the 20 mL build, about 30 mL for the 40 mL build) and weigh again; the increase is the working volume.
+3. Meter in the working volume for that reactor type (about 15 mL for the 20 mL build, about 30 mL for the 40 mL build) and weigh again; the increase is the working-fill mass.
 4. Inject deionised water into the gas space above the liquid, through a headspace tube or by briefly lifting the septum, until it reaches the exact plane the cap seals against, with no trapped air.
 5. Tilt and tap the vial to chase out any bubble clinging to an insert or the shoulder, top up to the septum plane again, and inspect against the light. Weigh again; the increase over step 3 is the headspace mass.
 6. Empty and dry the vial, re-assemble and re-charge it as in steps 2 to 5, and take the headspace mass twice more, so you have three fills of the same vial. Record each fill as its own vial row. If one fill differs by more than about 0.3 mL from the others, re-wet, chase bubbles and re-run.
 7. Remove the inserts and the cap, empty and dry the vial, and weigh it empty. Fill the whole vial body with deionised water up to the rim, the top reference plane being the internal lip of the neck where the cap seats. Chase out any bubble as before and weigh again; the increase is the body mass.
 8. Note the water temperature.
-9. Record your results in the **Vial geometry** section of the **Calibrations** tab, one row per vial; the column headers name what each cell wants. Set Include to y and leave the computed cells to the spreadsheet.
+9. Record your results in the **Vial geometry** section of the **Calibrations** tab, one row per fill: headspace mass, body mass (on one row per vial is enough), temperature and working-fill mass; the column headers name what each cell wants. Set Include to y and leave the computed cells to the spreadsheet.
 
 ## What the spreadsheet does with it
 
-The tab converts each recorded mass to a volume using the density of water at the recorded temperature, giving the true free headspace above the working liquid and the effective bore depth of the vial body. It then averages the included vials of the same reactor type. From those averages it feeds the model the total vial volume and the usable bore depth for that reactor type.
+The tab converts each recorded mass to a volume using the density of water at the recorded temperature, giving the true free headspace above the working liquid and the effective bore depth of the vial body. It then averages the included vials of the same reactor type. From those averages it feeds the model the measured headspace (shifted by any difference between your working fill and the liquid volume the model charges), the total vial volume and the usable bore depth for that reactor type. Once the headspace is measured, the Summary's vial-geometry check stops flagging the pulse as provisional.
 
 ## Principle & background
 
