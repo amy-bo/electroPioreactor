@@ -10,6 +10,39 @@ It sizes CO₂ dosing and O₂ management for an aseptic electro-bioreactor grow
 
 ---
 
+# Wave-5 review (2026-10-21) — first full recalculation in real Excel
+
+**Method.** For the first time the workbook was recalculated by Excel itself (Excel 16.114 on the lab MacBook Air, driven over SSH; that copy is View Only, so edits were made to the file's XML and Excel's own recalculated values were written back into the caches, with every change round-tripped through Excel). Four independent reviews ran against the Excel values: electrochemistry and chemistry (R1, Claude Fable), gas transfer, scheduling and safety (R2, Claude Opus, with a time-stepped limit-cycle simulation), house-rule hygiene (R3, Claude Sonnet), and an adversarial review of the redesigned headspace balance (R4, Opus; the redesign itself was drafted on Fable). Every fix was verified in Excel and mirrored in both Python companions (twin: every compared output within 0.5 %; sensitivity script: self-check against the workbook's cached values). Full reports were working files; this section is the record.
+
+**Headline, before → after** (ed04, UdG phosphate, 3 %, 1000 rpm, 25 °C): CO₂ pulse 0.78 s every 16.46 min → **0.78 s every 9.0 min** (as run 0.8 s / 9 min) with an open vent, 12.7 min with a check valve; pH 6.60 → **6.19, below the 6.5 band**; effective chlorine 0.50 → 0.34 mg/L as Cl₂; cathodic faradaic efficiency 0.977 → 0.958; cell voltage 3.26 → 2.85 V.
+
+## What was wrong, and what changed
+
+| Finding | Severity | Resolution |
+|---|---|---|
+| Wave-4 pH chain returned #DIV/0! in Excel: activity coefficients named `gam1`–`gam3`, which are cell addresses (column GAM) | blocker | renamed `gamma_1`–`gamma_3`; no other name collides |
+| The 13.91 vs 16.46 min discrepancy | — | the wave-4 copy had media MC02 selected; restored to UdG phosphate |
+| The "4.7 % disagreement" between the two Python scripts | — | the build script's cached values were stale; both scripts agreed with Excel. Sensitivity self-check now reads the workbook |
+| O₂ and CO₂ blocks assumed incompatible headspaces (96 % vs ≤33 % CO₂) (R2-B1) | blocker | one mean-field headspace balance shared by O₂ sizing, CO₂ pool and flammability; vent model is an owner selector (check valve / open vent / air exchange) |
+| Schedule sized on the growth phase only; lag infeasible and hidden (R2-B2) | blocker | sizing-phase selector; both phases always shown (Summary 114–123) |
+| "Relax to 185 min" advisory invited 12.9+ mg/L DO (R2-B3) | blocker | replaced by a test at the carbon-limited interval ("Do NOT relax") |
+| Buffer limit ignored bicarbonate (R1-01) | blocker | "BUFFER EXCEEDED" → OK (ratio 0.35) |
+| Chloramine "pool cap" not a steady state; chlorine current ignored sequestered chloride (R1-02, R1-03) | blocker/major | recycled-pool split kτ/(1+kτ); current acts on free chloride, n = 2 |
+| "EXPLOSIVE" from a dissolved-H₂ turnover proxy (R2-M1) | major (safety) | lag-phase headspace mix vs H₂ LFL and O₂ LOC with an NFPA 69 margin; verdict names the remedy |
+| Chlorine thermodynamics compared Cl₂ gas with reversible OER (R1-04) | major | HOCl/Cl⁻ couple vs operating anode potential: chloride oxidation accessible |
+| ORR charged at 2 e⁻ (R1-05); k_geom = 2 contradicts Gerrit's validated band (R1-06) | major | n_eff 3.7; k_geom 1 with a live 25 % cross-check |
+| Sawtooth hidden by a flux-mean DO; DO check a tautology (R2-M2) | major | closed-form sawtooth; peak DO reported and tested against impairment (R4-M3) |
+| Invalid selector gave a plausible 1.49 min headline (R4-M2) | major | #N/A end to end |
+| Surface-kLa protocol recorded per second against a per-hour cell (R2-M5) | major | protocol fixed |
+| ~150 hygiene items (R3) | minor | stale notes, embedded constants named, fonts/fills, names on Summary results, dead rows cleared, validations, absolute path stripped |
+
+## What the model now says, and what it cannot settle
+
+- **CO₂ cannot do three jobs.** Diluting electrolytic O₂ to the DO target with CO₂ alone drives pH to 6.16–6.23 for every vent assumption (Summary D128 "NO"), and holding the lag-phase headspace non-flammable needs a still shorter interval. A small inert (N₂) headspace sweep would decouple both from pH; owner question T7.
+- **The interval is fragile.** It moves 15× across plausible vents (check valve 12.7 min, open vent 9.0, 0.5 mL/min exchange 0.9) and ±30 % with the chloramine lifetime, because the O₂ surplus is a small difference of large numbers. The vent test and a DPD chlorine assay are the two cheapest, highest-leverage measurements (`TODO.md`).
+- **Lag is unreachable** at the estimated surface kLa (margin 0.64×) whatever the interval.
+- Still open model work and every measurement are listed in `TODO.md` under "From the wave-5 review".
+
 # Wave-4 review (2026-08-12) — workbook at `091ca50`
 
 Scope: the whole workbook (8 sheets, 394 defined names, 695 formula cells) plus the two Python

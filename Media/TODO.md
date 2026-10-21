@@ -24,9 +24,9 @@ Open backlog and parked items. Done work is in `CHANGELOG.md`. Bench SOPs for th
 
 Measurements, in leverage order:
 
-- [ ] **Characterise the headspace vent** (decides Summary D111 `vent_model`, the single highest-leverage open input): is the MEP0.3 vent outflow-only or does it exchange air, and at what flow? Pressure-decay test with a transducer on a headspace tube, or an optical O₂ spot in the headspace after a CO₂ fill. Outflow only gives 12.7 min / pH 6.16; air exchange at 0.5 mL/min gives 0.87 min / pH 6.23. Fix the cap leak noted on CO2 flows L8 first.
+- [ ] **Characterise the headspace vent** (decides Summary D111 `vent_model`, the single highest-leverage open input): is the MEP0.3 vent outflow-only or does it exchange air, and at what flow? Pressure-decay test with a transducer on a headspace tube, or an optical O₂ spot in the headspace after a CO₂ fill. A check valve gives 12.7 min / pH 6.16, a plain open vent (the default until measured; back-draw input `Q_backdraw` 0.015 mL/min, gold) 9.0 min / pH 6.19, a 0.5 mL/min air exchange 0.87 min / pH 6.23. Fix the cap leak noted on CO2 flows L8 first.
 - [ ] **Abiotic DO trace under the real schedule** (3 % power, no cells = lag source, optical DO patch): one run discriminates the vent hypotheses and checks the Summary rows 114–117 predictions.
-- [ ] **Headspace H₂/O₂ during lag before any unattended run**: the model puts it at ~16 % H₂, ~8 % O₂ (flammable). Syringe sample to a portable meter, or a catalytic H₂ sensor at the vent.
+- [ ] **Headspace H₂/O₂ during lag before any unattended run**: the model puts it at ~11 % H₂ mean and ~18 % just before each pulse, ~6 % O₂ (flammable). Syringe sample to a portable meter, or a catalytic H₂ sensor at the vent.
 - [ ] **Free + combined chlorine (DPD kit) in spent UdG after 24 h**: settles the chloramine lifetime `tau_NH2Cl`, which now moves the interval ±32 % through the free chloride share.
 - [ ] **Per-pulse CO₂ volume at 0.5–1.0 s through the sealed vial's outlet**, over acidified water: the bench data imply a fixed ~0.35 mL per pulse on top of flow × time (R2-M3, not yet modelled).
 - [ ] **Off-gas H₂ at steady growth**: measures the H₂ uptake fraction, which sets the O₂ surplus (`bio_O2`, ±200 % on the schedule).

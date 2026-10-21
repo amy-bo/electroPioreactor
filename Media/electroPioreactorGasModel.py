@@ -73,7 +73,7 @@ temp_C         = 25.0              # D8  (degC)
 media_volume   = 0.0               # D9  (mL; blank in workbook -> 0.0 -> use recommended max)
 P_atm_set      = 0.0               # D10 (Pa; blank in workbook -> 0.0 -> default 101325)
 # Headspace-model owner decisions (Summary D111:D112, typed text; anything else -> #N/A)
-vent_model_sel = "Outflow only"    # D111 ("Outflow only" | "Air exchange")
+vent_model_sel = "Open vent"       # D111 ("Outflow only" | "Open vent" | "Air exchange")
 O2_phase_sel   = "Growth"          # D112 ("Growth" | "Lag") phase the O2 sizing is done on
 
 NA = float("nan")                  # spreadsheet #N/A sentinel for unmeasured data
@@ -709,19 +709,24 @@ CO2_rate_full = nCO2_rate * 3600                       # D178 (mol/h) sparge lin
 headspace_V_m3 = headspace_V / 1e6                      # MT D140 (m3)
 Q_vent         = 0.5                                    # MT D142 (mL/min) restricted vent bleed / TOTAL air ingress - KEY UNCERTAIN PARAMETER, measure. INPUT
 n_hs_gas       = P_atm * headspace_V_m3 / (R_gas * T_K) # MT D150 (mol) headspace gas inventory
-cleared_min    = 9999.0                                 # MT D213 (min) display sentinel
 vent_model     = vent_model_sel                         # MT D301 <- Summary D111
 vent_name_1, vent_name_2 = "Outflow only", "Air exchange"   # MT D302, D303
+vent_name_3    = "Open vent"                            # MT D384 third vent option
+Q_backdraw     = 0.015                                  # MT D385 (mL/min) open-vent back-draw air - MEASURE (schedule-dependent). INPUT
+Q_vent_used    = (0.0 if vent_model == vent_name_1
+                  else Q_backdraw if vent_model == vent_name_3
+                  else Q_vent if vent_model == vent_name_2
+                  else NA)                              # MT D386 (mL/min) air ingress for the selected vent model
+H2_HOR_mt      = r_H2_HOR                               # MT D387 (mol/h) <- Electrochemistry D149
 O2_sizing_phase = O2_phase_sel                          # MT D304 <- Summary D112
 phase_name_1, phase_name_2 = "Growth", "Lag"            # MT D305, D306
 y_O2_air       = 0.2095                                 # MT D307 (-) dry-air O2 mole fraction
-F_vent_ex      = (0.0 if vent_model == vent_name_1
-                  else P_atm * (Q_vent / 1e6 / 60) / (R_gas * T_K) * 3600 if vent_model == vent_name_2
-                  else NA)                              # MT D308 (mol/h) air exchanged through the vent
+F_vent_ex      = P_atm * (Q_vent_used / 1e6 / 60) / (R_gas * T_K) * 3600   # MT D308 (mol/h) air exchanged through the vent (NaN for an invalid selector)
 O2_src_g       = O2_excess                              # MT D309 (mol/h)
 O2_src_l       = O2_net_gen                             # MT D310 (mol/h)
-H2_src_g       = max(0.0, rH2_gen - H2_cons)            # MT D313 (mol/h) (MT D311 rH2_gen, D312 H2_cons imported)
-H2_src_l       = rH2_gen                                # MT D314 (mol/h)
+H2_src_g       = max(0.0, rH2_gen - H2_HOR_mt - H2_cons)   # MT D313 (mol/h) (MT D311 rH2_gen, D312 H2_cons imported)
+H2_src_l       = max(0.0, rH2_gen - H2_HOR_mt)          # MT D314 (mol/h) lag: net of anodic H2 oxidation
+H2_src_l_b     = H2_src_l                               # Biology D113 <- MT D314
 CO2_fix_g      = CO2_cons                               # MT D315 (mol/h)
 CO2_fix_l      = 0.0                                    # MT D316 (mol/h)
 def _by_phase(g_val, l_val):
@@ -747,7 +752,9 @@ spg_int_DO    = ((spg_dur_opt / (60 * duty_DO) if duty_DO > 0 else spg_int_carbo
                  if isnum(duty_DO) else NA)            # D185 (min); duty 0 -> carbon-limited interval
 kLa_surf_req  = O2_src_sched / (DO_target * 3600 * (V_charge / 1e6))          # D186 (1/s)
 
-spg_int_opt = (min(spg_int_carbon, spg_int_DO) if isnum(spg_int_DO)
+sel_invalid = math.isnan(F_vent_ex + O2_src_sched)     # an unlisted vent/phase selector -> #N/A in MT D91/D94/D134
+spg_int_opt = (NA if sel_invalid else
+               min(spg_int_carbon, spg_int_DO) if isnum(spg_int_DO)
                else min(spg_int_carbon, spg_int_max))                  # D91 (min)
 spg_int_opt_s = spg_int_opt * 60                       # D92 (s)
 duty_actual = spg_dur_opt / (spg_int_opt * 60)         # D93
@@ -756,13 +763,17 @@ def _mround(x, m):
     """Excel MROUND (half away from zero)."""
     return float((Decimal(repr(x)) / Decimal(repr(m))).quantize(Decimal(1), rounding=ROUND_HALF_UP)) * m
 spg_dur_run = max(pulse_floor, _mround(spg_dur_opt, pulse_res))   # MT D242 (s) pulse duration as actually run
-if not isnum(spg_int_DO):
-    opt_binding = "O2-INFEASIBLE (see D134)"
+if sel_invalid:
+    opt_binding = "INVALID SELECTOR (Summary D111/D112)"
+elif not isnum(spg_int_DO):
+    opt_binding = "O2-INFEASIBLE \u2013 the legacy O2 flush guard (D89) sets the interval (see D134)"
 elif spg_int_DO <= spg_int_carbon:
     opt_binding = "O2-DILUTION (headspace O2 sets the interval)"
 else:
     opt_binding = "CARBON (CO2 supply sets the interval)"   # D94
-if not isnum(spg_int_DO):
+if sel_invalid:
+    spg_int_regime = "INVALID SELECTOR (Summary D111/D112) \u2013 no schedule until both are listed values"
+elif not isnum(spg_int_DO):
     spg_int_regime = ("DO TARGET UNREACHABLE — the surface cannot carry the O2 flux at this kLa; "
                       "no interval fixes it (raise kL_surf, lower the current, or accept a higher DO)")
 elif kLa_meas > 0:
@@ -850,13 +861,18 @@ kLa_surf_req_l = O2_src_l / (DO_target * 3600 * (V_charge / 1e6))   # MT D366 (1
 kLa_margin_l   = kLa_surf_used / kLa_surf_req_l         # MT D367 (x)
 DO_feas_l      = _feas(kLa_margin_l)                    # MT D368
 DO_peak_chk_l  = _peak_chk(DO_peak_l, DO_peak_l_mgL)    # MT D369
+y_H2_end_l     = H2_src_l * t_gap_h / n_hs_gas * hs_l["phi"] / (1 - flush_ret * math.exp(-x_hs_l))   # MT D388 (-) lag H2 fraction just before the next pulse
+y_H2_end_b     = y_H2_end_l                             # Biology D114 <- MT D388
 F_gap_sched    = _by_phase(F_gap_g, F_gap_l)            # MT D371 (mol/h)
 DO_avg_sched   = _by_phase(DO_avg_g, DO_avg_l)          # MT D372 (mol/m3)
 DO_peak_sched  = _by_phase(DO_peak_g, DO_peak_l)        # MT D373 (mol/m3)
 if isnum(DO_opt) and isnum(DO_impair):
-    DO_peak_band = ("peak at/under optimum" if DO_peak_sched * M_O2 <= DO_opt
-                    else "peak above optimum, under impairment" if DO_peak_sched * M_O2 < DO_impair
-                    else "PEAK OVER IMPAIRMENT")
+    DO_peak_band = (("peak " + xltext(DO_peak_sched * M_O2, "0.0") + " mg/L under impairment")
+                    if DO_peak_sched * M_O2 < DO_impair
+                    else ("PEAK " + xltext(DO_peak_sched * M_O2, "0.0") + " mg/L OVER IMPAIRMENT"))
+    DO_peak_band += (("; mean " + xltext(DO_avg_sched * M_O2, "0.0") + " mg/L at/under optimum")
+                     if DO_avg_sched * M_O2 <= DO_opt
+                     else ("; MEAN " + xltext(DO_avg_sched * M_O2, "0.0") + " mg/L ABOVE OPTIMUM"))
 elif DO_peak_sched <= O2_ceil_C:
     DO_peak_band = ("organism band unknown – peak " + xltext(DO_peak_sched * M_O2, "0.0")
                     + " mg/L is under the inhibition ceiling")
@@ -874,34 +890,36 @@ y_O2_air_b      = y_O2_air                              # Biology D112 (-)     <
 H2_LFL     = 0.04                                       # Biology D80 (-) H2 lower flammability limit
 O2_LOC_H2  = 0.052                                      # Biology D81 (-) limiting O2 conc., CO2 diluent
 LOC_margin = 0.6                                        # Biology D82 (-) NFPA 69 design margin
-n_flamm_src = rH2_gen + O2_net_gen                      # Biology D83 (mol/h) gas into headspace, lag
-y_H2_hs_lag = rH2_gen / (n_flamm_src + CO2_supply_b + F_vent_ex_b)    # Biology D84 (-) = MT D352
+n_flamm_src = H2_src_l_b + O2_net_gen                      # Biology D83 (mol/h) gas into headspace, lag
+y_H2_hs_lag = H2_src_l_b / (n_flamm_src + CO2_supply_b + F_vent_ex_b)    # Biology D84 (-) = MT D352
 y_O2_hs_lag = ((O2_net_gen + y_O2_air_b * F_vent_ex_b)
                / (n_flamm_src + CO2_supply_b + F_vent_ex_b))           # Biology D85 (-) = MT D351
-duty_H2safe = max(0.0, min(rH2_gen / H2_LFL - n_flamm_src - F_vent_ex_b,
+duty_H2safe = max(0.0, min(H2_src_l_b / H2_LFL - n_flamm_src - F_vent_ex_b,
                            (O2_net_gen + y_O2_air_b * F_vent_ex_b) / (O2_LOC_H2 * LOC_margin)
                            - n_flamm_src - F_vent_ex_b)) / CO2_rate_full_b   # Biology D86 (-)
 spg_int_H2safe = (spg_dur_b / (60 * duty_H2safe)) if duty_H2safe > 0 else NA   # Biology D87 (min)
-N2_sweep_H2safe = (max(0.0, rH2_gen / H2_LFL - n_flamm_src - F_vent_ex_b) / 3600 * R_gas_b * T_K / P_atm
+N2_sweep_H2safe = (max(0.0, H2_src_l_b / H2_LFL - n_flamm_src - F_vent_ex_b) / 3600 * R_gas_b * T_K / P_atm
                    * 1000000 * 60)                      # Biology D88 (mL/min)
 if y_H2_hs_lag >= H2_LFL and y_O2_hs_lag >= O2_LOC_H2 * LOC_margin:
     H2_safety = ("FLAMMABLE HEADSPACE (lag): H\u2082 " + xltext(y_H2_hs_lag, "0%")
-                 + ", O\u2082 " + xltext(y_O2_hs_lag, "0%")
+                 + " mean, " + xltext(y_H2_end_b, "0%") + " before each pulse; O\u2082 " + xltext(y_O2_hs_lag, "0%")
                  + " \u2013 until uptake starts, sparge every \u2264" + xltext(spg_int_H2safe / 2, "0.0")
                  + " min or sweep \u2265" + xltext(N2_sweep_H2safe, "0.0")
                  + " mL/min N\u2082; vent to a hood; no ignition sources")
 else:
-    H2_safety = "Below the H\u2082 LFL or under the O\u2082 LOC margin (lag basis)"   # Biology D44
+    H2_safety = ("Below the H\u2082 LFL or under the O\u2082 LOC margin (lag, mean basis; H\u2082 "
+                 + xltext(y_H2_end_b, "0%") + " before each pulse)")   # Biology D44
 
 # --- steady dissolved O2 = headspace floor + the excess that drives the surface flux ---
 y_O2_actual = _by_phase(y_O2_mf_g, y_O2_mf_l)          # D187 (-) mean-field headspace O2, sizing phase
 DO_hs_floor = (H_O2_T * y_O2_actual * P_atm) if isnum(y_O2_actual) else NA      # D188 (mol/m3)
 DO_ss = DO_avg_sched * M_O2                            # D108 (mg/L) cycle-mean (sawtooth) DO, sizing phase
 # DO if the interval relaxed to the carbon-limited one: the same headspace balance at duty_carbon
-DO_at_carbon = (DO_surf_excess + H_O2_T * P_atm * (O2_src_sched + y_O2_air * F_vent_ex)
-                / (F_vent_ex + CO2_rate_full * duty_carbon + O2_src_sched + H2_src_sched - CO2_fix_sched))   # MT D232 (mol/m3)
-DO_ss_sawtooth = DO_hs_floor + DO_surf_excess          # D133 (mol/m3, sizing-phase mean field)
-DO_ss_sawtooth_lag = DO_mf_l                           # D135 (mol/m3, LAG mean field, H2 as diluent)
+_F_carb = F_vent_ex + CO2_rate_full * duty_carbon + O2_src_sched + H2_src_sched - CO2_fix_sched
+DO_at_carbon = (DO_surf_excess + H_O2_T * P_atm * min(1.0, saw_factor * (O2_src_sched + y_O2_air * F_vent_ex) / _F_carb)
+                if _F_carb > 0 else DO_surf_excess + H_O2_T * P_atm)   # MT D232 (mol/m3) saw-corrected, guarded, capped at saturation
+DO_ss_sawtooth = DO_avg_sched                          # D133 (mol/m3, sizing-phase cycle mean)
+DO_ss_sawtooth_lag = DO_avg_l                          # D135 (mol/m3, LAG cycle mean, H2 as diluent)
 
 # --- Electrochemistry D96/D98/D99 + rows 150-152: lag-phase peroxide, first-order anodic loss (R1-09) ---
 ec_DO_lag     = DO_ss_sawtooth_lag                     # Electrochemistry D150 (mol/m3) <- MT D135
@@ -947,27 +965,18 @@ else:
 # --- O2 time-to-ceiling family ---
 t_O2_ceiling = O2_ceil_C * (V_charge / 1e6) / O2_excess * 60   # D65 (min)
 t_O2_ceiling_strip = (O2_ceil_C * (V_charge / 1e6) / (O2_excess - strip_avg) * 60
-                      if (O2_excess - strip_avg) > 0 else 9999)  # D66
-y_O2_vent = y_O2_actual                               # D75 (mole fraction) duplicate of D187
-DO_vent_eq = H_O2_T * y_O2_vent * P_atm * 1000          # D76 (uM)
+                      if (O2_excess - strip_avg) > 0 else "never (strip \u2265 source)")  # D66
+# (MT D75 y_O2_vent and D76 DO_vent_eq cleared in iterR4)
 hs_flush_time = headspace_V / (Q_CO2 * duty)            # D77 (min)
 surf_ratio = (surf_strip / O2_excess) if O2_excess > 0 else NA   # D74
 O2_removal_ratio = ((strip_avg + surf_strip) / O2_excess) if O2_excess > 0 else NA  # D78
 t_O2_ceiling_lag = O2_ceil_C * (V_charge / 1e6) / O2_net_gen * 60   # D79 (min)
 t_O2_ceiling_rem = (O2_ceil_C * (V_charge / 1e6) / (O2_net_gen - strip_avg - surf_strip) * 60
-                    if (O2_net_gen - strip_avg - surf_strip) > 0 else 9999)  # D80
+                    if (O2_net_gen - strip_avg - surf_strip) > 0 else "never (removal \u2265 source)")  # D80
 
 kinetic_caveat = "see note ->"                          # D96
 
-if isnum(DO_opt):
-    if DO_ss <= DO_opt:
-        DO_ss_vs_opt = "at/under optimum"
-    elif DO_ss < DO_impair:
-        DO_ss_vs_opt = "above optimum, under impairment"
-    else:
-        DO_ss_vs_opt = "OVER IMPAIRMENT - surface strip insufficient"
-else:
-    DO_ss_vs_opt = "organism optimum unknown"           # D109
+# (MT D109 DO_ss_vs_opt cleared in iterR4)
 if isnum(DO_min):
     DO_ss_vs_min = "above minimum" if DO_ss >= DO_min else "BELOW MINIMUM"
 else:
@@ -977,8 +986,12 @@ sched_regime = ("Carbon supply alone holds the DO target – the interval may re
                 + xltext(spg_int_carbon, "0") + " min"
                 if DO_at_carbon <= DO_target
                 else "Do NOT relax: at the carbon-limited interval (" + xltext(spg_int_carbon, "0")
-                + " min) DO would be " + xltext(DO_at_carbon * M_O2, "0.0") + " mg/L against a "
-                + xltext(DO_target * M_O2, "0.0") + " mg/L target")   # D113
+                + " min) the cycle-mean DO would be \u2248" + xltext(DO_at_carbon * M_O2, "0")
+                + " mg/L, "
+                + ("above the " + xltext(O2_ceil_C * M_O2, "0.0") + " mg/L inhibition ceiling"
+                   if DO_at_carbon > O2_ceil_C
+                   else "against a " + xltext(DO_target * M_O2, "0.0") + " mg/L target")
+                + " (peaks higher)")   # D113
 cal_warning = (f"calibrated: {Reactor}" if has_cal > 0
                else f"NO CALIBRATION for {Reactor} - add a row in CO2 flows with nominal flowrate + minimum sparge")  # D120
 
@@ -1004,7 +1017,7 @@ D_CO2          = D_CO2_ref * math.exp(-Ea_D_CO2 / R_gas * (1 / T_K - 1 / 298.15)
 pCO2_air       = 40.0                                   # MT D139 (Pa) atmospheric pCO2 ~400 ppm INPUT
 V_L_m3         = V_charge / 1e6                         # MT D141 (m3)   (D140, D142 defined with the headspace balance)
 k_vent         = F_gap_sched / 3600 / n_hs_gas          # MT D143 (1/s) headspace turnover between pulses
-tau_hs         = 1 / k_vent / 60 if k_vent > 0 else cleared_min   # MT D144 (min) headspace residence time
+tau_hs         = 1 / k_vent / 60 if k_vent > 0 else "none between pulses"   # MT D144 (min) headspace residence time
 C_sat_CO2      = H_CO2_T * P_atm                        # MT D145 (mol/m3) pure-CO2 sparge saturation
 C_air_CO2      = H_CO2_T * pCO2_air                     # MT D146 (mol/m3) air-equilibrium
 sqrtD_CO2      = math.sqrt(D_CO2 / D_O2)                # MT D147 penetration-theory diffusivity scaling
@@ -1017,7 +1030,7 @@ Vg_CO2         = headspace_V_m3 / (hs_H_CO2 * R_gas * T_K)   # MT D192 (m3) head
 pool_a         = V_L_m3 / (V_L_m3 + Vg_CO2)             # MT D193 (-) liquid share of a pooled inventory
 pool_b         = C_sat_CO2 * (1 - pool_a) * (1 - flush_ret)   # MT D194 (mol/m3) CO2 the pulse leaves behind (well-mixed flush)
 k_eff_CO2      = k_vent * Vg_CO2 / (V_L_m3 + Vg_CO2)    # MT D195 (1/s) pool decay through the vent
-pool_beta_ratio = (kLa_CO2_off * V_L_m3 / Vg_CO2) / k_vent if k_vent > 0 else cleared_min   # MT D196 (x) quasi-equilibrium validity
+pool_beta_ratio = (kLa_CO2_off * V_L_m3 / Vg_CO2) / k_vent if k_vent > 0 else "no turnover between pulses"   # MT D196 (x) quasi-equilibrium validity
 pool_e         = math.exp(-k_eff_CO2 * t_off_CO2)       # MT D197 (-)
 pool_D_raw     = ((C_air_CO2 / C_sat_CO2 * F_vent_ex - CO2_fix_sched) * t_gap_h
                   / (V_L_m3 + Vg_CO2))                  # MT D375 (mol/m3) gap change, slow-vent limit
@@ -1028,6 +1041,16 @@ pool_D_gap     = pool_D_raw * pool_phi                  # MT D379 (mol/m3)
 pool_ret       = pool_a + (1 - pool_a) * flush_ret      # MT D380 (-) pool share retained through a pulse
 C_cycle_start  = (pool_D_gap + pool_b * pool_e) / (1 - pool_ret * pool_e)   # MT D198 (mol/m3) fixed point of the cycle
 C_cycle_peak   = pool_ret * C_cycle_start + pool_b      # MT D199 (mol/m3)
+hs_sag         = (pool_a * (C_cycle_peak - C_cycle_start) * (V_L_m3 + Vg_CO2)
+                  + max(0.0, CO2_fix_sched - O2_src_sched - H2_src_sched) * t_gap_h) / n_hs_gas   # MT D389 (-) fractional headspace pressure sag per cycle
+hs_sag_max     = 0.05                                   # MT D390 (-) tolerated sag for a sealed cap. INPUT
+if F_vent_ex > 0:
+    hs_sag_chk = "n/a \u2013 the vent admits air (Open vent / Air exchange), so the headspace refills"
+elif hs_sag > hs_sag_max:
+    hs_sag_chk = ("HEADSPACE SAGS " + xltext(hs_sag, "0%") + " below 1 atm each cycle \u2013 a real cap will draw "
+                  "air back: use Open vent or Air exchange")
+else:
+    hs_sag_chk = "OK \u2013 sag " + xltext(hs_sag, "0%") + " per cycle, within what a sealed cap holds"   # MT D391
 C_cycle_start_b = C_cycle_start                         # Biology D97 (mol/m3) <- MT D198
 CO2_margin_trough = C_cycle_start_b * 1000 / Km_CO2     # Biology D98 (x) carbon margin at the cycle trough (R2-m4)
 CO2_cyc_avg_new = C_cycle_peak * pool_phi + pool_D_raw * pool_psi   # MT D200 (mol/m3) cycle mean
@@ -1036,8 +1059,9 @@ y_CO2_mf       = ((CO2_supply - CO2_fix_sched + pCO2_air / P_atm * F_vent_ex) / 
                   if _F_out > 0 else NA)                # MT D381 (-) mean-field headspace CO2 (cross-check)
 C_CO2_mf       = y_CO2_mf * C_sat_CO2                   # MT D382 (mol/m3)
 CO2aqc         = min(C_sat_CO2, max(C_air_CO2, CO2_cyc_avg_new)) / 1000   # MT D162 = Chemistry D5 (mol/L)
-vent_floor_chk = ("vent is slow path - OK" if tau_hs >= tau_surf_floor
-                  else "WARNING: surface clears faster than vent - run2 cannot stay acidic")  # MT D163
+vent_floor_chk = ("no vent turnover between pulses (OK)" if isinstance(tau_hs, str)
+                  else "vent turnover slower than the surface (OK)" if tau_hs >= tau_surf_floor
+                  else "WARNING: the vent turns the headspace over faster than the surface relaxes the liquid")  # MT D163
 sched_valid    = "OK" if (spg_int * 60 >= spg_dur) else "INVALID: interval < pulse"  # MT D164
 
 
@@ -1265,11 +1289,17 @@ S_D87 = E_Cl_margin                                     # D87 chlorine headroom 
 S_D88 = E_Cu_margin                                     # D88 copper dissolution headroom
 S_D89 = pH_meas                                         # D89 measured (activity-scale) pH
 S_D90 = kLa_surf_req                                    # D90 surface kLa required for the DO target
+S_A15 = "CO\u2082 sparge interval (" + vent_model_sel + ", sized on " + O2_phase_sel + ")"   # A15 label (formula)
+S_F121 = ("Same on the lag source. Currently " + xltext(kLa_margin_l, "0.00") + "\u00d7: "
+          + ("the target cannot be held during lag at the kLa in use, whatever the schedule \u2014 an owner decision (target the ceiling with a margin during lag?)."
+             if kLa_margin_l < 1 else "the target can be held during lag at the kLa in use."))   # F121 (formula)
+S_D129 = hs_sag                                         # D129 headspace sag per cycle
+S_D130 = hs_sag_chk                                     # D130 sealed-cap plausibility
 # --- iterH block (Summary rows 110-128): headspace model selectors and both-phase DO ---
 pH_band_lo = 6.5                                        # Chemistry D236 (pH) HOB band lower edge
 S_D111 = vent_model_sel                                 # D111 vent model (input)
 S_D112 = O2_phase_sel                                   # D112 O2 sizing phase (input)
-S_D113 = F_vent_ex                                      # D113 vent air-exchange flow in use (mol/h)
+S_D113 = Q_vent_used                                    # D113 vent air ingress in use (mL/min) -> MT D386
 S_D114 = DO_avg_g_mgL                                   # D114 cycle-mean DO, growth (mg/L)
 S_D115 = DO_peak_g_mgL                                  # D115 peak DO, growth (mg/L)
 S_D116 = DO_avg_l_mgL                                   # D116 cycle-mean DO, lag (mg/L)
@@ -1284,13 +1314,18 @@ S_D124 = y_O2_mf_g                                      # D124 headspace O2 frac
 S_D125 = y_O2_mf_l                                      # D125 headspace O2 fraction, lag
 S_D126 = y_H2_mf_l                                      # D126 headspace H2 fraction, lag
 S_D127 = y_CO2_mf                                       # D127 headspace CO2 fraction, sizing phase
-if not isnum(spg_int_DO):
-    S_D128 = ("DO target unreachable on the sizing phase (rows 120–121) – the schedule is the O₂ flush fallback")
+if sel_invalid:
+    S_D128 = "#N/A \u2013 check the selectors in D111/D112"
+elif not isnum(spg_int_DO):
+    S_D128 = ("DO target unreachable on the sizing phase (rows 120–121) – the schedule is the legacy O₂ flush guard (Mass Transfer D89)")
 elif pH_meas >= pH_band_lo:
     S_D128 = ("yes – the schedule holds the DO target at pH " + xltext(pH_meas, "0.00") + ", within the band")
-else:
+elif spg_int_DO <= spg_int_carbon:
     S_D128 = ("NO – holding the DO target drives pH to " + xltext(pH_meas, "0.00") + ", below the "
-              + xltext(pH_band_lo, "0.0") + " band floor")   # D128 DO target and pH band together
+              + xltext(pH_band_lo, "0.0") + " band floor")
+else:
+    S_D128 = ("NO – the carbon-limited interval (not the DO target) gives pH " + xltext(pH_meas, "0.00")
+              + ", below the " + xltext(pH_band_lo, "0.0") + " band floor")   # D128 DO target and pH band together
 
 
 # ============================================================================
@@ -1545,7 +1580,7 @@ OUTPUTS = [
     # --- Summary iterH block (rows 111-128) ---
     ("Summary D111 Vent model (input echo)",           S_D111),
     ("Summary D112 O2 sizing phase (input echo)",      S_D112),
-    ("Summary D113 Vent air-exchange flow (mol/h)",    S_D113),
+    ("Summary D113 Vent air ingress in use (mL/min)",    S_D113),
     ("Summary D114 Cycle-mean DO growth (mg/L)",       S_D114),
     ("Summary D115 Peak DO growth (mg/L)",             S_D115),
     ("Summary D116 Cycle-mean DO lag (mg/L)",          S_D116),
@@ -1561,6 +1596,10 @@ OUTPUTS = [
     ("Summary D126 Headspace H2 fraction lag",         S_D126),
     ("Summary D127 Headspace CO2 fraction",            S_D127),
     ("Summary D128 DO target and pH band together?",   S_D128),
+    ("Summary D129 Headspace sag per cycle (-)",       S_D129),
+    ("Summary D130 Sealed-cap plausibility",           S_D130),
+    ("Summary A15  CO2 sparge interval label",         S_A15),
+    ("Summary F121 Lag target note",                   S_F121),
 
     # --- Chemistry ---
     ("Chemistry D103  pH_op (concentration scale)",    pH_op),
@@ -1634,6 +1673,8 @@ OUTPUTS = [
     ("Biology  D87  spg_int_H2safe (min)",             spg_int_H2safe),
     ("Biology  D88  N2_sweep_H2safe (mL/min)",         N2_sweep_H2safe),
     ("Biology  D60  DO_frac_target (-)",               DO_frac_target),
+    ("Biology  D113 H2_src_l_b (mol/h)",               H2_src_l_b),
+    ("Biology  D114 y_H2_end_b (-)",                   y_H2_end_b),
     ("Biology  D111 F_vent_ex_b (mol/h)",              F_vent_ex_b),
     ("Biology  D112 y_O2_air_b (-)",                   y_O2_air_b),
 
@@ -1650,7 +1691,6 @@ OUTPUTS = [
     ("MassXfer D65  t_O2_ceiling (min)",               t_O2_ceiling),
     ("MassXfer D66  t_O2_ceiling_strip (min)",         t_O2_ceiling_strip),
     ("MassXfer D74  surf_ratio (x)",                   surf_ratio),
-    ("MassXfer D76  DO_vent_eq (uM)",                  DO_vent_eq),
     ("MassXfer D77  hs_flush_time (min)",              hs_flush_time),
     ("MassXfer D78  O2_removal_ratio (x)",             O2_removal_ratio),
     ("MassXfer D79  t_O2_ceiling_lag (min)",           t_O2_ceiling_lag),
@@ -1663,7 +1703,6 @@ OUTPUTS = [
     ("MassXfer D95  od_ok",                            od_ok),
     ("MassXfer D98  kLa_surf_used (1/s)",              kLa_surf_used),
     ("MassXfer D108 DO_ss (mg/L)",                     DO_ss),
-    ("MassXfer D109 DO_ss_vs_opt",                     DO_ss_vs_opt),
     ("MassXfer D110 DO_ss_vs_min",                     DO_ss_vs_min),
     ("MassXfer D111 tip_warn",                         tip_warn),
     ("MassXfer D113 sched_regime",                     sched_regime),
@@ -1707,9 +1746,19 @@ OUTPUTS = [
     ("MassXfer D200 CO2_cyc_avg_new (mol/m3)",         CO2_cyc_avg_new),
     ("MassXfer D143 k_vent (1/s)",                     k_vent),
     ("MassXfer D144 tau_hs (min)",                     tau_hs),
-    ("MassXfer D75  y_O2_vent (-)",                    y_O2_vent),
     # --- Mass Transfer: iterH unified headspace balance (rows 300-382) ---
     ("MassXfer D308 F_vent_ex (mol/h)",                F_vent_ex),
+    ("MassXfer D384 vent_name_3",                      vent_name_3),
+    ("MassXfer D385 Q_backdraw (mL/min)",              Q_backdraw),
+    ("MassXfer D386 Q_vent_used (mL/min)",             Q_vent_used),
+    ("MassXfer D387 H2_HOR_mt (mol/h)",                H2_HOR_mt),
+    ("MassXfer D388 y_H2_end_l (-)",                   y_H2_end_l),
+    ("MassXfer D389 hs_sag (-)",                       hs_sag),
+    ("MassXfer D390 hs_sag_max (-)",                   hs_sag_max),
+    ("MassXfer D391 hs_sag_chk",                       hs_sag_chk),
+    ("MassXfer D314 H2_src_l (mol/h)",                 H2_src_l),
+    ("MassXfer D91  spg_int_opt (min)",                spg_int_opt),
+    ("MassXfer D134 spg_int_regime",                   spg_int_regime),
     ("MassXfer D313 H2_src_g (mol/h)",                 H2_src_g),
     ("MassXfer D317 O2_src_sched (mol/h)",             O2_src_sched),
     ("MassXfer D318 H2_src_sched (mol/h)",             H2_src_sched),

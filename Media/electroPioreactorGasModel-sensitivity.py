@@ -125,9 +125,9 @@ BASE = dict(
   # --- dissolved CO2 / H2 / vent ---
   H_CO2ref=3.3e-4, H_CO2T=2400, Km_CO2=50,
   H_H2ref=7.8e-6, H_H2T=500,
-  Q_vent=0.5, pCO2_air=40.0,
+  Q_vent=0.5, Q_backdraw=0.015, pCO2_air=40.0,   # Q_backdraw: MT D385, open-vent back-draw air (mL/min) - MEASURE
   # --- iterH headspace balance: owner selectors (Summary D111:D112) + dry-air O2 ---
-  vent_model='Outflow only',              # 'Outflow only' | 'Air exchange' (Q_vent = TOTAL air ingress)
+  vent_model='Open vent',                 # 'Outflow only' | 'Open vent' (Q_backdraw) | 'Air exchange' (Q_vent = TOTAL air ingress)
   O2_phase='Growth',                      # 'Growth' | 'Lag': the phase the O2 schedule is sized on
   y_O2_air=0.2095,                        # MT D307
   # --- optimiser inputs ---
@@ -255,9 +255,9 @@ def model(p):
     #     y_i = (in_i + y_air,i F_vent_ex) / (F_vent_ex + CO2_supply + O2_src + H2_src - CO2_fix)
     #     shared by the O2 sizing, the CO2 pool and the flammability block. ---
     n_hs = p['P_atm'] * hs_m3 / (R * T_K)                                # D150, mol
-    F_ex = {'Outflow only': 0.0,
-            'Air exchange': p['P_atm'] * (p['Q_vent'] / 1e6 / 60) / (R * T_K) * 3600
-            }.get(p['vent_model'], NAN)                                  # D308, mol/h
+    Q_used = {'Outflow only': 0.0, 'Open vent': p['Q_backdraw'],
+              'Air exchange': p['Q_vent']}.get(p['vent_model'], NAN)     # D386, mL/min
+    F_ex = p['P_atm'] * (Q_used / 1e6 / 60) / (R * T_K) * 3600           # D308, mol/h
     y_air = p['y_O2_air']
     H2_cons = rH2                                                        # Biology D13 (no anodic HOR)
     phases = {'Growth': (O2_excess, max(0.0, rH2 - H2_cons), CO2_cons),  # D309/D313/D315
@@ -380,7 +380,7 @@ def model(p):
     C_sat = H_CO2_T * p['P_atm']                                         # D145
     pool_b = C_sat * (1 - pool_a) * (1 - flush_ret)                      # D194, CO2 a pulse leaves behind
     kLa_CO2_off = kL_surf * a_surf * math.sqrt(D_CO2 / D_O2)             # D148
-    pool_beta_ratio = (kLa_CO2_off * V_L / Vg) / k_vent if k_vent > 0 else 9999.0   # D196 (cleared_min sentinel)
+    pool_beta_ratio = (kLa_CO2_off * V_L / Vg) / k_vent if k_vent > 0 else NAN   # D196 (text 'no turnover between pulses' in the workbook)
     pool_x = k_eff * t_off                                               # D376
     pool_e = math.exp(-pool_x)                                           # D197
     D_raw = (C_air / C_sat * F_ex - fix_s) * t_gap_h / (V_L + Vg)        # D375
@@ -466,7 +466,7 @@ def model(p):
               * p['M_H2O2'] * 1000 * 3600 / (V_charge / 1000))           # D93
     H2O2_ss = r_H2O2 / (p['k_cat_cells'] * 3600)                         # D95, growing culture
     k_anode = (p['km_O2'] / 100) * (A_wet / 10000) / (V_charge / 1e6)   # D151, 1/s: peroxide re-oxidised at the anode
-    DO_lag = hs['Lag']['DO_mf']                                          # D150 = MT D135 = DO_mf_l, mol/m3
+    DO_lag = hs['Lag']['DO_avg']                                         # D150 = MT D135 = DO_avg_l, mol/m3
     r_H2O2_lag = r_H2O2 * DO_lag / DO_design                             # D152
     H2O2_lag_1h = (r_H2O2_lag / (k_anode * 3600) * (1 - math.exp(-k_anode * 3600)))   # D96, no biomass
 
@@ -530,7 +530,8 @@ def model(p):
 SWEEP = [
  # ---- DATA-GAP (unmeasured) ----
  ('kL_surf_factor', 0.25, 4.0, 'DATA-GAP'),     # surface kLa is a coarse proxy: ~375 %
- ('Q_vent', 0.1, 2.0, 'DATA-GAP'),              # vent air ingress; inert under vent_model 'Outflow only' (see the four-combination block)
+ ('Q_vent', 0.1, 2.0, 'DATA-GAP'),              # 'Air exchange' total air ingress; inert under the default 'Open vent' (see the four-combination block)
+ ('Q_backdraw', 0.005, 0.15, 'DATA-GAP'),       # 'Open vent' back-draw air; schedule-dependent, measure
  ('elec_gap', 10.0, 20.0, 'DATA-GAP'),          # measure with calipers
  ('j0_anode', 1e-11, 1e-9, 'DATA-GAP'),         # OER on Pt spans +/-1 decade about 1e-10
  ('corr_I_frac', 0.0, 0.10, 'DATA-GAP'),        # 0 is the floor, so base sits at lo
@@ -808,9 +809,10 @@ else:
 #   moves). Tolerance 0.5 %.
 # ============================================================================
 COMBO_EXCEL = {   # (vent_model, O2_phase): (Summary D15 interval min, D35 pH, D38 DO mg/L)
-    ('Air exchange', 'Growth'): (0.866, 6.227, 2.620),
-    ('Outflow only', 'Lag'):    (1.4907, 6.1646, 4.5647),
-    ('Air exchange', 'Lag'):    (1.4907, 6.2858, 6.3534),
+    ('Open vent', 'Growth'):    (9.0260, 6.1871, 2.6348),   # the live default; replaced by the cached values below
+    ('Outflow only', 'Growth'): (12.7367, 6.1648, 2.6347),
+    ('Air exchange', 'Growth'): (0.86622, 6.2271, 2.6203),
+    ('Open vent', 'Lag'):       (1.49071, 6.1690, 4.6325),
 }
 _live = (BASE['vent_model'], BASE['O2_phase'])
 _lv = [_cell(_wb, 'Summary', r) for r in ('D15', 'D35', 'D38')]
@@ -821,8 +823,9 @@ print("HEADSPACE SELECTORS -- headline in all four vent-model / sizing-phase sta
 print(f"{'vent_model':14}{'O2 phase':9}{'interval min':>14}{'pH':>8}{'DO mg/L':>9}"
       f"{'DO peak':>9}{'binding':>16}   vs Excel (0.5 %)")
 _combo_fail = []
-for _vm in ('Outflow only', 'Air exchange'):
-    for _ph in ('Growth', 'Lag'):
+for _vm, _ph in (('Open vent', 'Growth'), ('Outflow only', 'Growth'),
+                 ('Air exchange', 'Growth'), ('Open vent', 'Lag')):
+    if True:
         _q = dict(BASE, vent_model=_vm, O2_phase=_ph)
         _r = model(_q)
         _x = COMBO_EXCEL.get((_vm, _ph))
