@@ -779,3 +779,19 @@ Protocol corrections include DPD raw combined-chlorine comparison on the correct
 Completion email requested for martin@amybo.org, subject “Gas model: Codex review complete”: **not sent because no email-sending tool is available in this session**. This section is the requested completion-email body retained in the repository; no alternative sending route was attempted.
 
 Final independent Astra optimiser: no further concrete documentation correction remains within the reviewed scope; measurements, owner choices and deferred extensions stay in TODO. Final live checks again passed 382/382, 49/49 plus four combinations, and 10 regressions. All 1194 formula caches are present; formula literals satisfy the 255-character limit; remaining #N/A values are explicit unavailable/data-gap results. Session audit: `.vss/sessions/2026-10-21T12-34-26Z.md`.
+
+## Claude /vsss session (2026-10-21, after the Codex review)
+
+Scope: finish the model work left on `TODO.md` and the deferred extensions named in the Codex section above. Baseline untouched (ed04 / MMO tube / *Xanthobacter tagetidis* / AMYBO03 / 30 °C; headline 0.65 s every 7.17 min, pH 6.49). Local commits only.
+
+**No Excel this run.** The /vsss safety floor forbids SSH, so the MBA round trip was not used (owner question T9). Every addition was therefore designed to be numerically inert at the baseline: empty calibration sections, blank new inputs, and a new interval bound that sits far above the others. The baseline caches are still Excel's own; only new cells carry caches computed by the twin, and `fullCalcOnLoad` makes the owner's Excel recompute everything on open. Non-default behaviour is checked by the twin and the sensitivity model against each other (they are independent implementations: grid against bisection, and so on) and by regression tests, and an Excel recalculation at a non-default state is on `TODO.md`. Each change had an independent Opus review before commit.
+
+What changed:
+- **Measured k_m and monochloramine lifetime as Calibrations inputs** (Calibrations rows 165–200). The lifetime inverts the model's own steady state with τ-independent readings; the review caught a first draft that divided by a production rate which itself depends on τ.
+- **Added NaHCO₃ is a coupled input** (Summary D133): strong-ion difference, ionic strength, conductivity and CO₂ storage. The first-order 0.124 g/L takes pH from 6.488 to 6.498.
+- **N₂ headspace sweep** (Summary D98) as an inert inflow in the one headspace balance, with the sweep needed for the DO target (D99) and for lag H₂ below the LFL (D100).
+- **pH-ceiling interval** (Mass Transfer D432, Summary D101): the interval is now the shortest of the carbon, DO and pH-ceiling bounds. Without a sweep it does not bind. With one, it stops pH overshooting the band once CO₂ no longer has to dilute O₂. For example, 1 mL/min N₂ gives 0.65 s every 36.6 min, pH 7.49, lag H₂ 3.5 % and about a fifth of today's CO₂.
+
+One defect was introduced and caught within the run. The N₂ commit wrote a new import over the existing Biology D120 input `remedy_res`. The review of the next change found it, and it was fixed in the following commit. A test now forbids two names on one cell, and every edit set is checked against occupied cells before patching.
+
+What is still open needs measurements or owner decisions, and each item is in `TODO.md`: N₂ hardware, flow and objective (T7); nitrogen source; the measured solenoid floor before shortening the pulse; the low-power current curve before a current ramp in lag; and every bench measurement listed there.
