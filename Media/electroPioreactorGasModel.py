@@ -37,6 +37,12 @@ Standard library only; openpyxl is not installable in this container. Run with:
 Exit status is 0 only when the inputs match the workbook AND every output agrees
 with the workbook's cached value within 0.5%.
 
+iterM additions: pulse volume V = V0 + Q*t fitted from CO2 flows (Mass Transfer D401-D411,
+all duty -> interval conversions on the full-flow-equivalent time), carryover limit from CO2
+flows column M, CO2 uptake ratio, bicarbonate capacity (DIC_cap) in the CO2 pool, dry-gas
+basis P_dry for gas partial pressures, O2 salting-out, and the PCET credit withdrawn above the
+buffer limit. The conditional-format changes have no twin counterpart.
+
 The model mirrors the workbook's sheet structure (Summary -> Geometry ->
 Electrochemistry -> Chemistry -> Biology -> Mass Transfer -> CO2 flows) but the
 arithmetic is re-implemented cleanly from the documented formula logic. Because
@@ -263,10 +269,55 @@ bio_H2  = 6.0                                         # D10
 bio_O2  = 2.0                                         # D11
 bio_CO2 = 1.0                                         # D12
 
+# Media ionic composition (g/L) and molar masses
+MW = dict(KH2PO4=136.086, Na2HPO4=141.96, NaH2PO4_2H2O=156.01, NaHCO3=84.007,
+          K2SO4=174.26, CaSO4_2H2O=172.17, MgSO4_7H2O=246.48, NH42SO4=132.14,
+          CaCl2=110.98)
+mc = dict(Na2HPO4=2.895, NaH2PO4_2H2O=3.06, K2SO4=0.17, CaSO4_2H2O=0.097,
+          MgSO4_7H2O=0.8, NH42SO4=0.943)              # MC02 g/L
+udg = dict(KH2PO4=2.3, Na2HPO4=2.9, NaHCO3=1.05, MgSO4_7H2O=0.5,
+           NH42SO4=0.47, CaCl2=0.01)                  # UdG g/L
+
+def _by_media(mc02_val, udg_val):
+    if media_sel == "MC02":
+        return mc02_val
+    if media_sel == "UdG phosphate":
+        return udg_val
+    return NA
+
+
+# --- ionic strength (Chemistry D183:D185), hoisted: the O2 salting-out factor below needs it ---
+I_mc02 = 0.5 * (2 * mc["Na2HPO4"] / MW["Na2HPO4"]
+                + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"]
+                + 2 * mc["K2SO4"] / MW["K2SO4"]
+                + 2 * mc["NH42SO4"] / MW["NH42SO4"]
+                + 4 * mc["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
+                + 4 * mc["CaSO4_2H2O"] / MW["CaSO4_2H2O"]
+                + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"]
+                + 4 * mc["Na2HPO4"] / MW["Na2HPO4"]
+                + 4 * (mc["K2SO4"] / MW["K2SO4"] + mc["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
+                       + mc["CaSO4_2H2O"] / MW["CaSO4_2H2O"]
+                       + mc["NH42SO4"] / MW["NH42SO4"]))                       # D183 (mol/L)
+I_udg = 0.5 * ((udg["NaHCO3"] / MW["NaHCO3"] + 2 * udg["Na2HPO4"] / MW["Na2HPO4"])
+               + udg["KH2PO4"] / MW["KH2PO4"]
+               + 2 * udg["NH42SO4"] / MW["NH42SO4"]
+               + 4 * udg["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
+               + 4 * udg["CaCl2"] / MW["CaCl2"]
+               + udg["KH2PO4"] / MW["KH2PO4"]
+               + 4 * udg["Na2HPO4"] / MW["Na2HPO4"]
+               + 4 * (udg["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
+                      + udg["NH42SO4"] / MW["NH42SO4"])
+               + udg["NaHCO3"] / MW["NaHCO3"]
+               + 2 * udg["CaCl2"] / MW["CaCl2"])                               # D184 (mol/L)
+I_ionic = _by_media(I_mc02, I_udg)                    # D185 (mol/L)
+
 # --- Henry solubilities (van 't Hoff) ---
 H_O2ref  = 1.2e-5                                     # D21 (mol/m3/Pa)
 H_O2T    = 1500.0                                     # D22 (K)
-H_O2_T   = H_O2ref * math.exp(H_O2T * (1 / T_K - 1 / T_ref))   # D24
+I_ionic_b = I_ionic                                    # Biology D121 (mol/L) <- Chemistry D185
+ks_O2     = 0.14                                       # Biology D122 (L/mol per unit ionic strength) Setschenow coefficient, Weisenberger & Schumpe 1996 summed over the UdG recipe
+f_salt_O2 = 10 ** (-ks_O2 * I_ionic_b)                 # Biology D123 (-) O2 salting-out factor
+H_O2_T   = H_O2ref * math.exp(H_O2T * (1 / T_K - 1 / T_ref)) * f_salt_O2   # D24 (mol/m3/Pa) van 't Hoff x salting-out
 O2_ceil_atm = 0.30                                    # D25 (atm)
 O2_ceil_Pa  = O2_ceil_atm * Pa_per_atm                # D26 (Pa)
 O2_ceil_C   = H_O2_T * O2_ceil_Pa                     # D27 (mol/m3)
@@ -367,14 +418,6 @@ Kw_w   = vant_hoff(1e-14, 55.8)                       # D19 water Kw
 Ka_HOCl = vant_hoff(2.8840315031266057e-8, 13.8)      # D20 hypochlorous Ka
 pKa_HOCl = -math.log10(Ka_HOCl)                       # D21
 
-# Media ionic composition (g/L) and molar masses
-MW = dict(KH2PO4=136.086, Na2HPO4=141.96, NaH2PO4_2H2O=156.01, NaHCO3=84.007,
-          K2SO4=174.26, CaSO4_2H2O=172.17, MgSO4_7H2O=246.48, NH42SO4=132.14,
-          CaCl2=110.98)
-mc = dict(Na2HPO4=2.895, NaH2PO4_2H2O=3.06, K2SO4=0.17, CaSO4_2H2O=0.097,
-          MgSO4_7H2O=0.8, NH42SO4=0.943)              # MC02 g/L
-udg = dict(KH2PO4=2.3, Na2HPO4=2.9, NaHCO3=1.05, MgSO4_7H2O=0.5,
-           NH42SO4=0.47, CaCl2=0.01)                  # UdG g/L
 
 PT_mc02  = mc["Na2HPO4"] / MW["Na2HPO4"] + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"]  # D35
 # BUGFIX (review 2026-06-26): the divalent strong cations Mg2+ and Ca2+ were
@@ -400,13 +443,6 @@ SID_udg = ((udg["NaHCO3"] / MW["NaHCO3"] + 2 * udg["Na2HPO4"] / MW["Na2HPO4"]
 NT_udg  = 2 * udg["NH42SO4"] / MW["NH42SO4"]                                            # D41
 Cl_udg  = 2 * udg["CaCl2"] / MW["CaCl2"]                                                # D42
 
-
-def _by_media(mc02_val, udg_val):
-    if media_sel == "MC02":
-        return mc02_val
-    if media_sel == "UdG phosphate":
-        return udg_val
-    return NA
 
 
 pH_SID = _by_media(SID_mc02, SID_udg)                 # D44
@@ -523,29 +559,6 @@ kappa_TC  = 0.02                                      # D179 (1/K) +2 %/K, ISO 7
 kappa_med = _by_media(kappa0_mc02, kappa0_udg) * kappa_fI * (1 + kappa_TC * (TKc - 298.15))  # D180
 
 # --- ionic strength & Davies activity coefficients (rows 182-197) ---
-I_mc02 = 0.5 * (2 * mc["Na2HPO4"] / MW["Na2HPO4"]
-                + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"]
-                + 2 * mc["K2SO4"] / MW["K2SO4"]
-                + 2 * mc["NH42SO4"] / MW["NH42SO4"]
-                + 4 * mc["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
-                + 4 * mc["CaSO4_2H2O"] / MW["CaSO4_2H2O"]
-                + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"]
-                + 4 * mc["Na2HPO4"] / MW["Na2HPO4"]
-                + 4 * (mc["K2SO4"] / MW["K2SO4"] + mc["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
-                       + mc["CaSO4_2H2O"] / MW["CaSO4_2H2O"]
-                       + mc["NH42SO4"] / MW["NH42SO4"]))                       # D183 (mol/L)
-I_udg = 0.5 * ((udg["NaHCO3"] / MW["NaHCO3"] + 2 * udg["Na2HPO4"] / MW["Na2HPO4"])
-               + udg["KH2PO4"] / MW["KH2PO4"]
-               + 2 * udg["NH42SO4"] / MW["NH42SO4"]
-               + 4 * udg["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
-               + 4 * udg["CaCl2"] / MW["CaCl2"]
-               + udg["KH2PO4"] / MW["KH2PO4"]
-               + 4 * udg["Na2HPO4"] / MW["Na2HPO4"]
-               + 4 * (udg["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
-                      + udg["NH42SO4"] / MW["NH42SO4"])
-               + udg["NaHCO3"] / MW["NaHCO3"]
-               + 2 * udg["CaCl2"] / MW["CaCl2"])                               # D184 (mol/L)
-I_ionic = _by_media(I_mc02, I_udg)                    # D185 (mol/L)
 A_DH    = 1.82e6 * (78.54 * (298.15 / TKc) ** 1.368) ** -1.5 * TKc ** -1.5     # D186 (-)
 _davies = math.sqrt(I_ionic) / (1 + math.sqrt(I_ionic)) - 0.3 * I_ionic
 gam1 = 10 ** (-A_DH * 1 * _davies)                    # D187
@@ -560,6 +573,21 @@ Ka3p_c   = Ka3p * gam2 / (gam1 * gam3)                # D194  HPO4(2-) -> H+ + P
 Kw_c     = Kw_w / gam1 ** 2                           # D195
 KaHOCl_c = Ka_HOCl / gam1 ** 2                        # D196
 KaN_c    = Ka_NH4                                     # D197  charges cancel exactly
+
+# --- R2-m3: bicarbonate storage in the CO2 pool (Chemistry D290-D296) ---
+pH_ref_DIC  = 6.09                                    # D291 (pH) reference pH for the DIC capacity (input; re-enter if pH moves by >0.1)
+h_ref_DIC   = 10 ** -pH_ref_DIC                       # D292 (mol/L)
+r_HCO3_ref  = Ka1c_c / h_ref_DIC                      # D293 (-) [HCO3-]/[CO2(aq)] at the reference pH
+HCO3_ref    = (pH_SID + pH_NT * h_ref_DIC / (h_ref_DIC + KaN_c) + h_ref_DIC
+               - (pH_PT * Ka1p_c * h_ref_DIC ** 2 + 2 * pH_PT * Ka1p_c * Ka2p_c * h_ref_DIC
+                  + 3 * pH_PT * Ka1p_c * Ka2p_c * Ka3p_c)
+               / (h_ref_DIC ** 3 + Ka1p_c * h_ref_DIC ** 2 + Ka1p_c * Ka2p_c * h_ref_DIC + Ka1p_c * Ka2p_c * Ka3p_c)
+               - Kw_c / h_ref_DIC) / (1 + 2 * Ka2c_c / h_ref_DIC)   # D294 (mol/L) bicarbonate from the charge balance at the reference pH
+beta_nonC   = math.log(10) * (pH_PT * Ka1p_c * h_ref_DIC / (Ka1p_c + h_ref_DIC) ** 2
+                              + pH_PT * Ka2p_c * h_ref_DIC / (Ka2p_c + h_ref_DIC) ** 2
+                              + pH_NT * KaN_c * h_ref_DIC / (KaN_c + h_ref_DIC) ** 2
+                              + h_ref_DIC + Kw_c / h_ref_DIC)       # D295 (mol/L/pH) non-carbonate buffer capacity
+DIC_cap     = 1 + r_HCO3_ref * beta_nonC / (beta_nonC + math.log(10) * HCO3_ref)   # D296 (-) total-DIC / CO2(aq) capacity of the liquid
 
 
 # ============================================================================
@@ -581,29 +609,6 @@ ec_gap      = elec_gap                                 # D115 (mm)  <- Geometry 
 k_geom      = 1.0                                      # D116 (-) unbounded-electrolyte correction (R1-06: was 2, a double count; Gerrit-validated range now consistent)
 R_cell      = k_geom * math.acosh(ec_gap / anode_dia) / (math.pi * ec_kappa * (L_sub / 1000))  # D117 (ohm)
 V_IR        = I_app * R_cell                           # D118 (V)
-V_cell_est  = ec_E_rev + eta_anode + eta_cath + pcet_credit + V_IR   # D119 (V)
-V_rail      = 5.0                                      # D120 (V) Pioreactor LED channel supply
-V_headroom  = V_rail - V_cell_est                      # D121 (V)
-if V_headroom < 0:
-    V_flag = "OVER RAIL — the drive cannot deliver this current; the linear current law will not hold"
-elif V_headroom < 1:
-    V_flag = ("watch — within 1 V of the rail (" + xltext(V_cell_est, "0.00") + " V of "
-              + xltext(V_rail, "0") + " V); expect the current law to bend")
-else:
-    V_flag = ("OK — " + xltext(V_cell_est, "0.00") + " V estimated against a "
-              + xltext(V_rail, "0") + " V rail")       # D122
-# --- R1-06: the same budget at the top of the Gerrit-validated band ---
-I_at_gerrit_max = (gerrit_slope * gerrit_max + gerrit_int) / 1000        # D142 (A)
-V_at_gerrit_max = (ec_E_rev + b_anode * math.log10(I_at_gerrit_max / A_anode_wet / j0_anode)
-                   + b_cath * math.log10(I_at_gerrit_max / A_cath_wet / j0_cath)
-                   + pcet_credit + I_at_gerrit_max * R_cell)             # D143 (V)
-if V_at_gerrit_max > V_rail:
-    V_gerrit_flag = ("INCONSISTENT — the budget needs " + xltext(V_at_gerrit_max, "0.00") + " V at "
-                     + xltext(gerrit_max, "0") + " %, above the " + xltext(V_rail, "0")
-                     + " V rail, where Gerrit's Law is validated linear: R_cell (k_geom) or j₀ is too high")
-else:
-    V_gerrit_flag = ("OK — " + xltext(V_at_gerrit_max, "0.00") + " V at " + xltext(gerrit_max, "0")
-                     + " %, under the " + xltext(V_rail, "0") + " V rail across the validated band")   # D144
 
 
 # ============================================================================
@@ -617,6 +622,45 @@ else:
 CO2_CAL = [
     ("ed04", 46190, 0.25, 3.33),
 ]
+CO2_FIT = [  # (Reactor, volume mL = CO2 flows E, time s = CO2 flows F, excluded = CO2 flows N); rows with F blank/0 omitted
+    ("ed04", 50.0, 15.0, 0),  # CO2 flows row 5
+    ("ed04", 12.0, 4.0, 0),  # CO2 flows row 7
+    ("ed04", 14.0, 4.0, 0),  # CO2 flows row 8
+    ("ed04", 14.0, 4.0, 0),  # CO2 flows row 9
+    ("ed04", 6.0, 2.0, 0),  # CO2 flows row 11
+    ("ed04", 9.0, 2.0, 0),  # CO2 flows row 12
+    ("ed04", 6.0, 2.0, 0),  # CO2 flows row 13
+    ("ed04", 8.0, 2.0, 0),  # CO2 flows row 14
+    ("ed04", 6.0, 2.0, 0),  # CO2 flows row 15
+    ("ed04", 10.0, 2.0, 0),  # CO2 flows row 16
+    ("ed04", 4.0, 1.0, 0),  # CO2 flows row 18
+    ("ed04", 4.0, 1.0, 0),  # CO2 flows row 19
+    ("ed04", 3.0, 1.0, 0),  # CO2 flows row 20
+    ("ed04", 4.0, 1.0, 0),  # CO2 flows row 21
+    ("ed04", 4.0, 1.0, 0),  # CO2 flows row 22
+    ("ed04", 4.0, 1.0, 0),  # CO2 flows row 23
+    ("ed04", 2.0, 0.5, 0),  # CO2 flows row 25
+    ("ed04", 2.0, 0.5, 0),  # CO2 flows row 26
+    ("ed04", 2.0, 0.5, 0),  # CO2 flows row 27
+    ("ed04", 2.0, 0.5, 0),  # CO2 flows row 28
+    ("ed04", 2.0, 0.5, 0),  # CO2 flows row 29
+    ("ed04", 1.0, 0.25, 0),  # CO2 flows row 30
+    ("ed04", 1.0, 0.25, 0),  # CO2 flows row 31
+    ("ed04", 1.0, 0.25, 0),  # CO2 flows row 32
+    ("ed04", 1.0, 0.25, 0),  # CO2 flows row 33
+    ("ed04", 1.0, 0.25, 0),  # CO2 flows row 34
+    ("ed04", 0.4, 0.2, 1),  # CO2 flows row 36 (red outlier, column N = 1)
+    ("ed04", 0.8, 0.2, 0),  # CO2 flows row 37
+    ("ed04", 1.0, 0.2, 0),  # CO2 flows row 38
+    ("ed04", 0.8, 0.2, 0),  # CO2 flows row 39
+    ("ed04", 0.4, 0.1, 0),  # CO2 flows row 41
+    ("ed04", 0.4, 0.1, 0),  # CO2 flows row 42
+    ("ed04", 0.6, 0.1, 0),  # CO2 flows row 43
+    ("ed04", 0.6, 0.1, 0),  # CO2 flows row 44
+    ("ed04", 0.6, 0.1, 0),  # CO2 flows row 45
+    ("ed04", 0.2, 0.1, 1),  # CO2 flows row 46 (red outlier, column N = 1)
+]
+CO2_CARRY = []                                         # (Reactor, max flow without carryover mL/s) = CO2 flows column M; none entered (data gap)
 _cal_rows = [r for r in CO2_CAL if r[0] == Reactor_sel and r[3] > 0]
 has_cal      = len(_cal_rows)                          # MT D119
 latest_date  = max((r[1] for r in _cal_rows), default=0)  # MT D116
@@ -641,6 +685,9 @@ rho_L     = rho_0 + rho_k * (T_K - 273.15)            # D30 (kg/m3)
 g_const   = 9.80665                                   # D31 (m/s2)
 D_O2      = 10 ** (HB_a + HB_b / T_K - (HB_c / T_K) ** 2) / 10000   # D32 (m2/s)
 M_CO2     = 44.0095                                   # D103 (g/mol)
+pw_A, pw_B, pw_C = 610.94, 17.625, 243.04             # D203:D205 Magnus coefficients (Pa, -, degC)
+p_sat_w   = pw_A * math.exp(pw_B * (T_K - 273.15) / ((T_K - 273.15) + pw_C))   # D206 (Pa) saturated water vapour at reactor T
+P_dry     = P_atm - p_sat_w                           # D418 (Pa) dry-gas pressure: the basis of every gas partial pressure in a Henry term
 R_gas     = R_gas_mt                                  # D101 (J/mol/K)
 
 POR_UM = [205, 130, 70, 28, 13, 1.3]                  # grades 0..5 (D33:D38)
@@ -666,6 +713,19 @@ Q_CO2     = flowrate_cal * 60 if has_cal > 0 else NA   # D102 (mL/min)
 nCO2_rate = P_atm * (Q_CO2 / 1e6 / 60) / (R_gas * T_K) # D104 (mol/s)
 pulse_floor = min_sparge_cal                           # D99 (s)
 flush_factor = 1.0                                     # D106
+
+# --- R2-M3: delivered pulse volume V = V0 + Q*t, least squares over this reactor's CO2 flows points (MT D401-D411) ---
+_fit = [(v, t) for (r, v, t, ex) in CO2_FIT if r == Reactor_sel and t > 0 and ex != 1]
+fit_n   = len(_fit)                                    # D401 (points used)
+fit_St  = sum(t for v, t in _fit)                      # D402 (s)
+fit_SV  = sum(v for v, t in _fit)                      # D403 (mL)
+fit_Stt = sum(t * t for v, t in _fit)                  # D404 (s2)
+fit_StV = sum(t * v for v, t in _fit)                  # D405 (mL.s)
+fit_n_min = 3                                          # D406 (minimum points for the fit; fewer -> no-intercept fallback)
+_fit_ok = fit_n >= fit_n_min and fit_n * fit_Stt - fit_St ** 2 > 0
+Q_CO2_fit = ((fit_n * fit_StV - fit_St * fit_SV) / (fit_n * fit_Stt - fit_St ** 2)
+             if _fit_ok else Q_CO2 / 60)               # D407 (mL/s) slope; fallback = nominal flow
+pulse_V0  = (fit_SV - Q_CO2_fit * fit_St) / fit_n if _fit_ok else 0.0   # D408 (mL) valve-opening intercept
 kLa_meas  = 0.0                                        # D97 (1/h)
 
 # --- surface stripping path (kL_surf) ---
@@ -692,8 +752,9 @@ duty_O2vent = O2_src_guard / (target_DO_frac * (O2_ceil_Pa / P_atm)) / (nCO2_rat
 duty_opt    = max(duty_carbon, duty_O2vent)            # D88
 spg_int_max = (target_DO_frac * O2_ceil_C * (V_charge / 1e6)
                / O2_src_guard * 60)                                   # D89 (min) lag-accumulation cap
-spg_dur_opt = max(pulse_floor, flush_factor * headspace_V / (Q_CO2 / 60))  # D90 (s)
-spg_int_carbon = spg_dur_opt / (60 * duty_carbon)      # D112 (min) - carbon-limited
+spg_dur_opt = max(pulse_floor, (flush_factor * headspace_V - pulse_V0) / Q_CO2_fit)  # D90 (s)
+spg_dur_eq_opt = (pulse_V0 + Q_CO2_fit * spg_dur_opt) / (Q_CO2 / 60)   # D409 (s) full-flow-equivalent time of the optimal pulse (delivered volume / nominal flow)
+spg_int_carbon = spg_dur_eq_opt / (60 * duty_carbon)   # D112 (min) - carbon-limited
 
 # --- WAVE-4: headspace O2 balance and the DO-LIMITED interval (rows 177-188) --
 # The SURFACE-HELD / SPARGE-NEEDED branch is gone. Dissolved O2 can never fall
@@ -735,7 +796,7 @@ def _by_phase(g_val, l_val):
 O2_src_sched   = _by_phase(O2_src_g, O2_src_l)          # MT D317 (mol/h)
 H2_src_sched   = _by_phase(H2_src_g, H2_src_l)          # MT D318 (mol/h)
 CO2_fix_sched  = _by_phase(CO2_fix_g, CO2_fix_l)        # MT D319 (mol/h)
-flush_vol_opt  = nCO2_rate * spg_dur_opt / n_hs_gas     # MT D320 (-) headspace volumes per optimal pulse
+flush_vol_opt  = nCO2_rate * spg_dur_eq_opt / n_hs_gas     # MT D320 (-) headspace volumes per optimal pulse
 flush_ret_opt  = math.exp(-flush_vol_opt)               # MT D321 (-)
 saw_factor     = flush_vol_opt * (1 + flush_ret_opt) / (2 * (1 - flush_ret_opt))   # MT D322 (-) time-mean / flux-mean headspace O2
 M_O2 = 31.998                                          # MT D231 (g/mol) IUPAC 2 x 15.999
@@ -744,11 +805,11 @@ DO_target     = (DO_opt / M_O2 if isnum(DO_opt)
 DO_surf_excess = O2_src_sched / (kLa_surf_used * 3600 * (V_charge / 1e6))  # D180 (mol/m3) sizing phase
 DO_surf_excess_lag = O2_net_gen / (kLa_surf_used * 3600 * (V_charge / 1e6))  # D181 (mol/m3)
 hs_O2_allow   = DO_target - DO_surf_excess             # D182 (mol/m3)
-y_O2_star     = (hs_O2_allow / (H_O2_T * P_atm)) if hs_O2_allow > 0 else NA   # D183 (-)
+y_O2_star     = (hs_O2_allow / (H_O2_T * P_dry)) if hs_O2_allow > 0 else NA   # D183 (-)
 duty_DO       = (max(0.0, ((O2_src_sched + y_O2_air * F_vent_ex) * saw_factor / y_O2_star
                             - F_vent_ex - O2_src_sched - H2_src_sched + CO2_fix_sched) / CO2_rate_full)
                  if isnum(y_O2_star) else NA)          # D184 (-) flux mean at y*/saw_factor -> cycle mean at target
-spg_int_DO    = ((spg_dur_opt / (60 * duty_DO) if duty_DO > 0 else spg_int_carbon)
+spg_int_DO    = ((spg_dur_eq_opt / (60 * duty_DO) if duty_DO > 0 else spg_int_carbon)
                  if isnum(duty_DO) else NA)            # D185 (min); duty 0 -> carbon-limited interval
 kLa_surf_req  = O2_src_sched / (DO_target * 3600 * (V_charge / 1e6))          # D186 (1/s)
 
@@ -757,7 +818,7 @@ spg_int_opt = (NA if sel_invalid else
                min(spg_int_carbon, spg_int_DO) if isnum(spg_int_DO)
                else min(spg_int_carbon, spg_int_max))                  # D91 (min)
 spg_int_opt_s = spg_int_opt * 60                       # D92 (s)
-duty_actual = spg_dur_opt / (spg_int_opt * 60)         # D93
+duty_actual = spg_dur_eq_opt / (spg_int_opt * 60)      # D93 (-) full-flow-equivalent duty
 pulse_res   = 0.05                                     # MT D241 (s) solenoid timing resolution
 def _mround(x, m):
     """Excel MROUND (half away from zero)."""
@@ -795,7 +856,9 @@ spg_int = (user_spg_int if (isnum(user_spg_int) and user_spg_int > 0)
 od_ok = "OK" if (spg_int * 60 - spg_dur >= 5) else "TIGHT"    # D95 (uses schedule in use)
 duty    = spg_dur / (spg_int * 60)                     # D105
 
-CO2_pulse  = nCO2_rate * spg_dur                        # D123 (mol)
+spg_dur_eq = (pulse_V0 + Q_CO2_fit * spg_dur) / (Q_CO2 / 60)   # D410 (s) full-flow-equivalent time of the pulse in use
+V_pulse    = pulse_V0 + Q_CO2_fit * spg_dur            # D411 (mL) delivered volume per pulse
+CO2_pulse  = P_atm * (V_pulse / 1e6) / (R_gas * T_K)   # D123 (mol)
 pulses_h   = 60 / spg_int                               # D124 (/h)
 pulses_d   = pulses_h * 24                              # D125 (/d)
 CO2_supply = CO2_pulse * pulses_h                       # D100 (mol/h)
@@ -827,9 +890,9 @@ def _hs_phase(O2_src, H2_src, CO2_fix, DO_exc):
     y_end  = dy * phi / (1 - flush_ret * math.exp(-x))              # D336/D358 (-)
     y_post = y_end * flush_ret                                      # D337/D359 (-)
     y_avg  = y_post * phi + dy * psi                                # D338/D360 (-)
-    DO_mf  = DO_exc + H_O2_T * P_atm * y_mf                         # D340/D361 (mol/m3)
-    DO_avg = DO_exc + H_O2_T * P_atm * y_avg                        # D341/D362 (mol/m3)
-    DO_pk  = DO_exc + H_O2_T * P_atm * max(y_avg, y_end - (S_O2 - F_gap * y_end) / n_hs_gas * tau_L_h)  # D342/D363
+    DO_mf  = DO_exc + H_O2_T * P_dry * y_mf                         # D340/D361 (mol/m3)
+    DO_avg = DO_exc + H_O2_T * P_dry * y_avg                        # D341/D362 (mol/m3)
+    DO_pk  = DO_exc + H_O2_T * P_dry * max(y_avg, y_end - (S_O2 - F_gap * y_end) / n_hs_gas * tau_L_h)  # D342/D363
     return dict(S_O2=S_O2, F_net=F_net, y_mf=y_mf, yH2_mf=yH2_mf, F_gap=F_gap, x=x, phi=phi, psi=psi,
                 dy=dy, y_end=y_end, y_post=y_post, y_avg=y_avg, DO_mf=DO_mf, DO_avg=DO_avg, DO_peak=DO_pk)
 def _feas(m):
@@ -883,7 +946,7 @@ else:
 # --- Biology rows 75-88: lag-phase headspace flammability (replaces the H2_turnover proxy at D44) ---
 CO2_supply_b    = CO2_supply                            # Biology D76 (mol/h) <- MT D100
 CO2_rate_full_b = CO2_rate_full                         # Biology D77 (mol/h) <- MT D178
-spg_dur_b       = spg_dur_opt                           # Biology D78 (s)     <- MT D90
+spg_dur_b       = spg_dur_eq_opt                        # Biology D78 (s)     <- MT D409
 R_gas_b         = R_gas                                 # Biology D79 (J/mol/K) <- MT D101
 F_vent_ex_b     = F_vent_ex                             # Biology D111 (mol/h) <- MT D308
 y_O2_air_b      = y_O2_air                              # Biology D112 (-)     <- MT D307
@@ -912,12 +975,12 @@ else:
 
 # --- steady dissolved O2 = headspace floor + the excess that drives the surface flux ---
 y_O2_actual = _by_phase(y_O2_mf_g, y_O2_mf_l)          # D187 (-) mean-field headspace O2, sizing phase
-DO_hs_floor = (H_O2_T * y_O2_actual * P_atm) if isnum(y_O2_actual) else NA      # D188 (mol/m3)
+DO_hs_floor = (H_O2_T * y_O2_actual * P_dry) if isnum(y_O2_actual) else NA      # D188 (mol/m3)
 DO_ss = DO_avg_sched * M_O2                            # D108 (mg/L) cycle-mean (sawtooth) DO, sizing phase
 # DO if the interval relaxed to the carbon-limited one: the same headspace balance at duty_carbon
 _F_carb = F_vent_ex + CO2_rate_full * duty_carbon + O2_src_sched + H2_src_sched - CO2_fix_sched
-DO_at_carbon = (DO_surf_excess + H_O2_T * P_atm * min(1.0, saw_factor * (O2_src_sched + y_O2_air * F_vent_ex) / _F_carb)
-                if _F_carb > 0 else DO_surf_excess + H_O2_T * P_atm)   # MT D232 (mol/m3) saw-corrected, guarded, capped at saturation
+DO_at_carbon = (DO_surf_excess + H_O2_T * P_dry * min(1.0, saw_factor * (O2_src_sched + y_O2_air * F_vent_ex) / _F_carb)
+                if _F_carb > 0 else DO_surf_excess + H_O2_T * P_dry)   # MT D232 (mol/m3) saw-corrected, guarded, capped at saturation
 DO_ss_sawtooth = DO_avg_sched                          # D133 (mol/m3, sizing-phase cycle mean)
 DO_ss_sawtooth_lag = DO_avg_l                          # D135 (mol/m3, LAG cycle mean, H2 as diluent)
 
@@ -951,7 +1014,20 @@ strip_avg = strip_sparge * duty                         # D55 (mol/h)
 strip_ratio = (strip_avg / O2_excess) if O2_excess > 0 else NA  # D56
 kLa_req = (O2_excess / 3600 / ((V_charge / 1e6) * O2_ceil_C)) if O2_excess > 0 else NA  # D57
 u_g_max = 0.05                                          # D58 (m/s)
-carry_flag = "RISK" if u_sg > u_g_max else "OK"         # D59
+carry_flag_usg = (("RISK – " + xltext(u_sg * 1000, "0.0") + " mm/s superficial gas velocity over the " + xltext(u_g_max * 1000, "0") + " mm/s rule of thumb")
+                  if u_sg > u_g_max else
+                  ("OK – " + xltext(u_sg * 1000, "0.0") + " mm/s against the " + xltext(u_g_max * 1000, "0") + " mm/s rule of thumb"))   # D414 (secondary line)
+_carry = [m for (r, m) in CO2_CARRY if r == Reactor_sel and m > 0]
+carry_n     = len(_carry)                              # D412
+Q_carry_max = min(_carry) if carry_n > 0 else "not measured"   # D413 (mL/s) lowest recorded no-carryover flow, conservative
+if carry_n == 0:
+    carry_flag = "not measured – record the max flow without carryover for " + Reactor_sel + " in CO2 flows column M"
+elif Q_CO2 / 60 > Q_carry_max:
+    carry_flag = ("RISK – pulse flow " + xltext(Q_CO2 / 60, "0.00") + " mL/s exceeds the measured "
+                  + xltext(Q_carry_max, "0.00") + " mL/s no-carryover limit")
+else:
+    carry_flag = ("OK – pulse flow " + xltext(Q_CO2 / 60, "0.00") + " mL/s within the measured "
+                  + xltext(Q_carry_max, "0.00") + " mL/s no-carryover limit")   # D59
 
 rho_CO2  = P_atm * (M_CO2 / 1000) / (R_gas * T_K)       # D60 (kg/m3)
 n_pores_active = 1                                      # D61
@@ -967,7 +1043,7 @@ t_O2_ceiling = O2_ceil_C * (V_charge / 1e6) / O2_excess * 60   # D65 (min)
 t_O2_ceiling_strip = (O2_ceil_C * (V_charge / 1e6) / (O2_excess - strip_avg) * 60
                       if (O2_excess - strip_avg) > 0 else "never (strip \u2265 source)")  # D66
 # (MT D75 y_O2_vent and D76 DO_vent_eq cleared in iterR4)
-hs_flush_time = headspace_V / (Q_CO2 * duty)            # D77 (min)
+hs_flush_time = headspace_V * spg_int / V_pulse         # D77 (min) headspace volumes per interval / delivered volume
 surf_ratio = (surf_strip / O2_excess) if O2_excess > 0 else NA   # D74
 O2_removal_ratio = ((strip_avg + surf_strip) / O2_excess) if O2_excess > 0 else NA  # D78
 t_O2_ceiling_lag = O2_ceil_C * (V_charge / 1e6) / O2_net_gen * 60   # D79 (min)
@@ -1016,24 +1092,25 @@ kL_surf_crit = kLa_surf_req / a_surf                    # D131 (m/s)
 D_CO2          = D_CO2_ref * math.exp(-Ea_D_CO2 / R_gas * (1 / T_K - 1 / 298.15))  # MT D138 (m2/s)
 pCO2_air       = 40.0                                   # MT D139 (Pa) atmospheric pCO2 ~400 ppm INPUT
 V_L_m3         = V_charge / 1e6                         # MT D141 (m3)   (D140, D142 defined with the headspace balance)
+V_L_CO2        = V_L_m3 * DIC_cap                       # MT D416 (m3) liquid volume with its bicarbonate storage (DIC_cap = D415 <- Chemistry D296)
 k_vent         = F_gap_sched / 3600 / n_hs_gas          # MT D143 (1/s) headspace turnover between pulses
 tau_hs         = 1 / k_vent / 60 if k_vent > 0 else "none between pulses"   # MT D144 (min) headspace residence time
-C_sat_CO2      = H_CO2_T * P_atm                        # MT D145 (mol/m3) pure-CO2 sparge saturation
+hs_H_CO2       = H_CO2_T                                # MT D191 (mol/m3/Pa) <- Biology D31
+C_sat_CO2      = hs_H_CO2 * P_dry                       # MT D145 (mol/m3) pure-CO2 sparge saturation
 C_air_CO2      = H_CO2_T * pCO2_air                     # MT D146 (mol/m3) air-equilibrium
 sqrtD_CO2      = math.sqrt(D_CO2 / D_O2)                # MT D147 penetration-theory diffusivity scaling
 kLa_CO2_off    = kLa_surf_used * sqrtD_CO2                   # MT D148 (1/s) surface-path between pulses
 tau_surf_floor = 1 / kLa_CO2_off / 60                   # MT D149 (min) surface-relaxation time
 # (MT D150 n_hs_gas, D151 t_on_CO2, D152 t_off_CO2 are defined with the headspace balance above)
 # --- OPERATIVE: mass-conserving pooled limit cycle (MT rows 190-200) ---
-hs_H_CO2       = H_CO2_T                                # MT D191 (mol/m3/Pa) <- Biology D31
 Vg_CO2         = headspace_V_m3 / (hs_H_CO2 * R_gas * T_K)   # MT D192 (m3) headspace as liquid-equivalent volume
-pool_a         = V_L_m3 / (V_L_m3 + Vg_CO2)             # MT D193 (-) liquid share of a pooled inventory
+pool_a         = V_L_CO2 / (V_L_CO2 + Vg_CO2)             # MT D193 (-) liquid share of a pooled inventory
 pool_b         = C_sat_CO2 * (1 - pool_a) * (1 - flush_ret)   # MT D194 (mol/m3) CO2 the pulse leaves behind (well-mixed flush)
-k_eff_CO2      = k_vent * Vg_CO2 / (V_L_m3 + Vg_CO2)    # MT D195 (1/s) pool decay through the vent
+k_eff_CO2      = k_vent * Vg_CO2 / (V_L_CO2 + Vg_CO2)    # MT D195 (1/s) pool decay through the vent
 pool_beta_ratio = (kLa_CO2_off * V_L_m3 / Vg_CO2) / k_vent if k_vent > 0 else "no turnover between pulses"   # MT D196 (x) quasi-equilibrium validity
 pool_e         = math.exp(-k_eff_CO2 * t_off_CO2)       # MT D197 (-)
 pool_D_raw     = ((C_air_CO2 / C_sat_CO2 * F_vent_ex - CO2_fix_sched) * t_gap_h
-                  / (V_L_m3 + Vg_CO2))                  # MT D375 (mol/m3) gap change, slow-vent limit
+                  / (V_L_CO2 + Vg_CO2))                 # MT D375 (mol/m3) gap change, slow-vent limit
 pool_x         = k_eff_CO2 * t_off_CO2                  # MT D376 (-)
 pool_phi       = _phi(pool_x)                           # MT D377 (-)
 pool_psi       = _psi(pool_x)                           # MT D378 (-)
@@ -1041,8 +1118,10 @@ pool_D_gap     = pool_D_raw * pool_phi                  # MT D379 (mol/m3)
 pool_ret       = pool_a + (1 - pool_a) * flush_ret      # MT D380 (-) pool share retained through a pulse
 C_cycle_start  = (pool_D_gap + pool_b * pool_e) / (1 - pool_ret * pool_e)   # MT D198 (mol/m3) fixed point of the cycle
 C_cycle_peak   = pool_ret * C_cycle_start + pool_b      # MT D199 (mol/m3)
-hs_sag         = (pool_a * (C_cycle_peak - C_cycle_start) * (V_L_m3 + Vg_CO2)
+hs_sag         = (pool_a * (C_cycle_peak - C_cycle_start) * (V_L_CO2 + Vg_CO2)
                   + max(0.0, CO2_fix_sched - O2_src_sched - H2_src_sched) * t_gap_h) / n_hs_gas   # MT D389 (-) fractional headspace pressure sag per cycle
+CO2_uptake_ratio = ((C_cycle_peak - C_cycle_start) * V_L_CO2 * pulses_h / CO2_cons
+                    if CO2_cons > 0 else NA)            # MT D417 (x) CO2 absorbed per pulse / fixation demand (informative, not pass/fail)
 hs_sag_max     = 0.05                                   # MT D390 (-) tolerated sag for a sealed cap. INPUT
 if F_vent_ex > 0:
     hs_sag_chk = "n/a \u2013 the vent admits air (Open vent / Air exchange), so the headspace refills"
@@ -1176,23 +1255,6 @@ elif pH_meas > 7.5:
 else:
     pH_band_flag = "pH in HOB band 6.5–7.5"       # D110
 
-# --- electrode potentials at the operating pH (Chemistry rows 199-211) ---
-nernst_slope = R_gas * TKc / Fcc * math.log(10)        # D200 (V/pH)
-E0_HER  = 0.0                                          # D202 (V vs SHE) SHE convention
-E0_Cl2  = 1.358                                        # D203
-E0_ORR2 = 0.695                                        # D204 the parasitic cathode branch
-E0_Cu   = 0.3419                                       # D205
-E_OER   = E0_OER - nernst_slope * pH_meas              # D206
-E_HER   = E0_HER - nernst_slope * pH_meas              # D207
-E_Cl2   = E0_Cl2 + nernst_slope * (-math.log10(max(pH_Cl, 1e-12)))  # D208
-E_anode_op = E_OER + eta_anode + pcet_credit           # Chemistry D256 (V vs SHE) E_OER + eta_anode_c (Echem D111) + pcet_credit_c (Echem D113)
-E0_HOCl = 1.482                                        # Chemistry D257 (V) CRC
-E_HOCl_Cl = E0_HOCl + nernst_slope / 2 * (math.log10(max(HOCl_ss * f_local, 1e-12))
-                                            - pH_meas - math.log10(max(pH_Cl, 1e-12)))   # Chemistry D258 (V vs SHE)
-E_Cl_margin = E_HOCl_Cl - E_anode_op                   # D209 (V) HOCl/Cl- couple minus operating anode potential
-E_ORR2  = E0_ORR2 - nernst_slope * pH_meas             # D210
-E_Cu_margin = E_anode_op - E0_Cu                       # D211 (V) operating anode above Cu2+/Cu
-
 # --- buffer capacity at the electrode surface (Chemistry rows 213-219) ---
 D_HPO4     = 7.59e-10                                  # D214 (m2/s) CRC tabulated
 km_O2_c    = km_O2                                     # D272 (cm/s) <- Electrochemistry D83
@@ -1216,6 +1278,53 @@ elif j_buffer_ratio > 0.5:
                      "at each electrode surface")
 else:
     buffer_flag = "OK — buffer holds the electrode surfaces at the bulk pH"   # D219
+
+# --- R1-14: the PCET credit is withdrawn once the anode current passes the buffer limit (Electrochemistry D161-D163) ---
+I_at_gerrit_max = (gerrit_slope * gerrit_max + gerrit_int) / 1000        # Electrochemistry D142 (A)
+ec_jbuf_ratio    = j_buffer_ratio                      # Electrochemistry D161 <- Chemistry D218
+pcet_credit_op   = 0.0 if ec_jbuf_ratio > 1 else pcet_credit                  # D162 (V) credit at the operating point
+pcet_credit_gmax = 0.0 if ec_jbuf_ratio * I_at_gerrit_max / I_app > 1 else pcet_credit   # D163 (V) credit at the top of the Gerrit band (j scales with I)
+
+V_cell_est  = ec_E_rev + eta_anode + eta_cath + pcet_credit_op + V_IR   # D119 (V)
+V_rail      = 5.0                                      # D120 (V) Pioreactor LED channel supply
+V_headroom  = V_rail - V_cell_est                      # D121 (V)
+if V_headroom < 0:
+    V_flag = "OVER RAIL — the drive cannot deliver this current; the linear current law will not hold"
+elif V_headroom < 1:
+    V_flag = ("watch — within 1 V of the rail (" + xltext(V_cell_est, "0.00") + " V of "
+              + xltext(V_rail, "0") + " V); expect the current law to bend")
+else:
+    V_flag = ("OK — " + xltext(V_cell_est, "0.00") + " V estimated against a "
+              + xltext(V_rail, "0") + " V rail")       # D122
+# --- R1-06: the same budget at the top of the Gerrit-validated band ---
+V_at_gerrit_max = (ec_E_rev + b_anode * math.log10(I_at_gerrit_max / A_anode_wet / j0_anode)
+                   + b_cath * math.log10(I_at_gerrit_max / A_cath_wet / j0_cath)
+                   + pcet_credit_gmax + I_at_gerrit_max * R_cell)             # D143 (V)
+if V_at_gerrit_max > V_rail:
+    V_gerrit_flag = ("INCONSISTENT — the budget needs " + xltext(V_at_gerrit_max, "0.00") + " V at "
+                     + xltext(gerrit_max, "0") + " %, above the " + xltext(V_rail, "0")
+                     + " V rail, where Gerrit's Law is validated linear: R_cell (k_geom) or j₀ is too high")
+else:
+    V_gerrit_flag = ("OK — " + xltext(V_at_gerrit_max, "0.00") + " V at " + xltext(gerrit_max, "0")
+                     + " %, under the " + xltext(V_rail, "0") + " V rail across the validated band")   # D144
+
+# --- electrode potentials at the operating pH (Chemistry rows 199-211) ---
+nernst_slope = R_gas * TKc / Fcc * math.log(10)        # D200 (V/pH)
+E0_HER  = 0.0                                          # D202 (V vs SHE) SHE convention
+E0_Cl2  = 1.358                                        # D203
+E0_ORR2 = 0.695                                        # D204 the parasitic cathode branch
+E0_Cu   = 0.3419                                       # D205
+E_OER   = E0_OER - nernst_slope * pH_meas              # D206
+E_HER   = E0_HER - nernst_slope * pH_meas              # D207
+E_Cl2   = E0_Cl2 + nernst_slope * (-math.log10(max(pH_Cl, 1e-12)))  # D208
+E_anode_op = E_OER + eta_anode + pcet_credit_op           # Chemistry D256 (V vs SHE) E_OER + eta_anode_c (Echem D111) + pcet_credit_c (Chemistry D255 <- Echem D162)
+E0_HOCl = 1.482                                        # Chemistry D257 (V) CRC
+E_HOCl_Cl = E0_HOCl + nernst_slope / 2 * (math.log10(max(HOCl_ss * f_local, 1e-12))
+                                            - pH_meas - math.log10(max(pH_Cl, 1e-12)))   # Chemistry D258 (V vs SHE)
+E_Cl_margin = E_HOCl_Cl - E_anode_op                   # D209 (V) HOCl/Cl- couple minus operating anode potential
+E_ORR2  = E0_ORR2 - nernst_slope * pH_meas             # D210
+E_Cu_margin = E_anode_op - E0_Cu                       # D211 (V) operating anode above Cu2+/Cu
+
 
 
 # ============================================================================
@@ -1252,7 +1361,7 @@ S_D14 = (user_spg_dur if (isnum(user_spg_dur) and user_spg_dur > 0)
          else (spg_dur_run if isinstance(S_D13, float) else S_D13))   # D14 -> MT D242 (R2-M4)
 S_D15 = iferror(lambda: spg_int_opt, "calibrate this reactor first (see CO2 flows)")  # D15
 S_D16 = (user_spg_int if (isnum(user_spg_int) and user_spg_int > 0)
-         else (float(round_half_up(S_D14 / (60 * duty_actual))) if isinstance(S_D15, float) else S_D15))   # D16 = whole minutes at the optimised duty (R2-M4)
+         else (float(round_half_up(((pulse_V0 + Q_CO2_fit * S_D14) / (Q_CO2 / 60)) / (60 * duty_actual))) if isinstance(S_D15, float) else S_D15))   # D16 = whole minutes at the optimised duty, as-run pulse on the delivered-volume basis
 S_D19 = geom_check                                      # D19 vial geometry
 S_D20 = cal_warning                                     # D20 reactor calibrated
 S_D21 = DO_peak_band                                    # D21 peak DO vs organism band (MT D374)
@@ -1260,7 +1369,8 @@ S_D22 = DO_ss_vs_min                                    # D22 O2 above minimum
 S_D23 = sched_regime                                    # D23 interval relaxable
 S_D24 = H2_safety                                       # D24 H2 headspace safe
 S_D25 = bubble_regime                                   # D25 bubble model valid
-S_D26 = iferror(lambda: f"×{CO2_sd_ratio:.1f}" + (" OK" if CO2_sd_ratio >= 1 else " SHORTFALL (CO2 < demand)"),
+S_D26 = iferror(lambda: f"×{CO2_sd_ratio:.1f}" + (" OK" if CO2_sd_ratio >= 1 else " SHORTFALL (CO2 < demand)")
+                + f" delivered; ×{CO2_uptake_ratio:.1f} absorbed per pulse (row 135)",
                 "calibrate this reactor first")         # D26 CO2 supply : demand (this schedule)
 S_D27 = iferror(lambda: dur_ok, "calibrate this reactor first (see CO2 flows)")  # D27 pulse >= floor
 S_D28 = iferror(lambda: od_ok, "calibrate this reactor first (see CO2 flows)")   # D28 dosing window
@@ -1278,7 +1388,7 @@ S_D39 = spg_int_carbon                                  # D39 interval if O2 han
 S_D40 = tip_speed                                       # D40 stir-bar tip speed
 S_D41 = CO2_margin_trough                                # D41 carbon margin at the cycle trough (Biology D98)
 # --- wave-4 block (Summary rows 81-90): hand these to an electrochemist ---
-S_D95 = (S_D14 / (60 * S_D16) / duty_actual if (isnum(S_D14) and isnum(S_D16)) else
+S_D95 = (((pulse_V0 + Q_CO2_fit * S_D14) / (Q_CO2 / 60)) / (60 * S_D16) / duty_actual if (isnum(S_D14) and isnum(S_D16)) else
          "calibrate this reactor first (see CO2 flows)")   # D95 as-run / optimised duty
 S_D82 = etaF_calc                                       # D82 cathodic faradaic efficiency (calculated)
 S_D83 = V_cell_est                                      # D83 estimated cell voltage
@@ -1295,6 +1405,8 @@ S_F121 = ("Same on the lag source. Currently " + xltext(kLa_margin_l, "0.00") + 
              if kLa_margin_l < 1 else "the target can be held during lag at the kLa in use."))   # F121 (formula)
 S_D129 = hs_sag                                         # D129 headspace sag per cycle
 S_D130 = hs_sag_chk                                     # D130 sealed-cap plausibility
+S_D135 = CO2_uptake_ratio                               # D135 CO2 absorbed per pulse / demand (x) <- MT D417
+S_D136 = carry_flag_usg                                 # D136 superficial-velocity carryover rule of thumb <- MT D414
 # --- iterH block (Summary rows 110-128): headspace model selectors and both-phase DO ---
 pH_band_lo = 6.5                                        # Chemistry D236 (pH) HOB band lower edge
 S_D111 = vent_model_sel                                 # D111 vent model (input)
@@ -1645,7 +1757,7 @@ OUTPUTS = [
     ("Chemistry D252  HCO3_op (mol/L)",                 HCO3_op),
     ("Chemistry D253  HPO4_op (mol/L)",                 HPO4_op),
     ("Chemistry D254  eta_anode_c (V)",                 eta_anode),
-    ("Chemistry D255  pcet_credit_c (V)",               pcet_credit),
+    ("Chemistry D255  pcet_credit_c (V)",               pcet_credit_op),
     ("Chemistry D256  E_anode_op (V vs SHE)",           E_anode_op),
     ("Chemistry D257  E0_HOCl (V)",                     E0_HOCl),
     ("Chemistry D258  E_HOCl_Cl (V vs SHE)",            E_HOCl_Cl),
@@ -1811,6 +1923,43 @@ OUTPUTS = [
     ("MassXfer D380 pool_ret (-)",                     pool_ret),
     ("MassXfer D381 y_CO2_mf (-)",                     y_CO2_mf),
     ("MassXfer D382 C_CO2_mf (mol/m3)",                C_CO2_mf),
+    # --- iterM: pulse-volume fit, carryover, CO2 uptake, DIC capacity, dry-gas basis, O2 salting-out, PCET coupling ---
+    ("MassXfer D401 fit_n (points)",                    float(fit_n)),
+    ("MassXfer D402 fit_St (s)",                        fit_St),
+    ("MassXfer D403 fit_SV (mL)",                       fit_SV),
+    ("MassXfer D404 fit_Stt (s2)",                      fit_Stt),
+    ("MassXfer D405 fit_StV (mL.s)",                    fit_StV),
+    ("MassXfer D407 Q_CO2_fit (mL/s)",                  Q_CO2_fit),
+    ("MassXfer D408 pulse_V0 (mL)",                     pulse_V0),
+    ("MassXfer D409 spg_dur_eq_opt (s)",                spg_dur_eq_opt),
+    ("MassXfer D410 spg_dur_eq (s)",                    spg_dur_eq),
+    ("MassXfer D411 V_pulse (mL)",                      V_pulse),
+    ("MassXfer D90  spg_dur_opt (s)",                   spg_dur_opt),
+    ("MassXfer D112 spg_int_carbon (min)",              spg_int_carbon),
+    ("MassXfer D123 CO2_pulse (mol)",                   CO2_pulse),
+    ("MassXfer D412 carry_n",                           float(carry_n)),
+    ("MassXfer D413 Q_carry_max (mL/s)",                Q_carry_max),
+    ("MassXfer D414 carry_flag_usg",                    carry_flag_usg),
+    ("MassXfer D415 DIC_cap_mt (-)",                    DIC_cap),
+    ("MassXfer D416 V_L_CO2 (m3)",                      V_L_CO2),
+    ("MassXfer D417 CO2_uptake_ratio (x)",              CO2_uptake_ratio),
+    ("MassXfer D206 p_sat_w (Pa)",                      p_sat_w),
+    ("MassXfer D418 P_dry (Pa)",                        P_dry),
+    ("MassXfer D145 C_sat_CO2 (mol/m3)",                C_sat_CO2),
+    ("Chemistry D292 h_ref_DIC (mol/L)",                h_ref_DIC),
+    ("Chemistry D293 r_HCO3_ref (-)",                   r_HCO3_ref),
+    ("Chemistry D294 HCO3_ref (mol/L)",                 HCO3_ref),
+    ("Chemistry D295 beta_nonC (mol/L/pH)",             beta_nonC),
+    ("Chemistry D296 DIC_cap (-)",                      DIC_cap),
+    ("Biology  D121 I_ionic_b (mol/L)",                 I_ionic_b),
+    ("Biology  D123 f_salt_O2 (-)",                     f_salt_O2),
+    ("Biology  D24  H_O2_T (mol/m3/Pa)",                H_O2_T),
+    ("Biology  D78  spg_dur_b (s)",                     spg_dur_b),
+    ("Echem D161 ec_jbuf_ratio (-)",                    ec_jbuf_ratio),
+    ("Echem D162 pcet_credit_op (V)",                   pcet_credit_op),
+    ("Echem D163 pcet_credit_gmax (V)",                 pcet_credit_gmax),
+    ("Summary D135 CO2 uptake ratio (x)",               S_D135),
+    ("Summary D136 Carryover velocity rule of thumb",   S_D136),
 ]
 
 

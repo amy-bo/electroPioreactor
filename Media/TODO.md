@@ -28,7 +28,7 @@ Measurements, in leverage order:
 - [ ] **Abiotic DO trace under the real schedule** (3 % power, no cells = lag source, optical DO patch): one run discriminates the vent hypotheses and checks the Summary rows 114–117 predictions.
 - [ ] **Headspace H₂/O₂ during lag before any unattended run**: the model puts it at ~11 % H₂ mean and ~18 % just before each pulse, ~6 % O₂ (flammable). Syringe sample to a portable meter, or a catalytic H₂ sensor at the vent.
 - [ ] **Free + combined chlorine (DPD kit) in spent UdG after 24 h**: settles the chloramine lifetime `tau_NH2Cl`, which now moves the interval ±32 % through the free chloride share.
-- [ ] **Per-pulse CO₂ volume at 0.5–1.0 s through the sealed vial's outlet**, over acidified water: the bench data imply a fixed ~0.35 mL per pulse on top of flow × time (R2-M3, not yet modelled).
+- [ ] **Per-pulse CO₂ volume at 0.5–1.0 s through the sealed vial's outlet**, over acidified water: the model now fits a fixed 0.375 mL per pulse on top of flow × time from the inlet-side bench data; re-measure through the sealed outlet.
 - [ ] **Off-gas H₂ at steady growth**: measures the H₂ uptake fraction, which sets the O₂ surplus (`bio_O2`, ±200 % on the schedule).
 - [ ] **Confirm UdG CaCl₂ hydrate state** (anhydrous 110.98 vs dihydrate 147.01 g/mol: −24 % on every chlorine figure), the LED-driver rail and compliance, and whether the strain current-density limits are anode or cathode, geometric or wetted area.
 
@@ -39,12 +39,8 @@ Owner decisions (questions T4–T8 in brain2 `AMYBO/electroPioreactor-fromClaude
 
 Model work not yet done:
 
-- [ ] **Pulse-volume intercept** (R2-M3): fit V = V₀ + Q·t per reactor on CO2 flows and use it in the pulse and CO₂-per-pulse cells.
-- [ ] **Carryover check that can fail** (R3 M-17): add a per-reactor "max flow without carryover" column to CO2 flows and test against it; the 50 mm/s superficial-velocity rule never binds.
-- [ ] **Calibrations "Type (auto)" lookups** (48 cells) still use `Geometry!$A$59:$B$80` by coordinate; needs a range-valued defined name (`ReactorTypeList`).
-- [ ] **Bicarbonate storage in the CO₂ pool, dry-gas basis, salting-out** (R2-m3, R2-m8): each ≤5 % on the mean, larger on the sawtooth amplitude.
-- [ ] **Conditional-format thresholds on Summary D35/D36** still embed 6/6.5/7.5/8 and 0.1/1 (the patcher has no CF op); the Chemistry thresholds are named.
-- [ ] **Couple the proton-coupled voltage credit to the buffer verdict** (R1-14), or drop the sentence claiming it.
+- [ ] **Record the no-carryover maximum flow** per reactor in CO2 flows column M (Summary D29 reads "not measured" until then).
+
 
 ## Notes
 The earlier waves' blockers B2/B3/B4 and majors M1–M5 are resolved (see `CHANGELOG.md`), but the wave-4 review (2026-08-12) reopened the release question: the arithmetic is faithful throughout, while the sparge-interval recommendation, the O₂ surface path, the CO₂ sawtooth and both Python verification scripts each have a live defect. Those defects are fixed in the live workbook (wave-4 swapped in 2026-10-21 after a full Excel recalculation). Of the three broken protocol routes, the surface-kLa unit contradiction and the CO2-flow route are fixed; the vial-headspace measurement still does not reach the model.

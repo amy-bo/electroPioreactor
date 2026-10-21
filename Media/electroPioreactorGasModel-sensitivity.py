@@ -26,7 +26,7 @@ WHICH WORKBOOK VERSION IT MIRRORS
 WHAT CHANGED IN THIS RE-BASE (vs the previous revision of this script)
     (a) The SURFACE-HELD / SPARGE-NEEDED branch is gone. Dissolved O2 now carries a
         headspace back-pressure term: DO_ss = DO_hs_floor + DO_surf_excess, with
-        DO_hs_floor = H_O2*y_O2_actual*P_atm set by the CO2 flush rather than by stirring.
+        DO_hs_floor = H_O2*y_O2_actual*P_dry set by the CO2 flush rather than by stirring.
         The interval is MIN(spg_int_carbon, spg_int_DO), a continuous minimum, so no
         unmeasured coefficient switches one formula for another any more. The new
         discontinuity is spg_int_DO going #N/A when DO_target - DO_surf_excess <= 0.
@@ -46,6 +46,15 @@ WHAT CHANGED IN THIS RE-BASE (vs the previous revision of this script)
         factor), CO2 fixation is a sink, an outflow-only vent removes CO2 only through
         net evolved gas (so the pool runs near saturation), and a pulse is a well-mixed
         flush. A short block evaluates the headline in all four selector states.
+    (f) iterM: the pulse is a delivered VOLUME, V = V0 + Q*t (least-squares fit over the CO2
+        flows points, 34 of them, so the pulse time is (headspace - V0)/Q and every duty ->
+        interval conversion goes through the full-flow-equivalent time); the liquid stores CO2
+        as bicarbonate (DIC_cap, Chemistry D296); every gas partial pressure in a Henry term
+        is on the dry basis P_dry = P_atm - p_sat_w; O2 solubility carries a salting-out
+        factor; and the PCET credit in the cell voltage is withdrawn past the buffer limit.
+        Q_CO2 is no longer a pure input: sweeping it rescales the fitted slope with it, and
+        the intercept V0 gets its own sweep (pulse_V0_factor). The three non-live selector
+        states in the four-combination block are checked against the twin, not transcribed.
 
 STANDING RULE -- RE-BASE THIS FILE WHENEVER THE WORKBOOK MOVES
     This script is a reduced re-implementation, not a live read of the workbook. It MUST
@@ -111,7 +120,7 @@ BASE = dict(
   # --- O2 ceiling / Henry ---
   T_C=25, P_atm=101325, H_O2ref=1.2e-5, H_O2T=1500, T_ref=298.15, O2_ceil_atm=0.3,
   # --- CO2 dosing (ed04 calibrated: 3.33 mL/s = 199.8 mL/min) ---
-  Q_CO2=199.8, pulse_floor=0.25, flush_factor=1.0, R=8.314462618, M_CO2=44.0095,
+  Q_CO2=199.8, Q_CO2_cal=199.8, fit_n_min=3, pulse_V0_factor=1.0, pulse_floor=0.25, flush_factor=1.0, R=8.314462618, M_CO2=44.0095,
   # --- water properties (now temperature-tracking, not frozen constants) ---
   sigma_0=0.07589, sigma_k=-0.000157,     # IAPWS R1-76(2014) linear fit, 15-40 C
   rho_0=1003.33, rho_k=-0.2556,           # IAPWS-95 linear fit, 15-40 C
@@ -123,6 +132,9 @@ BASE = dict(
   # --- surface / stirring ---
   stir_rpm=1000, stir_len=12, kL_surf_factor=1.0,   # factor = order-of-magnitude uncertainty
   # --- dissolved CO2 / H2 / vent ---
+  ks_O2=0.14,                             # Biology D122: O2 Setschenow coefficient (L/mol per unit ionic strength)
+  pH_ref_DIC=6.09,                        # Chemistry D291: reference pH of the DIC capacity
+  pw_A=610.94, pw_B=17.625, pw_C=243.04,  # MT D203:D205 Magnus coefficients (Pa, -, degC)
   H_CO2ref=3.3e-4, H_CO2T=2400, Km_CO2=50,
   H_H2ref=7.8e-6, H_H2T=500,
   Q_vent=0.5, Q_backdraw=0.015, pCO2_air=40.0,   # Q_backdraw: MT D385, open-vent back-draw air (mL/min) - MEASURE
@@ -144,6 +156,18 @@ BASE = dict(
   # --- chlorine chain ---
   f_local=10.0, k1_NH2Cl=4.2e6, tau_NH2Cl=1.0, R_chloramine=25.0,
 )
+
+# ed04 pulse-volume points (volume mL, time s) from CO2 flows E/F, excluding the two red outliers
+# flagged in column N (rows 36 and 46) and the rows with no time: the 34 points behind the
+# workbook's V = V0 + Q*t fit (Mass Transfer D401-D408).
+CO2_FIT_PTS = [
+    (50.0, 15.0), (12.0, 4.0), (14.0, 4.0), (14.0, 4.0), (6.0, 2.0), (9.0, 2.0),
+    (6.0, 2.0), (8.0, 2.0), (6.0, 2.0), (10.0, 2.0), (4.0, 1.0), (4.0, 1.0),
+    (3.0, 1.0), (4.0, 1.0), (4.0, 1.0), (4.0, 1.0), (2.0, 0.5), (2.0, 0.5),
+    (2.0, 0.5), (2.0, 0.5), (2.0, 0.5), (1.0, 0.25), (1.0, 0.25), (1.0, 0.25),
+    (1.0, 0.25), (1.0, 0.25), (0.8, 0.2), (1.0, 0.2), (0.8, 0.2), (0.4, 0.1),
+    (0.4, 0.1), (0.6, 0.1), (0.6, 0.1), (0.6, 0.1),
+]
 
 MW = dict(KH2PO4=136.086, Na2HPO4=141.96, NaHCO3=84.007,
           MgSO4=246.48, NH42SO4=132.14, CaCl2=110.98)
@@ -197,7 +221,18 @@ def model(p):
     rho_L = p['rho_0'] + p['rho_k'] * p['T_C']
     D_O2 = 10 ** (p['HB_a'] + p['HB_b'] / T_K - (p['HB_c'] / T_K) ** 2) / 10000 * p['D_O2_fit']
     D_CO2 = p['D_CO2_ref'] * math.exp(-p['Ea_D_CO2'] / R * (1 / T_K - 1 / 298.15))
-    H_O2_T = p['H_O2ref'] * math.exp(p['H_O2T'] * (1 / T_K - 1 / p['T_ref']))
+    Ka = {k: v[0] * math.exp(-v[1] * 1000 / R * (1 / T_K - 1 / 298.15)) for k, v in KA.items()}
+    n = lambda salt, mw: p[salt] / MW[mw]
+    n_NaHCO3, n_Na2HPO4 = n('udg_NaHCO3', 'NaHCO3'), n('udg_Na2HPO4', 'Na2HPO4')
+    n_KH2PO4, n_NH42SO4 = n('udg_KH2PO4', 'KH2PO4'), n('udg_NH42SO4', 'NH42SO4')
+    n_MgSO4, n_CaCl2 = n('udg_MgSO4', 'MgSO4'), n('udg_CaCl2', 'CaCl2')
+    I_ion = 0.5 * ((n_NaHCO3 + 2 * n_Na2HPO4) + n_KH2PO4 + 2 * n_NH42SO4
+                   + 4 * n_MgSO4 + 4 * n_CaCl2 + n_KH2PO4 + 4 * n_Na2HPO4
+                   + 4 * (n_MgSO4 + n_NH42SO4) + n_NaHCO3 + 2 * n_CaCl2)   # D184
+    f_salt_O2 = 10 ** (-p['ks_O2'] * I_ion)                              # Biology D123, O2 salting-out (Setschenow, I from Chemistry D185)
+    H_O2_T = p['H_O2ref'] * math.exp(p['H_O2T'] * (1 / T_K - 1 / p['T_ref'])) * f_salt_O2   # Biology D24
+    p_sat_w = p['pw_A'] * math.exp(p['pw_B'] * (T_K - 273.15) / ((T_K - 273.15) + p['pw_C']))   # MT D206, Magnus
+    P_dry = p['P_atm'] - p_sat_w                                         # MT D418, dry-gas basis of every Henry term
     H_CO2_T = p['H_CO2ref'] * math.exp(p['H_CO2T'] * (1 / T_K - 1 / p['T_ref']))
     H_H2_T = p['H_H2ref'] * math.exp(p['H_H2T'] * (1 / T_K - 1 / p['T_ref']))
     O2_ceil_Pa = p['O2_ceil_atm'] * p['P_atm']
@@ -247,7 +282,19 @@ def model(p):
     # ------------------------------------------------------------------
     nCO2 = p['P_atm'] * (p['Q_CO2'] / 1e6 / 60) / (R * T_K)              # D104, mol/s
     CO2_rate_full = nCO2 * 3600                                          # D178, mol/h
-    spg_dur = max(p['pulse_floor'], p['flush_factor'] * headspace_V / (p['Q_CO2'] / 60))  # D90
+    # R2-M3: delivered volume V = V0 + Q*t, least squares over the CO2 flows points (MT D401-D408).
+    # The fit was taken at the calibration flow, so sweeping Q_CO2 rescales the slope with it
+    # (V0, the valve-opening intercept, is flow-independent); pulse_V0_factor carries V0's own uncertainty.
+    _n = len(CO2_FIT_PTS)
+    _St = sum(t for v, t in CO2_FIT_PTS); _SV = sum(v for v, t in CO2_FIT_PTS)
+    _Stt = sum(t * t for v, t in CO2_FIT_PTS); _StV = sum(t * v for v, t in CO2_FIT_PTS)
+    _ok = _n >= p['fit_n_min'] and _n * _Stt - _St ** 2 > 0
+    Q_fit_cal = (_n * _StV - _St * _SV) / (_n * _Stt - _St ** 2) if _ok else p['Q_CO2_cal'] / 60   # D407
+    V0_cal = (_SV - Q_fit_cal * _St) / _n if _ok else 0.0                                          # D408
+    Q_fit = Q_fit_cal * p['Q_CO2'] / p['Q_CO2_cal']                      # mL/s at the flow in use
+    V0 = V0_cal * p['pulse_V0_factor']                                   # mL
+    spg_dur = max(p['pulse_floor'], (p['flush_factor'] * headspace_V - V0) / Q_fit)   # D90
+    spg_dur_eq_opt = (V0 + Q_fit * spg_dur) / (p['Q_CO2'] / 60)          # D409, full-flow-equivalent time
     DO_target = (p['DO_opt'] / M_O2 if p['DO_opt'] is not None
                  else p['target_DO_frac'] * O2_ceil_C)                   # D179
 
@@ -263,7 +310,7 @@ def model(p):
     phases = {'Growth': (O2_excess, max(0.0, rH2 - H2_cons), CO2_cons),  # D309/D313/D315
               'Lag': (O2_net, rH2, 0.0)}                                 # D310/D314/D316
     O2_s, H2_s, fix_s = phases.get(p['O2_phase'], (NAN, NAN, NAN))       # D317-D319, sizing phase
-    flush_vol_opt = nCO2 * spg_dur / n_hs                                # D320
+    flush_vol_opt = nCO2 * spg_dur_eq_opt / n_hs                         # D320
     flush_ret_opt = math.exp(-flush_vol_opt)                             # D321
     saw_factor = flush_vol_opt * (1 + flush_ret_opt) / (2 * (1 - flush_ret_opt))   # D322
     DO_surf_excess = O2_s / (kLa_surf_used * 3600 * V_L)                 # D180, sizing phase
@@ -272,10 +319,10 @@ def model(p):
     hs_O2_allow = DO_target - DO_surf_excess                             # D182
     feasible = hs_O2_allow > 0
     if feasible:
-        y_O2_star = hs_O2_allow / (H_O2_T * p['P_atm'])                  # D183
+        y_O2_star = hs_O2_allow / (H_O2_T * P_dry)                       # D183
         duty_DO = max(0.0, ((O2_s + y_air * F_ex) * saw_factor / y_O2_star
                             - F_ex - O2_s - H2_s + fix_s) / CO2_rate_full)   # D184
-        spg_int_DO = (spg_dur / (60 * duty_DO) if duty_DO > 0
+        spg_int_DO = (spg_dur_eq_opt / (60 * duty_DO) if duty_DO > 0
                       else None)                                     # D185 (duty 0 -> carbon-limited, set below)
     else:
         y_O2_star = duty_DO = spg_int_DO = NAN
@@ -286,7 +333,7 @@ def model(p):
     do_margin = kLa_surf_used / kLa_surf_req if kLa_surf_req > 0 else INF
 
     duty_carbon = p['carbon_margin_min'] * CO2_cons / CO2_rate_full      # D86
-    spg_int_carbon = spg_dur / (60 * duty_carbon) if duty_carbon > 0 else INF   # D112
+    spg_int_carbon = spg_dur_eq_opt / (60 * duty_carbon) if duty_carbon > 0 else INF   # D112
     if spg_int_DO is None:
         spg_int_DO = spg_int_carbon                                      # D185 with duty_DO = 0
     O2_src_guard = O2_net                                                # D132
@@ -306,12 +353,15 @@ def model(p):
         opt_binding = 'O2-INFEASIBLE (see D134)'
         regime = ('DO TARGET UNREACHABLE -- the surface cannot carry the O2 flux at this '
                   'kLa; no interval fixes it')
-    duty_actual = spg_dur / (spg_int * 60)                               # D93
+    duty_actual = spg_dur_eq_opt / (spg_int * 60)                        # D93, full-flow-equivalent duty
+    duty = spg_dur / (spg_int * 60)                                      # D105, valve-time duty
     spg_dur_run = max(p['pulse_floor'], math.floor(spg_dur / 0.05 + 0.5 + 1e-12) * 0.05)   # MT D242 (pulse_res 0.05 s, MROUND)
-    spg_int_run = math.floor(spg_dur_run / (60 * duty_actual) + 0.5)     # Summary D16, whole minutes
+    spg_dur_run_eq = (V0 + Q_fit * spg_dur_run) / (p['Q_CO2'] / 60)      # as-run pulse on the delivered-volume basis
+    spg_int_run = math.floor(spg_dur_run_eq / (60 * duty_actual) + 0.5)  # Summary D16, whole minutes
 
     # --- both-phase sawtooth at the schedule in use (MT 323-374) ---
-    CO2_pulse = nCO2 * spg_dur                                           # D123
+    V_pulse = V0 + Q_fit * spg_dur                                       # D411, mL
+    CO2_pulse = p['P_atm'] * (V_pulse / 1e6) / (R * T_K)                 # D123
     CO2_supply = CO2_pulse * (60 / spg_int)                              # D100
     t_off = max(0.0, spg_int * 60 - spg_dur)                             # D152
     t_gap_h = t_off / 3600                                               # D325
@@ -330,7 +380,7 @@ def model(p):
         dy = S * t_gap_h / n_hs                                          # D335/D357
         y_end = dy * phi(x) / (1 - flush_ret * math.exp(-x))             # D336/D358
         y_avg = y_end * flush_ret * phi(x) + dy * psi(x)                 # D338/D360
-        k = H_O2_T * p['P_atm']
+        k = H_O2_T * P_dry
         return dict(y_mf=y_mf, yH2=yH2, F_gap=F_gap, DO_mf=exc + k * y_mf,
                     DO_avg=exc + k * y_avg,
                     DO_peak=exc + k * max(y_avg, y_end - (S - F_gap * y_end) / n_hs * tau_L_h))
@@ -338,7 +388,7 @@ def model(p):
           'Lag': _hs(*phases['Lag'], DO_surf_excess_lag)}
     hs_s = hs.get(p['O2_phase'], dict(y_mf=NAN, F_gap=NAN, DO_avg=NAN, DO_peak=NAN))
     y_O2_actual = hs_s['y_mf']                                           # D187
-    DO_hs_floor = H_O2_T * y_O2_actual * p['P_atm']                      # D188
+    DO_hs_floor = H_O2_T * y_O2_actual * P_dry                           # D188
     DO_ss_sawtooth = DO_hs_floor + DO_surf_excess                        # D133, mol/m3
     DO_ss = hs_s['DO_avg'] * M_O2                                        # D108 = D372, mg/L cycle mean
     DO_peak = hs_s['DO_peak'] * M_O2                                     # D373, mg/L
@@ -361,7 +411,7 @@ def model(p):
         t_c = d_b / u_rise
         kL = 2 * math.sqrt(D_O2 / (PI * t_c))
         strip_sparge = kL * a_int * V_L * O2_ceil_C * 3600
-        strip_avg = strip_sparge * duty_actual
+        strip_avg = strip_sparge * duty
         strip_ratio = strip_avg / O2_excess if O2_excess > 0 else NAN
     sa = 0 if (isinstance(strip_avg, float) and math.isnan(strip_avg)) else strip_avg
     removal_ratio = (sa + surf_strip) / O2_excess if O2_excess > 0 else NAN
@@ -374,35 +424,6 @@ def model(p):
     # ------------------------------------------------------------------
     Vg = hs_m3 / (H_CO2_T * R * T_K)                                     # D192
     k_vent = hs_s['F_gap'] / 3600 / n_hs                                 # D143, headspace turnover between pulses
-    k_eff = k_vent * Vg / (V_L + Vg)                                     # D195
-    pool_a = V_L / (V_L + Vg)                                            # D193
-    C_air = H_CO2_T * p['pCO2_air']                                      # D146
-    C_sat = H_CO2_T * p['P_atm']                                         # D145
-    pool_b = C_sat * (1 - pool_a) * (1 - flush_ret)                      # D194, CO2 a pulse leaves behind
-    kLa_CO2_off = kL_surf * a_surf * math.sqrt(D_CO2 / D_O2)             # D148
-    pool_beta_ratio = (kLa_CO2_off * V_L / Vg) / k_vent if k_vent > 0 else NAN   # D196 (text 'no turnover between pulses' in the workbook)
-    pool_x = k_eff * t_off                                               # D376
-    pool_e = math.exp(-pool_x)                                           # D197
-    D_raw = (C_air / C_sat * F_ex - fix_s) * t_gap_h / (V_L + Vg)        # D375
-    pool_ret = pool_a + (1 - pool_a) * flush_ret                         # D380
-    C_start = (D_raw * phi(pool_x) + pool_b * pool_e) / (1 - pool_ret * pool_e)   # D198
-    C_peak = pool_ret * C_start + pool_b                                 # D199
-    CO2_cyc = C_peak * phi(pool_x) + D_raw * psi(pool_x)                 # D200
-    CO2aqc = min(C_sat, max(C_air, CO2_cyc)) / 1000                      # D162, mol/L
-
-    # ------------------------------------------------------------------
-    # pH -- activity-corrected charge balance (Chemistry D50:D100, D103, D185-D197, D220).
-    # The grid + linear interpolation is reproduced exactly (0.1 pH steps, 4.0 to 9.0),
-    # not replaced by a root-find, because the workbook ships the grid.
-    # ------------------------------------------------------------------
-    Ka = {k: v[0] * math.exp(-v[1] * 1000 / R * (1 / T_K - 1 / 298.15)) for k, v in KA.items()}
-    n = lambda salt, mw: p[salt] / MW[mw]
-    n_NaHCO3, n_Na2HPO4 = n('udg_NaHCO3', 'NaHCO3'), n('udg_Na2HPO4', 'Na2HPO4')
-    n_KH2PO4, n_NH42SO4 = n('udg_KH2PO4', 'KH2PO4'), n('udg_NH42SO4', 'NH42SO4')
-    n_MgSO4, n_CaCl2 = n('udg_MgSO4', 'MgSO4'), n('udg_CaCl2', 'CaCl2')
-    I_ion = 0.5 * ((n_NaHCO3 + 2 * n_Na2HPO4) + n_KH2PO4 + 2 * n_NH42SO4
-                   + 4 * n_MgSO4 + 4 * n_CaCl2 + n_KH2PO4 + 4 * n_Na2HPO4
-                   + 4 * (n_MgSO4 + n_NH42SO4) + n_NaHCO3 + 2 * n_CaCl2)   # D184
     A_DH = 1.82e6 * (78.54 * (298.15 / T_K) ** 1.368) ** -1.5 * T_K ** -1.5   # D186
     sI = math.sqrt(I_ion)
     dav = lambda z: 10 ** (-A_DH * z * z * (sI / (1 + sI) - 0.3 * I_ion))     # Davies
@@ -415,7 +436,38 @@ def model(p):
            - (2 * (n_NH42SO4 + n_MgSO4) + 2 * n_CaCl2))                  # D40
     PT = n_KH2PO4 + n_Na2HPO4                                            # D39
     NT = 2 * n_NH42SO4                                                   # D41
+    # R2-m3: bicarbonate storage -- the liquid holds DIC_cap x its CO2(aq) volume (Chemistry D290-D296)
+    h_ref = 10 ** -p['pH_ref_DIC']                                       # D292
+    r_HCO3 = K1c / h_ref                                                 # D293
+    HCO3_ref = (SID + NT * h_ref / (h_ref + KN) + h_ref
+                - (PT * K1p * h_ref ** 2 + 2 * PT * K1p * K2p * h_ref + 3 * PT * K1p * K2p * K3p)
+                / (h_ref ** 3 + K1p * h_ref ** 2 + K1p * K2p * h_ref + K1p * K2p * K3p)
+                - Kw / h_ref) / (1 + 2 * K2c / h_ref)                    # D294
+    beta_nonC = math.log(10) * (PT * K1p * h_ref / (K1p + h_ref) ** 2 + PT * K2p * h_ref / (K2p + h_ref) ** 2
+                                + NT * KN * h_ref / (KN + h_ref) ** 2 + h_ref + Kw / h_ref)   # D295
+    DIC_cap = 1 + r_HCO3 * beta_nonC / (beta_nonC + math.log(10) * HCO3_ref)   # D296
+    V_L_CO2 = V_L * DIC_cap                                              # MT D416
+    k_eff = k_vent * Vg / (V_L_CO2 + Vg)                                 # D195
+    pool_a = V_L_CO2 / (V_L_CO2 + Vg)                                    # D193
+    C_air = H_CO2_T * p['pCO2_air']                                      # D146
+    C_sat = H_CO2_T * P_dry                                              # D145
+    pool_b = C_sat * (1 - pool_a) * (1 - flush_ret)                      # D194, CO2 a pulse leaves behind
+    kLa_CO2_off = kL_surf * a_surf * math.sqrt(D_CO2 / D_O2)             # D148
+    pool_beta_ratio = (kLa_CO2_off * V_L / Vg) / k_vent if k_vent > 0 else NAN   # D196 (text 'no turnover between pulses' in the workbook)
+    pool_x = k_eff * t_off                                               # D376
+    pool_e = math.exp(-pool_x)                                           # D197
+    D_raw = (C_air / C_sat * F_ex - fix_s) * t_gap_h / (V_L_CO2 + Vg)    # D375
+    pool_ret = pool_a + (1 - pool_a) * flush_ret                         # D380
+    C_start = (D_raw * phi(pool_x) + pool_b * pool_e) / (1 - pool_ret * pool_e)   # D198
+    C_peak = pool_ret * C_start + pool_b                                 # D199
+    CO2_cyc = C_peak * phi(pool_x) + D_raw * psi(pool_x)                 # D200
+    CO2aqc = min(C_sat, max(C_air, CO2_cyc)) / 1000                      # D162, mol/L
 
+    # ------------------------------------------------------------------
+    # pH -- activity-corrected charge balance (Chemistry D50:D100, D103, D185-D197, D220).
+    # The grid + linear interpolation is reproduced exactly (0.1 pH steps, 4.0 to 9.0),
+    # not replaced by a root-find, because the workbook ships the grid.
+    # ------------------------------------------------------------------
     def _resid(pH):
         h = 10 ** -pH
         return (SID + NT * h / (h + KN) + h
@@ -459,7 +511,8 @@ def model(p):
     V_IR = I_app * R_cell                                                # D118
     eta_a = p['b_anode'] * math.log10(j_anode / 1000 / p['j0_anode'])     # D111
     eta_c = p['b_cath'] * math.log10(j_anode / 1000 / p['j0_cath'])       # D112
-    V_cell = p['E0_OER'] + eta_a + eta_c + p['pcet_credit'] + V_IR        # D119
+    pcet_op = 0.0 if (n_cross == 1 and j_buffer_ratio > 1) else p['pcet_credit']   # Echem D162: credit withdrawn past the buffer limit
+    V_cell = p['E0_OER'] + eta_a + eta_c + pcet_op + V_IR                 # D119
 
     # --- peroxide (Echem D93-D98) ---
     r_H2O2 = (p['f_HOOH'] * I_app * (1 - etaF) / (n_ORR_eff * p['F'])
@@ -476,6 +529,7 @@ def model(p):
     C_H2 = H_H2_T * p['P_atm']
     t_H2_sat = C_H2 * V_L / rH2 * 60 if rH2 > 0 else INF
     CO2_sd = (CO2_supply / CO2_cons) if CO2_cons > 0 else NAN
+    CO2_uptake = ((C_peak - C_start) * V_L_CO2 * (60 / spg_int) / CO2_cons) if CO2_cons > 0 else NAN   # MT D417
 
     # --- chlorine chain (Chemistry D131-D149), now driven by THIS pH, not a cached one ---
     if n_cross == 1:
@@ -514,6 +568,8 @@ def model(p):
         kappa=kappa, R_cell=R_cell, V_IR=V_IR, V_cell_est=V_cell,
         r_H2O2=r_H2O2, H2O2_ss=H2O2_ss, H2O2_lag_1h=H2O2_lag_1h, C_eff=C_eff,
         C_eff_Cl2=C_eff * M_Cl2 / M_HOCl,
+        Q_CO2_fit=Q_fit, pulse_V0=V0, spg_dur_eq_opt=spg_dur_eq_opt, V_pulse=V_pulse, DIC_cap=DIC_cap,
+        P_dry=P_dry, f_salt_O2=f_salt_O2, pcet_credit_op=pcet_op, CO2_uptake=CO2_uptake, C_sat_CO2=C_sat,
     )
 
 
@@ -540,6 +596,7 @@ SWEEP = [
  ('bio_O2', 1.6, 2.4, 'DATA-GAP'),
  ('bio_CO2', 0.8, 1.3, 'DATA-GAP'),
  ('pulse_floor', 0.2, 1.0, 'DATA-GAP'),
+ ('pulse_V0_factor', 0.0, 2.0, 'DATA-GAP'),     # valve-opening intercept V0 of the pulse-volume fit; 0 = the old proportional model
  # ---- ESTIMATE ----
  ('km_O2', 0.002, 0.006, 'ESTIMATE'),           # ETW at 10-40 cm/s swirl past the rod
  ('f_HOOH', 0.10, 0.20, 'ESTIMATE'),            # Le Bozec 2001 peroxide selectivity band
@@ -551,6 +608,7 @@ SWEEP = [
  ('b_cath', 0.13, 0.15, 'ESTIMATE'),
  ('j0_cath', 1e-6, 2e-6, 'ESTIMATE'),
  ('O2_ceil_atm', 0.25, 0.35, 'ESTIMATE'),
+ ('ks_O2', 0.07, 0.21, 'ESTIMATE'),              # O2 salting-out coefficient, +/-50 %
  ('vial_wall', 0.9, 1.3, 'ESTIMATE'),
  ('Km_CO2', 20, 80, 'ESTIMATE'),
  ('gerrit_slope', 0.95, 1.11, 'ESTIMATE'),      # empirical rig fit +/-8 %
@@ -626,6 +684,18 @@ SELF_CHECK = [
     ('DO_ss_lag',       'DO cycle-mean lag (mg/L)', 'Summary',          'D116'),
     ('DO_peak_lag',     'DO peak lag (mg/L)',       'Summary',          'D117'),
     ('y_H2_lag',        'y_H2 lag (-)',             'Biology',          'D84'),
+    ('Q_CO2_fit',       'Q_CO2_fit (mL/s)',         'Mass Transfer',    'D407'),
+    ('pulse_V0',        'pulse_V0 (mL)',            'Mass Transfer',    'D408'),
+    ('spg_dur',         'spg_dur_opt (s)',          'Mass Transfer',    'D90'),
+    ('spg_dur_eq_opt',  'spg_dur_eq_opt (s)',       'Mass Transfer',    'D409'),
+    ('V_pulse',         'V_pulse (mL)',             'Mass Transfer',    'D411'),
+    ('DIC_cap',         'DIC_cap (-)',              'Chemistry',        'D296'),
+    ('P_dry',           'P_dry (Pa)',               'Mass Transfer',    'D418'),
+    ('C_sat_CO2',       'C_sat_CO2 (mol/m3)',       'Mass Transfer',    'D145'),
+    ('f_salt_O2',       'f_salt_O2 (-)',            'Biology',          'D123'),
+    ('pcet_credit_op',  'pcet_credit_op (V)',       'Electrochemistry', 'D162'),
+    ('CO2_uptake',      'CO2_uptake_ratio (x)',     'Mass Transfer',    'D417'),
+    ('duty_actual',     'duty_actual (-)',          'Mass Transfer',    'D93'),
 ]
 
 # BASE inputs vs the workbook (Summary selectors D2:D10 and the cells they feed).
@@ -802,48 +872,68 @@ else:
 
 # ============================================================================
 # HEADSPACE SELECTORS -- the headline in all four vent-model / sizing-phase states.
-#   The live state is checked against the workbook's own cached D15/D35/D38. The
-#   other three are Excel's values with Summary D111/D112 switched (recorded when
-#   the iterH workbook was recalculated in each state; the .xlsx only caches one
-#   state, so these three are TRANSCRIBED and must be re-recorded if the workbook
-#   moves). Tolerance 0.5 %.
+#   The workbook caches only ONE selector state, so the live default is checked against
+#   the workbook's own cached Summary D15 / D35 / D38. The three other states cannot be
+#   recalculated here, so they are checked against the TWIN (electroPioreactorGasModel.py,
+#   beside this script): it is an independent, full cell-by-cell implementation of the same
+#   workbook, evaluated at the same selector state (its two selector lines are overridden in
+#   a private copy of its source). Reduced model vs twin, tolerance 0.5 %.
 # ============================================================================
-COMBO_EXCEL = {   # (vent_model, O2_phase): (Summary D15 interval min, D35 pH, D38 DO mg/L)
-    ('Open vent', 'Growth'):    (9.0260, 6.1871, 2.6348),   # the live default; replaced by the cached values below
-    ('Outflow only', 'Growth'): (12.7367, 6.1648, 2.6347),
-    ('Air exchange', 'Growth'): (0.86622, 6.2271, 2.6203),
-    ('Open vent', 'Lag'):       (1.49071, 6.1690, 4.6325),
-}
+TWIN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "electroPioreactorGasModel.py")
+
+
+def _twin_state(vent_model, O2_phase):
+    """(Summary D15, D35, D38) from the full twin run at the given selector state."""
+    with open(TWIN_PATH, encoding="utf-8") as fh:
+        src = fh.read()
+    src, n1 = re.subn(r'(?m)^vent_model_sel\s*=\s*"[^"]*"', f'vent_model_sel = "{vent_model}"', src)
+    src, n2 = re.subn(r'(?m)^O2_phase_sel\s*=\s*"[^"]*"', f'O2_phase_sel = "{O2_phase}"', src)
+    if (n1, n2) != (1, 1):
+        raise SystemExit("CANNOT OVERRIDE THE TWIN'S SELECTORS - re-base _twin_state() against "
+                         "electroPioreactorGasModel.py")
+    ns = {"__name__": "twin_combo", "__file__": TWIN_PATH}
+    exec(compile(src, TWIN_PATH, "exec"), ns)
+    return (ns["S_D15"], ns["S_D35"], ns["S_D38"])
+
+
 _live = (BASE['vent_model'], BASE['O2_phase'])
-_lv = [_cell(_wb, 'Summary', r) for r in ('D15', 'D35', 'D38')]
-if all(isinstance(v, float) for v in _lv):
-    COMBO_EXCEL[_live] = tuple(_lv)
+COMBO_REF = {}      # (vent_model, O2_phase) -> (reference triple, where it came from)
+for _k in (('Open vent', 'Growth'), ('Outflow only', 'Growth'),
+           ('Air exchange', 'Growth'), ('Open vent', 'Lag')):
+    if _k == _live:
+        _lv = tuple(_cell(_wb, 'Summary', r) for r in ('D15', 'D35', 'D38'))
+        COMBO_REF[_k] = (_lv if all(isinstance(v, float) for v in _lv) else None, "workbook")
+    else:
+        _tw = _twin_state(*_k)
+        COMBO_REF[_k] = (_tw if all(isinstance(v, float) for v in _tw) else None, "twin")
 print("\n" + "=" * 100)
 print("HEADSPACE SELECTORS -- headline in all four vent-model / sizing-phase states")
+print("   reference: live state = workbook cached D15/D35/D38; the other three = the full twin")
 print(f"{'vent_model':14}{'O2 phase':9}{'interval min':>14}{'pH':>8}{'DO mg/L':>9}"
-      f"{'DO peak':>9}{'binding':>16}   vs Excel (0.5 %)")
+      f"{'DO peak':>9}{'binding':>16}   vs reference (0.5 %)")
 _combo_fail = []
 for _vm, _ph in (('Open vent', 'Growth'), ('Outflow only', 'Growth'),
                  ('Air exchange', 'Growth'), ('Open vent', 'Lag')):
-    if True:
-        _q = dict(BASE, vent_model=_vm, O2_phase=_ph)
-        _r = model(_q)
-        _x = COMBO_EXCEL.get((_vm, _ph))
-        _got = (_r['spg_int_opt'], _r['pH_meas'], _r['DO_ss'])
-        if _x is None:
-            _v = "no Excel value"
-            _combo_fail.append((_vm, _ph, 'missing'))
-        else:
-            _bad = [n for n, g, e in zip(('interval', 'pH', 'DO'), _got, _x)
-                    if not abs(g - e) <= 5e-3 * abs(e)]
-            _v = "OK" if not _bad else "MISMATCH " + ",".join(_bad) + f" (Excel {_x[0]:.4g} / {_x[1]:.4g} / {_x[2]:.4g})"
-            if _bad:
-                _combo_fail.append((_vm, _ph, _bad))
-        _tag = " (live)" if (_vm, _ph) == _live else ""
-        print(f"{_vm:14}{_ph:9}{_got[0]:>14.4f}{_got[1]:>8.4f}{_got[2]:>9.4f}{_r['DO_peak']:>9.3f}"
-              f"{_r['opt_binding'].split(' ')[0]:>16}   {_v}{_tag}")
-print("      four-combination check: " + ("all 4 states reproduce Excel within 0.5 %" if not _combo_fail
-      else f"{len(_combo_fail)} FAILED: {_combo_fail}"))
+    _q = dict(BASE, vent_model=_vm, O2_phase=_ph)
+    _r = model(_q)
+    _x, _src = COMBO_REF[(_vm, _ph)]
+    _got = (_r['spg_int_opt'], _r['pH_meas'], _r['DO_ss'])
+    if _x is None:
+        _v = f"no {_src} value"
+        _combo_fail.append((_vm, _ph, 'missing'))
+    else:
+        _bad = [n for n, g, e in zip(('interval', 'pH', 'DO'), _got, _x)
+                if not abs(g - e) <= 5e-3 * abs(e)]
+        _dev = max(abs(g - e) / abs(e) for g, e in zip(_got, _x))
+        _v = (f"OK vs {_src} (max dev {_dev * 100:.3f} %)" if not _bad else
+              f"MISMATCH vs {_src} " + ",".join(_bad) + f" ({_x[0]:.4g} / {_x[1]:.4g} / {_x[2]:.4g})")
+        if _bad:
+            _combo_fail.append((_vm, _ph, _bad))
+    _tag = " (live)" if (_vm, _ph) == _live else ""
+    print(f"{_vm:14}{_ph:9}{_got[0]:>14.4f}{_got[1]:>8.4f}{_got[2]:>9.4f}{_r['DO_peak']:>9.3f}"
+          f"{_r['opt_binding'].split(' ')[0]:>16}   {_v}{_tag}")
+print("      four-combination check: " + ("all 4 states agree within 0.5 % (live vs workbook, other three vs twin)"
+      if not _combo_fail else f"{len(_combo_fail)} FAILED: {_combo_fail}"))
 
 # ============================================================================
 # INFEASIBILITY CLIFF -- the single biggest non-linearity in the revised model.
@@ -982,7 +1072,7 @@ print("     Mostly only inputs that move DO_target (target_DO_frac, O2_ceil_atm,
 print("     T_C) or the pulse size (saw_factor) can move it; the PEAK is not pinned.")
 print("     Everything else shows DOss% = 0 because the schedule absorbs it, not because")
 print("     the model is insensitive -- read the minMargin column for those.")
-print("   * Q_CO2 cancels exactly. spg_dur goes as 1/Q_CO2 and duty_DO goes as 1/Q_CO2, so")
+print("   * Q_CO2 cancels exactly (the fitted slope rescales with it). spg_dur goes as 1/Q_CO2 and duty_DO goes as 1/Q_CO2, so")
 print("     the interval, the duty and the delivered CO2 are all invariant in it. Flow rate")
 print("     is a solenoid-timing convenience here, not a control lever.")
 
