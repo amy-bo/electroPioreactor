@@ -1329,12 +1329,14 @@ t_H2O2_thresh = (-math.log(_arg) / k_H2O2_anode / 60) if (isnum(_arg) and _arg >
 if H2O2_ss > H2O2_thresh:
     H2O2_flag = ("PEROXIDE ABOVE THE GROWTH-INHIBITION THRESHOLD even with a full catalase pool ("
                  + xltext(H2O2_ss, "0.00") + " mg/L)")
-elif H2O2_lag_1h > H2O2_thresh:
+elif isnum(t_H2O2_thresh):                              # judged on the lag plateau, not the 1-h level
     H2O2_flag = ("watch — steady growth is clear (" + xltext(H2O2_ss, "0.000")
                  + " mg/L) but LAG PHASE is not: peroxide passes the threshold in "
-                 + xltext(t_H2O2_thresh, "0") + " min before biomass can scavenge it")
+                 + xltext(t_H2O2_thresh, "0") + " min (" + xltext(H2O2_lag_1h, "0.00")
+                 + " mg/L after 1 h) before biomass can scavenge it")
 else:
-    H2O2_flag = "OK — peroxide stays below the growth-inhibition threshold in both phases"  # D99
+    H2O2_flag = ("OK — peroxide stays below the growth-inhibition threshold in both phases, "
+                 "including the lag plateau")  # D99
 
 # --- bubble-path stripping (sub-mm bubble -> excluded) ---
 u_sg     = (Q_CO2 / 1e6 / 60) / (A_x / 1e6)            # D47 (m/s)
@@ -1618,7 +1620,9 @@ else:
     buffer_flag = "OK — buffer holds the electrode surfaces at the bulk pH"   # D219
 
 # --- R1-14: the PCET credit is withdrawn once the anode current passes the buffer limit (Electrochemistry D161-D163) ---
-I_at_gerrit_max = (gerrit_slope * gerrit_max + gerrit_int) / 1000        # Electrochemistry D142 (A)
+cal_gerrit_slope = NA                                  # Calibrations D16 (no included current runs)
+gerrit_check_pct = power_max if isnum(cal_gerrit_slope) else gerrit_max   # Electrochemistry D166 (%) top of the validated band
+I_at_gerrit_max = (gerrit_slope * gerrit_check_pct + gerrit_int) / 1000  # Electrochemistry D142 (A)
 ec_jbuf_ratio    = j_buffer_ratio                      # Electrochemistry D161 <- Chemistry D218
 pcet_credit_op   = 0.0 if ec_jbuf_ratio > 1 else pcet_credit                  # D162 (V) credit at the operating point
 pcet_credit_gmax = 0.0 if ec_jbuf_ratio * I_at_gerrit_max / I_app > 1 else pcet_credit   # D163 (V) credit at the top of the Gerrit band (j scales with I)
@@ -1640,10 +1644,10 @@ V_at_gerrit_max = (ec_E_rev + b_anode * math.log10(I_at_gerrit_max / A_anode_wet
                    + pcet_credit_gmax + I_at_gerrit_max * R_cell)             # D143 (V)
 if V_at_gerrit_max > V_rail:
     V_gerrit_flag = ("INCONSISTENT — the budget needs " + xltext(V_at_gerrit_max, "0.00") + " V at "
-                     + xltext(gerrit_max, "0") + " %, above the " + xltext(V_rail, "0")
-                     + " V rail, where Gerrit's Law is validated linear: R_cell (k_geom) or j₀ is too high")
+                     + xltext(gerrit_check_pct, "0") + " %, above the " + xltext(V_rail, "0")
+                     + " V rail, where the current law in use is validated linear: R_cell (k_geom) or j₀ is too high")
 else:
-    V_gerrit_flag = ("OK — " + xltext(V_at_gerrit_max, "0.00") + " V at " + xltext(gerrit_max, "0")
+    V_gerrit_flag = ("OK — " + xltext(V_at_gerrit_max, "0.00") + " V at " + xltext(gerrit_check_pct, "0")
                      + " %, under the " + xltext(V_rail, "0") + " V rail across the validated band")   # D144
 
 # --- electrode potentials at the operating pH (Chemistry rows 199-211) ---

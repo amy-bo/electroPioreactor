@@ -53,7 +53,7 @@ tags: [electropioreactor, protocol, geometry, headspace, calibration]
 
 ## What the spreadsheet does with it
 
-The tab converts each recorded mass to a volume using the density of water at the recorded temperature, giving the true free headspace above the working liquid and the effective bore depth of the vial body. It then averages the included vials of the same reactor type. From those averages it feeds the model the measured headspace (shifted by any difference between your working fill and the liquid volume the model charges), the total vial volume and the usable bore depth for that reactor type. Once the headspace is measured, the Summary's vial-geometry check stops flagging the pulse as provisional.
+The tab converts each recorded mass to a volume using the density of water at the recorded temperature, giving the true free headspace above the working liquid and the effective bore depth of the vial body. It then averages the included vials of the same reactor type. From those averages it feeds the model the measured headspace (shifted by any difference between your working fill and the liquid volume the model charges), and the total vial volume for that reactor type. The volume-equivalent bore depth (body volume ÷ cross-section) is reported for the geometry check only: a tapered vial’s equivalent depth is not its physical depth, so the electrode insertion and sparger length keep using the physical depth from the reactor table. Once the headspace is measured, the Summary's vial-geometry check stops flagging the pulse as provisional.
 
 ## Principle & background
 

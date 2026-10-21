@@ -101,7 +101,7 @@ NAN = float('nan')
 #
 # NOTE target_DO_frac = 0.2261 (DO_opt 2.6 / DO_toxic 11.5), NOT the 0.5 this script carried
 # before. Biology D60/D61
-# now derives it from C. necator's measured 3.0 / 11.5 mg/L band instead of an unsourced
+# now derives it from C. necator's provisional 2.6 / 11.5 mg/L optimum and ceiling instead of an unsourced
 # 0.5, which makes the DO target 1.9x more protective and roughly halves the headroom
 # before the infeasibility cliff below.
 # ---------------------------------------------------------------------------

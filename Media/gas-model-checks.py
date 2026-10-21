@@ -347,6 +347,20 @@ class GasModelChecks(unittest.TestCase):
         self.assertIn('"between or below the listed grades – not used"', cal)
         self.assertIn('AND((bp_const/D81)>=por_p5_lo,(bp_const/D81)<=por_p5_hi),5', cal)
 
+    def test_review4_fixes(self):
+        # Peroxide: judged on the lag plateau, not the 1-hour level (finding 1).
+        n = self.twin(km_O2_default=0.0003)
+        if isinstance(n['t_H2O2_thresh'], float) and not math.isnan(n['t_H2O2_thresh']):
+            self.assertTrue(n['H2O2_flag'].startswith('watch'))
+        # Voltage cross-check: 25 % for Gerrit's default fit, the 10 % clamp for a Calibrations fit (finding 4).
+        self.assertEqual(self.twin()['gerrit_check_pct'], 25.0)
+        self.assertEqual(self.twin(cal_gerrit_slope=1.2)['gerrit_check_pct'], 10.0)
+        # Physical depth is never replaced by the volume-equivalent calibration depth (finding 3).
+        with zipfile.ZipFile(BOOK) as z:
+            geo = z.read('xl/worksheets/sheet2.xml').decode()
+        d22 = re.search(r'<c r="D22"[^>]*><f>([^<]*)</f>', geo).group(1)
+        self.assertNotIn('cal_Dint', d22)
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))

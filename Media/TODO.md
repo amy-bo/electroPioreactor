@@ -30,7 +30,7 @@ In rough leverage order. Enter results in the matching **Calibrations** section 
 
 Spreadsheet changes. Each needs the decision or data named before it can be made well.
 
-- [ ] **Separate N₂ flush in the sawtooth.** Summary D14 enters N₂ by its mean flow, exact for the mean-field fractions. Pulsing N₂ midway between CO₂ pulses (owner T7) adds a second flush per cycle and would lower the pre-pulse peaks a little further. Waits on: whether N₂ is used at all; the owner prefers fixing the medium.
+- [ ] **Separate N₂ flush in the sawtooth.** Summary D14 enters N₂ by its mean flow, exact for the mean-field fractions but not for the sawtooth: N₂ pulsed apart from the CO₂ pulses (owner T7) lets H₂ and O₂ build for longer between flushes, so the pre-pulse peaks can be substantially higher than the continuous surrogate shows. Model the flush before relying on pulsed N₂. Waits on: whether N₂ is used at all; the owner prefers fixing the medium.
 - [ ] **Nitrate or urea instead of NH₄⁺.** Ammonium uptake releases acid as the culture grows; the model holds NH₄⁺ at its recipe value. Part of fixing the medium. Waits on: the owner's nitrogen source and a measured uptake rate.
 - [ ] **Pulse length from the shortest reliable pulse.** Summary D18 is a rule of thumb (about one headspace volume per pulse). A twin trial at a 0.25 s floor held pH and growth DO on about 7 % less CO₂ but raised lag-phase DO. Waits on: the measured solenoid floor and per-pulse volume.
 - [ ] **Start-up current ramp.** Lag DO stays unreachable at the estimated surface kLa at any interval (Summary row 66), so the remaining lever is less current until uptake starts. Waits on: the low-power current curve.
