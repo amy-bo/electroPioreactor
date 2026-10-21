@@ -613,7 +613,7 @@ O2_H2O2_ret_g = 0.0 if isnum(cal_etaF_OER) else r_H2O2_an_g   # D171 (mol/h)
 etaF_OER_calc = max(0.0, 1 - f_Cl_anode - f_H2O2_anode
                     - (ec_corr_I if isnum(ec_corr_I) else 0.0)
                     - (f_HOR_anode if isnum(f_HOR_anode) else 0.0))   # D104 (-)
-etaF_OER    = etaF_OER_calc                            # D26 = IFERROR(cal_etaF_OER, etaF_OER_calc)
+etaF_OER    = cal_etaF_OER if isnum(cal_etaF_OER) else etaF_OER_calc   # D26 = IF(ISNUMBER(cal_etaF_OER), cal_etaF_OER, etaF_OER_calc)
 
 ec_C_H2_sat = C_H2_sat                                 # D146 (mol/m3) <- Biology D41
 i_HOR_lim   = z_e_H2 * F_const * (km_O2 / 100) * ec_C_H2_sat * (A_anode_wet / 10000)   # D147 (A) H2 mass-transport limit at the anode (km_O2 stand-in)
@@ -1155,13 +1155,16 @@ def _phi(x):
 def _psi(x):
     """Psi(x) = (x-1+e^-x)/x^2, limit 1/2."""
     return (x - 1 + math.exp(-x)) / x ** 2 if x > 0 else 0.5
+rate_tol_rel = 1e-9                                     # MT D569 (-) numerical rate-coincidence tolerance
+
+
 def _z_peak(S, F, yp, T):
     """MT D566-D568: exact periodic peak of a first-order liquid (rate 1/tau_L_h) following the
     headspace ramp y(t) = S/F + (yp - S/F) e^(-F t/n) of one gap of length T (linear when F = 0)."""
     b = 1 / tau_L_h
     if F > 0:
         a = F / n_hs_gas
-        g = (b / (b - a) * (math.exp(-a * T) - math.exp(-b * T)) if abs(b - a) > 1e-9 * b
+        g = (b / (b - a) * (math.exp(-a * T) - math.exp(-b * T)) if abs(b - a) > rate_tol_rel * b
              else b * T * math.exp(-b * T))
         return S / F + (yp - S / F) * g / (1 - math.exp(-b * T))
     return yp - S / n_hs_gas / b + S / n_hs_gas * T / (1 - math.exp(-b * T))
@@ -1401,15 +1404,22 @@ else:
 # --- O2 time-to-ceiling family ---
 _r_org = O2_ceil_org / O2_ceil_C                        # removal capacities scale with the ceiling driving force
 t_O2_ceiling = O2_ceil_org * (V_charge / 1e6) / O2_excess * 60 if O2_excess > 0 else "never (source <= 0)"   # D65 (min)
-t_O2_ceiling_strip = (O2_ceil_org * (V_charge / 1e6) / (O2_excess - strip_avg * _r_org) * 60
+def _t_rise(src, rem, t0):
+    """Minutes for DO to rise from 0 to O2_ceil_org when removal grows first order with DO
+    (rem = removal at the generic ceiling O2_ceil_C); t0 is the no-removal time (MT D66/D80)."""
+    if rem <= 0:
+        return t0
+    return -math.log(1 - rem * _r_org / src) * 60 * (V_charge / 1e6) * O2_ceil_C / rem
+t_O2_ceiling_strip = (_t_rise(O2_excess, strip_avg, t_O2_ceiling)
                       if (O2_excess - strip_avg * _r_org) > 0 else "never (strip \u2265 source)")  # D66
 # (MT D75 y_O2_vent and D76 DO_vent_eq cleared in iterR4)
 hs_flush_time = headspace_V * spg_int / V_pulse         # D77 (min) headspace volumes per interval / delivered volume
 surf_ratio = (surf_strip / O2_excess) if O2_excess > 0 else NA   # D74
 O2_removal_ratio = ((strip_avg + surf_strip) / O2_excess) if O2_excess > 0 else NA  # D78
 t_O2_ceiling_lag = O2_ceil_org * (V_charge / 1e6) / O2_net_lag_mt * 60   # D79 (min) lag source
-t_O2_ceiling_rem = (O2_ceil_org * (V_charge / 1e6) / (O2_net_lag_mt - (strip_avg + surf_strip) * _r_org) * 60
-                    if (O2_net_lag_mt - (strip_avg + surf_strip) * _r_org) > 0 else "never (removal \u2265 source)")  # D80
+t_O2_ceiling_rem = (_t_rise(O2_net_lag_mt, strip_avg + surf_strip, t_O2_ceiling_lag)
+                    if (O2_net_lag_mt - (strip_avg + surf_strip) * _r_org) > 0
+                    else "not reached if the headspace held no O\u2082 \u2014 not a pass; see D363")  # D80 hypothetical, zero back-pressure
 
 kinetic_caveat = "see note ->"                          # D96
 

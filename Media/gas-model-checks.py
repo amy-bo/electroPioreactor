@@ -402,6 +402,23 @@ class GasModelChecks(unittest.TestCase):
         r_tot = b['f_HOOH'] * b['O2_cathode_ORR']
         self.assertTrue(math.isclose(b['O2_H2O2_ret_g'] + 2 * b['O2_cat_ret_g'], r_tot, rel_tol=1e-12))
 
+    def test_review8_fixes(self):
+        # An accepted anodic-efficiency calibration is used, as Electrochemistry D26 does (finding 3).
+        c = self.twin(cal_etaF_OER=0.8)
+        self.assertEqual(c['etaF_OER'], 0.8)
+        self.assertTrue(math.isclose(c['O2_net_gen'], c['I_app'] * 0.8 / (4 * c['F_const']) * 3600
+                                     - c['O2_cathode_ORR'] + c['O2_cat_ret_g'], rel_tol=1e-12))
+        # D66 integrates the first-order rise (finding 2): check against a direct Euler march.
+        b = self.twin()
+        V = b['V_charge'] / 1e6
+        k = b['strip_avg'] / (V * b['O2_ceil_C'])
+        C, t, h = 0.0, 0.0, 1e-5
+        while C < b['O2_ceil_org']:
+            C += h * (b['O2_excess'] / V - k * C); t += h
+        self.assertTrue(math.isclose(b['t_O2_ceiling_strip'], t * 60, rel_tol=1e-3))
+        # D80 never reports a non-crossing as a pass (finding 1).
+        self.assertIn("not a pass", b['t_O2_ceiling_rem'])
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))
