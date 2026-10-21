@@ -902,6 +902,20 @@ spg_int_max = (target_DO_frac * O2_ceil_C * (V_charge / 1e6)
                / O2_src_guard * 60)                                   # D89 (min) lag-accumulation cap
 spg_dur_opt = max(pulse_floor, (flush_factor * headspace_V - pulse_V0) / Q_CO2_fit)  # D90 (s)
 spg_dur_eq_opt = (pulse_V0 + Q_CO2_fit * spg_dur_opt) / (Q_CO2 / 60)   # D409 (s) full-flow-equivalent time of the optimal pulse (delivered volume / nominal flow)
+pulse_res   = pulse_res_set                            # MT D241 (s) <- Summary D15 solenoid command resolution
+def _mround(x, m):
+    """Excel MROUND (half away from zero)."""
+    return float((Decimal(repr(x)) / Decimal(repr(m))).quantize(Decimal(1), rounding=ROUND_HALF_UP)) * m
+spg_dur_run = max(math.ceil(pulse_floor / pulse_res - 1e-9) * pulse_res, _mround(spg_dur_opt, pulse_res))   # MT D242 (s) floor rounded up to the resolution
+# --- schedule mode resolution: Summary 'Your setting' override > Manual cells > Optimal ---
+sched_mode   = "Optimal"                               # D81
+spg_dur_man  = 1.0                                     # D82 (s)
+spg_int_man  = 1.0                                     # D83 (min)
+user_spg_dur = None                                    # Summary G18 (blank -> recommended)
+user_spg_int = None                                    # Summary G20 (blank -> recommended)
+spg_dur = (user_spg_dur if (isnum(user_spg_dur) and user_spg_dur > 0)
+           else spg_dur_man if sched_mode == "Manual" else spg_dur_run if sched_mode == "Optimal" else NA)   # D121 (#N/A for an unlisted mode)
+_dur_eq_sz = (pulse_V0 + Q_CO2_fit * spg_dur) / (Q_CO2 / 60)   # = MT D410, the pulse in use (sizes the sawtooth)
 spg_int_carbon = spg_dur_eq_opt / (60 * duty_carbon)   # D112 (min) - carbon-limited
 
 # --- WAVE-4: headspace O2 balance and the DO-LIMITED interval (rows 177-188) --
@@ -947,7 +961,7 @@ def _by_phase(g_val, l_val):
 O2_src_sched   = _by_phase(O2_src_g, O2_src_l)          # MT D317 (mol/h)
 H2_src_sched   = _by_phase(H2_src_g, H2_src_l)          # MT D318 (mol/h)
 CO2_fix_sched  = _by_phase(CO2_fix_g, CO2_fix_l)        # MT D319 (mol/h)
-flush_vol_opt  = nCO2_rate * spg_dur_eq_opt / n_hs_gas     # MT D320 (-) headspace volumes per optimal pulse
+flush_vol_opt  = nCO2_rate * _dur_eq_sz / n_hs_gas         # MT D320 (-) headspace volumes per pulse in use (sizing)
 flush_ret_opt  = math.exp(-flush_vol_opt)               # MT D321 (-)
 saw_factor     = flush_vol_opt * (1 + flush_ret_opt) / (2 * (1 - flush_ret_opt))   # MT D322 (-) time-mean / flux-mean headspace O2
 DO_surf_excess = O2_src_sched / (kLa_surf_used * 3600 * (V_charge / 1e6))  # D180 (mol/m3) sizing phase
@@ -961,19 +975,6 @@ spg_int_DO    = ((spg_dur_eq_opt / (60 * duty_DO) if duty_DO > 0 else spg_int_ca
                  if isnum(duty_DO) else NA)            # D185 (min); duty 0 -> carbon-limited interval
 kLa_surf_req  = O2_src_sched / (DO_target * 3600 * (V_charge / 1e6))          # D186 (1/s)
 
-pulse_res   = pulse_res_set                            # MT D241 (s) <- Summary D15 solenoid command resolution
-def _mround(x, m):
-    """Excel MROUND (half away from zero)."""
-    return float((Decimal(repr(x)) / Decimal(repr(m))).quantize(Decimal(1), rounding=ROUND_HALF_UP)) * m
-spg_dur_run = max(math.ceil(pulse_floor / pulse_res - 1e-9) * pulse_res, _mround(spg_dur_opt, pulse_res))   # MT D242 (s) floor rounded up to the resolution
-# --- schedule mode resolution: Summary 'Your setting' override > Manual cells > Optimal ---
-sched_mode   = "Optimal"                               # D81
-spg_dur_man  = 1.0                                     # D82 (s)
-spg_int_man  = 1.0                                     # D83 (min)
-user_spg_dur = None                                    # Summary G18 (blank -> recommended)
-user_spg_int = None                                    # Summary G20 (blank -> recommended)
-spg_dur = (user_spg_dur if (isnum(user_spg_dur) and user_spg_dur > 0)
-           else spg_dur_man if sched_mode == "Manual" else spg_dur_run if sched_mode == "Optimal" else NA)   # D121 (#N/A for an unlisted mode)
 pH_band_hi = 7.5                                        # Chemistry D237 (pH) HOB band upper edge
 pCO2_air       = 40.0                                   # MT D139 (Pa) atmospheric pCO2 ~400 ppm INPUT
 
@@ -1011,7 +1012,10 @@ def co2_mean_at(t_min):
     return min(_Csat_e, max(_Cair_e, (_pool_ret_e * C_start + _pool_b_e) * phi + D_raw * psi))
 
 
-grid_t_min, grid_ratio, grid_n = 0.25, 1.09, 100        # MT D430, D431 and the 100 grid rows 440-539
+interval_res = 0.01                                   # MT D419 (min), plugin accepts decimal minutes
+grid_n, grid_t_max = 100, 1500.0                        # MT grid rows 440-539; D436 (min)
+grid_t_min = spg_dur / 60 + interval_res               # MT D430: the shortest executable interval
+grid_ratio = (grid_t_max / grid_t_min) ** (1 / 99)    # MT D431
 pH_grid_t = [grid_t_min * grid_ratio ** i for i in range(grid_n)]
 pH_grid_C = [co2_mean_at(t) for t in pH_grid_t]
 CO2_pH_hi_mt = CO2_pH_hi * 1000                          # MT D429 (mol/m3)
@@ -1107,7 +1111,6 @@ else:
     spg_int_regime = ("ESTIMATED kLa — DO-limited interval is " + xltext(spg_int_DO, "0.0")
                       + " min; confirm by measuring kL_surf")   # D134
 
-interval_res = 0.01                                   # MT D419 (min), plugin accepts decimal minutes
 spg_int_run = math.floor(((pulse_V0 + Q_CO2_fit * spg_dur) / (Q_CO2 / 60)) / (60 * duty_actual) / interval_res + 1e-12) * interval_res if isnum(duty_actual) and isnum(spg_dur) else NA
 if spg_int_run * 60 <= spg_dur:
     spg_int_run = NA                                  # D420: no positive executable gap
@@ -1187,6 +1190,7 @@ kLa_margin_l   = kLa_surf_used / kLa_surf_req_l         # MT D367 (x)
 DO_feas_l      = _feas(kLa_margin_l)                    # MT D368
 DO_peak_chk_l  = _peak_chk(DO_peak_l, DO_peak_l_mgL)    # MT D369
 y_H2_end_l     = H2_src_l * t_gap_h / n_hs_gas * hs_l["phi"] / (1 - flush_ret * math.exp(-x_hs_l))   # MT D388 (-) lag H2 fraction just before the next pulse
+y_H2_avg_l     = y_H2_end_l * flush_ret * hs_l["phi"] + H2_src_l * t_gap_h / n_hs_gas * hs_l["psi"]   # MT D564 (-) lag H2 time mean
 y_H2_end_b     = y_H2_end_l                             # Biology D114 <- MT D388
 F_gap_sched    = _by_phase(F_gap_g, F_gap_l)            # MT D371 (mol/h)
 DO_avg_sched   = _by_phase(DO_avg_g, DO_avg_l)          # MT D372 (mol/m3)
@@ -2390,6 +2394,7 @@ OUTPUTS.extend([
     ("MassXfer D561 spg_int_pH_l", spg_int_pH_l),
     ("MassXfer D562 ph_unreach_l", ph_unreach_l),
     ("MassXfer D563 spg_int_H2safe_opt", spg_int_H2safe_opt),
+    ("MassXfer D564 y_H2_avg_l", y_H2_avg_l),
     ("MassXfer R440 lag grid CO2 mean, first row", pH_grid_C_l[0]),
     ("MassXfer R539 lag grid CO2 mean, last row", pH_grid_C_l[-1]),
     ("MassXfer D556 DO_avg_su (mg/L)", DO_avg_su_mgL),

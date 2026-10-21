@@ -190,7 +190,7 @@ class GasModelChecks(unittest.TestCase):
         self.assertTrue(f('D44').endswith(')))+alk_add_M'))
         self.assertTrue(f('D185').endswith(')))+alk_add_M'))
         self.assertIn('+alk_add_M*(lam_Na+lam_HCO3)/10)*kappa_fI', f('D180'))
-        self.assertEqual(f('D317'), 'Summary!$D$13')
+        self.assertEqual(f('D317'), 'Summary!NaHCO3_add_gL')
         self.assertEqual(f('D318'), 'NaHCO3_add_gL/M_NaHCO3')
         for name, sid, ref in (('NaHCO3_add_gL', 0, 'Summary!$D$13'), ('NaHCO3_add_gL', 3, 'Chemistry!$D$317'),
                                ('alk_add_M', 3, 'Chemistry!$D$318')):
@@ -311,6 +311,25 @@ class GasModelChecks(unittest.TestCase):
         self.assertTrue(math.isclose(r['spg_int'], m['spg_int_run'], rel_tol=5e-3))
         # An unlisted schedule mode returns no schedule, as the workbook does (review finding 5).
         self.assertTrue(math.isnan(self.twin(sched_mode='typo')['spg_int']))
+
+    def test_review2_fixes(self):
+        # DO sizing uses the commanded pulse: the evaluated mean DO sits on the target even when the
+        # commanded pulse is far from the ideal one (review 2, finding 1).
+        for kw in ({}, dict(media_volume=16.0, pulse_res_set=1.0), dict(user_spg_dur=2.0)):
+            n = self.twin(**kw)
+            self.assertLess(abs(n['DO_ss'] / (n['DO_target'] * n['M_O2']) - 1), 0.01, (kw, n['DO_ss']))
+        # The pH grid starts at the shortest executable interval, so a short ceiling is found, not
+        # mistaken for infeasibility (finding 2).
+        x = self.twin(media_volume=16.0, N2_sweep_set=20.0, NaHCO3_add_gL=8.0)
+        self.assertFalse(x['ph_unreach_l'])
+        self.assertTrue(math.isclose(x['grid_t_min'], x['spg_dur'] / 60 + 0.01, rel_tol=1e-12))
+        # Knallgas ratios are averaged per run on an H2 basis (finding 3): pinned formula text.
+        with zipfile.ZipFile(BOOK) as z:
+            cal = z.read('xl/worksheets/sheet8.xml').decode().replace('&quot;', '"').replace('&gt;', '>')
+        self.assertIn('knall_H2_basis*AVERAGEIFS(I112:I119,C112:C119,organism_sel,G112:G119,"y")', cal)
+        self.assertIn('IFERROR(IF(D112>0,E112/D112,""),"")', cal)
+        # Lag H2 time mean exists for time-weighted comparisons (finding 4) and lies between the flux mean and the top.
+        self.assertTrue(self.twin()['y_H2_avg_l'] > 0)
 
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):

@@ -387,7 +387,9 @@ def model(p):
     phases = {'Growth': (O2_excess, max(0.0, rH2 - H2_cons), CO2_cons),  # D309/D313/D315
               'Lag': (O2_net_lag, rH2_lag, 0.0)}                         # D310/D314/D316 (lag-DO sources)
     O2_s, H2_s, fix_s = phases.get(p['O2_phase'], (NAN, NAN, NAN))       # D317-D319, sizing phase
-    flush_vol_opt = nCO2 * spg_dur_eq_opt / n_hs                         # D320
+    _dur_sz = max(math.ceil(p['pulse_floor'] / p['pulse_res'] - 1e-9) * p['pulse_res'],
+                  math.floor(spg_dur / p['pulse_res'] + 0.5 + 1e-12) * p['pulse_res'])   # commanded pulse (D242)
+    flush_vol_opt = nCO2 * (V0 + Q_fit * _dur_sz) / (p['Q_CO2'] / 60) / n_hs   # D320, sized on the commanded pulse
     flush_ret_opt = math.exp(-flush_vol_opt)                             # D321
     saw_factor = flush_vol_opt * (1 + flush_ret_opt) / (2 * (1 - flush_ret_opt))   # D322
     DO_surf_excess = O2_s / (kLa_surf_used * 3600 * V_L)                 # D180, sizing phase
@@ -453,7 +455,7 @@ def model(p):
         Dr = (_Cair / _Csat * F_ex - fix_s) * (t_off / 3600) / (_V_L_CO2 + Vg)
         cs = (Dr * ph_ + _b * e) / (1 - _r * e)
         return min(_Csat, max(_Cair, (_r * cs + _b) * ph_ + Dr * ps_))
-    _lo, _hi = 0.25, 0.25 * 1.09 ** 99
+    _lo, _hi = _dur / 60 + 0.01, 1500.0                                # D430 shortest executable, D436
     if c_hi <= 0 or _cmean(_hi) >= c_hi:
         spg_int_pH = NAN                                                 # no pH bound
     elif _cmean(_lo) < c_hi:
@@ -463,7 +465,7 @@ def model(p):
             _m = math.sqrt(_lo * _hi)
             _lo, _hi = (_m, _hi) if _cmean(_m) >= c_hi else (_lo, _m)
         spg_int_pH = math.sqrt(_lo * _hi)                                # D432
-    ph_unreach = c_hi > 0 and _cmean(0.25) < c_hi                      # D434
+    ph_unreach = c_hi > 0 and _cmean(_dur / 60 + 0.01) < c_hi          # D434
     # Lag H2/O2 hazard screen (Biology D90-D92), solved independently: longest gap whose pre-pulse
     # sawtooth top stays under the limit, x = ln((1 - k r)/(1 - k)); it bounds a Lag-sized schedule.
     _Fl = F_dil + max(0.0, O2_net_lag + rH2_lag)
@@ -493,7 +495,9 @@ def model(p):
     if feasible:
         spg_int = min(spg_int_carbon, spg_int_DO, pH_cap, H2_cap) if not ph_unreach else NAN   # D91 branch 1
         opt_binding = ('pH CEILING UNREACHABLE' if ph_unreach else
-                       'pH CEILING (keeping pH at or under the band ceiling sets the interval)'
+                       'H\u2082 FLAMMABILITY SCREEN (lag sizing; Biology D92 sets the interval)'
+                       if H2_cap < min(spg_int_carbon, spg_int_DO, pH_cap)
+                       else 'pH CEILING (keeping pH at or under the band ceiling sets the interval)'
                        if pH_cap < min(spg_int_carbon, spg_int_DO)
                        else 'O2-DILUTION (headspace O2 sets the interval)'
                        if spg_int_DO < spg_int_carbon

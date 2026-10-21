@@ -96,11 +96,11 @@ No GC. A portable H2 meter or combustible-gas detector at the vent outlet. Gives
 
 ## What the spreadsheet does with it
 
-The model predicts the lag-phase headspace from a well-mixed balance depending on the vent model: read mean H2 from Summary D71, lag O2 from D70 and growth-phase O2 from D69 with the recorded configuration and schedule. Its LFL/LOC comparison is a hazard screen, not certification. No Calibrations entry is made: record phase-specific measurements, validated time-weighted means if available, uncertainties and sampling limitations in the lab record against the headspace TODO.
+The model predicts the lag-phase headspace from a well-mixed balance depending on the vent model: Summary D69–D71 are flux-weighted (mean-field) fractions, the composition of the gas leaving through the vent; the time means of the sawtooth are Mass Transfer D564 (lag H2), D360 (lag O2) and D338 (growth O2), and the pre-pulse tops D388 (lag H2) and D358 (lag O2). Read them with the recorded configuration and schedule. Its LFL/LOC comparison is a hazard screen, not certification. No Calibrations entry is made: record phase-specific measurements, validated time-weighted means if available, uncertainties and sampling limitations in the lab record against the headspace TODO.
 
 ### What to compare, and what counts as agreement
 
-- Compare your measured mean H2 with Summary D71, measured O2 with Summary D70 (lag), and, if you run the growth-phase case, O2 with Summary D69.
+- Compare like with like. A time-weighted mean over complete cycles (a headspace or vent probe logged at a fixed rate) compares with the time means: H2 with Mass Transfer D564, O2 with D360 (lag) or D338 (growth). A flow-weighted vent sample (gas collected in proportion to the vent flow) compares with Summary D71, D70 and D69. The two differ by tens of per cent at long intervals, without any fault in the vent.
 - +/-30 % is only a provisional model-comparison screen, not an equivalence or safety margin. Owner-approved equivalence margins and measurement uncertainty are prerequisites for declaring agreement.
 - Outside +/-30 %: investigate sampling and analyser uncertainty as well as the balance; the vent model is one suspect. Do [headspace-vent.md](headspace-vent.md) first and update Summary D11, then re-compare.
 - Whatever the model says, H2 above 4 % together with O2 above about 5 % flags a potential flammability hazard and excludes unattended operation pending owner review. Below either reference does not establish safety: applicable mixture limits and margins must be verified.
