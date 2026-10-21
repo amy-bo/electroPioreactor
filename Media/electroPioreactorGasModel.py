@@ -1465,6 +1465,16 @@ S_D135 = CO2_uptake_ratio                               # D135 CO2 absorbed per 
 S_D136 = carry_flag_usg                                 # D136 superficial-velocity carryover rule of thumb <- MT D414
 # --- iterH block (Summary rows 110-128): headspace model selectors and both-phase DO ---
 pH_band_lo = 6.5                                        # Chemistry D236 (pH) HOB band lower edge
+# --- alkalinity needed for a target pH (Chemistry rows 302-308; first order:
+# CO2aqc and the activity coefficients held at the schedule in use) ---
+alk_pH_target   = pH_band_lo                           # D303 (pH, probe scale) <- D236
+alk_pH_target_c = alk_pH_target + math.log10(gam1)     # D304 (pH, concentration scale)
+alk_resid_t     = charge_residual(alk_pH_target_c)     # D305 (mol/L)
+alk_needed      = max(0.0, -alk_resid_t)               # D306 (mol/L) strong base to add
+M_NaHCO3        = 84.007                               # D307 (g/mol) IUPAC
+alk_NaHCO3_gL   = alk_needed * M_NaHCO3                # D308 (g/L)
+S_D131 = alk_NaHCO3_gL                                  # D131 NaHCO3 for the target pH (g/L) <- Chemistry D308
+S_D132 = alk_needed * 1000                              # D132 extra alkalinity (mM) <- Chemistry D306
 pH_band_hi = 7.5                                        # Chemistry D237 (pH) HOB band upper edge
 S_D111 = vent_model_sel                                 # D111 vent model (input)
 S_D112 = O2_phase_sel                                   # D112 O2 sizing phase (input)
@@ -2045,6 +2055,10 @@ OUTPUTS = [
     ("Echem D161 ec_jbuf_ratio (-)",                    ec_jbuf_ratio),
     ("Echem D162 pcet_credit_op (V)",                   pcet_credit_op),
     ("Echem D163 pcet_credit_gmax (V)",                 pcet_credit_gmax),
+    ("Summary D131 NaHCO3 for target pH (g/L)",        S_D131),
+    ("Summary D132 Extra alkalinity (mM)",             S_D132),
+    ("Chemistry D304 alk_pH_target_c (pH)",            alk_pH_target_c),
+    ("Chemistry D305 alk_resid_t (mol/L)",              alk_resid_t),
     ("Summary D135 CO2 uptake ratio (x)",               S_D135),
     ("Summary D136 Carryover velocity rule of thumb",   S_D136),
 ]
