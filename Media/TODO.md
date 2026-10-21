@@ -41,7 +41,7 @@ Model work not yet done:
 
 - [ ] **Pulse-volume intercept** (R2-M3): fit V = V₀ + Q·t per reactor on CO2 flows and use it in the pulse and CO₂-per-pulse cells.
 - [ ] **Carryover check that can fail** (R3 M-17): add a per-reactor "max flow without carryover" column to CO2 flows and test against it; the 50 mm/s superficial-velocity rule never binds.
-- [ ] **Calibrations import block and positional lookups** (R3 CA-02, G-02, EC-03): ~85 Calibrations formulas and ~25 VLOOKUPs address other sheets by coordinate or column index.
+- [ ] **Calibrations "Type (auto)" lookups** (48 cells) still use `Geometry!$A$59:$B$80` by coordinate; needs a range-valued defined name (`ReactorTypeList`).
 - [ ] **Bicarbonate storage in the CO₂ pool, dry-gas basis, salting-out** (R2-m3, R2-m8): each ≤5 % on the mean, larger on the sawtooth amplitude.
 - [ ] **Conditional-format thresholds on Summary D35/D36** still embed 6/6.5/7.5/8 and 0.1/1 (the patcher has no CF op); the Chemistry thresholds are named.
 - [ ] **Couple the proton-coupled voltage credit to the buffer verdict** (R1-14), or drop the sentence claiming it.
