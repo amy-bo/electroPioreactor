@@ -87,6 +87,32 @@ class GasModelChecks(unittest.TestCase):
         self.assertEqual(n['t_O2_ceiling'], 'never (source <= 0)')
         self.assertEqual(n['kLa_margin_g'], 'no positive source')
 
+    def test_power_outside_model_domain_is_rejected(self):
+        for power in (0, 2, 11, 25):
+            with self.subTest(power=power):
+                with self.assertRaises(SystemExit):
+                    self.twin(led_intensity=power)
+                with self.assertRaises(ValueError):
+                    self.sens['model'](dict(self.sens['BASE'], intensity=power))
+
+    def test_full_definition_guard_catches_uncompared_input(self):
+        from gas_model_verification import verify_definition, RECORD
+        with tempfile.TemporaryDirectory() as directory:
+            dst = Path(directory)
+            shutil.copy2(HERE / RECORD, dst / RECORD)
+            with zipfile.ZipFile(BOOK) as zin, zipfile.ZipFile(dst / BOOK.name, 'w') as zout:
+                changed = 0
+                for item in zin.infolist():
+                    data = zin.read(item.filename)
+                    if item.filename == 'xl/worksheets/sheet3.xml':
+                        text, changed = re.subn(r'(<c\b[^>]*r="D83"[^>]*>.*?<v>)[^<]*(</v>)',
+                                                r'\g<1>0.005\2', data.decode(), flags=re.S)
+                        data = text.encode()
+                    zout.writestr(item, data)
+            self.assertEqual(changed, 1)
+            with self.assertRaisesRegex(SystemExit, 'WORKBOOK DEFINITION DRIFT'):
+                verify_definition(dst / BOOK.name)
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))
@@ -96,6 +122,8 @@ class GasModelChecks(unittest.TestCase):
             dst = Path(directory)
             shutil.copy2(SENS, dst / SENS.name)
             shutil.copy2(TWIN, dst / TWIN.name)
+            for filename in ('gas_model_verification.py', 'electroPioreactorGasModel-verification.json'):
+                shutil.copy2(HERE / filename, dst / filename)
             with zipfile.ZipFile(BOOK) as zin, zipfile.ZipFile(dst / BOOK.name, 'w') as zout:
                 changed = 0
                 for item in zin.infolist():

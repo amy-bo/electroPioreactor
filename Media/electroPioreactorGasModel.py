@@ -9,10 +9,11 @@ snapshot of it.
 
 The contract
 ------------
-* The physics is computed HERE, independently. Every FINAL output - any derived
-  numeric cell that nothing else references, plus every cell on the Summary tab
-  - is derived from the input parameters and physical/chemical constants, and is
-  never read back from the workbook.
+* The physics is computed HERE, independently. The explicitly listed diagnostic
+  outputs are derived from the input parameters and physical/chemical constants,
+  never read back as computed answers. This is broad parity coverage, not a claim
+  that every formula cell is independently re-derived. The definition guard also
+  detects changes to any scalar input, formula or defined-name target.
 * The comparison target is the workbook itself. `cached(sheet, ref)` opens
   electroPioreactorGasModel.xlsx (path resolved relative to this script, so it
   works from any working directory), unzips it in memory and returns the value
@@ -32,7 +33,10 @@ The contract
   so a freshly-written workbook reports a large "no cached value" block until it
   has been opened and saved in Excel once. That is expected.
 
-Standard library only; openpyxl is not installable in this container. Run with:
+Standard library only; keep gas_model_verification.py and the verification JSON
+beside the workbook. After intentional input/formula changes, recalculate in Excel,
+rebase both companions, explicitly record the new definition and rerun the checks.
+Run with:
     python3 electroPioreactorGasModel.py
 Exit status is 0 only when the inputs match the workbook AND every output agrees
 with the workbook's cached value within 0.5%.
@@ -69,6 +73,7 @@ import sys
 import zipfile
 import xml.etree.ElementTree as ET
 from decimal import Decimal, ROUND_HALF_UP
+from gas_model_verification import verify_definition
 
 # ============================================================================
 # SUMMARY TAB - user inputs (the only free variables in the model)
@@ -213,6 +218,10 @@ F_const      = 96485.33212   # D15 (C/mol)
 z_e_H2       = 2             # D16
 z_e_O2       = 4             # D17
 intensity    = led_intensity # D10 (%)
+# The plugin accepts lower powers and clamps high ones, but neither operation
+# validates extrapolation of the empirical current fit. Refuse an unsupported run.
+if not gerrit_min <= intensity <= min(gerrit_max, 10.0):
+    raise SystemExit("Unsupported electrolysis power: model requires 3–10%; no extrapolated schedule was calculated.")
 I_app        = (gerrit_slope * intensity + gerrit_int) / 1000   # D19 (A)
 I_valid      = "OK" if (gerrit_min <= intensity <= gerrit_max) else "OUT"  # D20
 e            = ELECTRODE[electrode_sel]
@@ -2244,6 +2253,8 @@ def main():
         print("Fix by setting the declarations at the top of this file to the workbook's")
         print("values (or by restoring the workbook's inputs), then re-run.")
         return 1
+
+    verify_definition(WORKBOOK_PATH)
 
     hdr = f"{'OUTPUT':<50}{'CELL':<20}{'WORKBOOK':>22}{'MODEL':>22}  VERDICT"
     print(hdr)

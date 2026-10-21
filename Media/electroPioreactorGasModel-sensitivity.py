@@ -83,6 +83,7 @@ Each input carries an IGNORANCE tier -- DATA-GAP (unmeasured), ESTIMATE, LITERAT
 we know the value. KNOBs are control authority, reported separately.
 """
 import math
+from gas_model_verification import verify_definition
 import os
 import re
 import sys
@@ -300,6 +301,8 @@ def model(p):
     O2_ceil_C = H_O2_T * O2_ceil_Pa
 
     # --- electrolysis, with CALCULATED faradaic efficiencies (Echem D86-D89, D101-D104) ---
+    if not 3 <= p['intensity'] <= 10:
+        raise ValueError('Unsupported electrolysis power: model requires 3–10%')
     I_app = (p['gerrit_slope'] * p['intensity'] + p['gerrit_int']) / 1000
     DO_target = (p['DO_opt'] / M_O2 if p['DO_opt'] is not None
                  else p['target_DO_frac'] * O2_ceil_C)                   # MT D179
@@ -691,7 +694,7 @@ SWEEP = [
  ('mend_a', 2.03, 2.25, 'LITERATURE'),
  ('mend_b', 0.48, 0.53, 'LITERATURE'),
  # ---- KNOB (you set it) ----
- ('intensity', 3, 25, 'KNOB'),                  # gerrit_min..gerrit_max; base at the floor
+ ('intensity', 3, 10, 'KNOB'),                  # gerrit_min..gerrit_max; base at the floor
  ('Q_CO2', 100, 300, 'KNOB'),
  ('target_DO_frac', 0.10, 0.60, 'KNOB'),        # re-ranged: base is now 0.261, not 0.5
  ('carbon_margin_min', 1.5, 3.0, 'KNOB'),
@@ -890,6 +893,7 @@ if _drift:
     print("   Re-base BASE (or restore the workbook selectors); no analysis was run.")
     sys.exit(1)
 
+verify_definition(WORKBOOK_PATH)
 b = model(BASE)
 
 # --- runtime guard 3: the baseline must still reproduce the workbook's cached values ---
