@@ -4,6 +4,7 @@ Done-work audit for `electroPioreactorGasModel.xlsx`. Newest first. Open work is
 
 ## 2026-10-21
 
+- [x] **Dead rows cleared** — Geometry rows 8–17 (ten per-version inputs superseded by the reactor-type table, read by nothing) and Mass Transfer rows 153–161 (the uncoupled CO₂ limit cycle superseded by the mass-conserving pool, read by nothing) emptied and their 19 defined names removed; nothing referenced them, every value unchanged in Excel. Mass Transfer E84 now quotes the real fallback (2.6/11.5).
 - [x] **Summary result rows named** — the 42 result/check rows (D13:D49, D82:D90) had empty column B; each now carries a local name (`res_spg_int`, `chk_H2`, …) so the Summary is addressable by name like every other sheet.
 - [x] **Colour conventions applied** — 467 cells restyled per Media/CLAUDE.md: column D of every named parameter row is blue bold for a typed input and black for a formula (about 90 inputs were purple or unbolded, many formulas dark slate); formula rows' empty column-E fill set to green (derived); Mass Transfer E90:E92 off-palette blue → green; Summary key A52 given its green, "Problem" A63 moved off the DATA-GAP pink. Opened cleanly in Excel; values unchanged.
 - [x] **House-rule hygiene, values unchanged** (review R3; 387 cell edits, every computed value verified identical in Excel):
