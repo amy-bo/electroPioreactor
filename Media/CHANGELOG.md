@@ -4,6 +4,7 @@ Done-work audit for `electroPioreactorGasModel.xlsx`. Newest first. Open work is
 
 ## 2026-10-21
 
+- [x] **Summary result rows named** — the 42 result/check rows (D13:D49, D82:D90) had empty column B; each now carries a local name (`res_spg_int`, `chk_H2`, …) so the Summary is addressable by name like every other sheet.
 - [x] **Colour conventions applied** — 467 cells restyled per Media/CLAUDE.md: column D of every named parameter row is blue bold for a typed input and black for a formula (about 90 inputs were purple or unbolded, many formulas dark slate); formula rows' empty column-E fill set to green (derived); Mass Transfer E90:E92 off-palette blue → green; Summary key A52 given its green, "Problem" A63 moved off the DATA-GAP pink. Opened cleanly in Excel; values unchanged.
 - [x] **House-rule hygiene, values unchanged** (review R3; 387 cell edits, every computed value verified identical in Excel):
   - *Stale or contradicting notes fixed*: the "worst case, full sparge" pH labels (the value is a cycle average); Mass Transfer E76 (said 405 µM, cell is 44 µM), E88/E89/E91 and the Summary F15/A39/F39 text about a "relaxed" regime no formula selects; D131 label; E206 vapour pressures; Chemistry E107/E132 numbers; Electrochemistry E18 cell reference; Summary E35 hyperlink (pointed at pH_op, not pH_meas); the Summary F3 electrode note; history sentences and "(wave-4)" tags removed (history lives in git); "artefact", "cylinder", "mL" throughout CO2 flows.
