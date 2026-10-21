@@ -34,7 +34,7 @@ Measurements, in leverage order:
 
 Owner decisions (questions T4–T8 in brain2 `AMYBO/electroPioreactor-fromClaude.md`):
 
-- [ ] **Size for lag or growth** (Summary D112). Lag is unreachable at the estimated surface kLa (margin 0.64×); both phases are shown either way.
+- [ ] **Size for lag or growth** (Summary D112). Lag is unreachable at the estimated surface kLa (margin 0.66×); both phases are shown either way.
 - [ ] **Consider a ~1 mL/min N₂ headspace sweep**: it would keep lag-phase H₂ below the flammable limit and hold the O₂ target without pushing pH below the band; the model shows CO₂ cannot do all three jobs (Summary D128 reads NO).
 
 Model work not yet done:

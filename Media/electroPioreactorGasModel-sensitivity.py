@@ -120,6 +120,7 @@ BASE = dict(
   # --- O2 ceiling / Henry ---
   T_C=25, P_atm=101325, H_O2ref=1.2e-5, H_O2T=1500, T_ref=298.15, O2_ceil_atm=0.3,
   # --- CO2 dosing (ed04 calibrated: 3.33 mL/s = 199.8 mL/min) ---
+  DO_lag_ref=0.194,   # Echem D129: typed reference lag DO (mol/m3) for the lag cathodic loss
   Q_CO2=199.8, Q_CO2_cal=199.8, fit_n_min=3, pulse_V0_factor=1.0, pulse_floor=0.25, flush_factor=1.0, R=8.314462618, M_CO2=44.0095,
   # --- water properties (now temperature-tracking, not frozen constants) ---
   sigma_0=0.07589, sigma_k=-0.000157,     # IAPWS R1-76(2014) linear fit, 15-40 C
@@ -240,7 +241,9 @@ def model(p):
 
     # --- electrolysis, with CALCULATED faradaic efficiencies (Echem D86-D89, D101-D104) ---
     I_app = (p['gerrit_slope'] * p['intensity'] + p['gerrit_int']) / 1000
-    DO_design = p['target_DO_frac'] * O2_ceil_C                          # D85
+    DO_target = (p['DO_opt'] / M_O2 if p['DO_opt'] is not None
+                 else p['target_DO_frac'] * O2_ceil_C)                   # MT D179
+    DO_design = DO_target                                                # Echem D85 = the DO target (R5-m7)
     n_ORR_eff = p['z_e_ORR'] * p['f_HOOH'] + p['z_e_O2'] * (1 - p['f_HOOH'])   # D141, e-/O2 weighted by peroxide selectivity
     i_ORR = n_ORR_eff * p['F'] * (p['km_O2'] / 100) * DO_design * (A_wet / 10000)   # D86
     i_ORR_ceil = n_ORR_eff * p['F'] * (p['km_O2'] / 100) * O2_ceil_C * (A_wet / 10000)
@@ -258,6 +261,10 @@ def model(p):
     rO2 = I_app * etaF_OER / (p['z_e_O2'] * p['F']) * 3600
     O2_cath = I_app * (1 - etaF) / (n_ORR_eff * p['F']) * 3600
     O2_net = rO2 - O2_cath                                               # Echem D29
+    # R5-m2: lag-phase cathodic O2 loss at the typed reference lag DO (Echem D129-D133)
+    O2_ORR_lag = min(I_app / (n_ORR_eff * p['F']) * 3600, O2_cath * p['DO_lag_ref'] / DO_design)   # D131
+    O2_net_lag = rO2 - O2_ORR_lag                                        # D132 = MT D394 = MT D310
+    rH2_lag = max(0.0, I_app - O2_ORR_lag / 3600 * n_ORR_eff * p['F']) / (p['z_e_H2'] * p['F']) * 3600   # D133 = MT D395
     O2_cons = rH2 * p['bio_O2'] / p['bio_H2']
     CO2_cons = rH2 * p['bio_CO2'] / p['bio_H2']
     O2_excess = O2_net - O2_cons                                         # Biology D16
@@ -295,8 +302,6 @@ def model(p):
     V0 = V0_cal * p['pulse_V0_factor']                                   # mL
     spg_dur = max(p['pulse_floor'], (p['flush_factor'] * headspace_V - V0) / Q_fit)   # D90
     spg_dur_eq_opt = (V0 + Q_fit * spg_dur) / (p['Q_CO2'] / 60)          # D409, full-flow-equivalent time
-    DO_target = (p['DO_opt'] / M_O2 if p['DO_opt'] is not None
-                 else p['target_DO_frac'] * O2_ceil_C)                   # D179
 
     # --- iterH: ONE headspace balance (MT 300-382). Steady flux-weighted composition
     #     y_i = (in_i + y_air,i F_vent_ex) / (F_vent_ex + CO2_supply + O2_src + H2_src - CO2_fix)
@@ -308,14 +313,14 @@ def model(p):
     y_air = p['y_O2_air']
     H2_cons = rH2                                                        # Biology D13 (no anodic HOR)
     phases = {'Growth': (O2_excess, max(0.0, rH2 - H2_cons), CO2_cons),  # D309/D313/D315
-              'Lag': (O2_net, rH2, 0.0)}                                 # D310/D314/D316
+              'Lag': (O2_net_lag, rH2_lag, 0.0)}                         # D310/D314/D316 (lag-DO sources)
     O2_s, H2_s, fix_s = phases.get(p['O2_phase'], (NAN, NAN, NAN))       # D317-D319, sizing phase
     flush_vol_opt = nCO2 * spg_dur_eq_opt / n_hs                         # D320
     flush_ret_opt = math.exp(-flush_vol_opt)                             # D321
     saw_factor = flush_vol_opt * (1 + flush_ret_opt) / (2 * (1 - flush_ret_opt))   # D322
     DO_surf_excess = O2_s / (kLa_surf_used * 3600 * V_L)                 # D180, sizing phase
     DO_surf_excess_g = O2_excess / (kLa_surf_used * 3600 * V_L)          # D339
-    DO_surf_excess_lag = O2_net / (kLa_surf_used * 3600 * V_L)           # D181
+    DO_surf_excess_lag = O2_net_lag / (kLa_surf_used * 3600 * V_L)           # D181
     hs_O2_allow = DO_target - DO_surf_excess                             # D182
     feasible = hs_O2_allow > 0
     if feasible:
@@ -556,7 +561,7 @@ def model(p):
         pool_b=pool_b, C_start=C_start,
         kL_surf_crit=kL_surf_crit, kLa_surf_used=kLa_surf_used, do_margin=do_margin,
         t_O2_ceiling_lag=t_lag, O2_removal_ratio=removal_ratio, surf_ratio=surf_ratio,
-        strip_ratio=strip_ratio, O2_excess=O2_excess, O2_net=O2_net, rH2=rH2,
+        strip_ratio=strip_ratio, O2_excess=O2_excess, O2_net=O2_net, rH2=rH2, O2_net_lag=O2_net_lag, rH2_lag=rH2_lag,
         etaF_calc=etaF_calc, etaF_calc_min=etaF_calc_min, etaF_OER_calc=etaF_OER_calc,
         i_ORR_design=i_ORR, D_O2=D_O2, sigma=sigma, rho_L=rho_L,
         CO2_cyc_avg_new=CO2_cyc, CO2aqc=CO2aqc, CO2_supply=CO2_supply, CO2_sd=CO2_sd,
@@ -684,6 +689,8 @@ SELF_CHECK = [
     ('DO_ss_lag',       'DO cycle-mean lag (mg/L)', 'Summary',          'D116'),
     ('DO_peak_lag',     'DO peak lag (mg/L)',       'Summary',          'D117'),
     ('y_H2_lag',        'y_H2 lag (-)',             'Biology',          'D84'),
+    ('O2_net_lag',      'O2_net_lag (mol/h)',       'Electrochemistry', 'D132'),
+    ('rH2_lag',         'rH2_lag (mol/h)',          'Electrochemistry', 'D133'),
     ('Q_CO2_fit',       'Q_CO2_fit (mL/s)',         'Mass Transfer',    'D407'),
     ('pulse_V0',        'pulse_V0 (mL)',            'Mass Transfer',    'D408'),
     ('spg_dur',         'spg_dur_opt (s)',          'Mass Transfer',    'D90'),

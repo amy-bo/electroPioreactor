@@ -40,8 +40,19 @@ It sizes CO₂ dosing and O₂ management for an aseptic electro-bioreactor grow
 
 - **CO₂ cannot do three jobs.** Diluting electrolytic O₂ to the DO target with CO₂ alone drives pH to 6.18–6.24 for every vent assumption (Summary D128 "NO"), and holding the lag-phase headspace non-flammable needs a still shorter interval. A small inert (N₂) headspace sweep would decouple both from pH; owner question T7.
 - **The interval is fragile.** It moves 15× across plausible vents (check valve 12.6 min, open vent 8.95, 0.5 mL/min exchange 0.86) and ±30 % with the chloramine lifetime, because the O₂ surplus is a small difference of large numbers. The vent test and a DPD chlorine assay are the two cheapest, highest-leverage measurements (`TODO.md`).
-- **Lag is unreachable** at the estimated surface kLa (margin 0.64×) whatever the interval.
+- **Lag is unreachable** at the estimated surface kLa (margin 0.66×) whatever the interval.
 - Still open model work and every measurement are listed in `TODO.md` under "From the wave-5 review".
+
+## Final gate (R5, Fable) and what the model is fit for
+
+A last whole-model review with fresh eyes found no blocker and confirmed the wave-5 fixes; its one major (the Calibrations-tab CO₂-flow route could not switch a reactor on) and nine minors were fixed in the last wave-5 commit. Verdict: **fit to guide the abiotic characterisation runs** it asks for (vent test, abiotic DO trace, lag-phase headspace sample) and to frame the owner decisions; **not yet fit to set an unattended biotic schedule**, by its own account rather than through an error:
+
+1. The pulse is provisional: it delivers one headspace volume of a headspace that has never been measured (Geometry D90 red).
+2. The interval is an upper bound: it assumes 100 % H₂ uptake in growth; half uptake roughly halves it.
+3. Feasibility rests on an unmeasured surface kLa (growth margin ~1.9×, lag ~0.6×; the estimate is very uncertain).
+4. Lag is the dangerous phase: flammable headspace, DO ~7 mg/L, peroxide past the inhibition threshold within minutes. Do not run unattended from inoculation without an N₂ sweep or H₂ monitoring, and vent to a hood.
+5. pH sits below the 6.5 band for every vent assumption: CO₂ alone cannot dilute O₂ to target and hold pH.
+6. The headline moves 15× with the vent model; the vent test comes first.
 
 # Wave-4 review (2026-08-12) — workbook at `091ca50`
 
