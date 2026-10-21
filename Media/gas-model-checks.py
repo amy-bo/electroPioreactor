@@ -196,6 +196,25 @@ class GasModelChecks(unittest.TestCase):
                                ('alk_add_M', 3, 'Chemistry!$D$318')):
             self.assertIn('<definedName name="%s" localSheetId="%d">%s</definedName>' % (name, sid, ref), wb)
 
+    def test_n2_sweep_dilutes_without_co2(self):
+        base = self.twin()
+        self.assertEqual(base['F_dil'], base['F_vent_ex'])
+        q = base['N2_for_DO']
+        self.assertGreater(q, 0)
+        n = self.twin(N2_sweep_set=q)
+        self.assertTrue(math.isclose(n['F_dil'] - n['F_vent_ex'], n['F_N2'], rel_tol=1e-12))
+        # At the sweep that holds DO with CO2 at the carbon duty, the O2 and carbon bounds coincide.
+        self.assertTrue(math.isclose(n['spg_int_DO'], n['spg_int_carbon'], rel_tol=1e-6))
+        self.assertGreater(n['spg_int'], base['spg_int'])
+        self.assertGreater(n['pH_meas'], base['pH_meas'])
+        # Lag H2 mean-field screen: the sweep from Biology D88 alone takes H2 to the LFL.
+        h = self.twin(N2_sweep_set=base['N2_sweep_H2safe'])
+        self.assertLessEqual(h['y_H2_hs_lag'], 0.04 * (1 + 1e-9))
+        # Independent sensitivity model agrees at the non-default sweep.
+        m = self.sens['model'](dict(self.sens['BASE'], N2_sweep=q))
+        for k_t, k_s in (('spg_int', 'spg_int_run'), ('pH_meas', 'pH_meas'), ('DO_ss', 'DO_ss')):
+            self.assertTrue(math.isclose(n[k_t], m[k_s], rel_tol=5e-3), (k_t, n[k_t], m[k_s]))
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))

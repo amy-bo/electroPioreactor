@@ -114,6 +114,7 @@ BASE = dict(
   # --- electrolysis ---
   intensity=3, gerrit_slope=1.03, gerrit_int=2.6, F=96485.33212,
   NaHCO3_add_gL=0.0,                      # Summary D133 NaHCO3 added on top of the recipe (blank = 0)
+  N2_sweep=0.0,                           # Summary D98 continuous N2 headspace sweep, mL/min (blank = 0)
   z_e_H2=2, z_e_O2=4, z_e_ORR=2,          # z_e_ORR=2: peroxide pathway, SS cathode lookup
   km_O2=4.0e-3, km_exp=0.644,             # Eisenberg-Tobias-Wilke; k_m scales as D^0.644
   f_HOOH=0.15, k_cat_cells=0.0041, M_H2O2=34.0147,
@@ -377,6 +378,7 @@ def model(p):
     Q_used = {'Outflow only': 0.0, 'Open vent': p['Q_backdraw'],
               'Air exchange': p['Q_vent']}.get(p['vent_model'], NAN)     # D386, mL/min
     F_ex = p['P_atm'] * (Q_used / 1e6 / 60) / (R * T_K) * 3600           # D308, mol/h
+    F_dil = F_ex + p['P_atm'] * (p['N2_sweep'] / 1e6 / 60) / (R * T_K) * 3600   # D425: air + N2 (N2 carries no O2/CO2)
     y_air = p['y_O2_air']
     H2_cons = rH2                                                        # Biology D13 (no anodic HOR)
     phases = {'Growth': (O2_excess, max(0.0, rH2 - H2_cons), CO2_cons),  # D309/D313/D315
@@ -393,7 +395,7 @@ def model(p):
     if feasible:
         y_O2_star = hs_O2_allow / (H_O2_T * P_dry)                       # D183
         duty_DO = max(0.0, ((O2_s + y_air * F_ex) * saw_factor / y_O2_star
-                            - F_ex - O2_s - H2_s + fix_s) / CO2_rate_full)   # D184
+                            - F_dil - O2_s - H2_s + fix_s) / CO2_rate_full)   # D184
         spg_int_DO = (spg_dur_eq_opt / (60 * duty_DO) if duty_DO > 0
                       else None)                                     # D185 (duty 0 -> carbon-limited, set below)
     else:
@@ -451,10 +453,10 @@ def model(p):
 
     def _hs(O2_src, H2_src, fix, exc):
         S = O2_src + y_air * F_ex                                        # D327/D349
-        F_all = F_ex + CO2_supply + O2_src + H2_src - fix                # F_vent_ex + F_hs_net
+        F_all = F_dil + CO2_supply + O2_src + H2_src - fix               # F_dil + F_hs_net
         y_mf = S / F_all if F_all > 0 else NAN                           # D329/D351
         yH2 = H2_src / F_all if F_all > 0 else NAN                       # D330/D352
-        F_gap = F_ex + max(0.0, O2_src + H2_src - fix)                   # D331/D353
+        F_gap = F_dil + max(0.0, O2_src + H2_src - fix)                  # D331/D353
         x = F_gap * t_gap_h / n_hs                                       # D332/D354
         dy = S * t_gap_h / n_hs                                          # D335/D357
         y_end = dy * phi(x) / (1 - flush_ret * math.exp(-x))             # D336/D358
@@ -790,6 +792,7 @@ INPUT_CELLS = [
     ('media_volume',  'Summary', 'D9', None),     # blank -> recommended fill (V_max etc.)
     ('P_atm_set',     'Summary', 'D10', None),    # blank -> 101325 Pa default
     ('NaHCO3_add_gL', 'Summary', 'D133', BASE['NaHCO3_add_gL'] or None),   # blank = no added NaHCO3
+    ('N2_sweep',      'Summary', 'D98', BASE['N2_sweep'] or None),         # blank = no N2 sweep
     ('vent_model',    'Summary', 'D111', BASE['vent_model']),
     ('O2_phase',      'Summary', 'D112', BASE['O2_phase']),
     ('V_max',         'Geometry', 'D23', BASE['V_max']),

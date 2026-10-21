@@ -91,6 +91,7 @@ temp_C         = 30.0              # D8  (degC)
 media_volume   = 0.0               # D9  (mL; blank in workbook -> 0.0 -> use recommended max)
 P_atm_set      = 0.0               # D10 (Pa; blank in workbook -> 0.0 -> default 101325)
 NaHCO3_add_gL  = 0.0               # D133 (g/L NaHCO3 added on top of the recipe; blank -> 0.0)
+N2_sweep_set   = 0.0               # D98 (mL/min continuous N2 headspace sweep; blank -> 0.0, owner decision T7)
 # Headspace-model owner decisions (Summary D111:D112, typed text; anything else -> #N/A)
 vent_model_sel = "Open vent"       # D111 ("Outflow only" | "Open vent" | "Air exchange")
 O2_phase_sel   = "Growth"          # D112 ("Growth" | "Lag") phase the O2 sizing is done on
@@ -914,6 +915,8 @@ O2_sizing_phase = O2_phase_sel                          # MT D304 <- Summary D11
 phase_name_1, phase_name_2 = "Growth", "Lag"            # MT D305, D306
 y_O2_air       = 0.2095                                 # MT D307 (-) dry-air O2 mole fraction
 F_vent_ex      = P_atm * (Q_vent_used / 1e6 / 60) / (R_gas * T_K) * 3600   # MT D308 (mol/h) air exchanged through the vent (NaN for an invalid selector)
+F_N2           = P_atm * (N2_sweep_set / 1e6 / 60) / (R_gas * T_K) * 3600  # MT D424 (mol/h) N2 sweep, same reference as F_vent_ex
+F_dil          = F_vent_ex + F_N2                       # MT D425 (mol/h) non-pulse inflow; only the air part carries O2 and CO2
 O2_src_g       = O2_excess                              # MT D309 (mol/h)
 O2_src_l       = O2_net_lag_mt                          # MT D310 (mol/h) lag: net of the cathodic loss at DO_lag_ref
 H2_src_g       = max(0.0, rH2_gen - H2_HOR_mt - H2_cons)   # MT D313 (mol/h) (MT D311 rH2_gen, D312 H2_cons imported)
@@ -936,7 +939,7 @@ DO_surf_excess_lag = O2_src_l / (kLa_surf_used * 3600 * (V_charge / 1e6))  # D18
 hs_O2_allow   = DO_target - DO_surf_excess             # D182 (mol/m3)
 y_O2_star     = (hs_O2_allow / (H_O2_T * P_dry)) if hs_O2_allow > 0 else NA   # D183 (-)
 duty_DO       = (max(0.0, ((O2_src_sched + y_O2_air * F_vent_ex) * saw_factor / y_O2_star
-                            - F_vent_ex - O2_src_sched - H2_src_sched + CO2_fix_sched) / CO2_rate_full)
+                            - F_dil - O2_src_sched - H2_src_sched + CO2_fix_sched) / CO2_rate_full)
                  if isnum(y_O2_star) else NA)          # D184 (-) flux mean at y*/saw_factor -> cycle mean at target
 spg_int_DO    = ((spg_dur_eq_opt / (60 * duty_DO) if duty_DO > 0 else spg_int_carbon)
                  if isnum(duty_DO) else NA)            # D185 (min); duty 0 -> carbon-limited interval
@@ -1016,9 +1019,9 @@ def _hs_phase(O2_src, H2_src, CO2_fix, DO_exc):
     """One phase of the display block (growth rows 327-342, lag rows 349-363)."""
     S_O2   = O2_src + y_O2_air * F_vent_ex                          # D327/D349 (mol/h)
     F_net  = CO2_supply + O2_src + H2_src - CO2_fix                 # D328/D350 (mol/h)
-    y_mf   = S_O2 / (F_vent_ex + F_net) if F_vent_ex + F_net > 0 else NA      # D329/D351 (-)
-    yH2_mf = H2_src / (F_vent_ex + F_net) if F_vent_ex + F_net > 0 else NA    # D330/D352 (-)
-    F_gap  = F_vent_ex + max(0.0, O2_src + H2_src - CO2_fix)        # D331/D353 (mol/h)
+    y_mf   = S_O2 / (F_dil + F_net) if F_dil + F_net > 0 else NA          # D329/D351 (-)
+    yH2_mf = H2_src / (F_dil + F_net) if F_dil + F_net > 0 else NA        # D330/D352 (-)
+    F_gap  = F_dil + max(0.0, O2_src + H2_src - CO2_fix)            # D331/D353 (mol/h) air + N2 + net evolved gas
     x      = F_gap * t_gap_h / n_hs_gas                             # D332/D354 (-)
     phi, psi = _phi(x), _psi(x)                                     # D333-334/D355-356
     dy     = S_O2 * t_gap_h / n_hs_gas                              # D335/D357 (-)
@@ -1084,17 +1087,18 @@ CO2_rate_full_b = CO2_rate_full                         # Biology D77 (mol/h) <-
 spg_dur_b       = spg_dur_eq_opt                        # Biology D78 (s)     <- MT D409
 R_gas_b         = R_gas                                 # Biology D79 (J/mol/K) <- MT D101
 F_vent_ex_b     = F_vent_ex                             # Biology D111 (mol/h) <- MT D308
+F_dil_b         = F_dil                                 # Biology D120 (mol/h) <- MT D425 (air + N2)
 y_O2_air_b      = y_O2_air                              # Biology D112 (-)     <- MT D307
 H2_LFL     = 0.04                                       # Biology D80 (-) H2 lower flammability limit
 O2_LOC_H2  = 0.052                                      # Biology D81 (-) limiting O2 conc., CO2 diluent
 LOC_margin = 0.6                                        # Biology D82 (-) NFPA 69 design margin
 n_flamm_src = H2_src_l_b + O2_src_l_b                      # Biology D83 (mol/h) gas into headspace, lag
-y_H2_hs_lag = H2_src_l_b / (n_flamm_src + CO2_supply_b + F_vent_ex_b)    # Biology D84 (-) = MT D352
+y_H2_hs_lag = H2_src_l_b / (n_flamm_src + CO2_supply_b + F_dil_b)        # Biology D84 (-) = MT D352
 y_O2_hs_lag = ((O2_src_l_b + y_O2_air_b * F_vent_ex_b)
-               / (n_flamm_src + CO2_supply_b + F_vent_ex_b))           # Biology D85 (-) = MT D351
-duty_H2safe = max(0.0, min(H2_src_l_b / H2_LFL - n_flamm_src - F_vent_ex_b,
+               / (n_flamm_src + CO2_supply_b + F_dil_b))               # Biology D85 (-) = MT D351
+duty_H2safe = max(0.0, min(H2_src_l_b / H2_LFL - n_flamm_src - F_dil_b,
                            (O2_src_l_b + y_O2_air_b * F_vent_ex_b) / (O2_LOC_H2 * LOC_margin)
-                           - n_flamm_src - F_vent_ex_b)) / CO2_rate_full_b   # Biology D86 (-)
+                           - n_flamm_src - F_dil_b)) / CO2_rate_full_b   # Biology D86 (-)
 spg_int_H2safe = (spg_dur_b / (60 * duty_H2safe)) if duty_H2safe > 0 else NA   # Biology D87 (min)
 N2_sweep_H2safe = (max(0.0, H2_src_l_b / H2_LFL - n_flamm_src - F_vent_ex_b) / 3600 * R_gas_b * T_K / P_atm
                    * 1000000 * 60)                      # Biology D88 (mL/min)
@@ -1134,11 +1138,17 @@ y_O2_actual = _by_phase(y_O2_mf_g, y_O2_mf_l)          # D187 (-) mean-field hea
 DO_hs_floor = (H_O2_T * y_O2_actual * P_dry) if isnum(y_O2_actual) else NA      # D188 (mol/m3)
 DO_ss = DO_avg_sched * M_O2                            # D108 (mg/L) cycle-mean (sawtooth) DO, sizing phase
 # DO if the interval relaxed to the carbon-limited one: the same headspace balance at duty_carbon
-_F_carb = F_vent_ex + CO2_rate_full * duty_carbon + O2_src_sched + H2_src_sched - CO2_fix_sched
+_F_carb = F_dil + CO2_rate_full * duty_carbon + O2_src_sched + H2_src_sched - CO2_fix_sched
 DO_at_carbon = (DO_surf_excess + H_O2_T * P_dry * min(1.0, saw_factor * (O2_src_sched + y_O2_air * F_vent_ex) / _F_carb)
                 if _F_carb > 0 else DO_surf_excess + H_O2_T * P_dry)   # MT D232 (mol/m3) saw-corrected, guarded, capped at saturation
 DO_ss_sawtooth = DO_avg_sched                          # D133 (mol/m3, sizing-phase cycle mean)
 DO_ss_sawtooth_lag = DO_avg_l                          # D135 (mol/m3, LAG cycle mean, H2 as diluent)
+# N2 sweep that lets the carbon-limited duty hold the DO target: the duty_DO inversion solved for the
+# inert inflow instead of the CO2 supply (MT D426, mL/min; #N/A when the target is unreachable).
+N2_for_DO = ((max(0.0, (O2_src_sched + y_O2_air * F_vent_ex) * saw_factor / y_O2_star - F_vent_ex - O2_src_sched
+                  - H2_src_sched + CO2_fix_sched - CO2_rate_full * duty_carbon) / 3600 * R_gas * T_K / P_atm * 1e6 * 60)
+             if isnum(y_O2_star) else NA)
+
 
 # --- Electrochemistry D96/D98/D99 + rows 150-152: lag-phase peroxide, first-order anodic loss (R1-09) ---
 ec_DO_lag     = DO_ss_sawtooth_lag                     # Electrochemistry D150 (mol/m3) <- MT D135
@@ -1287,7 +1297,9 @@ hs_sag         = (pool_a * (C_cycle_peak - C_cycle_start) * (V_L_CO2 + Vg_CO2)
 CO2_uptake_ratio = ((C_cycle_peak - C_cycle_start) * V_L_CO2 * pulses_h / CO2_cons
                     if CO2_cons > 0 else NA)            # MT D417 (x) CO2 absorbed per pulse / fixation demand (informative, not pass/fail)
 hs_sag_max     = 0.05                                   # MT D390 (-) tolerated sag for a sealed cap. INPUT
-if F_vent_ex > 0:
+if F_N2 > 0 and F_N2 * t_gap_h >= hs_sag * n_hs_gas:
+    hs_sag_chk = "OK \u2013 the N\u2082 sweep supplies the per-cycle make-up gas; vent outflow unverified"
+elif F_vent_ex > 0:
     hs_sag_chk = "UNVERIFIED pressure closure: air ingress is assumed; measure vent make-up flow"
 elif hs_sag > hs_sag_max:
     hs_sag_chk = ("HEADSPACE SAGS " + xltext(hs_sag, "0%") + " below 1 atm each cycle \u2013 a real cap will draw "
@@ -1297,7 +1309,7 @@ else:
 C_cycle_start_b = C_cycle_start                         # Biology D97 (mol/m3) <- MT D198
 CO2_margin_trough = C_cycle_start_b * 1000 / Km_CO2     # Biology D98 (x) carbon margin at the cycle trough (R2-m4)
 CO2_cyc_avg_new = C_cycle_peak * pool_phi + pool_D_raw * pool_psi   # MT D200 (mol/m3) cycle mean
-_F_out = F_vent_ex + CO2_supply + O2_src_sched + H2_src_sched - CO2_fix_sched
+_F_out = F_dil + CO2_supply + O2_src_sched + H2_src_sched - CO2_fix_sched
 y_CO2_mf       = ((CO2_supply - CO2_fix_sched + pCO2_air / P_dry * F_vent_ex) / _F_out
                   if _F_out > 0 else NA)                # MT D381 (-) mean-field headspace CO2 (cross-check)
 C_CO2_mf       = y_CO2_mf * C_sat_CO2                   # MT D382 (mol/m3)
@@ -2049,6 +2061,12 @@ OUTPUTS = [
     ("MassXfer D144 tau_hs (min)",                     tau_hs),
     # --- Mass Transfer: iterH unified headspace balance (rows 300-382) ---
     ("MassXfer D308 F_vent_ex (mol/h)",                F_vent_ex),
+    ("MassXfer D424 F_N2 (mol/h)",                     F_N2),
+    ("MassXfer D425 F_dil (mol/h)",                    F_dil),
+    ("MassXfer D426 N2 sweep for DO at carbon duty (mL/min)", N2_for_DO),
+    ("Biology  D120 F_dil_b (mol/h)",                  F_dil_b),
+    ("Summary D99 N2 for DO at carbon duty",           N2_for_DO),
+    ("Summary D100 N2 for lag H2 below LFL",           N2_sweep_H2safe),
     ("MassXfer D384 vent_name_3",                      vent_name_3),
     ("MassXfer D385 Q_backdraw (mL/min)",              Q_backdraw),
     ("MassXfer D386 Q_vent_used (mL/min)",             Q_vent_used),
@@ -2206,6 +2224,7 @@ INPUT_CELLS = [
     ("media_volume",  "D9",  media_volume),
     ("P_atm_set",     "D10", P_atm_set),
     ("NaHCO3_add_gL", "D133", NaHCO3_add_gL),
+    ("N2_sweep_set",  "D98",  N2_sweep_set),
     ("vent_model_sel", "D111", vent_model_sel),
     ("O2_phase_sel",  "D112", O2_phase_sel),
     ("user_spg_dur", "G13", user_spg_dur or 0.0),
