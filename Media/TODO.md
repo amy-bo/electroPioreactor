@@ -12,30 +12,39 @@ Open backlog and parked items. Done work is in `CHANGELOG.md`. Bench SOPs for th
 - [ ] **Fill the HOB DO bands** for the non-necator organisms and the minimum-DO column (currently pink gaps).
 ### From the wave-4 review (2026-08-12; detail and derivations in `electroPioreactorGasModel-Review.md`)
 
-- [ ] **Chlorine thresholds compare mixed units.** `C_eff` (Chemistry D145) is in mg/L as HOCl and `Cl_onset`/`Cl_kill` (0.1 / 2.0 mg/L) are tested against it, while the Summary reports `C_eff_Cl2` (D226, mg/L as Cl2, ×1.35). Free-chlorine kill thresholds are conventionally quoted as Cl2, so the verdict should test `C_eff_Cl2`.
 
 - [ ] **Measure the electrode mass-transfer coefficient** (ferricyanide limiting current, same vial, same rpm). It now sets the cathodic O2 loss, the peroxide source, the chlorine cap and the electrode-surface pH verdict — the single most load-bearing estimate in the new electrochemistry.
 - [ ] **Measure the electrode centre-to-centre gap** with calipers — sets the ohmic term in the cell-voltage budget.
-- [ ] **Read the cell voltage at a known setpoint** with a multimeter. The budget predicts 3.3 V of a 5 V rail at 3 %; the reading either confirms the electrochemical picture or localises which term is wrong.
-- [ ] **Assay dissolved Cu/Ni/Fe in spent medium.** An O2-evolving anode sits ~0.50 V above the Cu2+/Cu equilibrium, so dissolution is thermodynamically allowed; this closes the anodic charge budget and tests the prime suspect for the Exp-2 death.
-- [ ] **Decide the operating point.** The workbook is at 25 C / 1000 rpm; the protocol pack says 30 C. The water properties now track whatever T is set, so this is a decision, not a bug — but the two should agree.
-- [ ] **`Chemistry!buffer_flag` reads BUFFER EXCEEDED at the live operating point** (j 2.83 mA/cm2 against a 2.81 mA/cm2 phosphate-buffer limit at the modelled 40 um diffusion layer). The verdict flips across the factor-of-two uncertainty on that layer thickness, so it is undetermined until the mass-transfer measurement is done — but if it holds, the anode surface runs 0.4-1.0 pH units below bulk and the -0.15 V phosphate credit in the voltage budget is not earned.
+- [ ] **Read the cell voltage at a known setpoint** with a multimeter. The budget predicts 2.85 V of a 5 V rail at 3 % (3.26 V before k_geom was corrected from 2 to 1; the reading discriminates the two); the reading either confirms the electrochemical picture or localises which term is wrong.
+- [ ] **Assay dissolved Cu/Ni/Fe in spent medium.** The operating anode (~1.58 V vs SHE) sits ~1.2 V above the Cu2+/Cu standard potential, so dissolution is thermodynamically allowed; this closes the anodic charge budget and tests the prime suspect for the Exp-2 death.
 - [ ] **Get the new electrochemistry reviewed by an electrochemist.** The six questions to put to them are in the review's "Changes applied" section; the weakest inputs are the anodic exchange-current density (spans four decades in the literature) and the mass-transfer coefficient.
-- [x] **Stop the kL_surf proxy deciding the headline interval.** `Mass Transfer!D91` branches on `spg_int_regime` (D134), which is itself computed from `kLa_surf_used`, so the 58× choice between 181 min and the 3.09 min O2-limited fallback still rests on an unmeasured proxy. At minimum, test the lag source (D135) rather than the steady one (D133) as the sheet's own notes claim, and gate the relaxed interval on `kLa_meas>0`.
-- [x] **Stop a missing organism DO band defaulting to a less conservative guard.** `target_DO_frac` (D84) falls back to 0.5; the one measured organism gives 0.26.
-- [x] **Add the gas-phase O2 back-pressure term** to the surface path (D73/D108/D131/D133/D135). Present DO_ss (1.37 mg/L) is below air saturation, and the real between-pulse headspace is electrolytic gas, not air. The CO2 side already carries the analogous floor.
-- [x] **Couple the CO2 sawtooth's headspace decay to liquid uptake.** As written the liquid absorbs 2.4x the CO2 ever delivered; this sets the endpoint pH on Summary D35.
-- [x] **Fix `Chemistry!D148`**: HOCl formation is 2 e- per HOCl in both regimes; the regime switch is redundant and inflates free chlorine 2x.
-- [x] **Decide on activity corrections in the pH solve** (I = 0.112 M; Davies moves pH_op 7.38 -> ~7.16), or state the infinite-dilution assumption in column E.
-- [x] **Fix the measured-kLa unit contradiction** (`Calibrations!C46` 1/s vs `Mass Transfer!C97` 1/h with a /3600) before anyone records a surface-kLa result.
-- [x] **Dead calibration routes**: `_xludf.MAXIFS` rewritten (it read as #NAME? in Excel, so the CO2-flow and sinter calibrations silently did nothing) and `cal_flow` is now actually consumed by `Mass Transfer!D117`.
-- [x] **Restore data validation on the four Summary selectors** (there is none on any sheet but Calibrations) and widen `ReactorList` to `Geometry!$A$59:$A$80`.
-- [x] **Re-base both Python companions.** The twin self-tests against hard-coded literals captured at 500 rpm/30 C (43 of 92 now disagree with the workbook) and hard-codes a retired 5 cm2 anode area; the sensitivity script still models the superseded surf_strip-credited guards, and every percentage in the Summary Improvements table comes from it.
-- [x] **Settle the operating point**: workbook 25 C/1000 rpm vs the protocol pack's 30 C vs the twin's 30 C/500 rpm; and either van 't Hoff `sigma`/`rho_L`/`D_O2` or state that they are 30 C values (D_O2 is 12% high at 25 C, so kL_surf is 6% high).
-- [x] **Correct the notes that contradict their own cells** — `E76` (DO_vent_eq 405 uM is above the ceiling, not "well below"), `E88`, `E89`, `E132`, `E133`/`E134`/`E135`, `E107`/`E125`/`E128`, `E145`.
-- [x] **Take `Electrochemistry!D45` from the achieved liquid level, not the bare datum** (wetted area 6.5% high), and add the water-vapour correction to `Calibrations!I23` per `protocols/faradaic-efficiency.md`.
-- [x] **Housekeeping**: blue input font on Summary D2:D8, the four mis-targeted CF rules, the five wrong hyperlink targets, `#VALUE!` on Summary D14/D16 for an uncalibrated reactor, the 17 `#DIV/0!` cells on Calibrations, the duplicate `R_gas`, and the named-cell/embedded-constant violations listed in the review.
 - [!] Rename the `Reactor` / `Reactor_sel` / `reactor_sel` defined-name triplet for consistency – **parked**: high reference-break risk for nit-level value; revisit only if a clean rename harness exists.
+
+### From the wave-5 review (2026-10-21; reports summarised in `electroPioreactorGasModel-Review.md`)
+
+Measurements, in leverage order:
+
+- [ ] **Characterise the headspace vent** (decides Summary D111 `vent_model`, the single highest-leverage open input): is the MEP0.3 vent outflow-only or does it exchange air, and at what flow? Pressure-decay test with a transducer on a headspace tube, or an optical O₂ spot in the headspace after a CO₂ fill. Outflow only gives 12.7 min / pH 6.16; air exchange at 0.5 mL/min gives 0.87 min / pH 6.23. Fix the cap leak noted on CO2 flows L8 first.
+- [ ] **Abiotic DO trace under the real schedule** (3 % power, no cells = lag source, optical DO patch): one run discriminates the vent hypotheses and checks the Summary rows 114–117 predictions.
+- [ ] **Headspace H₂/O₂ during lag before any unattended run**: the model puts it at ~16 % H₂, ~8 % O₂ (flammable). Syringe sample to a portable meter, or a catalytic H₂ sensor at the vent.
+- [ ] **Free + combined chlorine (DPD kit) in spent UdG after 24 h**: settles the chloramine lifetime `tau_NH2Cl`, which now moves the interval ±32 % through the free chloride share.
+- [ ] **Per-pulse CO₂ volume at 0.5–1.0 s through the sealed vial's outlet**, over acidified water: the bench data imply a fixed ~0.35 mL per pulse on top of flow × time (R2-M3, not yet modelled).
+- [ ] **Off-gas H₂ at steady growth**: measures the H₂ uptake fraction, which sets the O₂ surplus (`bio_O2`, ±200 % on the schedule).
+- [ ] **Confirm UdG CaCl₂ hydrate state** (anhydrous 110.98 vs dihydrate 147.01 g/mol: −24 % on every chlorine figure), the LED-driver rail and compliance, and whether the strain current-density limits are anode or cathode, geometric or wetted area.
+
+Owner decisions (questions T4–T8 in brain2 `AMYBO/electroPioreactor-fromClaude.md`):
+
+- [ ] **Size for lag or growth** (Summary D112). Lag is unreachable at the estimated surface kLa (margin 0.64×); both phases are shown either way.
+- [ ] **Consider a ~1 mL/min N₂ headspace sweep**: it would keep lag-phase H₂ below the flammable limit and hold the O₂ target without pushing pH below the band; the model shows CO₂ cannot do all three jobs (Summary D128 reads NO).
+
+Model work not yet done:
+
+- [ ] **Pulse-volume intercept** (R2-M3): fit V = V₀ + Q·t per reactor on CO2 flows and use it in the pulse and CO₂-per-pulse cells.
+- [ ] **Carryover check that can fail** (R3 M-17): add a per-reactor "max flow without carryover" column to CO2 flows and test against it; the 50 mm/s superficial-velocity rule never binds.
+- [ ] **Calibrations import block and positional lookups** (R3 CA-02, G-02, EC-03): ~85 Calibrations formulas and ~25 VLOOKUPs address other sheets by coordinate or column index.
+- [ ] **Bicarbonate storage in the CO₂ pool, dry-gas basis, salting-out** (R2-m3, R2-m8): each ≤5 % on the mean, larger on the sawtooth amplitude.
+- [ ] **Conditional-format thresholds on Summary D35/D36** still embed 6/6.5/7.5/8 and 0.1/1 (the patcher has no CF op); the Chemistry thresholds are named.
+- [ ] **Couple the proton-coupled voltage credit to the buffer verdict** (R1-14), or drop the sentence claiming it.
 
 ## Notes
 The earlier waves' blockers B2/B3/B4 and majors M1–M5 are resolved (see `CHANGELOG.md`), but the wave-4 review (2026-08-12) reopened the release question: the arithmetic is faithful throughout, while the sparge-interval recommendation, the O₂ surface path, the CO₂ sawtooth and both Python verification scripts each have a live defect. Those defects are fixed in the live workbook (wave-4 swapped in 2026-10-21 after a full Excel recalculation). Of the three broken protocol routes, the surface-kLa unit contradiction and the CO2-flow route are fixed; the vial-headspace measurement still does not reach the model.
