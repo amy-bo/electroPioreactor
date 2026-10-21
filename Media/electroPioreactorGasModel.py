@@ -411,8 +411,43 @@ DO_frac_target   = (DO_opt / DO_toxic if (isnum(DO_opt) and isnum(DO_toxic))
 # ============================================================================
 ec_O2_ceil   = O2_ceil_C                               # D80 (mol/m3) <- Biology D27
 ec_V_L       = V_charge / 1000                         # D82 (L)      <- Biology D6 / 1000
-km_O2        = 4.0e-3                                  # D83 (cm/s) Eisenberg-Tobias-Wilke, 6 mm rod in axial swirl
+km_O2_default = 4.0e-3                                 # D165 (cm/s) Eisenberg-Tobias-Wilke, 6 mm rod in axial swirl
 km_exp       = 0.644                                   # D84 (-) k_m ~ D^(1-0.356); documents the km_Cl scaling
+n_e_fcn      = 1                                       # Calibrations D192 one-electron ferricyanide couple
+km_T_tol     = 1                                       # Calibrations D193 (degC) a k_m run counts within this of temp_C
+KM_CAL = []   # Calibrations rows 168-175: (reactor, electrode, rpm, T_C, I_lim_mA, A_cm2, C_mM, D_fcn_m2s, include); tab empty
+
+
+def km_ferricyanide(I_lim_mA, A_cm2, C_mM):
+    """Calibrations column J (cm/s): k_m = I_lim/(n F A C), the limiting-current definition."""
+    return (I_lim_mA / 1000) / (n_e_fcn * F_const * (A_cm2 / 10000) * C_mM) * 100
+
+
+def km_O2_from_ferricyanide(km_fcn, D_fcn, D_O2_T):
+    """Calibrations column K (cm/s): the same D^km_exp scaling the model applies to every species."""
+    return km_fcn * (D_O2_T / D_fcn) ** km_exp
+
+
+def _same(a, b):
+    """Excel criteria compare text without regard to case."""
+    return str(a).strip().lower() == str(b).strip().lower()
+
+
+def cal_km_O2_of(rows, D_O2_T):
+    """Calibrations D176: mean O2-scaled k_m over included runs for this reactor and electrode at the
+    Summary rpm and T. Rows missing an input give "" in columns K/L, which AVERAGEIFS skips."""
+    ks = [km_O2_from_ferricyanide(km_ferricyanide(I, A, C), Df, D_O2_T)
+          for rx, el, rpm, T, I, A, C, Df, inc in rows
+          if _same(rx, Reactor_sel) and _same(el, electrode_sel) and _same(inc, "y")
+          and rpm == stir_rpm_set and abs(T - temp_C) <= km_T_tol
+          and all(isnum(v) and v != 0 for v in (I, A, C, Df))]
+    return sum(ks) / len(ks) if ks else NA
+
+
+NO_CAL_TXT = "no included runs — model uses its default"   # Calibrations value-in-use text when nothing is included
+HB_a, HB_b, HB_c = -4.41, 773.8, 506.4                # D171-D173 Han & Bartels (1996)
+cal_km_O2    = cal_km_O2_of(KM_CAL, 10 ** (HB_a + HB_b / T_K - (HB_c / T_K) ** 2) / 10000)   # Calibrations D176 (cm/s) <- Mass Transfer D32 D_O2; NA = no included run
+km_O2        = cal_km_O2 if isnum(cal_km_O2) else km_O2_default   # D83 (cm/s) measured if included, else the estimate
 M_O2 = 31.998                                          # MT D231 (g/mol) IUPAC 2 x 15.999
 DO_target     = (DO_opt / M_O2 if isnum(DO_opt)
                  else DO_frac_target * O2_ceil_C)       # MT D179 (mol/m3) organism optimum (mg/L -> mol/m3) when measured, else the fraction rule
@@ -500,7 +535,6 @@ pH_Cl  = _by_media(Cl_mc02, Cl_udg, Cl_amy)                   # D47
 
 # --- chlorine current: the binding limit of efficiency vs chloride arrival ---
 FE_CER   = 0.5                                         # D128 max CER efficiency (high-Cl plateau)
-HB_a, HB_b, HB_c = -4.41, 773.8, 506.4                # D171-D173 Han & Bartels (1996)
 D_O2_cl  = 10 ** (HB_a + HB_b / T_K - (HB_c / T_K) ** 2) / 10000   # = Mass Transfer D32 via Electrochemistry D81 (Chemistry D274)
 D_Cl     = 2.032e-9                                    # D277 (m2/s) CRC Vanysek, 25 C
 km_Cl    = km_O2 * (D_Cl / D_O2_cl) ** km_exp          # D129 (cm/s) scaled from km_O2 by D^0.644
@@ -508,7 +542,25 @@ A_anode  = A_anode_wet                                 # D130 (cm2) <- Electroch
 I_Cl_FE  = Iappc * FE_CER                              # D131 (A) efficiency-limited
 n_e_Cl   = 2                                           # D148 electrons per produced HOCl (moved above D132: R1-03)
 k_Cl_turn = km_Cl * A_anode / 1000 / VLc              # D271 (1/s) transport-limited chloride turnover, km.A/V
-tau_NH2Cl = 1                                          # D142 (h) monochloramine residence
+tau_NH2Cl_default = 1                                  # Chemistry D314 (h) weak central estimate
+M_Cl2_mg  = 70906                                       # Chemistry D223 (mg/mol)
+TAU_CAL = []  # Calibrations rows 181-188: (reactor, medium, plateau mg/L as Cl2, k_Cl_turn 1/s, Cl pool mol/L, P_Cl_max mol/L/s, include); tab empty
+
+
+def tau_from_dpd(C_Cl2_mgL, k_turn, Cl_pool, P_max):
+    """Calibrations column I (h): invert the steady state B = min(C k tau/(1+k tau), P tau) for tau.
+    Both branches increase with tau, so tau = max of the two inverses; NA when B reaches the pool."""
+    B = C_Cl2_mgL / M_Cl2_mg
+    if B >= Cl_pool:
+        return NA
+    return max(B / (k_turn * (Cl_pool - B)), B / P_max) / 3600
+
+
+cal_tau_NH2Cl = (lambda ts: sum(ts) / len(ts) if ts else NA)(
+    [t for t in (tau_from_dpd(C, k, pool, P) for rx, med, C, k, pool, P, inc in TAU_CAL
+                 if _same(rx, Reactor_sel) and _same(med, media_sel) and _same(inc, "y")) if isnum(t)])   # Calibrations D189 (h)
+tau_NH2Cl = cal_tau_NH2Cl if isnum(cal_tau_NH2Cl) else tau_NH2Cl_default   # D142 (h) monochloramine residence
+P_Cl_max = I_Cl_FE / (n_e_Cl * Fcc * VLc)              # Chemistry D315 (mol/L/s) efficiency-limited production, tau-independent
 Cl_bound = min(pH_Cl * k_Cl_turn * tau_NH2Cl * 3600 / (1 + k_Cl_turn * tau_NH2Cl * 3600),
                I_Cl_FE / (n_e_Cl * Fcc * VLc) * tau_NH2Cl * 3600, pH_NT)
 Cl_free_frac = max(0.0, 1 - Cl_bound / pH_Cl) if pH_Cl > 0 else 1.0  # D278 free share of the recycled chloride pool
@@ -1309,7 +1361,6 @@ f_local  = 10                                          # D141 anode boundary-lay
 #  chloride is regenerated as HOCl is reduced back to Cl- - stated, not proven.)
 Cl_pool_mgL = pH_Cl * 52460                            # D149 (mg/L as HOCl-equiv) chloride-pool ceiling
 cl_per_N = 5.06                                        # (mg Cl2 per mg NH3-N) NH2Cl stoichiometric cap; x M_HOCl/M_Cl2 puts it on the HOCl-equivalent basis
-M_Cl2_mg  = 70906                                       # Chemistry D223 (mg/mol)
 M_HOCl_mg = 52460                                       # Chemistry D222 (mg/mol)
 def _nh2cl(tau_h):
     """Chloride pool partly turned over to chlorine in tau: pool * k*tau/(1+k*tau), capped by the ammonium stoichiometry."""
@@ -1693,6 +1744,7 @@ SHEET_OF_PREFIX = {
     "Biology": "Biology",
     "MassXfer": "Mass Transfer",
     "AMYBO03": "AMYBO03",
+    "Calib": "Calibrations",
 }
 
 _LABEL_RE = re.compile(r"^(\w+)\s+(\$?[A-Z]{1,3}\$?[0-9]{1,7})\b")
@@ -2129,6 +2181,12 @@ OUTPUTS.extend([
     ("Summary D46 maximum power", power_max),
     ("Summary D47 maximum current mA", I_max_mA),
     ("Summary D48 maximum anode current density", j_anode_max),
+    # Measured electrode k_m and monochloramine lifetime enter through the Calibrations tab
+    ("Calib D176 cal_km_O2 value in use", cal_km_O2 if isnum(cal_km_O2) else NO_CAL_TXT),
+    ("Calib D189 cal_tau_NH2Cl value in use", cal_tau_NH2Cl if isnum(cal_tau_NH2Cl) else NO_CAL_TXT),
+    ("Echem D83  km_O2 in use (cm/s)", km_O2),
+    ("Chemistry D142 tau_NH2Cl in use (h)", tau_NH2Cl),
+    ("Chemistry D315 P_Cl_max (mol/L/s)", P_Cl_max),
 ])
 
 # Declared input -> Summary cell. Checked before anything is compared.

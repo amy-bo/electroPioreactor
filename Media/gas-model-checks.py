@@ -13,6 +13,7 @@ import tempfile
 import unittest
 import zipfile
 
+
 HERE = Path(__file__).resolve().parent
 SENS = HERE / 'electroPioreactorGasModel-sensitivity.py'
 TWIN = HERE / 'electroPioreactorGasModel.py'
@@ -105,13 +106,61 @@ class GasModelChecks(unittest.TestCase):
                 for item in zin.infolist():
                     data = zin.read(item.filename)
                     if item.filename == 'xl/worksheets/sheet3.xml':
-                        text, changed = re.subn(r'(<c\b[^>]*r="D83"[^>]*>.*?<v>)[^<]*(</v>)',
+                        text, changed = re.subn(r'(<c\b[^>]*r="D165"[^>]*>.*?<v>)[^<]*(</v>)',
                                                 r'\g<1>0.005\2', data.decode(), flags=re.S)
                         data = text.encode()
                     zout.writestr(item, data)
             self.assertEqual(changed, 1)
             with self.assertRaisesRegex(SystemExit, 'WORKBOOK DEFINITION DRIFT'):
                 verify_definition(dst / BOOK.name)
+
+    def test_calibrated_km_and_tau_reach_the_model(self):
+        n = self.twin()
+        # Limiting-current definition: 0.5 mA at 2 cm2 and 5 mM ferricyanide.
+        k_fcn = n['km_ferricyanide'](0.5, 2.0, 5.0)
+        self.assertTrue(math.isclose(k_fcn, 0.5e-3 / (96485.33212 * 2e-4 * 5) * 100, rel_tol=1e-12))
+        D_fcn = 7.2e-10
+        k_O2 = n['km_O2_from_ferricyanide'](k_fcn, D_fcn, n['D_O2'])
+        self.assertTrue(math.isclose(k_O2, k_fcn * (n['D_O2'] / D_fcn) ** 0.644, rel_tol=1e-12))
+        row = ('ED04', 'MMO tube', 1000.0, 30.0, 0.5, 2.0, 5.0, D_fcn, 'Y')     # Excel criteria ignore case
+        off = [('ed04', 'MMO tube', 500.0, 30.0, 0.5, 2.0, 5.0, D_fcn, 'y'),   # other rpm: not used
+               ('ed04', 'MMO tube', 1000.0, 25.0, 9.9, 2.0, 5.0, D_fcn, 'y'),  # outside the 1 K tolerance
+               ('ed06', 'MMO tube', 1000.0, 30.0, 9.9, 2.0, 5.0, D_fcn, 'y'),  # other reactor
+               ('ed04', 'Pt-Ti rod', 1000.0, 30.0, 9.9, 2.0, 5.0, D_fcn, 'y'), # other electrode
+               ('ed04', 'MMO tube', 1000.0, 30.0, 9.9, 2.0, 5.0, None, 'y'),    # missing D: skipped, as AVERAGEIFS skips ""
+               ('ed04', 'MMO tube', 1000.0, 30.0, 9.9, 2.0, 5.0, D_fcn, 'n')]  # not included
+        self.assertTrue(math.isnan(n['cal_km_O2_of'](off, n['D_O2'])))
+        cal = self.twin(KM_CAL=[row] + off)
+        self.assertTrue(math.isclose(cal['km_O2'], k_O2, rel_tol=1e-12))
+        self.assertTrue(math.isclose(cal['i_ORR_design'] / n['i_ORR_design'], k_O2 / 4e-3, rel_tol=1e-12))
+        # Lifetime: forward steady state at a known tau, then invert it (both branches).
+        u = self.twin(media_sel='UdG phosphate')
+        self.assertEqual(u['tau_NH2Cl'], 1)
+        k, pool, P = u['k_Cl_turn'], u['pH_Cl'], u['P_Cl_max']
+        for tau_true in (0.05, 1.0, 3.0, 40.0):
+            ts = tau_true * 3600
+            B = min(pool * k * ts / (1 + k * ts), P * ts)
+            C_mgL = B * 70906
+            back = u['tau_from_dpd'](C_mgL, k, pool, P)
+            self.assertTrue(math.isclose(back, tau_true, rel_tol=1e-9), (tau_true, back))
+        self.assertTrue(math.isnan(u['tau_from_dpd'](pool * 70906, k, pool, P)))
+        t = self.twin(media_sel='UdG phosphate',
+                      TAU_CAL=[('ed04', 'UdG phosphate', B * 70906, k, pool, P, 'y'),
+                               ('ed04', 'MC02', 9.0, k, pool, P, 'y')])
+        self.assertTrue(math.isclose(t['tau_NH2Cl'], 40.0, rel_tol=1e-9))
+        self.assertNotEqual(t['Cl_bound'], u['Cl_bound'])
+
+    def test_calibration_formulas_match_the_twin(self):
+        """The calibration rows are hand-written XML; pin their formula text to the twin's algebra."""
+        with zipfile.ZipFile(BOOK) as z:
+            sh = z.read('xl/worksheets/sheet8.xml').decode()
+        f = lambda ref: re.search(r'<c r="%s"[^>]*><f>([^<]*)</f>' % ref, sh).group(1).replace('&quot;', '"').replace('&gt;', '>').replace('&lt;', '<').replace('&amp;', '&')
+        self.assertEqual(f('K168'), 'IF(OR(G168="",H168="",I168=""),"",IFERROR((G168/1000)/(n_e_fcn*F_const*(H168/10000)*I168)*100,""))')
+        self.assertEqual(f('L168'), 'IF(OR(K168="",J168=""),"",IFERROR(K168*(D_O2/J168)^km_exp,""))')
+        self.assertEqual(f('I181'), 'IF(OR(E181="",F181="",G181="",H181=""),"",IF(E181/M_Cl2>=G181,"not invertible: plateau at or above the chloride pool",IFERROR(MAX(E181/M_Cl2/(F181*(G181-E181/M_Cl2)),E181/M_Cl2/H181)/3600,"")))')
+        self.assertIn('AVERAGEIFS(L168:L175,C168:C175,Reactor_sel,D168:D175,electrode_sel,N168:N175,"y",E168:E175,stir_rpm_set,'
+                      'F168:F175,"&gt;="&amp;(temp_C-km_T_tol),F168:F175,"&lt;="&amp;(temp_C+km_T_tol))', sh)
+        self.assertIn('AVERAGEIFS(I181:I188,C181:C188,Reactor_sel,D181:D188,media_sel,K181:K188,"y")', sh.replace('&quot;', '"'))
 
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):

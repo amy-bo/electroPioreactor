@@ -792,6 +792,8 @@ INPUT_CELLS = [
     ('D_int',         'Geometry', 'D22', BASE['D_int']),
     ('gerrit_slope',  'Electrochemistry', 'D11', BASE['gerrit_slope']),
     ('gerrit_int',    'Electrochemistry', 'D12', BASE['gerrit_int']),
+    ('km_O2',         'Electrochemistry', 'D83', BASE['km_O2']),      # a Calibrations-tab k_m run changes it
+    ('tau_NH2Cl',     'Chemistry', 'D142', BASE['tau_NH2Cl']),        # a Calibrations-tab DPD run changes it
     ('P_atm',         'Biology', 'D19', BASE['P_atm']),
     ('Q_CO2',         'Mass Transfer', 'D102', BASE['Q_CO2']),
 ]

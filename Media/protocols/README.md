@@ -51,10 +51,10 @@ Grey cells are computed for you: the tab derives the reactor **Type** from the r
 
 Multiple people can log multiple runs on multiple reactors or organisms in the same section. How the value in use is chosen depends on the parameter, and is stated under each section's heading:
 
-- **Averaged across included runs** where repeat measurements improve the estimate – Electrolysis current, Faradaic efficiency, surface kLa (per reactor); dissolved-oxygen bands, knallgas ratio, current-density tolerance (per organism); vial geometry (per reactor type, since all vials of a type are nominally identical).
+- **Averaged across included runs** where repeat measurements improve the estimate – Electrolysis current, Faradaic efficiency, surface kLa (per reactor); electrode mass transfer (per reactor and electrode, at the Summary stirrer rate and temperature); monochloramine lifetime (per reactor and medium); dissolved-oxygen bands, knallgas ratio, current-density tolerance (per organism); vial geometry (per reactor type, since all vials of a type are nominally identical).
 - **Latest included run wins** where the number is a hardware or valve setting that supersedes older values – CO₂ flow rate and sinter frit grade (per reactor).
 
-The value in use always matches whatever Reactor and Organism are selected on the Summary.
+The value in use always matches whatever is selected on the Summary: Reactor and Organism, and for the two newest sections also Electrode, Medium, stirrer rate and temperature.
 
 ## Order of work
 
@@ -68,11 +68,11 @@ The table is a priority list by leverage, not an execution sequence. DO operatin
 | 3 | Abiotic DO trace under the schedule | [abiotic-do-trace.md](abiotic-do-trace.md) | None: compare with Summary D116–D117 | One cell-free run that tests the whole headspace balance; do it after #1 and #2 |
 | 4 | Headspace H₂/O₂ (lag-phase flammability) | [headspace-gas-safety.md](headspace-gas-safety.md) | None: compare with Summary D124–D126 | Safety: required before any unattended run from inoculation |
 | 5 | Faradaic efficiency | [faradaic-efficiency.md](faradaic-efficiency.md) | Faradaic efficiency | The cathodic efficiency is calculated from an estimated mass-transfer coefficient; measuring it constrains the schedule’s O₂ source only with a supported species balance |
-| 6 | Electrode mass-transfer coefficient | [electrode-mass-transfer.md](electrode-mass-transfer.md) | None yet: compare with Electrochemistry D83 | Sets the cathodic O₂ loss, the peroxide source, the chlorine cap and the electrode-surface pH verdict |
+| 6 | Electrode mass-transfer coefficient | [electrode-mass-transfer.md](electrode-mass-transfer.md) | Electrode mass transfer (feeds Electrochemistry D83) | Sets the cathodic O₂ loss, the peroxide source, the chlorine cap and the electrode-surface pH verdict |
 | 7 | Dissolved oxygen & organism DO bands | [dissolved-oxygen.md](dissolved-oxygen.md) | Dissolved-oxygen thresholds | The organism's DO band sets the target operating DO and the schedule |
 | 8 | CO₂ flow calibration | [flow-calibration.md](flow-calibration.md) | CO₂ flow | Every reactor needs its own; an uncalibrated reactor reads "calibrate first". Step 10 checks it with the sparger attached |
 | 9 | Knallgas uptake stoichiometry | [knallgas-stoichiometry.md](knallgas-stoichiometry.md) | Knallgas ratio | Sets the O₂ surplus and carbon demand the schedule is built on |
-| 10 | Free and combined chlorine (DPD) | [chlorine-species.md](chlorine-species.md) | None yet: compare with Chemistry D142 | Settles the monochloramine lifetime, about ±32 % on the interval |
+| 10 | Free and combined chlorine (DPD) | [chlorine-species.md](chlorine-species.md) | Monochloramine lifetime (feeds Chemistry D142, per medium) | Settles the monochloramine lifetime, about ±32 % on the interval |
 | 11 | Sinter (frit) porosity grade | [sinter-porosity.md](sinter-porosity.md) | Sinter porosity | Sets bubble size; only matters when the sparger is a sintered frit |
 | 12 | Electrolysis current calibration | [gerrit-current.md](gerrit-current.md) | Electrolysis current | Current is the master input for all H₂/O₂ generation; re-check per electrode and cell |
 | – | Current-density screen (new strain) | [current-density-screen.md](current-density-screen.md) | Current density | Only when a strain has no trustworthy published current-density tolerance |
