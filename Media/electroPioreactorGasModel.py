@@ -326,8 +326,10 @@ ec_V_L       = V_charge / 1000                         # D82 (L)      <- Biology
 km_O2        = 4.0e-3                                  # D83 (cm/s) Eisenberg-Tobias-Wilke, 6 mm rod in axial swirl
 km_exp       = 0.644                                   # D84 (-) k_m ~ D^(1-0.356); documents the km_Cl scaling
 ec_DO_design = ec_DO_frac * ec_O2_ceil                 # D85 (mol/m3)
-i_ORR_design = z_e_ORR * F_const * (km_O2 / 100) * ec_DO_design * (A_cath_wet / 10000)   # D86 (A)
-i_ORR_ceiling = z_e_ORR * F_const * (km_O2 / 100) * ec_O2_ceil * (A_cath_wet / 10000)    # D87 (A)
+f_HOOH        = 0.15                                   # D91 (-) peroxide selectivity on stainless (Le Bozec 2001)
+n_ORR_eff     = z_e_ORR * f_HOOH + z_e_O2 * (1 - f_HOOH)   # Electrochemistry D141 (e-/O2) selectivity-weighted: 2 e- to H2O2, 4 e- to H2O
+i_ORR_design = n_ORR_eff * F_const * (km_O2 / 100) * ec_DO_design * (A_cath_wet / 10000)   # D86 (A)
+i_ORR_ceiling = n_ORR_eff * F_const * (km_O2 / 100) * ec_O2_ceil * (A_cath_wet / 10000)    # D87 (A)
 etaF_calc     = max(0.0, 1 - i_ORR_design / I_app)     # D88 (-)
 etaF_calc_min = max(0.0, 1 - i_ORR_ceiling / I_app)    # D89 (-) worst case at the ceiling DO
 etaF          = etaF_calc                              # D18 = IFERROR(cal_etaF, etaF_calc)
@@ -414,13 +416,13 @@ FE_CER   = 0.5                                         # D128 max CER efficiency
 km_Cl    = 0.00405                                     # D129 (cm/s) = km_O2 x (D_Cl/D_O2)^0.644
 A_anode  = A_anode_wet                                 # D130 (cm2) <- Electrochemistry D46
 I_Cl_FE  = Iappc * FE_CER                              # D131 (A) efficiency-limited
-I_Cl_mt  = Fcc * km_Cl * (pH_Cl / 1000) * A_anode      # D132 (A) chloride mass-transport limit
+n_e_Cl   = 2                                           # D148 electrons per produced HOCl (moved above D132: R1-03)
+I_Cl_mt  = n_e_Cl * Fcc * km_Cl * (pH_Cl / 1000) * A_anode   # D132 (A) chloride mass-transport limit (2 e- per Cl- -> HOCl)
 I_Cl     = min(I_Cl_FE, I_Cl_mt)                       # D133 (A) binding limit (mt-limited at trace Cl-)
 # WAVE-4: n_e_Cl is now the constant 2 on every route (2Cl- -> Cl2 -> HOCl, and
 # the direct Cl- + H2O -> HOCl route, are both 2 e- per HOCl). The n = 1 in the
 # mass-transport limit above is a FLUX count of arriving chloride, not a
 # stoichiometry, so the old 1-or-2 regime switch conflated two different things.
-n_e_Cl   = 2                                           # D148 electrons per produced HOCl
 
 
 # ============================================================================
@@ -429,14 +431,21 @@ n_e_Cl   = 2                                           # D148 electrons per prod
 # ============================================================================
 ec_I_Cl     = I_Cl                                     # D101 (A)  <- Chemistry D133
 ec_corr_I   = NA                                       # D102 (-)  <- Chemistry D158 (DATA GAP)
+f_HOR_anode = NA                                       # D145 (-)  fraction of anodic charge lost to H2 oxidation. DATA GAP (empty cell) - measure
 f_Cl_anode  = ec_I_Cl / I_app                          # D103 (-)
 etaF_OER_calc = max(0.0, 1 - f_Cl_anode
-                    - (ec_corr_I if isnum(ec_corr_I) else 0.0))   # D104 (-)
+                    - (ec_corr_I if isnum(ec_corr_I) else 0.0)
+                    - (f_HOR_anode if isnum(f_HOR_anode) else 0.0))   # D104 (-)
 etaF_OER    = etaF_OER_calc                            # D26 = IFERROR(cal_etaF_OER, etaF_OER_calc)
 
+ec_C_H2_sat = C_H2_sat                                 # D146 (mol/m3) <- Biology D41
+i_HOR_lim   = z_e_H2 * F_const * (km_O2 / 100) * ec_C_H2_sat * (A_anode_wet / 10000)   # D147 (A) H2 mass-transport limit at the anode (km_O2 stand-in)
+f_HOR_lim   = i_HOR_lim / I_app                        # D148 (-) upper bound on f_HOR_anode
+r_H2_HOR    = (f_HOR_anode * I_app / (z_e_H2 * F_const) * 3600
+               if isnum(f_HOR_anode) else 0.0)         # D149 (mol/h) H2 re-oxidised at the anode (0 while the gap is empty)
 rH2_gen    = I_app * etaF / (z_e_H2 * F_const) * 3600          # D21 (mol/h)
 rO2_gen    = I_app * etaF_OER / (z_e_O2 * F_const) * 3600      # D22 (mol/h)
-O2_cathode_ORR = I_app * (1 - etaF) / (z_e_ORR * F_const) * 3600  # D28 (mol/h)
+O2_cathode_ORR = I_app * (1 - etaF) / (n_ORR_eff * F_const) * 3600  # D28 (mol/h)
 O2_net_gen = rO2_gen - O2_cathode_ORR                          # D29 (mol/h)
 V_H2_gen   = rH2_gen / 60 * R_gas_mt * T_K / P_atm * 1e6       # D23 (mL/min)
 V_O2_gen   = rO2_gen / 60 * R_gas_mt * T_K / P_atm * 1e6       # D24 (mL/min)
@@ -448,29 +457,20 @@ V_gas_total = V_H2_gen + V_O2_gen                              # D25 (mL/min)
 #   The 2-electron branch of the same cathodic O2 reduction that sets etaF.
 #   A source term the model previously did not have at all.
 # ============================================================================
-f_HOOH        = 0.15                                   # D91 (-) peroxide selectivity on stainless (Le Bozec 2001)
 M_H2O2        = 34.0147                                # D92 (g/mol)
-r_H2O2        = f_HOOH * i_ORR_design / (2 * F_const) * M_H2O2 * 1000 * 3600 / ec_V_L  # D93 (mg/L/h)
+r_H2O2        = f_HOOH * I_app * (1 - etaF) / (n_ORR_eff * F_const) * M_H2O2 * 1000 * 3600 / ec_V_L  # D93 (mg/L/h)
 k_cat_cells   = 4.1e-3                                 # D94 (1/s) whole-culture catalase clearance, ~1e8 cells/mL
 H2O2_ss       = r_H2O2 / (k_cat_cells * 3600)          # D95 (mg/L) growing culture
-H2O2_lag_1h   = r_H2O2                                 # D96 (mg/L) no catalase pool yet: 1 h of pure accumulation
 H2O2_thresh   = 0.17                                   # D97 (mg/L) 5 uM sustained slows growth (Li & Imlay 2018)
-t_H2O2_thresh = (H2O2_thresh / r_H2O2 * 60) if r_H2O2 > 0 else NA   # D98 (min)
-if H2O2_ss > H2O2_thresh:
-    H2O2_flag = ("PEROXIDE ABOVE THE GROWTH-INHIBITION THRESHOLD even with a full catalase pool ("
-                 + xltext(H2O2_ss, "0.00") + " mg/L)")
-elif H2O2_lag_1h > H2O2_thresh:
-    H2O2_flag = ("watch — steady growth is clear (" + xltext(H2O2_ss, "0.000")
-                 + " mg/L) but LAG PHASE is not: peroxide passes the threshold in "
-                 + xltext(t_H2O2_thresh, "0") + " min before biomass can scavenge it")
-else:
-    H2O2_flag = "OK — peroxide stays below the growth-inhibition threshold in both phases"  # D99
+# (D96 H2O2_lag_1h, D98 t_H2O2_thresh and D99 H2O2_flag need the lag-phase DO from
+#  Mass Transfer D135, so they are evaluated further down, after the schedule.)
 
 
 # ============================================================================
 # BIOLOGY TAB - part B: gas requirement ratios & consumption (rows 13-16, 42-44)
 # ============================================================================
-H2_cons  = rH2_gen                                    # D13 (mol/h)
+H2_HOR_b  = r_H2_HOR                                   # Biology D96 (mol/h) <- Electrochemistry D149
+H2_cons  = max(0.0, rH2_gen - H2_HOR_b)               # D13 (mol/h) H2 reaching the culture, net of anodic re-oxidation
 O2_cons  = H2_cons * bio_O2 / bio_H2                  # D14 (mol/h)
 CO2_cons = H2_cons * bio_CO2 / bio_H2                 # D15 (mol/h)
 O2_excess = max(0.0, O2_net_gen - O2_cons)            # D16 (mol/h) floored: pole at the knallgas cap
@@ -569,7 +569,7 @@ eta_cath    = b_cath * math.log10(j_cathode / 1000 / j0_cath)     # D112 (V)
 pcet_credit = -0.15                                    # D113 (V) neutral-pH OER via the buffer base
 ec_kappa    = kappa_med                                # D114 (S/m) <- Chemistry D180
 ec_gap      = elec_gap                                 # D115 (mm)  <- Geometry D92
-k_geom      = 2.0                                      # D116 (-) unbounded-electrolyte correction
+k_geom      = 1.0                                      # D116 (-) unbounded-electrolyte correction (R1-06: was 2, a double count; Gerrit-validated range now consistent)
 R_cell      = k_geom * math.acosh(ec_gap / anode_dia) / (math.pi * ec_kappa * (L_sub / 1000))  # D117 (ohm)
 V_IR        = I_app * R_cell                           # D118 (V)
 V_cell_est  = ec_E_rev + eta_anode + eta_cath + pcet_credit + V_IR   # D119 (V)
@@ -583,6 +583,18 @@ elif V_headroom < 1:
 else:
     V_flag = ("OK — " + xltext(V_cell_est, "0.00") + " V estimated against a "
               + xltext(V_rail, "0") + " V rail")       # D122
+# --- R1-06: the same budget at the top of the Gerrit-validated band ---
+I_at_gerrit_max = (gerrit_slope * gerrit_max + gerrit_int) / 1000        # D142 (A)
+V_at_gerrit_max = (ec_E_rev + b_anode * math.log10(I_at_gerrit_max / A_anode_wet / j0_anode)
+                   + b_cath * math.log10(I_at_gerrit_max / A_cath_wet / j0_cath)
+                   + pcet_credit + I_at_gerrit_max * R_cell)             # D143 (V)
+if V_at_gerrit_max > V_rail:
+    V_gerrit_flag = ("INCONSISTENT — the budget needs " + xltext(V_at_gerrit_max, "0.00") + " V at "
+                     + xltext(gerrit_max, "0") + " %, above the " + xltext(V_rail, "0")
+                     + " V rail, where Gerrit's Law is validated linear: R_cell (k_geom) or j₀ is too high")
+else:
+    V_gerrit_flag = ("OK — " + xltext(V_at_gerrit_max, "0.00") + " V at " + xltext(gerrit_max, "0")
+                     + " %, under the " + xltext(V_rail, "0") + " V rail across the validated band")   # D144
 
 
 # ============================================================================
@@ -681,7 +693,9 @@ spg_int_carbon = spg_dur_opt / (60 * duty_carbon)      # D112 (min) - carbon-lim
 # oxygen OUT of the headspace with CO2. kL_surf now moves the answer
 # continuously instead of switching which formula runs.
 CO2_rate_full = nCO2_rate * 3600                       # D178 (mol/h) sparge line at 100% duty
-DO_target     = target_DO_frac * O2_ceil_C             # D179 (mol/m3)
+M_O2 = 31.998                                          # MT D231 (g/mol) IUPAC 2 x 15.999
+DO_target     = (DO_opt / M_O2 if isnum(DO_opt)
+                 else target_DO_frac * O2_ceil_C)       # D179 (mol/m3) organism optimum (mg/L -> mol/m3) when measured, else the fraction rule
 DO_surf_excess = O2_excess / (kLa_surf_used * 3600 * (V_charge / 1e6))    # D180 (mol/m3)
 DO_surf_excess_lag = O2_net_gen / (kLa_surf_used * 3600 * (V_charge / 1e6))  # D181 (mol/m3)
 hs_O2_allow   = DO_target - DO_surf_excess             # D182 (mol/m3)
@@ -696,6 +710,11 @@ spg_int_opt = (min(spg_int_carbon, spg_int_DO) if isnum(spg_int_DO)
                else min(spg_int_carbon, spg_int_max))                  # D91 (min)
 spg_int_opt_s = spg_int_opt * 60                       # D92 (s)
 duty_actual = spg_dur_opt / (spg_int_opt * 60)         # D93
+pulse_res   = 0.05                                     # MT D241 (s) solenoid timing resolution
+def _mround(x, m):
+    """Excel MROUND (half away from zero)."""
+    return float((Decimal(repr(x)) / Decimal(repr(m))).quantize(Decimal(1), rounding=ROUND_HALF_UP)) * m
+spg_dur_run = max(pulse_floor, _mround(spg_dur_opt, pulse_res))   # MT D242 (s) pulse duration as actually run
 if not isnum(spg_int_DO):
     opt_binding = "O2-INFEASIBLE (see D134)"
 elif spg_int_DO <= spg_int_carbon:
@@ -758,12 +777,28 @@ else:
 # --- steady dissolved O2 = headspace floor + the excess that drives the surface flux ---
 y_O2_actual = (O2_excess / (O2_excess + CO2_supply)) if CO2_supply > 0 else NA  # D187 (-)
 DO_hs_floor = (H_O2_T * y_O2_actual * P_atm) if isnum(y_O2_actual) else NA      # D188 (mol/m3)
-M_O2 = 31.998                                          # MT D231 (g/mol) IUPAC 2 x 15.999
 DO_ss = (DO_hs_floor + DO_surf_excess) * M_O2          # D108 (mg/L)
 # DO if the interval relaxed to the carbon-limited one: same back-pressure + surface balance as D188/D180 at duty_carbon
 DO_at_carbon = H_O2_T * P_atm * O2_excess / (O2_excess + CO2_rate_full * duty_carbon) + DO_surf_excess   # MT D232 (mol/m3)
 DO_ss_sawtooth = DO_hs_floor + DO_surf_excess          # D133 (mol/m3, growth-phase source)
 DO_ss_sawtooth_lag = DO_hs_floor + DO_surf_excess_lag  # D135 (mol/m3, LAG source)
+
+# --- Electrochemistry D96/D98/D99 + rows 150-152: lag-phase peroxide, first-order anodic loss (R1-09) ---
+ec_DO_lag     = DO_ss_sawtooth_lag                     # Electrochemistry D150 (mol/m3) <- MT D135
+k_H2O2_anode  = (km_O2 / 100) * (A_anode_wet / 10000) / (ec_V_L / 1000)   # D151 (1/s) peroxide re-oxidised at the anode
+r_H2O2_lag    = r_H2O2 * ec_DO_lag / ec_DO_design      # D152 (mg/L/h) source scaled by the lag-phase DO
+H2O2_lag_1h   = r_H2O2_lag / (k_H2O2_anode * 3600) * (1 - math.exp(-k_H2O2_anode * 3600))   # D96 (mg/L) 1 h with no catalase pool, anodic loss included
+_arg = 1 - H2O2_thresh * k_H2O2_anode * 3600 / r_H2O2_lag if r_H2O2_lag > 0 else NA
+t_H2O2_thresh = (-math.log(_arg) / k_H2O2_anode / 60) if (isnum(_arg) and _arg > 0) else NA   # D98 (min)
+if H2O2_ss > H2O2_thresh:
+    H2O2_flag = ("PEROXIDE ABOVE THE GROWTH-INHIBITION THRESHOLD even with a full catalase pool ("
+                 + xltext(H2O2_ss, "0.00") + " mg/L)")
+elif H2O2_lag_1h > H2O2_thresh:
+    H2O2_flag = ("watch — steady growth is clear (" + xltext(H2O2_ss, "0.000")
+                 + " mg/L) but LAG PHASE is not: peroxide passes the threshold in "
+                 + xltext(t_H2O2_thresh, "0") + " min before biomass can scavenge it")
+else:
+    H2O2_flag = "OK — peroxide stays below the growth-inhibition threshold in both phases"  # D99
 
 # --- bubble-path stripping (sub-mm bubble -> excluded) ---
 u_sg     = (Q_CO2 / 1e6 / 60) / (A_x / 1e6)            # D47 (m/s)
@@ -854,7 +889,7 @@ tau_hs         = headspace_V_m3 / (Q_vent / 1e6 / 60) / 60   # MT D144 (min) hea
 C_sat_CO2      = H_CO2_T * P_atm                        # MT D145 (mol/m3) pure-CO2 sparge saturation
 C_air_CO2      = H_CO2_T * pCO2_air                     # MT D146 (mol/m3) air-equilibrium
 sqrtD_CO2      = math.sqrt(D_CO2 / D_O2)                # MT D147 penetration-theory diffusivity scaling
-kLa_CO2_off    = kLa_surf * sqrtD_CO2                   # MT D148 (1/s) surface-path between pulses
+kLa_CO2_off    = kLa_surf_used * sqrtD_CO2                   # MT D148 (1/s) surface-path between pulses
 tau_surf_floor = 1 / kLa_CO2_off / 60                   # MT D149 (min) surface-relaxation time
 n_hs_gas       = P_atm * headspace_V_m3 / (R_gas * T_K) # MT D150 (mol) headspace gas inventory
 t_on_CO2       = spg_dur                                # MT D151 (s) pulse duration
@@ -883,6 +918,8 @@ pool_e         = math.exp(-k_eff_CO2 * t_off_CO2)       # MT D197 (-)
 C_cycle_start  = ((C_air_CO2 * (1 - pool_e) + pool_b * pool_e)
                   / (1 - pool_a * pool_e))              # MT D198 (mol/m3) fixed point of the cycle
 C_cycle_peak   = pool_a * C_cycle_start + pool_b        # MT D199 (mol/m3)
+C_cycle_start_b = C_cycle_start                         # Biology D97 (mol/m3) <- MT D198
+CO2_margin_trough = C_cycle_start_b * 1000 / Km_CO2     # Biology D98 (x) carbon margin at the cycle trough (R2-m4)
 CO2_cyc_avg_new = (C_air_CO2 + (C_cycle_peak - C_air_CO2) * (1 - pool_e) / (k_eff_CO2 * t_off_CO2)
                    if k_eff_CO2 * t_off_CO2 > 0 else C_cycle_peak)   # MT D200 (mol/m3)
 CO2aqc         = min(C_sat_CO2, max(C_air_CO2, CO2_cyc_avg_new)) / 1000   # MT D162 = Chemistry D5 (mol/L)
@@ -933,6 +970,7 @@ bleach_t1ppm  = 1 / bleach_rate * 60                   # D108 (min)
 HOCl_max = pH_Cl * pH_fHOCl * 52460                    # D125 (naive FE=1 ceiling, superseded)
 # --- graded kinetic free-chlorine penalty model (operative; Chemistry rows 128-149) ---
 P_HOCl   = I_Cl / (n_e_Cl * Fcc * VLc)                 # D134 (mol/L/s) volumetric free-Cl production
+k_Cl_turn = (P_HOCl / pH_Cl) if pH_Cl > 0 else 0.0     # D271 (1/s) fractional chloride turnover rate: volumetric Cl- consumption / pool
 NH3_N    = pH_NT * 14007                               # D135 (mg/L) ammonium as N
 k1_NH2Cl = 4.2e6                                       # D136 (M^-1 s^-1) HOCl+NH3 rate constant
 pKa_NH4  = -math.log10(Ka_NH4)                         # D137 (from the van 't Hoff-corrected Ka_NH4)
@@ -948,7 +986,14 @@ tau_NH2Cl = 1                                          # D142 (h) monochloramine
 # (In a closed batch this pool also DEPLETES; a steady value at the cap presumes
 #  chloride is regenerated as HOCl is reduced back to Cl- - stated, not proven.)
 Cl_pool_mgL = pH_Cl * 52460                            # D149 (mg/L as HOCl-equiv) chloride-pool ceiling
-NH2Cl_mgL = min(P_HOCl * tau_NH2Cl * 3600 * 52460, 5.06 * NH3_N, Cl_pool_mgL)  # D143 (mg/L) combined chlorine, pool-capped
+cl_per_N = 5.06                                        # (mg Cl2 per mg NH3-N) NH2Cl stoichiometric cap; x M_HOCl/M_Cl2 puts it on the HOCl-equivalent basis
+M_Cl2_mg  = 70906                                       # Chemistry D223 (mg/mol)
+M_HOCl_mg = 52460                                       # Chemistry D222 (mg/mol)
+def _nh2cl(tau_h):
+    """Chloride pool partly turned over to chlorine in tau: pool * k*tau/(1+k*tau), capped by the ammonium stoichiometry."""
+    kt = k_Cl_turn * tau_h * 3600
+    return min(Cl_pool_mgL * kt / (1 + kt), cl_per_N * NH3_N * M_HOCl_mg / M_Cl2_mg)
+NH2Cl_mgL = _nh2cl(tau_NH2Cl)                          # D143 (mg/L) combined chlorine, pool-capped (R1-02: pool depletes as it turns over)
 R_chloramine = 25                                      # D144 monochloramine potency divisor
 # BUGFIX (review 2026-06-26) double pH-discount removed: HOCl_ss is ALREADY the
 # undissociated hypochlorous acid, so the old extra *pH_fHOCl multiplier on the
@@ -961,8 +1006,8 @@ tau_NH2Cl_lo = 1 / 60                                  # D150 (h) 1 min
 tau_NH2Cl_hi = 5                                       # D151 (h)
 R_chloramine_lo = 18                                   # D152 most-potent end of defensible band
 R_chloramine_hi = 70                                   # D153 least-potent end
-NH2Cl_lo = min(P_HOCl * tau_NH2Cl_lo * 3600 * 52460, 5.06 * NH3_N, Cl_pool_mgL)  # D154
-NH2Cl_hi = min(P_HOCl * tau_NH2Cl_hi * 3600 * 52460, 5.06 * NH3_N, Cl_pool_mgL)  # D155
+NH2Cl_lo = _nh2cl(tau_NH2Cl_lo)                        # D154
+NH2Cl_hi = _nh2cl(tau_NH2Cl_hi)                        # D155
 C_eff_lo = f_local * HOCl_ss_mgL + NH2Cl_lo / R_chloramine_hi  # D156 least chlorine, least potent
 C_eff_hi = f_local * HOCl_ss_mgL + NH2Cl_hi / R_chloramine_lo  # D157 most chlorine, most potent
 # --- electrode-corrosion / dissolved-metal pathway (DATA GAP: the UNMODELLED prime suspect for Exp-2) ---
@@ -976,8 +1021,6 @@ metal_flag = ("DATA GAP - measure dissolved Cu/Ni/Fe in spent medium; the green 
               "electrode corrosion / metal leaching as the unmodelled prime suspect for the Exp-2 death"
               if not isnum(corr_I_frac)
               else f"metal leach {metal_leach_rate:.2f} mg/L/h vs ~{metal_tox_thresh} mg/L bactericidal threshold")  # D163
-M_HOCl_mg = 52460                                       # Chemistry D222 (mg/mol)
-M_Cl2_mg  = 70906                                       # Chemistry D223 (mg/mol)
 C_eff_Cl2 = C_eff * M_Cl2_mg / M_HOCl_mg                # Chemistry D226 (mg/L as Cl2)
 C_eff_lo_Cl2 = C_eff_lo * M_Cl2_mg / M_HOCl_mg          # Chemistry D259 (mg/L as Cl2)
 C_eff_hi_Cl2 = C_eff_hi * M_Cl2_mg / M_HOCl_mg          # Chemistry D260 (mg/L as Cl2)
@@ -1017,11 +1060,16 @@ E_Cu_margin = E_anode_op - E0_Cu                       # D211 (V) operating anod
 
 # --- buffer capacity at the electrode surface (Chemistry rows 213-219) ---
 D_HPO4     = 7.59e-10                                  # D214 (m2/s) CRC tabulated
-delta_diff = 40.0                                      # D215 (um) from k_m = D/delta at the assumed swirl
+km_O2_c    = km_O2                                     # D272 (cm/s) <- Electrochemistry D83
+km_exp_c   = km_exp                                    # D273 (-)    <- Electrochemistry D84
+D_O2_c     = D_O2                                      # D274 (m2/s) <- Electrochemistry D81
+delta_diff = D_O2_c / (km_O2_c / 100) * 1e6            # D215 (um) DERIVED display: film thickness implied by km_O2 (was a typed 40)
 D_HCO3     = 1.185e-9                                  # D251 (m2/s) CRC
 HCO3_op    = Ka1c_c * CO2aqc / 10 ** -pH_op            # D252 (mol/L) concentration scale
 HPO4_op    = pH_PT / (1 + 10 ** (-math.log10(Ka2p_c) - pH_op))   # D253 (mol/L)
-j_buffer_lim = Fcc * (D_HPO4 * HPO4_op + D_HCO3 * HCO3_op) * 1000 / (delta_diff / 1e6) / 10   # D216 (mA/cm2) phosphate + bicarbonate acceptors
+km_HPO4    = km_O2_c * (D_HPO4 / D_O2_c) ** km_exp_c   # D275 (cm/s) k_m scaled by the same D^0.644 law as km_Cl
+km_HCO3    = km_O2_c * (D_HCO3 / D_O2_c) ** km_exp_c   # D276 (cm/s)
+j_buffer_lim = Fcc * ((km_HPO4 / 100) * HPO4_op + (km_HCO3 / 100) * HCO3_op) * 1000 / 10   # D216 (mA/cm2) phosphate + bicarbonate acceptors
 j_anode_c    = j_anode                                 # D217 <- Electrochemistry D48
 j_buffer_ratio = j_anode_c / j_buffer_lim              # D218 (-)
 if j_buffer_ratio > 1:
@@ -1048,6 +1096,11 @@ def iferror(fn, fallback):
         return fallback
 
 
+def round_half_up(x):
+    """Excel ROUND(x, 0): half away from zero (Python round() is banker's)."""
+    return int(Decimal(repr(x)).quantize(Decimal(1), rounding=ROUND_HALF_UP))
+
+
 def round_sig_or_int(x):
     """Excel: IF(NOT(ISNUMBER(x)),x, IF(x>0.5, ROUND(x,0), ROUND(x, 1-(1+INT(LOG10(ABS(x))))))) ."""
     if not isnum(x):
@@ -1061,10 +1114,10 @@ def round_sig_or_int(x):
 S_D13 = iferror(lambda: spg_dur_opt,   # D13: ='Mass Transfer'!D90 (spg_dur_opt)
                 "calibrate this reactor first (see CO2 flows)")
 S_D14 = (user_spg_dur if (isnum(user_spg_dur) and user_spg_dur > 0)
-         else (round_sig_or_int(S_D13) if isinstance(S_D13, float) else S_D13))   # D14
+         else (spg_dur_run if isinstance(S_D13, float) else S_D13))   # D14 -> MT D242 (R2-M4)
 S_D15 = iferror(lambda: spg_int_opt, "calibrate this reactor first (see CO2 flows)")  # D15
 S_D16 = (user_spg_int if (isnum(user_spg_int) and user_spg_int > 0)
-         else (round_sig_or_int(S_D15) if isinstance(S_D15, float) else S_D15))   # D16
+         else (float(round_half_up(S_D14 / (60 * duty_actual))) if isinstance(S_D15, float) else S_D15))   # D16 = whole minutes at the optimised duty (R2-M4)
 S_D19 = geom_check                                      # D19 vial geometry
 S_D20 = cal_warning                                     # D20 reactor calibrated
 S_D21 = DO_ss_vs_opt                                    # D21 O2 at/under optimum
@@ -1088,8 +1141,10 @@ S_D36 = C_eff_Cl2                                       # D36 effective biocidal
 S_D38 = DO_ss                                           # D38 steady-state DO
 S_D39 = spg_int_carbon                                  # D39 interval if O2 handled
 S_D40 = tip_speed                                       # D40 stir-bar tip speed
-S_D41 = CO2_carbon_margin                               # D41 carbon margin
+S_D41 = CO2_margin_trough                                # D41 carbon margin at the cycle trough (Biology D98)
 # --- wave-4 block (Summary rows 81-90): hand these to an electrochemist ---
+S_D95 = (S_D14 / (60 * S_D16) / duty_actual if (isnum(S_D14) and isnum(S_D16)) else
+         "calibrate this reactor first (see CO2 flows)")   # D95 as-run / optimised duty
 S_D82 = etaF_calc                                       # D82 cathodic faradaic efficiency (calculated)
 S_D83 = V_cell_est                                      # D83 estimated cell voltage
 S_D84 = V_flag                                          # D84 cell-voltage verdict
@@ -1279,6 +1334,7 @@ OUTPUTS = [
 
     # --- Electrochemistry: calculated faradaic split (wave-4, rows 78-89) ---
     ("Echem D85  ec_DO_design (mol/m3)",               ec_DO_design),
+    ("Echem D141 n_ORR_eff (e-/O2)",                  n_ORR_eff),
     ("Echem D86  i_ORR_design (A)",                    i_ORR_design),
     ("Echem D87  i_ORR_ceiling (A)",                   i_ORR_ceiling),
     ("Echem D88  etaF_calc (-)",                       etaF_calc),
@@ -1289,6 +1345,9 @@ OUTPUTS = [
     ("Echem D96  H2O2_lag_1h (mg/L)",                  H2O2_lag_1h),
     ("Echem D98  t_H2O2_thresh (min)",                 t_H2O2_thresh),
     ("Echem D99  H2O2_flag",                           H2O2_flag),
+    ("Echem D150 ec_DO_lag (mol/m3)",                  ec_DO_lag),
+    ("Echem D151 k_H2O2_anode (1/s)",                  k_H2O2_anode),
+    ("Echem D152 r_H2O2_lag (mg/L/h)",                 r_H2O2_lag),
     # --- Electrochemistry: anodic charge budget (wave-4, rows 100-104) ---
     ("Echem D103 f_Cl_anode (-)",                      f_Cl_anode),
     ("Echem D104 etaF_OER_calc (-)",                   etaF_OER_calc),
@@ -1300,6 +1359,14 @@ OUTPUTS = [
     ("Echem D119 V_cell_est (V)",                      V_cell_est),
     ("Echem D121 V_headroom (V)",                      V_headroom),
     ("Echem D122 V_flag",                              V_flag),
+    ("Echem D142 I_at_gerrit_max (A)",                 I_at_gerrit_max),
+    ("Echem D143 V_at_gerrit_max (V)",                 V_at_gerrit_max),
+    ("Echem D144 V_gerrit_flag",                       V_gerrit_flag),
+    # --- Electrochemistry: anodic H2 oxidation (R1-08; f_HOR_anode is an empty data gap) ---
+    ("Echem D146 ec_C_H2_sat (mol/m3)",                ec_C_H2_sat),
+    ("Echem D147 i_HOR_lim (A)",                       i_HOR_lim),
+    ("Echem D148 f_HOR_lim (-)",                       f_HOR_lim),
+    ("Echem D149 r_H2_HOR (mol/h)",                    r_H2_HOR),
 
     # --- Summary tab (every cell with a Value/result) ---
     ("Summary D13  CO2 pulse duration (s)",            S_D13),
@@ -1327,7 +1394,8 @@ OUTPUTS = [
     ("Summary D38  Steady-state DO (mg/L)",            S_D38),
     ("Summary D39  Sparge interval if O2 handled (min)", S_D39),
     ("Summary D40  Stir-bar tip speed (m/s)",          S_D40),
-    ("Summary D41  Carbon margin (x)",                 S_D41),
+    ("Summary D41  Carbon margin at cycle trough (x)", S_D41),
+    ("Summary D95  As-run / optimised duty (x)",       S_D95),
     ("Summary D82  Cathodic faradaic efficiency",      S_D82),
     ("Summary D83  Estimated cell voltage (V)",        S_D83),
     ("Summary D84  Cell-voltage verdict",              S_D84),
@@ -1347,6 +1415,9 @@ OUTPUTS = [
     ("Chemistry D125  HOCl_max (mg/L)",                HOCl_max),
     ("Chemistry D133  I_Cl (A)",                       I_Cl),
     ("Chemistry D134  P_HOCl (mol/L/s)",               P_HOCl),
+    ("Chemistry D271  k_Cl_turn (1/s)",                k_Cl_turn),
+    ("Chemistry D154  NH2Cl_lo (mg/L)",                NH2Cl_lo),
+    ("Chemistry D155  NH2Cl_hi (mg/L)",                NH2Cl_hi),
     ("Chemistry D139  HOCl_ss (M)",                    HOCl_ss),
     ("Chemistry D143  NH2Cl (mg/L)",                   NH2Cl_mgL),
     ("Chemistry D145  C_eff (mg/L)",                   C_eff),
@@ -1368,6 +1439,9 @@ OUTPUTS = [
     ("Chemistry D209  E_Cl_margin (V)",                E_Cl_margin),
     ("Chemistry D210  E_ORR2 (V vs SHE)",              E_ORR2),
     ("Chemistry D211  E_Cu_margin (V)",                E_Cu_margin),
+    ("Chemistry D215  delta_diff (um)",                delta_diff),
+    ("Chemistry D275  km_HPO4 (cm/s)",                 km_HPO4),
+    ("Chemistry D276  km_HCO3 (cm/s)",                 km_HCO3),
     ("Chemistry D216  j_buffer_lim (mA/cm2)",          j_buffer_lim),
     ("Chemistry D251  D_HCO3 (m2/s)",                  D_HCO3),
     ("Chemistry D252  HCO3_op (mol/L)",                 HCO3_op),
@@ -1386,6 +1460,10 @@ OUTPUTS = [
     # --- Biology ---
     ("Biology  D28  O2_ceil_uM (uM)",                  O2_ceil_uM),
     ("Biology  D35  CO2_carbon_margin (x)",            CO2_carbon_margin),
+    ("Biology  D13  H2_cons (mol/h)",                  H2_cons),
+    ("Biology  D96  H2_HOR_b (mol/h)",                 H2_HOR_b),
+    ("Biology  D97  C_cycle_start_b (mol/m3)",         C_cycle_start_b),
+    ("Biology  D98  CO2_margin_trough (x)",            CO2_margin_trough),
     ("Biology  D37  pH_CO2_unbuf",                     pH_CO2_unbuf),
     ("Biology  D42  t_H2_sat (min)",                   t_H2_sat),
     ("Biology  D43  H2_turnover (1/h)",                H2_turnover),
@@ -1418,6 +1496,8 @@ OUTPUTS = [
     ("MassXfer D80  t_O2_ceiling_rem (min)",           t_O2_ceiling_rem),
     ("MassXfer D92  spg_int_opt_s (s)",                spg_int_opt_s),
     ("MassXfer D93  duty_actual",                      duty_actual),
+    ("MassXfer D241 pulse_res (s)",                    pulse_res),
+    ("MassXfer D242 spg_dur_run (s)",                  spg_dur_run),
     ("MassXfer D94  opt_binding",                      opt_binding),
     ("MassXfer D95  od_ok",                            od_ok),
     ("MassXfer D98  kLa_surf_used (1/s)",              kLa_surf_used),

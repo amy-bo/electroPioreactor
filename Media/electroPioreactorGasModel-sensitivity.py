@@ -122,11 +122,12 @@ BASE = dict(
   Q_vent=0.5, pCO2_air=40.0,
   # --- optimiser inputs ---
   target_DO_frac=0.226086956521739, carbon_margin_min=2,
+  DO_opt=None,                            # mg/L; None = unmeasured (UdG) -> DO target from the fraction rule (MT D179)
   # --- cell-voltage budget ---
   b_anode=0.12, j0_anode=1e-10, b_cath=0.14, j0_cath=1.5e-6, pcet_credit=-0.15,
-  E0_OER=1.229, k_geom=2.0, kappa_fI=0.78, kappa_TC=0.02,
+  E0_OER=1.229, k_geom=1.0, kappa_fI=0.78, kappa_TC=0.02,
   # --- local-pH (buffer) verdict ---
-  D_HPO4=7.59e-10, delta_diff=40.0,
+  D_HPO4=7.59e-10,                        # film thickness delta is now DERIVED: D_O2/km_O2 (Chemistry D215)
   # --- UdG recipe (g/L) ---
   udg_KH2PO4=2.3, udg_Na2HPO4=2.9, udg_NaHCO3=1.05,
   udg_MgSO4=0.5, udg_NH42SO4=0.47, udg_CaCl2=0.01,
@@ -195,18 +196,19 @@ def model(p):
     # --- electrolysis, with CALCULATED faradaic efficiencies (Echem D86-D89, D101-D104) ---
     I_app = (p['gerrit_slope'] * p['intensity'] + p['gerrit_int']) / 1000
     DO_design = p['target_DO_frac'] * O2_ceil_C                          # D85
-    i_ORR = p['z_e_ORR'] * p['F'] * (p['km_O2'] / 100) * DO_design * (A_wet / 10000)   # D86
-    i_ORR_ceil = p['z_e_ORR'] * p['F'] * (p['km_O2'] / 100) * O2_ceil_C * (A_wet / 10000)
+    n_ORR_eff = p['z_e_ORR'] * p['f_HOOH'] + p['z_e_O2'] * (1 - p['f_HOOH'])   # D141, e-/O2 weighted by peroxide selectivity
+    i_ORR = n_ORR_eff * p['F'] * (p['km_O2'] / 100) * DO_design * (A_wet / 10000)   # D86
+    i_ORR_ceil = n_ORR_eff * p['F'] * (p['km_O2'] / 100) * O2_ceil_C * (A_wet / 10000)
     etaF_calc = max(0.0, 1 - i_ORR / I_app)                              # D88
     etaF_calc_min = max(0.0, 1 - i_ORR_ceil / I_app)                     # D89
     Cl_M = 2 * p['udg_CaCl2'] / MW['CaCl2']                              # Chemistry D42
-    I_Cl = min(I_app * p['FE_CER'], p['F'] * p['km_Cl'] * (Cl_M / 1000) * A_wet)   # D133
+    I_Cl = min(I_app * p['FE_CER'], 2 * p['F'] * p['km_Cl'] * (Cl_M / 1000) * A_wet)   # D133 (D132 carries n_e_Cl = 2)
     etaF_OER_calc = max(0.0, 1 - I_Cl / I_app - p['corr_I_frac'])        # D104
     etaF = etaF_calc                                                     # D18 (no calibration override)
     etaF_OER = etaF_OER_calc                                             # D26
     rH2 = I_app * etaF / (p['z_e_H2'] * p['F']) * 3600
     rO2 = I_app * etaF_OER / (p['z_e_O2'] * p['F']) * 3600
-    O2_cath = I_app * (1 - etaF) / (p['z_e_ORR'] * p['F']) * 3600
+    O2_cath = I_app * (1 - etaF) / (n_ORR_eff * p['F']) * 3600
     O2_net = rO2 - O2_cath                                               # Echem D29
     O2_cons = rH2 * p['bio_O2'] / p['bio_H2']
     CO2_cons = rH2 * p['bio_CO2'] / p['bio_H2']
@@ -233,7 +235,8 @@ def model(p):
     nCO2 = p['P_atm'] * (p['Q_CO2'] / 1e6 / 60) / (R * T_K)              # D104, mol/s
     CO2_rate_full = nCO2 * 3600                                          # D178, mol/h
     spg_dur = max(p['pulse_floor'], p['flush_factor'] * headspace_V / (p['Q_CO2'] / 60))  # D90
-    DO_target = p['target_DO_frac'] * O2_ceil_C                          # D179
+    DO_target = (p['DO_opt'] / M_O2 if p['DO_opt'] is not None
+                 else p['target_DO_frac'] * O2_ceil_C)                   # D179
     DO_surf_excess = O2_excess / (kLa_surf_used * 3600 * V_L)            # D180
     DO_surf_excess_lag = O2_net / (kLa_surf_used * 3600 * V_L)           # D181
     hs_O2_allow = DO_target - DO_surf_excess                             # D182
@@ -273,6 +276,8 @@ def model(p):
         regime = ('DO TARGET UNREACHABLE -- the surface cannot carry the O2 flux at this '
                   'kLa; no interval fixes it')
     duty_actual = spg_dur / (spg_int * 60)                               # D93
+    spg_dur_run = max(p['pulse_floor'], math.floor(spg_dur / 0.05 + 0.5 + 1e-12) * 0.05)   # MT D242 (pulse_res 0.05 s, MROUND)
+    spg_int_run = math.floor(spg_dur_run / (60 * duty_actual) + 0.5)     # Summary D16, whole minutes
 
     # --- steady DO, with the headspace back-pressure floor (D187, D188, D108) ---
     CO2_supply = nCO2 * spg_dur * (60 / spg_int)                         # D100
@@ -375,8 +380,10 @@ def model(p):
     if n_cross == 1:
         C_HPO4 = PT / (1 + 10 ** (pKa2p_c - pH_op))                      # D253 (pH_op, concentration scale)
         C_HCO3 = K1c * CO2aqc / 10 ** -pH_op                             # D252
-        j_buffer_lim = (p['F'] * (p['D_HPO4'] * C_HPO4 + D_HCO3 * C_HCO3) * 1000
-                        / (p['delta_diff'] / 1e6) / 10)                  # D216 mA/cm2, phosphate + bicarbonate
+        km_HPO4 = p['km_O2'] * (p['D_HPO4'] / D_O2) ** p['km_exp']       # D275 cm/s
+        km_HCO3 = p['km_O2'] * (D_HCO3 / D_O2) ** p['km_exp']            # D276 cm/s
+        j_buffer_lim = (p['F'] * ((km_HPO4 / 100) * C_HPO4 + (km_HCO3 / 100) * C_HCO3) * 1000
+                        / 10)                                            # D216 mA/cm2, phosphate + bicarbonate
         j_buffer_ratio = j_anode / j_buffer_lim
     else:
         j_buffer_lim = j_buffer_ratio = NAN
@@ -396,12 +403,17 @@ def model(p):
     V_cell = p['E0_OER'] + eta_a + eta_c + p['pcet_credit'] + V_IR        # D119
 
     # --- peroxide (Echem D93-D98) ---
-    r_H2O2 = p['f_HOOH'] * i_ORR / (2 * p['F']) * p['M_H2O2'] * 1000 * 3600 / (V_charge / 1000)
+    r_H2O2 = (p['f_HOOH'] * I_app * (1 - etaF) / (n_ORR_eff * p['F'])
+              * p['M_H2O2'] * 1000 * 3600 / (V_charge / 1000))           # D93
     H2O2_ss = r_H2O2 / (p['k_cat_cells'] * 3600)                         # D95, growing culture
-    H2O2_lag_1h = r_H2O2                                                 # D96, no biomass
+    k_anode = (p['km_O2'] / 100) * (A_wet / 10000) / (V_charge / 1e6)   # D151, 1/s: peroxide re-oxidised at the anode
+    DO_lag = DO_hs_floor + DO_surf_excess_lag                            # D150 = MT D135, mol/m3
+    r_H2O2_lag = r_H2O2 * DO_lag / DO_design                             # D152
+    H2O2_lag_1h = (r_H2O2_lag / (k_anode * 3600) * (1 - math.exp(-k_anode * 3600)))   # D96, no biomass
 
     # --- dissolved CO2 / H2 diagnostics ---
     carbon_margin = CO2aqc * 1000 * 1000 / p['Km_CO2']
+    carbon_margin_trough = C_start * 1000 / p['Km_CO2']                  # Biology D98 = Summary D41
     C_H2 = H_H2_T * p['P_atm']
     t_H2_sat = C_H2 * V_L / rH2 * 60 if rH2 > 0 else INF
     CO2_sd = (CO2_supply / CO2_cons) if CO2_cons > 0 else NAN
@@ -411,11 +423,13 @@ def model(p):
         NH3_free = NT / (1 + 10 ** (pKa_NH4 - pH_op))                    # D138
         P_HOCl = I_Cl / (2 * p['F'] * (V_charge / 1000))                 # D134, n_e_Cl = 2
         HOCl_mgL = P_HOCl / (p['k1_NH2Cl'] * NH3_free) * M_HOCl
-        NH2Cl = min(P_HOCl * p['tau_NH2Cl'] * 3600 * M_HOCl,
-                    CL_PER_N * NT * MW_N, Cl_M * M_HOCl)
+        k_Cl_turn = P_HOCl / Cl_M if Cl_M > 0 else 0.0                    # D271, 1/s chloride turnover
+        kt = k_Cl_turn * p['tau_NH2Cl'] * 3600
+        NH2Cl = min(Cl_M * M_HOCl * kt / (1 + kt),
+                    CL_PER_N * NT * MW_N * M_HOCl / M_Cl2)               # D143, pool depletes as it turns over
         C_eff = p['f_local'] * HOCl_mgL + NH2Cl / p['R_chloramine']      # D145
     else:
-        NH3_free = HOCl_mgL = NH2Cl = C_eff = NAN
+        NH3_free = HOCl_mgL = NH2Cl = C_eff = k_Cl_turn = NAN
 
     return dict(
         spg_dur=spg_dur, spg_int_opt=spg_int, spg_int_opt_s=spg_int * 60,
@@ -432,7 +446,9 @@ def model(p):
         etaF_calc=etaF_calc, etaF_calc_min=etaF_calc_min, etaF_OER_calc=etaF_OER_calc,
         i_ORR_design=i_ORR, D_O2=D_O2, sigma=sigma, rho_L=rho_L,
         CO2_cyc_avg_new=CO2_cyc, CO2aqc=CO2aqc, CO2_supply=CO2_supply, CO2_sd=CO2_sd,
-        pool_beta_ratio=pool_beta_ratio, carbon_margin=carbon_margin, t_H2_sat=t_H2_sat,
+        pool_beta_ratio=pool_beta_ratio, carbon_margin=carbon_margin,
+        carbon_margin_trough=carbon_margin_trough, k_Cl_turn=k_Cl_turn,
+        spg_dur_run=spg_dur_run, spg_int_run=spg_int_run, r_H2O2_lag=r_H2O2_lag, n_ORR_eff=n_ORR_eff, t_H2_sat=t_H2_sat,
         pH_meas=pH_meas, pH_op=pH_op, n_cross=n_cross,
         j_anode=j_anode, j_buffer_lim=j_buffer_lim, j_buffer_ratio=j_buffer_ratio,
         kappa=kappa, R_cell=R_cell, V_IR=V_IR, V_cell_est=V_cell,
@@ -469,7 +485,6 @@ SWEEP = [
  ('z_e_ORR', 2, 4, 'ESTIMATE'),                 # 2 is the physical floor, so base at lo
  ('k_geom', 1.0, 3.0, 'ESTIMATE'),              # cell-constant correction
  ('kappa_fI', 0.66, 0.90, 'ESTIMATE'),          # Kohlrausch finite-strength factor +/-15 %
- ('delta_diff', 20.0, 80.0, 'ESTIMATE'),        # diffusion layer, factor ~2
  ('pcet_credit', -0.20, -0.10, 'ESTIMATE'),     # phosphate PCET credit, 100-200 mV
  ('b_anode', 0.06, 0.12, 'ESTIMATE'),           # 60 mV/dec buffered .. 120 bare; base at hi
  ('b_cath', 0.13, 0.15, 'ESTIMATE'),
@@ -533,6 +548,13 @@ SELF_CHECK = [
     ('pH_meas',         'pH_meas (-)',              'Chemistry',        'D220'),
     ('j_buffer_ratio',  'j_buffer_ratio (-)',       'Chemistry',        'D218'),
     ('C_eff_Cl2',       'C_eff_Cl2 (mg/L)',         'Summary',          'D36'),
+    ('n_ORR_eff',       'n_ORR_eff (e-/O2)',        'Electrochemistry', 'D141'),
+    ('H2O2_lag_1h',     'H2O2_lag_1h (mg/L)',       'Electrochemistry', 'D96'),
+    ('k_Cl_turn',       'k_Cl_turn (1/s)',          'Chemistry',        'D271'),
+    ('j_buffer_lim',    'j_buffer_lim (mA/cm2)',    'Chemistry',        'D216'),
+    ('carbon_margin_trough', 'carbon margin at trough (x)', 'Summary',  'D41'),
+    ('spg_dur_run',     'spg_dur_run (s)',          'Mass Transfer',    'D242'),
+    ('spg_int_run',     'spg_int_run (min)',        'Summary',          'D16'),
 ]
 
 # BASE inputs vs the workbook (Summary selectors D2:D10 and the cells they feed).
@@ -682,7 +704,7 @@ for k, unit in [('spg_dur', 's'), ('spg_int_opt', 'min'), ('spg_int_opt_s', 's')
                 ('DO_ss', 'mg/L'), ('DO_ss_lag', 'mg/L'),
                 ('kLa_surf_used', '1/s'), ('kLa_surf_req', '1/s'), ('kL_surf_crit', 'm/s'),
                 ('t_O2_ceiling_lag', 'min'), ('O2_removal_ratio', 'x'), ('surf_ratio', 'x'),
-                ('t_H2_sat', 'min'), ('carbon_margin', 'x'), ('CO2_sd', 'x'),
+                ('t_H2_sat', 'min'), ('carbon_margin', 'x'), ('carbon_margin_trough', 'x'), ('CO2_sd', 'x'),
                 ('CO2_cyc_avg_new', 'mol/m3'), ('pH_meas', '-'),
                 ('etaF_calc', '-'), ('etaF_OER_calc', '-'),
                 ('kappa', 'S/m'), ('R_cell', 'ohm'), ('V_IR', 'V'), ('V_cell_est', 'V'),
@@ -850,18 +872,16 @@ print("     is a solenoid-timing convenience here, not a control lever.")
 # ============================================================================
 print("\n" + "=" * 100)
 print("SECONDARY VERDICTS")
-_bl, _bh = next((l, h) for n, l, h, _t in SWEEP if n == 'delta_diff')
-_r_lo, _r_hi = run('delta_diff', _bl), run('delta_diff', _bh)
+_bl, _bh = next((l, h) for n, l, h, _t in SWEEP if n == 'km_O2')
+_r_lo, _r_hi = run('km_O2', _bl), run('km_O2', _bh)
 print(f"   LOCAL pH AT THE ANODE: j_anode {b['j_anode']:.3f} mA/cm2 vs the phosphate "
       f"buffer's\n      limiting flux {b['j_buffer_lim']:.3f} mA/cm2 -> ratio "
       f"{b['j_buffer_ratio']:.3f}")
-print(f"      over delta_diff {_bl:g}-{_bh:g} um the ratio runs "
-      f"{_r_lo['j_buffer_ratio']:.2f}..{_r_hi['j_buffer_ratio']:.2f}, i.e. the verdict "
-      "flips\n      inside the diffusion layer's own factor-2 uncertainty. At the "
-      "baseline delta the\n      buffer is AT its limit, so expect a 0.4-1.0 unit "
-      "excursion at each electrode and\n      a weakened phosphate PCET credit at the "
-      "anode. This is the second thing a\n      ferricyanide limiting-current run would "
-      "settle, and it settles both at once.")
+print(f"      over km_O2 {_bl:g}-{_bh:g} cm/s (film thickness D/km, Chemistry D215, now derived "
+      f"not typed)\n      the ratio runs {_r_lo['j_buffer_ratio']:.2f}..{_r_hi['j_buffer_ratio']:.2f}; "
+      + ("the verdict flips inside that uncertainty." if (_r_lo['j_buffer_ratio'] > 1) != (_r_hi['j_buffer_ratio'] > 1)
+         else "the buffer holds across the whole range.")
+      + "\n      A ferricyanide limiting-current run would settle km_O2 and so this verdict.")
 _k_lo, _k_hi = next((l, h) for n, l, h, _t in SWEEP if n == 'k_cat_cells')
 print(f"\n   PEROXIDE EXPOSURE: r_H2O2 {b['r_H2O2']:.3f} mg/L/h; steady value with a "
       f"growing\n      culture H2O2_ss {b['H2O2_ss']:.4f} mg/L "

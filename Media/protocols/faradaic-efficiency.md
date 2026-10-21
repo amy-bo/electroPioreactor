@@ -53,7 +53,7 @@ Why it works: strip the electrolyte of dissolved oxygen first and the cathode st
 
 ### What the numbers mean
 
-- Fit the cumulative curve to two slopes: the initial slope extrapolated back to t = 0 (dissolved oxygen still low, so near crossover-free) and the steady plateau slope (net operating rate, crossover included). The fractional drop from initial to plateau bounds the cathodic crossover loss, and hence 1 − `etaF`. Record both slopes; enter the resulting `etaF` estimate as the cathodic figure with a Comments note that it came from the initial-slope screen, not from an isolated-electrode collection (the tab's per-electrode charge-versus-volume formula assumes the latter).
+- Fit the cumulative curve to two slopes: the initial slope extrapolated back to t = 0 (dissolved oxygen still low, so near crossover-free) and the steady plateau slope (net operating rate, crossover included). The fractional drop from initial to plateau bounds the cathodic crossover loss, and hence 1 − `etaF`. Note that the drop bounds the *sum* of two crossover sinks: dissolved O₂ reduced at the cathode, and dissolved H₂ oxidised (or recombined) at the Pt anode, which the model carries as the separate data gap `f_HOR_anode` (Electrochemistry); the screen cannot split them. Record both slopes; enter the resulting `etaF` estimate as the cathodic figure with a Comments note that it came from the initial-slope screen, not from an isolated-electrode collection (the tab's per-electrode charge-versus-volume formula assumes the latter).
 
 ### Scope and caveats (state these with the result)
 
