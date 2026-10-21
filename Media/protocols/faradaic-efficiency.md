@@ -94,7 +94,7 @@ Barrier equipment first.
 8. Read and note the electrolyte temperature and the barometric pressure at the moment of reading. Read the total charge passed from the instrument (in coulombs), and note the start and end times of the run.
 9. Vent each separately collected electrode stream through the approved gas-handling arrangement after reading. Never store or compress it; mixed streams invalidate the per-electrode measurement.
 10. Repeat the collection window at least three times per electrode.
-11. Record, for each run, the charge passed (coulombs), the gas volume collected (mL), the gas temperature (°C) and pressure (Pa), and which electrode (cathode H₂ or anode O₂), in the **Faradaic efficiency** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
+11. Record, for each run, the charge passed (coulombs), the gas volume collected (mL), the gas temperature (°C) and pressure (Pa), and which electrode (cathode H₂ or anode O₂), in the **Faradaic efficiency** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; leave Include blank or n until collection recovery, species balance and transferability to the undivided operating cell are established. Set y only for accepted results that support the workbook’s ORR interpretation; otherwise retain the excluded measurement. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## Budget protocol
 
@@ -127,7 +127,7 @@ Barrier equipment first.
 8. Read and note the electrolyte temperature and the barometric pressure at the moment of reading. Read the total charge passed from the logger (in coulombs), and note the start and end times of the run.
 9. Vent each separately collected electrode stream through the approved gas-handling arrangement after reading. Never store or compress it; mixed streams invalidate the per-electrode measurement.
 10. Repeat the collection window at least three times per electrode.
-11. Record, for each run, the charge passed (coulombs), the gas volume collected (mL), the gas temperature (°C) and pressure (Pa), and which electrode (cathode H₂ or anode O₂), in the **Faradaic efficiency** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
+11. Record, for each run, the charge passed (coulombs), the gas volume collected (mL), the gas temperature (°C) and pressure (Pa), and which electrode (cathode H₂ or anode O₂), in the **Faradaic efficiency** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; leave Include blank or n until collection recovery, species balance and transferability to the undivided operating cell are established. Set y only for accepted results that support the workbook’s ORR interpretation; otherwise retain the excluded measurement. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## What the spreadsheet does with it
 

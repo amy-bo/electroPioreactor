@@ -27,7 +27,7 @@ Decides which vent model is true (Outflow only, Open vent or Air exchange) and, 
 - **Fix the known cap leak first** (note L8 on the CO2 flows sheet). A leaking cap is itself an air-exchange path and will be mistaken for the vent. Soap-test every cap seal, port fitting and septum (steps below) and reseal until none bubbles, with the vent port temporarily plugged.
 - Vial: the real 20 mL vial with about 15 mL medium and the headspace left as built. Record the actual medium volume.
 - Medium: the medium in use, at 30 C, stirrer at operating speed.
-- **Electrolysis OFF** for the whole protocol, so no H2 or O2 is made. The only gas events are the CO2 pulses and whatever the vent does.
+- **Electrolysis OFF** for the whole protocol, so no H2 or O2 is made. Gas exchange with the stirred liquid still occurs even with electrolysis off. Before interpreting O₂ return, demonstrate that liquid O₂ exchange is negligible over the measurement window, or use a coupled gas/liquid inventory model constrained by simultaneous DO and headspace measurements. A headspace sensor at its floor does not prove deoxygenated liquid.
 - Make the medium CO2-equilibrated first: run the pulse schedule for 5 to 10 intervals before measuring. Otherwise fresh medium absorbs CO2 from the headspace, the headspace pressure falls, and that suction is mistaken for vent back-draw.
 - Ventilate and keep naked flames away as normal good practice; no hydrogen is made in this protocol.
 
@@ -37,7 +37,7 @@ Two measurements on the same vial: a pressure trace across pulses, and an optica
 
 ### Kit
 
-- A low-pressure transducer (range about 0 to 50 kPa gauge or lower, resolution of 10 Pa or better) with a short, small-bore tube to a spare headspace port, plus a logger at 1 Hz or faster. Keep the dead volume of the tube small against the few mL of headspace.
+- A low-pressure transducer (bidirectional gauge/differential range covering expected positive and negative excursions, with resolution of 10 Pa or better on both sides of zero) with a short, small-bore tube to a spare headspace port, plus a logger at 1 Hz or faster. Keep the dead volume of the tube small against the few mL of headspace.
 - An optical O2 sensor spot inside the headspace, read from outside through the glass (for example a PreSens self-adhesive spot SP-PSt3-SA, 0 to 100 % O2, or the 0 to 10 % SP-PSt8-YAU for better low-end resolution) and its reader. Stick the spot to the inside wall above the liquid line before sealing, clear of splash.
 - The CO2 supply and solenoid exactly as in normal running.
 - Soap solution (washing-up liquid in water) for the leak check.
@@ -51,21 +51,21 @@ Two measurements on the same vial: a pressure trace across pulses, and an optica
 ### Method
 
 1. Leak-check first. Plug the vent port. Pressurise the headspace gently by a CO2 pulse, brush soap solution on the cap seal, each port fitting and each septum, and watch for bubbles for 1 minute. Reseal anything that bubbles and repeat until nothing does. Then unplug the vent.
-2. Fit the transducer tube to a spare headspace port and confirm that the reading is flat at ambient pressure when the vent is open and no pulse is firing. Record this baseline and any drift per minute.
+2. Fit the transducer tube to a spare headspace port and confirm that the reading is flat at ambient pressure when the vent is open and no pulse is firing. Zero-calibrate against ambient, verify response to both pressure signs without clipping, and record baseline drift per minute.
 3. Equilibrate the medium with CO2 as described above.
 4. Pressure trace. Log pressure at 1 Hz or faster through at least 5 full pulse intervals at the operating schedule (read and record Summary D14/D16 for ed04, MMO tube, Xanthobacter tagetidis, AMYBO03, 30 °C). For each pulse note: peak overpressure, time for the pressure to return to ambient, and any dip below ambient (underpressure) before the next pulse.
 5. Interpret the pressure trace:
    - Pressure rises on the pulse and returns to ambient, with no dip below ambient afterwards: outflow-only or open vent; go to the O2 test to tell them apart.
    - Pressure returns to ambient and then sits below it between pulses, recovering slowly: gas is being drawn in through the vent or a leak (back-draw). Note the underpressure and recovery time constant.
    - Pressure stays above ambient long after the pulse (slow decay, minutes): the vent is restrictive or sticking. Record the decay time constant.
-6. O2 return test. With the O2 spot reading, flush the headspace with CO2 until the O2 reading falls to its floor (repeat pulses by hand, or a longer hold-open of the solenoid, as the kit allows). Stop the CO2 and leave the vent as built. Log O2 (%) every 10 s for at least 60 minutes, with the pulse schedule switched OFF for this step so the only gas movement is through the vent.
+6. O2 return test. With the O2 spot reading, flush the headspace with CO2 until the O2 reading falls to its floor (repeat pulses by hand, or a longer hold-open of the solenoid, as the kit allows). Stop the CO2 and leave the vent as built. Log O2 (%) every 10 s for at least 60 minutes, with the pulse schedule switched OFF for this step while accounting for liquid O₂ exchange as required above. The sensor floor is a detection limit, not proof of zero O₂ inventory.
 7. Repeat step 6 with the pulse schedule ON at the operating schedule, logging for at least 4 intervals, so you see O2 return under the real pulse pattern.
-8. Interpret the O2 traces:
-   - No O2 return in step 6 and none in step 7: Outflow only.
+8. Interpret the O2 traces only after excluding or modelling liquid exchange and measurement disturbance; otherwise leave classification unresolved:
+   - No O2 return in step 6 and none in step 7: supports Outflow only within detection limits.
    - No O2 return in step 6, but a small O2 rise after each pulse in step 7 (a step up in the 1 to 2 minutes after the pulse, then flat): Open vent. The step size gives the back-draw per pulse.
    - O2 climbs steadily in step 6, with no pulses: Air exchange (continuous).
-9. Compute the exchange flow (Air exchange case). Treat the headspace as one well-mixed volume that starts with no O2 and is replaced by air at flow Q. Then y(t) = y_air x (1 - exp(-Q t / V)), where y_air is 20.9 % and V is the headspace volume. For each logged point form ln(1 - y/y_air), regress it against time over the window where y is between about 10 % and 80 % of y_air, and take Q = V x (-slope). Use V as the vial volume minus the medium volume you measured (do not use a guessed number), in mL, with the slope in per minute so Q comes out in mL/min. Use the mean of at least 3 runs.
-10. Back-draw estimate (Open vent case). From step 7, take the O2 step up after a pulse as dy (as a fraction, for example 0.5 % = 0.005). The air volume drawn in per pulse is about V x dy / 0.209 (mL). Divide by the pulse interval in minutes to give Q_backdraw in mL/min.
+9. Compute the exchange flow (Air exchange case). The gas-only washout applies only when liquid exchange is demonstrated negligible and the headspace is well mixed at effectively constant pressure, volume and temperature. Otherwise fit a validated coupled gas/liquid inventory model, not the gas-only log-slope. With negligible liquid exchange, use the measured initial fraction y₀: y(t) = y_air − (y_air − y₀) exp(−Qt/V). Regress ln[(y_air − y)/(y_air − y₀)] against time, avoiding readings near either sensor limit, and take Q = −V × slope. Use measured free-gas volume V in mL and time in minutes. Put y, y₀ and y_air on the same measured wet/dry basis (dry-air O₂ is about 0.2095); report Q on that basis and convert to the workbook flow reference before entry. Report fit uncertainty and at least three independent runs.
+10. Back-draw estimate (Open vent case). After correcting for liquid exchange and pulse/measurement disturbances, a small O₂ step dy from initial fraction y_before supports the approximate ingress volume V × dy/(y_air − y_before), when ingress is small relative to V and pressure is effectively constant. The simpler V × dy/0.209 is justified only for nearly oxygen-free headspace on a dry basis. Otherwise use the finite gas-inventory balance. Divide a validated per-pulse ingress estimate by the recorded interval to obtain Q_backdraw and convert its reference basis before workbook entry.
 11. Record the results (below).
 
 ### What to enter
@@ -85,7 +85,7 @@ No transducer and no optical spot. Slower and less quantitative; good enough to 
 - A water U-tube manometer (a clear flexible tube bent into a U on a ruler, half filled with water dyed with food colouring) joined by a short tube to a spare headspace port. It reads small pressures directly in mm of water.
 - Soap solution and a small brush.
 - A 1 mL and a 5 mL syringe, and a gastight syringe or a plastic syringe with a stopcock, for taking a headspace sample.
-- A cheap O2 meter or a colorimetric O2 indicator that reads a few mL of gas (a breath-test style or small sampling O2 analyser), if available. If none is available, use steps 1 to 6 only.
+- A cheap O2 meter or a colorimetric O2 indicator that reads a few mL of gas (a breath-test style or small sampling O2 analyser), if available. If none is available, use pressure observations in steps 1–5 only; leave O₂-based classification and flow unresolved.
 - A beaker of water and a short piece of tube for the inverted-cap bubble test.
 
 ### Reagents
@@ -100,8 +100,8 @@ No transducer and no optical spot. Slower and less quantitative; good enough to 
 4. Watch the manometer for a dip below level between pulses (water drawn toward the vial): that is underpressure and so back-draw or a leak.
 5. For continuous exchange, plug the manometer (not the vent) and leave the vent open with no pulses for 30 minutes. A steady level does not establish absence of exchange; this method cannot see exchange that is pressure-neutral, so go on to step 6.
 6. Measure O₂ return after a CO₂ fill only with validated non-perturbing sensing, independent sacrificial runs (one terminal measurement per fresh run), or a validated gas-inventory model that accounts for every withdrawal, induced ingress and replacement. Repeated 1 mL samples materially disturb this few-mL headspace; adding CO₂ back also dilutes O₂. Simply noting the withdrawals does not correct the washout curve. Record the initial measured O₂ and the actual pulse history; compare pulse-off and real-schedule runs. If these measurement prerequisites cannot be met, leave the vent classification and Q_vent unresolved.
-7. With valid measurements, use the selector criteria below: absence of a pressure dip and O₂ return supports Outflow only within detection limits; O₂ return tied to pulses supports Open vent; O₂ rising with no pulses supports Air exchange. Exclude sampling-induced ingress before assigning these interpretations.
-8. For Air exchange, fit the optimal-route washout equation only to undisturbed or independent sacrificial measurements. For repeated withdrawals/replacements, fit the validated inventory model instead. Report measurement and fit uncertainty; no factor-of-two accuracy is assumed.
+7. With valid measurements, use the selector criteria below: absence of a pressure dip and O₂ return supports Outflow only within detection limits; O₂ return tied to pulses supports Open vent; O₂ rising with no pulses supports Air exchange. Exclude sampling-induced ingress and demonstrate negligible liquid O₂ exchange, or correct it with the coupled inventory model, before assigning these interpretations.
+8. For Air exchange, fit the optimal-route washout equation only to undisturbed or independent sacrificial measurements with negligible liquid exchange. For repeated withdrawals/replacements, fit the validated inventory model instead. Report measurement and fit uncertainty; no factor-of-two accuracy is assumed.
 9. Record the results (below).
 
 ### What to enter
@@ -114,7 +114,7 @@ The vent selector (Summary D111, `vent_model_sel`) tells the model how gas leave
 
 ## Principle and background
 
-A vent is either a one-way valve, a restriction that equalises pressure, or a leak path that exchanges gas both ways. Pressure tells you whether gas is driven out and whether it is drawn back. Oxygen tells you whether outside air is getting in, because a CO2-filled headspace contains no O2, so any O2 return is air ingress. With a well-mixed headspace of volume V and an air-exchange flow Q, the O2 fraction follows a first-order approach to the air value with time constant V/Q, which is why the log-slope gives Q directly.
+A vent is either a one-way valve, a restriction that equalises pressure, or a leak path that exchanges gas both ways. Pressure tells you whether gas is driven out and whether it is drawn back. Oxygen return can indicate outside-air ingress only after residual dissolved O₂ release, subsequent liquid absorption, and sampling effects are excluded or modelled. Flushing a headspace does not by itself remove the liquid oxygen reservoir. The gas-only time constant V/Q assumes negligible liquid exchange; a coupled inventory is needed when the stirred liquid materially stores or releases oxygen. Pressure recovery likewise needs an actual trace: underpressure alone does not prove the direction or magnitude of subsequent flow.
 
 Optical O2 spots read oxygen in the gas phase through the glass, without consuming oxygen, so they suit an undisturbed few-mL headspace. Water U-tube manometers read small pressures directly in mm of water. Bubble methods are used for leak detection, but very small leaks make bubble counts unreliable, which is why the budget route can decide the selector but gives only a coarse flow.
 

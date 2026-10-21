@@ -45,7 +45,7 @@ Every calibration has its own section on the one **Calibrations** tab. To record
 
 - **Researcher**, **Date**, and the key for that calibration – the **Reactor** it was run on, or the **Organism** it applies to.
 - The **raw measurements** the protocol tells you to record (for example a volume and a time, or a set of current readings).
-- **Include?** – put `y` on rows the model should use. Leave it blank, or put `n`, to keep a row in the record without using it.
+- **Include?** – put `y` only on validated rows that satisfy the individual protocol’s acceptance, species-balance and transferability requirements. Leave it blank, or put `n`, to keep a row in the record without using it.
 
 Grey cells are computed for you: the tab derives the reactor **Type** from the reactor name, does every calculation the old protocols used to ask for, and works out the **value in use** that feeds the model. If no rows are included yet, the model quietly falls back to its built-in default.
 
@@ -67,7 +67,7 @@ The table is a priority list by leverage, not an execution sequence. DO operatin
 | 2 | Surface O₂ transfer (kLa) | [surface-kla.md](surface-kla.md) | Surface kLa | Sets how far dissolved O₂ sits above the headspace and the margin of the whole DO strategy |
 | 3 | Abiotic DO trace under the schedule | [abiotic-do-trace.md](abiotic-do-trace.md) | None: compare with Summary D116–D117 | One cell-free run that tests the whole headspace balance; do it after #1 and #2 |
 | 4 | Headspace H₂/O₂ (lag-phase flammability) | [headspace-gas-safety.md](headspace-gas-safety.md) | None: compare with Summary D124–D126 | Safety: required before any unattended run from inoculation |
-| 5 | Faradaic efficiency | [faradaic-efficiency.md](faradaic-efficiency.md) | Faradaic efficiency | The cathodic efficiency is calculated from an estimated mass-transfer coefficient; measuring it pins the O₂ the schedule is sized on |
+| 5 | Faradaic efficiency | [faradaic-efficiency.md](faradaic-efficiency.md) | Faradaic efficiency | The cathodic efficiency is calculated from an estimated mass-transfer coefficient; measuring it constrains the schedule’s O₂ source only with a supported species balance |
 | 6 | Electrode mass-transfer coefficient | [electrode-mass-transfer.md](electrode-mass-transfer.md) | None yet: compare with Electrochemistry D83 | Sets the cathodic O₂ loss, the peroxide source, the chlorine cap and the electrode-surface pH verdict |
 | 7 | Dissolved oxygen & organism DO bands | [dissolved-oxygen.md](dissolved-oxygen.md) | Dissolved-oxygen thresholds | The organism's DO band sets the target operating DO and the schedule |
 | 8 | CO₂ flow calibration | [flow-calibration.md](flow-calibration.md) | CO₂ flow | Every reactor needs its own; an uncalibrated reactor reads "calibrate first". Step 10 checks it with the sparger attached |
@@ -85,6 +85,6 @@ The model defaults ambient pressure to 101325 Pa. For the best Henry-solubility 
 
 1. Pick the experiment from the table, starting at #0. Protocols marked "None" in the Calibrations column are not on the tab yet: compare your result with the cells named and record it in your lab notebook; taking these as model inputs is on the Summary TODO (rows 145 onwards).
 2. Follow the Optimal route if you have the kit; otherwise the Budget route. Both state their accuracy.
-3. Record your raw numbers in that section of the Calibrations tab, filling Researcher, Date and the key, and setting Include to `y`.
+3. Record your raw numbers in that section of the Calibrations tab, filling Researcher, Date and the key, and leaving Include blank or `n` until that protocol’s acceptance, species-balance and transferability gates are met. Only then set Include to `y`.
 4. The model recomputes. Watch the gates on the Summary: the geometry check should read OK after #0; the measured kLa should exceed its critical value after #2 (compare kLa with kL_surf_crit × a_surf in consistent units); a calibrated reactor stops reading "calibrate first" after #8.
 5. Re-read the Summary: the headline pulse and interval, the DO band, the current-density status and the warnings all update from your measured inputs.
