@@ -32,7 +32,7 @@ tags: [electropioreactor, protocol, sparger, sinter, mass-transfer]
 
 ### Kit
 
-- A low-range pressure gauge or digital manometer reading in kPa, with a resolution of 0.5 kPa or finer. A 0 to 200 kPa range covers the finer frits; the coarsest frits need only a 0 to 10 kPa range; if the grade is unknown, use the 0 to 200 kPa gauge.
+- A low-range pressure gauge or digital manometer reading in kPa, with a resolution of 0.5 kPa or finer. For an unknown grade, the gauge and entire pressure assembly must be adequately rated to cover the table’s upper bubble point (288 kPa) plus liquid head. If using a 0 to 200 kPa gauge or any lower-rated component, stop within the lowest rated limit; if breakthrough is not reached, report an unresolved grade rather than increasing pressure beyond the rating.
 - The sintered frit to be tested, clean and freshly rinsed. If the frit has been in service, clean it with dilute hydrochloric or nitric acid – wearing gloves and goggles, in a fume hood – then rinse it thoroughly with distilled water before testing. Do not use chromic acid or piranha solution unless you have been specifically trained to.
 - A gas supply (air, nitrogen or CO2) fitted with a fine needle valve.
 - A rubber O-ring.
@@ -52,9 +52,9 @@ tags: [electropioreactor, protocol, sparger, sinter, mass-transfer]
 3. Seal one face of the frit against the gas line by pressing it face-down onto the rubber O-ring over the gas inlet, and submerge the other face 5 to 10 mm below the water surface in the trough.
 4. Open the gas supply to the lowest pressure the gauge can read and wait 30 seconds. Slow, isolated bubbles rising from single pores are normal at this stage and are not the reading you want.
 5. Raise the pressure in small steps, waiting 30 seconds after each step. Use steps of about 0.2 to 1 kPa, taking the smaller steps for finer frits.
-6. Watch the submerged face. Note the pressure at which a first continuous, steady stream of bubbles issues from one point on the face, rather than the sporadic isolated bubbles seen earlier.
+6. Watch the submerged face. Note the gauge pressure and immersion depth at the first continuous, steady bubble stream. Subtract the liquid head before applying the capillary equation: ΔP_cap = P_gauge − ρgh, in consistent units. Do not exceed any component rating.
 7. Close the gas supply, re-wet the frit fully and repeat twice more. The three readings should agree closely; if one is much lower than the others, suspect incomplete wetting and re-wet before trusting it.
-8. Record the bubble-point pressure (kPa) at which the first steady stream of bubbles appears, in the **Sinter porosity** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
+8. Record the liquid-head-corrected bubble-point pressure (kPa), keeping raw gauge pressure, depth, density, wetting liquid and temperature in notes, in the **Sinter porosity** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## Budget protocol
 
@@ -81,11 +81,11 @@ The Calibrations tab converts the recorded bubble-point pressure to the largest-
 
 ## Principle & background
 
-A sintered (fritted) sparger is a network of tortuous capillary pores. The single largest pore sets both the smallest bubble the sparger can produce and the capillary pressure that gas must overcome to break through a fully wetted frit, so characterising the largest pore characterises the sparger for the mass-transfer calculations. The porosity grade is a compact label for that largest pore: 0 is the coarsest class and 5 the finest.
+A sintered (fritted) sparger is a network of tortuous capillary pores. The largest wetted through-pore sets the first capillary breakthrough pressure. It does not determine the smallest produced bubble: detachment also depends on wetting, flow, geometry and coalescence. Bubble-point grading supports the model’s pore-size input but does not measure its produced-bubble distribution. The porosity grade is a compact label for that largest pore: 0 is the coarsest class and 5 the finest.
 
 For a circular capillary wetted by a liquid, the Young–Laplace / Washburn relation gives the pressure difference required to expel the liquid from a pore of diameter d as ΔP = 4·γ·cosθ / d, where γ is the liquid surface tension and θ the liquid–solid contact angle. The bubble-point pressure is the lowest pressure at which a continuous stream of bubbles first emerges from the downstream face of a fully wetted frit, and rearranging the relation recovers the largest pore diameter from that measured pressure. This is the basis of the standard bubble-point test for rigid porous filters (https://www.astm.org/Standards/E128.htm, https://www.astm.org/standards/f316, https://www.pharmtech.com/view/relationship-among-pore-size-ratings-bubble-points-and-porosity, https://wiki.anton-paar.com/en/basics-of-capillary-flow-porometry/).
 
-The wetting liquid matters. Distilled water (γ ≈ 0.072 N/m at 20 °C) is preferred for borosilicate glass because the contact angle is near zero, so cos θ ≈ 1 and no correction is needed. Isopropanol (γ ≈ 0.023 N/m at 20 °C) is sometimes used on coarse frits because it breaks through at lower, more easily read pressures, but it yields a proportionally smaller apparent pore size and needs a correction factor; results from water and from isopropanol must never be combined without converting between them (https://www.iso.org/standard/9678.html, https://scottlab.com/bubble-point-integrity-testing, https://www.gkd-group.com/en/glossary/bubble-point-test/).
+The wetting liquid matters. Distilled water (γ ≈ 0.072 N/m at 20 °C) is preferred for borosilicate glass because the contact angle is near zero, so cos θ ≈ 1 and no correction is needed. Isopropanol (γ ≈ 0.023 N/m at 20 °C) is sometimes used on coarse frits because it breaks through at lower, more easily read pressures, but changing wetting liquid changes breakthrough pressure, not recovered pore diameter when that liquid’s correct surface tension and contact angle are used. Record those properties at the test temperature and convert each pressure using its own liquid properties before comparing pore diameters (https://www.iso.org/standard/9678.html, https://scottlab.com/bubble-point-integrity-testing, https://www.gkd-group.com/en/glossary/bubble-point-test/).
 
 The spreadsheet maps each grade to a nominal maximum pore diameter using the ISO 4793 / DURAN porosity classes:
 

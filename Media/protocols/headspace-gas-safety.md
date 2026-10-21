@@ -27,20 +27,21 @@ Measures the real gas mixture in the headspace while electrolysis runs with no c
 ## Safety, read before starting
 
 - Hydrogen in air is flammable from a lower flammability limit (LFL) of about 4 % by volume; published values vary a little by source (the FAA has cited 4.7 %). Treat 4 % as the working figure.
-- Hydrogen in nitrogen-diluted air cannot burn below a limiting oxygen concentration (LOC) of about 5 % O2 by volume (Wikipedia's table lists 5 vol % with nitrogen dilution and 5.2 vol % with CO2 dilution). The model's headspace sits at roughly 6.5 % O2 in lag, so it is only a little above this, which is why the check matters. Confirm the safety margin you apply against the current NFPA 69 text; secondary sources disagree on the rule, so do not rely on them.
-- The model's lag-phase headspace (about 11.5 % H2 mean, about 17 % just before each pulse, about 6.5 % O2) is predicted to be above the LFL. Treat the headspace as **flammable until measured otherwise**.
+- A nominal hydrogen LOC is about 5 % O2 with nitrogen dilution (the cited secondary table gives 5.2 % with CO2). These and the air LFL are conservative hazard-screen references, not a complete classification of H2/O2/CO2/N2 mixtures. Owner verification of applicable mixture limits and margins against appropriate primary guidance, including current NFPA 69, is a prerequisite to accepting conditions. Below either quoted threshold does not establish safety.
+- Read Summary D125 (lag O2) and D126 (mean lag H2) with the recorded selections. Treat the headspace as potentially flammable; neither predictions nor this screen certify safety.
 - No ignition sources: no naked flames, no sparking switches or hot plates near the vial or the vent outlet, no static (earth yourself, avoid synthetic clothing when handling), and no mobile phones in use at the vent. Use only instruments rated for the gas they sample.
 - Work in a fume hood or ventilated cabinet and vent the outlet into the extraction. Keep the cap and ports closed except for sampling.
-- Switch **electrolysis OFF** before opening anything, before changing syringes at a port, and before moving the vial. Wait at least 2 pulse intervals (or flush with CO2) before opening the cap.
+- Switch **electrolysis OFF** before opening the cap or a port to room air, before moving the vial, and before any syringe operation not covered by the validated sampling procedure. Closed-septum sampling under current is permitted only if that procedure explicitly covers it. An owner-approved gas-clearance procedure and acceptance criterion are prerequisites before opening or handling; elapsed intervals or routine CO₂ pulses alone do not establish clearance.
 - Keep volumes small. Take no more than 1 mL per sample and do not pool or store samples; analyse within minutes. Do not store hydrogen-containing gas in sealed vessels.
 - Wear safety glasses. Tell a colleague you are working and keep the run supervised throughout.
 - If any reading exceeds the LFL at the vent outlet or in the room, stop electrolysis, keep ventilation running, and step away until it clears.
 
 ## Before you start
 
-- The vial exactly as it will run: about 15 mL medium, the real vent fitted (the vent used in the vent protocol), cap leaks fixed, the operating electrolysis power and the operating pulse schedule (0.67 s every about 9 min unless changed). No cells (lag source).
-- Run the full schedule for at least 1 hour before sampling, so the headspace reaches its repeating cycle.
-- Know the model values before you start: Summary D126 (mean H2), Summary D125 (O2), Summary D124 (growth-phase O2, about 4 %).
+- The vial exactly as it will run: about 15 mL medium, the real vent fitted (the vent used in the vent protocol), cap leaks fixed, ed04, MMO tube assembly, chloride-free AMYBO03 at 30 °C, recorded operating power and the schedule read from Summary D14/D16. Record the *Xanthobacter tagetidis* selection even though there are no cells. No cells (lag source).
+- Prerequisite: validate sampling apparatus for mixture response, range, recovery, dead volume and disturbance. Demonstrate that withdrawals, syringe flushes and pump flow do not materially alter pressure, induce air ingress or shift composition; otherwise report vent readings only or use a separately validated arrangement.
+- Run the full schedule for at least 1 hour before sampling and establish a repeating cycle.
+- Know the model values before you start: Summary D126 (mean H2), Summary D125 (O2), Summary D124 (growth-phase O2).
 
 ## Optimal protocol
 
@@ -62,11 +63,11 @@ Measures the real gas mixture in the headspace while electrolysis runs with no c
 2. Run the vial at its full schedule for at least 1 hour. Note the exact time of each CO2 pulse.
 3. Sample A, end of interval: starting about 30 s before the next pulse, take 0.5 mL of headspace gas through the septum port with the gastight syringe. Rinse is not possible, so discard the first draw if the syringe was open to air; flush the syringe once with headspace gas and take a second draw. Record the time since the last pulse.
 4. Inject at once into the GC. Record H2, O2, N2 and CO2 as percentages.
-5. Wait for the next pulse and the full interval. Sample B, mid-interval: about 4 to 5 minutes after the pulse, repeat steps 3 and 4.
-6. Repeat sample A and sample B for at least 3 intervals, switching electrolysis off while you change the syringe only if the port is open to air; a closed septum sample does not need it.
+5. Wait for the next pulse and the full interval. Sample B, mid-interval: at 0.5 × Summary D16 minutes after the pulse, repeat steps 3 and 4.
+6. Repeat sample A and sample B for at least 3 intervals, switching electrolysis off while you change the syringe only if the port is open to air; closed-septum sampling under current is allowed only by the validated sampling procedure above.
 7. If you want the dilution by air from the sampling itself checked, inject a CO2 blank drawn the same way and read N2 and O2. A large air signal means the syringe or the port is leaking; discard and re-do.
-8. Compute the mean of the sample A values and the mean of the sample B values, and the average of all samples as the "mean" headspace.
-9. Compare with the model (below). Then switch electrolysis off and let the vial sit for 2 intervals before any handling.
+8. Report sample A (end-of-interval) and B (mid-interval) means and spreads separately. Their average is not the time mean of a nonlinear cycle. For a model cycle-mean comparison, obtain a validated trace or sufficient phase samples for a time-weighted integral over complete settled cycles and report integration uncertainty.
+9. Compare with the model (below). Then switch electrolysis off. An owner-approved gas-clearance procedure and acceptance criterion are prerequisites before opening or handling; elapsed intervals or routine CO₂ pulses alone do not establish clearance.
 
 ## Budget protocol
 
@@ -87,24 +88,24 @@ No GC. A portable H2 meter or combustible-gas detector at the vent outlet. Gives
 
 1. Check the meter against its span gas or its stated bump-test procedure, in the fume hood, and zero it in clean air.
 2. Run the vial at its full schedule for at least 1 hour. The vent outlet must lead out into the extraction.
-3. Place the meter inlet at the vent outlet, not in the vial. Draw sample gas through a short tube at the lowest flow the meter allows; a high draw dilutes the sample with room air.
+3. Place the meter inlet at the vent outlet, not in the vial. Even the lowest pump flow can induce air ingress or change pressure. Demonstrated non-perturbing sampling is a prerequisite to treating the result as headspace composition; otherwise label results as vent readings only.
 4. Record the H2 reading (or % LFL, converting with 4 % = 100 % LFL) every 30 s through at least 3 full intervals. Mark every pulse time on the log.
-5. The peak reading just before each pulse is the end-of-interval value (sample A). The reading mid-interval is sample B. Take the mean of the readings across the interval as the mean headspace.
-6. If the meter reads over-range or zero in an obviously rich mixture, do not trust it: dilute a known volume of vent gas with a known volume of air in a gas-sample bag, re-read, and multiply back, or move to the optimal route.
-7. Switch electrolysis off, flush with CO2, and let the vial sit for 2 intervals before any handling.
+5. Record end-of-interval and mid-interval vent readings separately with their times. A pumped vent trace need not peak at the expected phase. Only after sampling validation may a time-weighted mean over complete cycles be compared with the model headspace mean.
+6. For over-range readings, implausible zeros or an unvalidated oxygen/CO2 matrix, stop interpreting the meter and use a suitable validated analyser or the optimal route. Do not add air to an unknown hydrogen-rich sample: this can create a flammable mixture and multiplication cannot repair oxygen dependence or CO2 interference.
+7. Switch electrolysis off. An owner-approved gas-clearance procedure and acceptance criterion are prerequisites before opening or handling; elapsed intervals or routine CO₂ pulses alone do not establish clearance.
 
 ## What the spreadsheet does with it
 
-The model predicts the lag-phase headspace from a single well-mixed balance that depends on the vent model: mean H2 (Summary D126, about 11.5 %), O2 (Summary D125, about 6.5 %), and, for growth phase, O2 (Summary D124, about 4 %). It compares the lag-phase mix against the H2 LFL and the O2 LOC with an NFPA 69 margin and returns a verdict with a remedy. The result is not entered in a Calibrations section; it is a **validation** of those cells. Record the measured mean, the end-of-interval and mid-interval values, the date and the researcher in the lab record, and note it against the TODO item "Headspace H2/O2 during lag before any unattended run".
+The model predicts the lag-phase headspace from a well-mixed balance depending on the vent model: read mean H2 from Summary D126, lag O2 from D125 and growth-phase O2 from D124 with the recorded configuration and schedule. Its LFL/LOC comparison is a hazard screen, not certification. No Calibrations entry is made: record phase-specific measurements, validated time-weighted means if available, uncertainties and sampling limitations in the lab record against the headspace TODO.
 
 ### What to compare, and what counts as agreement
 
 - Compare your measured mean H2 with Summary D126, measured O2 with Summary D125 (lag), and, if you run the growth-phase case, O2 with Summary D124.
-- Within +/-30 % of the model's mean is consistent. (For example, 11.5 % predicted is consistent with 8 to 15 %.)
-- Outside +/-30 %: the headspace balance is wrong, and the first suspect is the vent model. Do [headspace-vent.md](headspace-vent.md) first and update Summary D111, then re-compare.
-- Whatever the model says, **act on the measurement**: if the measured H2 at any time exceeds 4 % while O2 exceeds about 5 %, the headspace is flammable and the run must not be left unattended.
+- +/-30 % is only a provisional model-comparison screen, not an equivalence or safety margin. Owner-approved equivalence margins and measurement uncertainty are prerequisites for declaring agreement.
+- Outside +/-30 %: investigate sampling and analyser uncertainty as well as the balance; the vent model is one suspect. Do [headspace-vent.md](headspace-vent.md) first and update Summary D111, then re-compare.
+- Whatever the model says, H2 above 4 % together with O2 above about 5 % flags a potential flammability hazard and excludes unattended operation pending owner review. Below either reference does not establish safety: applicable mixture limits and margins must be verified.
 
-### Remedy if flammable
+### Proposed remedies after a hazard flag
 
 The model's remedy is to sparge CO2 more often, or to add a small N2 sweep to the headspace. Be aware that more CO2 pulses push the pH below the band (Summary D128 reads NO for CO2 alone doing all three jobs). An N2 sweep addition (about 1 mL/min was proposed in the TODO) is **not yet modelled** and is a TODO in the model; it must be measured on the bench rather than taken from the spreadsheet.
 

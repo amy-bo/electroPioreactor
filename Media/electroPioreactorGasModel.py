@@ -1063,13 +1063,13 @@ remedy_interval = max(0, math.ceil(spg_int_H2safe_saw / 0.1) * 0.1 - 0.1) if isn
 interval_remedy = ("sparge every ≤" + xltext(remedy_interval, "0.0") + " min or "
                    if remedy_interval * 60 > spg_dur else "interval remedy unavailable; ")
 if y_H2_end_b >= H2_LFL and y_O2_end_b >= O2_LOC_H2 * LOC_margin:
-    H2_safety = ("FLAMMABLE HEADSPACE (lag): H\u2082 " + xltext(y_H2_hs_lag, "0%")
+    H2_safety = ("POTENTIAL FLAMMABILITY (lag screen): H\u2082 " + xltext(y_H2_hs_lag, "0%")
                  + " mean, " + xltext(y_H2_end_b, "0%") + " before each pulse; O\u2082 " + xltext(y_O2_hs_lag, "0%")
                  + " mean, " + xltext(y_O2_end_b, "0%") + " before each pulse \u2013 until uptake starts, "
                  + interval_remedy + "sweep \u2265" + xltext(math.floor(N2_sweep_H2safe / 0.1) * 0.1 + 0.1, "0.0")
                  + " mL/min N\u2082; vent to a hood; no ignition sources")
 else:
-    H2_safety = ("Below the H\u2082 LFL or under the O\u2082 LOC margin at every point of the cycle (lag): H\u2082 "
+    H2_safety = ("Below nominal H\u2082/O\u2082 screening thresholds (lag; not safety certification): H\u2082 "
                  + xltext(y_H2_end_b, "0%") + ", O\u2082 " + xltext(y_O2_end_b, "0%") + " before each pulse ("
                  + xltext(y_H2_hs_lag, "0%") + " / " + xltext(y_O2_hs_lag, "0%") + " mean)")   # Biology D44
 

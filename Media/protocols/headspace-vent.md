@@ -20,7 +20,7 @@ tags: [electropioreactor, protocol, vent, headspace, gas-exchange]
 
 # Headspace vent characterisation
 
-Decides which vent model is true (Outflow only, Open vent or Air exchange) and, for Air exchange, measures the exchange flow. This is the single highest-leverage open input: the model's CO2 pulse interval moves roughly 15 times across plausible vents (about 12.6 min for a check valve, about 9 min for an open vent, under 1 min for 0.5 mL/min exchange). Do this protocol before the [headspace gas safety check](headspace-gas-safety.md).
+Decides which vent model is true (Outflow only, Open vent or Air exchange) and, for Air exchange, measures the exchange flow. This is the single highest-leverage open input: the model's CO2 pulse interval moves roughly 15 times across plausible vents (historical sensitivity examples: about 12.6 min for a check valve, about 9 min for an open vent, under 1 min for 0.5 mL/min exchange; not current commands). Do this protocol before the [headspace gas safety check](headspace-gas-safety.md).
 
 ## Before you start
 
@@ -53,7 +53,7 @@ Two measurements on the same vial: a pressure trace across pulses, and an optica
 1. Leak-check first. Plug the vent port. Pressurise the headspace gently by a CO2 pulse, brush soap solution on the cap seal, each port fitting and each septum, and watch for bubbles for 1 minute. Reseal anything that bubbles and repeat until nothing does. Then unplug the vent.
 2. Fit the transducer tube to a spare headspace port and confirm that the reading is flat at ambient pressure when the vent is open and no pulse is firing. Record this baseline and any drift per minute.
 3. Equilibrate the medium with CO2 as described above.
-4. Pressure trace. Log pressure at 1 Hz or faster through at least 5 full pulse intervals at the operating schedule (0.67 s every 8.95 min unless you have changed it). For each pulse note: peak overpressure, time for the pressure to return to ambient, and any dip below ambient (underpressure) before the next pulse.
+4. Pressure trace. Log pressure at 1 Hz or faster through at least 5 full pulse intervals at the operating schedule (read and record Summary D14/D16 for ed04, MMO tube, Xanthobacter tagetidis, AMYBO03, 30 °C). For each pulse note: peak overpressure, time for the pressure to return to ambient, and any dip below ambient (underpressure) before the next pulse.
 5. Interpret the pressure trace:
    - Pressure rises on the pulse and returns to ambient, with no dip below ambient afterwards: outflow-only or open vent; go to the O2 test to tell them apart.
    - Pressure returns to ambient and then sits below it between pulses, recovering slowly: gas is being drawn in through the vent or a leak (back-draw). Note the underpressure and recovery time constant.
@@ -98,10 +98,10 @@ No transducer and no optical spot. Slower and less quantitative; good enough to 
 2. Inverted-cap bubble test of the vent direction. Connect the vent outlet by a short tube so its end sits 5 mm under water in a beaker. Fire one pulse. Watch: bubbles leaving the tube means outflow. After the pulse, watch the tube end: water climbing up the tube means air or gas is being drawn the wrong way (back-draw). Mark the height and time it takes to fall back.
 3. Fit the U-tube manometer to a spare headspace port with the vent open and no pulse firing, and confirm both legs are level. Fire one pulse and note the peak difference in mm of water and how long until the legs are level again. Repeat for 5 pulses.
 4. Watch the manometer for a dip below level between pulses (water drawn toward the vial): that is underpressure and so back-draw or a leak.
-5. For continuous exchange, plug the manometer (not the vent) and leave the vent open with no pulses for 30 minutes. A steady level means no sustained flow either way; this method cannot see exchange that is pressure-neutral, so go on to step 6.
-6. Syringe-sample O2 after a fill. Flush the headspace with CO2 (hand-fired pulses until you have given at least 5 headspace volumes). With the pulse schedule off, at 5, 15, 30 and 60 minutes withdraw a 1 mL headspace sample through a septum port with the gastight syringe and read O2 with the meter. Replace the volume with CO2 after each sample or note that each sample removes about 1 mL of headspace (so limit samples to 4). Do the same under the real pulse schedule.
-7. Read the selector as in the optimal route (below): no pressure dip and no O2 return is Outflow only; O2 only after pulses is Open vent; O2 rising with time and no pulses is Air exchange.
-8. For Air exchange, fit the same washout as the optimal route (step 9), using the four sample points. Treat Q_vent as coarse (within a factor of 2).
+5. For continuous exchange, plug the manometer (not the vent) and leave the vent open with no pulses for 30 minutes. A steady level does not establish absence of exchange; this method cannot see exchange that is pressure-neutral, so go on to step 6.
+6. Measure O₂ return after a CO₂ fill only with validated non-perturbing sensing, independent sacrificial runs (one terminal measurement per fresh run), or a validated gas-inventory model that accounts for every withdrawal, induced ingress and replacement. Repeated 1 mL samples materially disturb this few-mL headspace; adding CO₂ back also dilutes O₂. Simply noting the withdrawals does not correct the washout curve. Record the initial measured O₂ and the actual pulse history; compare pulse-off and real-schedule runs. If these measurement prerequisites cannot be met, leave the vent classification and Q_vent unresolved.
+7. With valid measurements, use the selector criteria below: absence of a pressure dip and O₂ return supports Outflow only within detection limits; O₂ return tied to pulses supports Open vent; O₂ rising with no pulses supports Air exchange. Exclude sampling-induced ingress before assigning these interpretations.
+8. For Air exchange, fit the optimal-route washout equation only to undisturbed or independent sacrificial measurements. For repeated withdrawals/replacements, fit the validated inventory model instead. Report measurement and fit uncertainty; no factor-of-two accuracy is assumed.
 9. Record the results (below).
 
 ### What to enter
@@ -110,7 +110,7 @@ As for the optimal route: Summary D111; 'Mass Transfer'!D142 for Air exchange; '
 
 ## What the spreadsheet does with it
 
-The vent selector (Summary D111, `vent_model_sel`) tells the model how gas leaves and enters the headspace. "Outflow only" is a check-valve vent: the headspace empties after each pulse and nothing returns, giving the longest pulse interval (about 12.6 min). "Open vent" lets a small amount of air be drawn back after each pulse, sized by `Q_backdraw` ('Mass Transfer'!D385) and is the default until measured (about 9 min). "Air exchange" has air exchanged continuously at `Q_vent` ('Mass Transfer'!D142), which shortens the interval sharply and shifts the headspace O2 and the lag-phase H2 levels the model predicts. The choice therefore changes the headline CO2 schedule, the pH band check, and the lag-phase flammability check. Once you have the selector, re-read the lag-phase headspace predictions (Summary D125 for O2 and D126 for H2) before running the [headspace gas safety check](headspace-gas-safety.md).
+The vent selector (Summary D111, `vent_model_sel`) tells the model how gas leaves and enters the headspace. "Outflow only" is a check-valve vent: the headspace empties after each pulse and nothing returns, giving the longest pulse interval (about 12.6 min). "Open vent" lets a small amount of air be drawn back after each pulse, sized by `Q_backdraw` ('Mass Transfer'!D385) and is the default until measured (read Summary D16 for the selected configuration). "Air exchange" has air exchanged continuously at `Q_vent` ('Mass Transfer'!D142), which shortens the interval sharply and shifts the headspace O2 and the lag-phase H2 levels the model predicts. The choice therefore changes the headline CO2 schedule, the pH band check, and the lag-phase flammability check. Once you have the selector, re-read the lag-phase headspace predictions (Summary D125 for O2 and D126 for H2) before running the [headspace gas safety check](headspace-gas-safety.md).
 
 ## Principle and background
 
