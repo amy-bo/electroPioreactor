@@ -83,7 +83,7 @@ The model defaults ambient pressure to 101325 Pa. For the best Henry-solubility 
 
 ## How to use
 
-1. Pick the experiment from the table, starting at #0. Protocols marked "None" in the Calibrations column are not on the tab yet: compare your result with the cells named and record it in your lab notebook; taking these as model inputs is on the Summary TODO (rows 130 onwards).
+1. Pick the experiment from the table, starting at #0. Protocols marked "None" in the Calibrations column are not on the tab yet: compare your result with the cells named and record it in your lab notebook; taking these as model inputs is on the Summary list of potential model improvements (rows 133 onwards).
 2. Follow the Optimal route if you have the kit; otherwise the Budget route. Both state their accuracy.
 3. Record your raw numbers in that section of the Calibrations tab, filling Researcher, Date and the key, and leaving Include blank or `n` until that protocol’s acceptance, species-balance and transferability gates are met. Only then set Include to `y`.
 4. The model recomputes. Watch the gates on the Summary: the geometry check should read OK after #0; the measured kLa should exceed its critical value after #2 (compare kLa with kL_surf_crit × a_surf in consistent units); a calibrated reactor stops reading "calibrate first" after #8.

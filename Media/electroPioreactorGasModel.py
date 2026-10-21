@@ -92,6 +92,7 @@ temp_C         = 30.0              # D8  (degC)
 media_volume   = 0.0               # D9  (mL; blank in workbook -> 0.0 -> use recommended max)
 P_atm_set      = 0.0               # D10 (Pa; blank in workbook -> 0.0 -> default 101325)
 NaHCO3_add_gL  = 0.0               # D13 (g/L NaHCO3 added on top of the recipe; blank -> 0.0)
+pulse_res_set  = 0.05              # D15 (s) solenoid command resolution, an input (owner T8)
 N2_sweep_set   = 0.0               # D14 (mL/min continuous N2 headspace sweep; blank -> 0.0, owner decision T7)
 # Headspace-model owner decisions (Summary D11:D12, typed text; anything else -> #N/A)
 vent_model_sel = "Open vent"       # D11 ("Outflow only" | "Open vent" | "Air exchange")
@@ -960,7 +961,7 @@ spg_int_DO    = ((spg_dur_eq_opt / (60 * duty_DO) if duty_DO > 0 else spg_int_ca
                  if isnum(duty_DO) else NA)            # D185 (min); duty 0 -> carbon-limited interval
 kLa_surf_req  = O2_src_sched / (DO_target * 3600 * (V_charge / 1e6))          # D186 (1/s)
 
-pulse_res   = 0.05                                     # MT D241 (s) solenoid timing resolution
+pulse_res   = pulse_res_set                            # MT D241 (s) <- Summary D15 solenoid command resolution
 def _mround(x, m):
     """Excel MROUND (half away from zero)."""
     return float((Decimal(repr(x)) / Decimal(repr(m))).quantize(Decimal(1), rounding=ROUND_HALF_UP)) * m
@@ -1202,6 +1203,36 @@ spg_int_H2safe_saw = ("any interval" if isinstance(t_gap_H2_LFL, str) or isinsta
                       else max(t_gap_H2_LFL, t_gap_O2_LOC) + spg_dur_opt_b / 60)       # Biology D92 (min)
 remedy_res = 0.1                                       # Biology D120 (min or mL/min) remedy display resolution
 remedy_interval = max(0, math.ceil(spg_int_H2safe_saw / remedy_res) * remedy_res - remedy_res) if isnum(spg_int_H2safe_saw) else NA
+
+# --- start-up (lag-phase) schedule, shown beside the growth one (MT D541-D558; Summary rows 31 and 33) ---
+y_O2_star_l = ((DO_target - DO_surf_excess_lag) / (H_O2_T * P_dry)
+               if DO_target - DO_surf_excess_lag > 0 else NA)          # MT D542
+duty_DO_l = (max(0.0, ((O2_src_l + y_O2_air * F_vent_ex) * saw_factor / y_O2_star_l - F_dil - O2_src_l
+                       - H2_src_l + CO2_fix_l) / CO2_rate_full) if isnum(y_O2_star_l) else NA)   # MT D543
+spg_int_DO_l = ((spg_dur_eq_opt / (60 * duty_DO_l) if duty_DO_l > 0 else spg_int_carbon) if isnum(duty_DO_l)
+                else "lag DO target unreachable at this surface kLa")   # MT D544
+_su_O2 = spg_int_DO_l if isnum(spg_int_DO_l) else spg_int_max
+_su_H2 = spg_int_H2safe_saw * spg_dur_eq_opt / spg_dur_eq if isnum(spg_int_H2safe_saw) else _su_O2
+spg_int_su_opt = min(_su_O2, _su_H2)                     # MT D546 (min) optimal-pulse basis
+_su = math.floor(spg_int_su_opt * spg_dur_eq / spg_dur_eq_opt / interval_res + 1e-12) * interval_res
+spg_int_su_run = _su if _su * 60 > spg_dur else NA      # MT D547 (min) as run
+su_binding = ("the H\u2082 flammability screen (Biology D92)" if _su_H2 < _su_O2
+              else "lag O\u2082 dilution" if isnum(spg_int_DO_l)
+              else "the legacy O\u2082 flush guard (lag DO target unreachable)")   # MT D548
+t_gap_su_h = max(0.0, spg_int_su_run * 60 - spg_dur) / 3600   # MT D549
+x_su = hs_l["F_gap"] * t_gap_su_h / n_hs_gas             # MT D550
+phi_su, psi_su = _phi(x_su), _psi(x_su)                  # MT D551, D552
+dy_O2_su = hs_l["S_O2"] * t_gap_su_h / n_hs_gas          # MT D553
+y_O2_end_su = dy_O2_su * phi_su / (1 - flush_ret * math.exp(-x_su))   # MT D554
+y_O2_avg_su = y_O2_end_su * flush_ret * phi_su + dy_O2_su * psi_su    # MT D555
+DO_avg_su_mgL = (DO_surf_excess_lag + H_O2_T * P_dry * y_O2_avg_su) * M_O2   # MT D556
+DO_peak_su_mgL = (DO_surf_excess_lag + H_O2_T * P_dry
+                  * max(y_O2_avg_su, y_O2_end_su - (hs_l["S_O2"] - hs_l["F_gap"] * y_O2_end_su) / n_hs_gas * tau_L_h)) * M_O2   # MT D557
+y_H2_end_su = H2_src_l * t_gap_su_h / n_hs_gas * phi_su / (1 - flush_ret * math.exp(-x_su))   # MT D558
+S_D31 = spg_int_su_run
+S_D33 = ("DO " + xltext(DO_avg_su_mgL, "0.0") + " mg/L mean, " + xltext(DO_peak_su_mgL, "0.0") + " peak; H\u2082 "
+         + xltext(y_H2_end_su, "0%") + " before each pulse; set by " + su_binding
+         if isnum(spg_int_su_run) else "no executable start-up schedule")
 interval_remedy = ("sparge every ≤" + xltext(remedy_interval, "0.0") + " min or "
                    if remedy_interval * 60 > spg_dur else "interval remedy unavailable; ")
 if y_H2_end_b >= H2_LFL and y_O2_end_b >= O2_LOC_H2 * LOC_margin:
@@ -2305,6 +2336,22 @@ OUTPUTS.extend([
     ("Echem D83  km_O2 in use (cm/s)", km_O2),
     ("Chemistry D142 tau_NH2Cl in use (h)", tau_NH2Cl),
     ("Chemistry D315 P_Cl_max (mol/L/s)", P_Cl_max),
+    ("MassXfer D241 pulse_res import (s)", pulse_res),
+    ("MassXfer D543 duty_DO_l", duty_DO_l),
+    ("MassXfer D544 spg_int_DO_l", spg_int_DO_l),
+    ("MassXfer D545 H2-safe interval import", spg_int_H2safe_saw),
+    ("MassXfer D546 spg_int_su_opt (min)", spg_int_su_opt),
+    ("MassXfer D547 spg_int_su_run (min)", spg_int_su_run),
+    ("MassXfer D548 su_binding", su_binding),
+    ("MassXfer D556 DO_avg_su (mg/L)", DO_avg_su_mgL),
+    ("MassXfer D557 DO_peak_su (mg/L)", DO_peak_su_mgL),
+    ("MassXfer D558 y_H2_end_su", y_H2_end_su),
+    ("Summary D15 solenoid resolution", pulse_res_set),
+    ("Summary D22 binding constraint", opt_binding),
+    ("Summary D29 DO-limited interval", spg_int_DO),
+    ("Summary D31 start-up interval", S_D31),
+    ("Summary D33 start-up state", S_D33),
+    ("Summary D55 pool check", pool_start_chk),
 ])
 
 # Declared input -> Summary cell. Checked before anything is compared.
@@ -2320,6 +2367,7 @@ INPUT_CELLS = [
     ("P_atm_set",     "D10", P_atm_set),
     ("NaHCO3_add_gL", "D13", NaHCO3_add_gL),
     ("N2_sweep_set",  "D14",  N2_sweep_set),
+    ("pulse_res_set", "D15",  pulse_res_set),
     ("vent_model_sel", "D11", vent_model_sel),
     ("O2_phase_sel",  "D12", O2_phase_sel),
     ("user_spg_dur", "G18", user_spg_dur or 0.0),

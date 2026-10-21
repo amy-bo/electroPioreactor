@@ -12,7 +12,7 @@ These are agent-facing modelling rules. They used to sit in the spreadsheet's he
 - Selector inputs (dropdowns) accept exactly their listed valid values; anything else returns an error by design (the `IF(sel=valid1,…,IF(sel=valid2,…,NA()))` pattern). Do not soften these to default-on-invalid.
 
 ## Colour conventions — two orthogonal encodings
-- **Column E (Source/assumption) FILL = confidence.** Six levels, legend on the Summary, rows 141–153: green `FFC6EFCE` = verified/handbook/defined/standard; light-blue `FFBDD7EE` = literature-supported ~90%; cream `FFFFF2CC` = design assumption ~70%; gold `FFFFE699` = weak/coarse estimate ~50%; peach `FFFCE4D6` = guess; pink `FFFFC7CE` = DATA GAP (measure, do not invent).
+- **Column E (Source/assumption) FILL = confidence.** Six levels, legend on the Summary, rows 144–156: green `FFC6EFCE` = verified/handbook/defined/standard; light-blue `FFBDD7EE` = literature-supported ~90%; cream `FFFFF2CC` = design assumption ~70%; gold `FFFFE699` = weak/coarse estimate ~50%; peach `FFFCE4D6` = guess; pink `FFFFC7CE` = DATA GAP (measure, do not invent).
 - **Column D (Value) FONT = provenance of the value:** blue `FF0000FF` (bold) = an input you set or measure; black `FF000000` = a formula/derived value. Apply rigorously to every cell, and keep this convention shown in the key.
 
 ## Data gaps

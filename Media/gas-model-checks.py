@@ -282,6 +282,23 @@ class GasModelChecks(unittest.TestCase):
         dup = {k: v for k, v in seen.items() if len(v) > 1}
         self.assertEqual(dup, {})
 
+    def test_startup_schedule_and_resolution_input(self):
+        base = self.twin()
+        lag = self.twin(O2_phase_sel='Lag')
+        # The start-up schedule is the lag-sized one (H2 screen not binding at the baseline).
+        self.assertEqual(base['spg_int_su_run'], lag['spg_int'])
+        self.assertIn('legacy', base['su_binding'])
+        self.assertLess(base['y_H2_end_su'], 0.04)
+        # Make the H2 screen bind: a longer guard leaves the flammability interval in charge.
+        h = self.twin(target_DO_frac=0.9)
+        if h['_su_H2'] < h['_su_O2']:
+            self.assertIn('H\u2082', h['su_binding'])
+        # Command resolution is an input: 0.1 s rounds the 0.674 s optimum to 0.7 s.
+        r = self.twin(pulse_res_set=0.1)
+        self.assertTrue(math.isclose(r['spg_dur_run'], 0.7, rel_tol=1e-12))
+        m = self.sens['model'](dict(self.sens['BASE'], pulse_res=0.1))
+        self.assertTrue(math.isclose(r['spg_int'], m['spg_int_run'], rel_tol=5e-3))
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))
