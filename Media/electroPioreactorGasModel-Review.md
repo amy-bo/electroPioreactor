@@ -753,3 +753,5 @@ Where a reviewer could push hardest:
 - **The alkalinity estimate** holds dissolved CO₂, activity coefficients and the CO₂ storage fixed.
 
 Tooling for the Excel round trip is in `.vibe/gasmodel-tools/` (gitignored; README there).
+
+**Update, same day (Nelly set-up).** Teo's AMYBO03 medium is merged (new sheet, MediaList entry 3) with its strong-ion difference corrected, and the inputs are now ed04 / MMO tube / *Xanthobacter tagetidis* / AMYBO03 / 30 °C: 0.67 s every 7.45 min, pH 6.49. Twin 371/371. The sensitivity script is **not** re-based to these inputs yet, so its guard stops it: re-basing it (making its medium chemistry medium-aware) is the first job. Also worth a look: the AMYBO03 sheet's charge and ionic-strength bookkeeping, and `kappa_fI` at I ≈ 0.2 M.

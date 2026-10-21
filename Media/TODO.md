@@ -10,6 +10,13 @@ Open backlog and parked items. Done work is in `CHANGELOG.md`. Bench SOPs for th
 - [ ] **Measure cathodic faradaic efficiency `etaF`.** Since wave-4 the model calculates it (0.974) from the oxygen competing for the cathode current rather than assuming 1.0, but that calculation rests on an estimated electrode mass-transfer coefficient, so the O2 figures are still an upper bound until it is measured.
 - [ ] **Per-reactor CO2 flow calibration** for reactors other than ed04 (`protocols/flow-calibration.md`); an uncalibrated reactor shows "calibrate first" by design.
 - [ ] **Fill the HOB DO bands** for the non-necator organisms and the minimum-DO column (currently pink gaps).
+### Nelly set-up (2026-10-21: ed04, MMO tube, *Xanthobacter tagetidis*, AMYBO03, 30 °C)
+
+- [ ] **Re-base the sensitivity script** (`electroPioreactorGasModel-sensitivity.py`) on these inputs. Its input guard refuses to run until then (organism, medium and temperature drift), and its medium chemistry is hard-wired to the UdG recipe: make it medium-aware the way the twin is (`_by_media` with the AMYBO03 branch).
+- [ ] **Calibrate the reactor actually used.** ed04 (MEP0.3: 20 mL vial, 16 mL max) stands in because it is the only reactor with a CO₂ flow calibration; an AEP0.2 build (ed06–ed08) needs its own `protocols/flow-calibration.md` run, then select it in Summary D2.
+- [ ] **AMYBO03 sheet house style**: inputs are plain text, not blue; no defined names (Chemistry D44–D47, D180, D185 point at `AMYBO03!$D$54:$D$59` directly, and D58 at `Chemistry!D166:D174` rather than `lam_*`).
+- [ ] **Conductivity factor at AMYBO03 strength**: `kappa_fI` (0.78) is anchored near I ≈ 0.1 M; AMYBO03 is I ≈ 0.20 M, so `kappa_med` is likely a little high and the ohmic drop a little low.
+
 ### From the wave-4 review (2026-08-12; detail and derivations in `electroPioreactorGasModel-Review.md`)
 
 
@@ -26,7 +33,7 @@ Measurements, in leverage order:
 
 - [ ] **Characterise the headspace vent** (`protocols/headspace-vent.md`; decides Summary D111 `vent_model`, the single highest-leverage open input): is the MEP0.3 vent outflow-only or does it exchange air, and at what flow? Pressure-decay test with a transducer on a headspace tube, or an optical O₂ spot in the headspace after a CO₂ fill. A check valve gives 12.7 min / pH 6.16, a plain open vent (the default until measured; back-draw input `Q_backdraw` 0.015 mL/min, gold) 9.0 min / pH 6.19, a 0.5 mL/min air exchange 0.87 min / pH 6.23. Fix the cap leak noted on CO2 flows L8 first.
 - [ ] **Abiotic DO trace under the real schedule** (`protocols/abiotic-do-trace.md`) (3 % power, no cells = lag source, optical DO patch): one run discriminates the vent hypotheses and checks the Summary rows 114–117 predictions.
-- [ ] **Headspace H₂/O₂ during lag before any unattended run** (`protocols/headspace-gas-safety.md`): the model puts it at ~11 % H₂ mean and ~18 % just before each pulse, ~6 % O₂ (flammable). Syringe sample to a portable meter, or a catalytic H₂ sensor at the vent.
+- [ ] **Headspace H₂/O₂ during lag before any unattended run** (`protocols/headspace-gas-safety.md`): the model puts it at ~9 % H₂ mean and ~15 % just before each pulse, ~5 % O₂ (flammable; AMYBO03, 30 °C). Syringe sample to a portable meter, or a catalytic H₂ sensor at the vent.
 - [ ] **Free + combined chlorine (DPD kit) in spent UdG after 24 h** (`protocols/chlorine-species.md`): settles the chloramine lifetime `tau_NH2Cl`, which now moves the interval ±32 % through the free chloride share.
 - [ ] **Per-pulse CO₂ volume with the sparger attached** (`protocols/flow-calibration.md` step 10): the calibration collects at the end of the CO₂ line; one run through the submerged sinter confirms the fixed 0.375 mL per pulse and the flow hold against the real back-pressure.
 - [ ] **Off-gas H₂ at steady growth**: measures the H₂ uptake fraction, which sets the O₂ surplus (`bio_O2`, ±200 % on the schedule).

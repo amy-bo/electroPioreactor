@@ -78,11 +78,11 @@ from decimal import Decimal, ROUND_HALF_UP
 # ============================================================================
 Reactor_sel    = "ed04"            # D2
 electrode_sel  = "MMO tube"        # D3
-organism_sel   = "UdG (mixed)"     # D4
-media_sel      = "UdG phosphate"   # D5
+organism_sel   = "Xanthobacter tagetidis"  # D4
+media_sel      = "AMYBO03"         # D5
 led_intensity  = 3.0               # D6  (%)
 stir_rpm_set   = 1000.0            # D7  (rpm)
-temp_C         = 25.0              # D8  (degC)
+temp_C         = 30.0              # D8  (degC)
 media_volume   = 0.0               # D9  (mL; blank in workbook -> 0.0 -> use recommended max)
 P_atm_set      = 0.0               # D10 (Pa; blank in workbook -> 0.0 -> default 101325)
 # Headspace-model owner decisions (Summary D111:D112, typed text; anything else -> #N/A)
@@ -284,12 +284,24 @@ mc = dict(Na2HPO4=2.895, NaH2PO4_2H2O=3.06, K2SO4=0.17, CaSO4_2H2O=0.097,
           MgSO4_7H2O=0.8, NH42SO4=0.943)              # MC02 g/L
 udg = dict(KH2PO4=2.3, Na2HPO4=2.9, NaHCO3=1.05, MgSO4_7H2O=0.5,
            NH42SO4=0.47, CaCl2=0.01)                  # UdG g/L
+amy = dict(Na2HPO4=4.26, NaH2PO4_2H2O=4.68, K2SO4=0.17, CaSO4_2H2O=0.097,
+           MgSO4_7H2O=0.8, NH42SO4=0.943, NaHCO3=3.36)  # AMYBO03 C6:C12 g/L (Teo Reid MRes, Table 2)
+amy_mM = {k: v / MW[k] * 1000 for k, v in amy.items()}  # AMYBO03 E6:E12 (mM)
+# stocks (AMYBO03 rows 21-31): final uM = stock mM x dose mL/L
+amy_dose_Fe, amy_dose_TM = 0.68, 0.05                  # AMYBO03 B15, B16 (mL/L)
+amy_Fe   = 15 / 278.01 * 1000 * amy_dose_Fe           # G21 FeSO4 (uM)
+amy_H2SO4 = 200 * amy_dose_Fe + 200 * amy_dose_TM     # G22 + G31 (uM)
+amy_TM = [c / mw * 1000 * amy_dose_TM for c, mw in
+          ((2.4, 287.54), (2.4, 169.02), (0.48, 249.68), (1.5, 262.85), (0.0402, 281.1))]  # G26:G30 Zn Mn Cu Ni Co sulfates (uM)
+amy_Mo = 1.8 / 241.95 * 1000 * amy_dose_TM            # G25 Na2MoO4 (uM)
 
-def _by_media(mc02_val, udg_val):
+def _by_media(mc02_val, udg_val, amy_val=NA):
     if media_sel == "MC02":
         return mc02_val
     if media_sel == "UdG phosphate":
         return udg_val
+    if media_sel == "AMYBO03":
+        return amy_val
     return NA
 
 
@@ -316,7 +328,11 @@ I_udg = 0.5 * ((udg["NaHCO3"] / MW["NaHCO3"] + 2 * udg["Na2HPO4"] / MW["Na2HPO4"
                       + udg["NH42SO4"] / MW["NH42SO4"])
                + udg["NaHCO3"] / MW["NaHCO3"]
                + 2 * udg["CaCl2"] / MW["CaCl2"])                               # D184 (mol/L)
-I_ionic = _by_media(I_mc02, I_udg)                    # D185 (mol/L)
+_a = amy_mM
+I_amy = (3 * _a["Na2HPO4"] + _a["NaH2PO4_2H2O"] + 3 * _a["K2SO4"] + 4 * (_a["CaSO4_2H2O"] + _a["MgSO4_7H2O"])
+         + 3 * _a["NH42SO4"] + _a["NaHCO3"]) / 1000 \
+        + (4 * (amy_Fe + sum(amy_TM)) + 3 * amy_Mo + 3 * amy_H2SO4) / 1e6   # AMYBO03 D59 (mol/L)
+I_ionic = _by_media(I_mc02, I_udg, I_amy)             # D185 (mol/L)
 
 # --- Henry solubilities (van 't Hoff) ---
 H_O2ref  = 1.2e-5                                     # D21 (mol/m3/Pa)
@@ -455,12 +471,22 @@ SID_udg = ((udg["NaHCO3"] / MW["NaHCO3"] + 2 * udg["Na2HPO4"] / MW["Na2HPO4"]
 NT_udg  = 2 * udg["NH42SO4"] / MW["NH42SO4"]                                            # D41
 Cl_udg  = 2 * udg["CaCl2"] / MW["CaCl2"]                                                # D42
 
+# AMYBO03 (AMYBO03 D54:D57): SID as MC02 - strong cations less all sulfate; sulfuric acid in the
+# stocks removes two equivalents per mole; trace metal sulfates and molybdate cancel.
+PT_amy  = (_a["Na2HPO4"] + _a["NaH2PO4_2H2O"]) / 1000                                    # D54
+SID_amy = ((2 * _a["Na2HPO4"] + _a["NaH2PO4_2H2O"] + _a["NaHCO3"] + 2 * _a["K2SO4"]
+            + 2 * _a["CaSO4_2H2O"] + 2 * _a["MgSO4_7H2O"]) / 1000
+           - 2 * (_a["K2SO4"] + _a["CaSO4_2H2O"] + _a["MgSO4_7H2O"] + _a["NH42SO4"]) / 1000
+           - 2 * amy_H2SO4 / 1e6)                                                       # D55
+NT_amy  = 2 * _a["NH42SO4"] / 1000                                                      # D56
+Cl_amy  = 0.0                                                                           # D57
 
 
-pH_SID = _by_media(SID_mc02, SID_udg)                 # D44
-pH_PT  = _by_media(PT_mc02, PT_udg)                   # D45
-pH_NT  = _by_media(NT_mc02, NT_udg)                   # D46
-pH_Cl  = _by_media(Cl_mc02, Cl_udg)                   # D47
+
+pH_SID = _by_media(SID_mc02, SID_udg, SID_amy)                 # D44
+pH_PT  = _by_media(PT_mc02, PT_udg, PT_amy)                   # D45
+pH_NT  = _by_media(NT_mc02, NT_udg, NT_amy)                   # D46
+pH_Cl  = _by_media(Cl_mc02, Cl_udg, Cl_amy)                   # D47
 
 # --- chlorine current: the binding limit of efficiency vs chloride arrival ---
 FE_CER   = 0.5                                         # D128 max CER efficiency (high-Cl plateau)
@@ -575,9 +601,16 @@ kappa0_udg = (((udg["NaHCO3"] / MW["NaHCO3"] + 2 * udg["Na2HPO4"] / MW["Na2HPO4"
                   + udg["NH42SO4"] / MW["NH42SO4"]) * lam_SO4
                + udg["NaHCO3"] / MW["NaHCO3"] * lam_HCO3
                + 2 * udg["CaCl2"] / MW["CaCl2"] * lam_Cl) / 10)               # D177 (S/m)
+kappa0_amy = (((2 * _a["Na2HPO4"] + _a["NaH2PO4_2H2O"] + _a["NaHCO3"]) * lam_Na
+               + 2 * _a["K2SO4"] * lam_K + 2 * _a["NH42SO4"] * lam_NH4
+               + _a["MgSO4_7H2O"] * lam_Mg + _a["CaSO4_2H2O"] * lam_Ca
+               + _a["Na2HPO4"] * lam_HPO4 + _a["NaH2PO4_2H2O"] * lam_H2PO4
+               + _a["NaHCO3"] * lam_HCO3
+               + (_a["K2SO4"] + _a["CaSO4_2H2O"] + _a["MgSO4_7H2O"] + _a["NH42SO4"]) * lam_SO4) / 1000
+              + (amy_Fe + amy_H2SO4 + sum(amy_TM)) / 1e6 * lam_SO4) / 10                # AMYBO03 D58 (S/m), trace sulfates included
 kappa_fI  = 0.78                                      # D178 (-) Lambda/Lambda0 at I ~ 0.1 M
 kappa_TC  = 0.02                                      # D179 (1/K) +2 %/K, ISO 7888
-kappa_med = _by_media(kappa0_mc02, kappa0_udg) * kappa_fI * (1 + kappa_TC * (TKc - 298.15))  # D180
+kappa_med = _by_media(kappa0_mc02, kappa0_udg, kappa0_amy) * kappa_fI * (1 + kappa_TC * (TKc - 298.15))  # D180
 
 # --- ionic strength & Davies activity coefficients (rows 182-197) ---
 A_DH    = 1.82e6 * (78.54 * (298.15 / TKc) ** 1.368) ** -1.5 * TKc ** -1.5     # D186 (-)
@@ -1649,6 +1682,7 @@ SHEET_OF_PREFIX = {
     "Chemistry": "Chemistry",
     "Biology": "Biology",
     "MassXfer": "Mass Transfer",
+    "AMYBO03": "AMYBO03",
 }
 
 _LABEL_RE = re.compile(r"^(\w+)\s+(\$?[A-Z]{1,3}\$?[0-9]{1,7})\b")
@@ -2059,6 +2093,11 @@ OUTPUTS = [
     ("Summary D132 Extra alkalinity (mM)",             S_D132),
     ("Chemistry D304 alk_pH_target_c (pH)",            alk_pH_target_c),
     ("Chemistry D305 alk_resid_t (mol/L)",              alk_resid_t),
+    ("AMYBO03 D54 PT_AMYBO03 (mol/L)",                 PT_amy),
+    ("AMYBO03 D55 SID_AMYBO03 (mol/L)",                SID_amy),
+    ("AMYBO03 D56 NT_AMYBO03 (mol/L)",                 NT_amy),
+    ("AMYBO03 D58 kappa0_AMYBO03 (S/m)",               kappa0_amy),
+    ("AMYBO03 D59 I_AMYBO03 (mol/L)",                  I_amy),
     ("Summary D135 CO2 uptake ratio (x)",               S_D135),
     ("Summary D136 Carryover velocity rule of thumb",   S_D136),
 ]
