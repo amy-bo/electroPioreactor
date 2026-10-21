@@ -4,6 +4,7 @@ Done-work audit for `electroPioreactorGasModel.xlsx`. Newest first. Open work is
 
 ## 2026-10-21
 
+- [x] **Inputs validated** — the schedule-mode selector (Mass Transfer D81) had no validation and any text other than "Manual" silently meant Optimal; it is now a two-value list and an unlisted value returns #N/A, per the selector rule. Summary D6:D10 gained range validation (power 0–25 %, stirrer 125–2000 rpm, temperature 15–40 °C where the water-property fits hold, volume > 0, pressure 80–110 kPa).
 - [x] **Electrochemistry and carbon physics corrected (review R1, Fable; R2 minors)** — headline interval 16.46 → 17.88 min; as run 0.8 s every 18 min:
   - *Chloride recycling (R1-02)*: monochloramine is a steady share kτ/(1+kτ) of a recycled chloride pool, not a one-way MIN() cap; with *n = 2 per net chloride (R1-03)* (Cl₂ hydrolyses inside the diffusion layer, so its chloride is re-oxidised) the chlorine share of the anode current doubles, the O₂ surplus falls ~9 %, and effective chlorine falls 0.50 → 0.34 mg/L as Cl₂ (still sub-lethal).
   - *ORR electrons (R1-05)*: O₂ reduced at the cathode costs 3.7 e⁻ (15 % to peroxide, 85 % to water), not 2: cathodic ηF 0.977 → 0.958; peroxide flux unchanged and now follows a measured ηF.
