@@ -468,6 +468,33 @@ class GasModelChecks(unittest.TestCase):
             xs = t['x_series']
             self.assertTrue(math.isclose(f(xs * 0.999999), g(xs * 1.000001), rel_tol=1e-6))
 
+    def test_review13_fixes(self):
+        # Every electrode the workbook lists (Electrochemistry A35:A38) runs in both companions.
+        for e in ('Pt/Ti rod', 'MMO rod', 'MMO tube', 'Graphite rod'):
+            t = self.twin(electrode_sel=e)
+            m = self.sens['model'](dict(self.sens['BASE'], electrode=e))
+            self.assertTrue(math.isclose(t['S_D21'], m['spg_int_run'], rel_tol=1e-9), e)
+        # Every Summary note in column F longer than the column wraps (thirteenth review, finding 1).
+        import html, zipfile
+        z = zipfile.ZipFile(BOOK)
+        st = z.read('xl/styles.xml').decode()
+        xfs = re.findall(r'<xf [^>]*?(?:/>|>.*?</xf>)', re.search(r'<cellXfs count="\d+">(.*?)</cellXfs>', st, re.S).group(1), re.S)
+        sh = z.read('xl/worksheets/sheet1.xml').decode()
+        ss = [html.unescape(''.join(re.findall(r'<t[^>]*>([^<]*)</t>', si)))
+              for si in re.findall(r'<si>(.*?)</si>', z.read('xl/sharedStrings.xml').decode(), re.S)]
+        for m in re.finditer(r'<c r="F(\d+)"([^>]*?)(?:/>|>(.*?)</c>)', sh, re.S):
+            a, body = m.group(2), m.group(3) or ''
+            if 'inlineStr' in a:
+                t = html.unescape(''.join(re.findall(r'<t[^>]*>([^<]*)</t>', body)))
+            else:
+                v = re.search(r'<v>([^<]*)</v>', body)
+                if not v:
+                    continue
+                t = ss[int(v.group(1))] if 't="s"' in a else v.group(1)
+            if len(t) > 100:
+                sm = re.search(r's="(\d+)"', a)
+                self.assertIn('wrapText="1"', xfs[int(sm.group(1))] if sm else '', 'Summary F' + m.group(1))
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))

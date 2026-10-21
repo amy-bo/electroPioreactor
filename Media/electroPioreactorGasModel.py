@@ -239,6 +239,7 @@ ELECTRODE = {
     "Pt/Ti rod": dict(sparger="Tube",     por="n/a", z_e_ORR=2),
     "MMO rod":   dict(sparger="Tube",     por="n/a", z_e_ORR=2),
     "MMO tube":  dict(sparger="Sintered", por=0,     z_e_ORR=2),
+    "Graphite rod": dict(sparger="Tube",  por="n/a", z_e_ORR=2),
 }
 gerrit_slope = 1.03          # D11 (mA/%)
 gerrit_int   = 2.6           # D12 (mA)

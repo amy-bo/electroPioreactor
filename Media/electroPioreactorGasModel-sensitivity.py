@@ -198,6 +198,7 @@ ELECTRODE = {
     'Pt/Ti rod': dict(sparger='Tube',     por=None, z_e_ORR=2),   # Echem D31 sparger, D32 sinter grade, D27 z_e_ORR
     'MMO rod':   dict(sparger='Tube',     por=None, z_e_ORR=2),
     'MMO tube':  dict(sparger='Sintered', por=0,    z_e_ORR=2),
+    'Graphite rod': dict(sparger='Tube',  por=None, z_e_ORR=2),
 }
 ELECTRODE_GEOM = {  # anode/cathode shape + dia (mm), Echem D42/D44; plating limits jc/jm (mA/cm2) D50/D51
     'Pt/Ti rod':    dict(a_shape='rod',  a_d=6.0, c_shape='rod', c_d=6.0, jc=100, jm=500, mat='Pt/Ti'),
