@@ -476,6 +476,7 @@ SWEEP = [
  ('j0_anode', 1e-11, 1e-9, 'DATA-GAP'),         # OER on Pt spans +/-1 decade about 1e-10
  ('corr_I_frac', 0.0, 0.10, 'DATA-GAP'),        # 0 is the floor, so base sits at lo
  ('k_cat_cells', 0.001, 0.01, 'DATA-GAP'),      # whole-culture catalase clearance
+ ('tau_NH2Cl', 1 / 60, 5.0, 'DATA-GAP'),    # chloramine lifetime: sets the free chloride share, hence the O2 surplus
  ('bio_O2', 1.6, 2.4, 'DATA-GAP'),
  ('bio_CO2', 0.8, 1.3, 'DATA-GAP'),
  ('pulse_floor', 0.2, 1.0, 'DATA-GAP'),
