@@ -121,7 +121,7 @@ BASE = dict(
   # --- O2 ceiling / Henry ---
   T_C=30, P_atm=101325, H_O2ref=1.2e-5, H_O2T=1500, T_ref=298.15, O2_ceil_atm=0.3,
   # --- CO2 dosing (ed04 calibrated: 3.33 mL/s = 199.8 mL/min) ---
-  DO_lag_ref=0.194,   # Echem D129: typed reference lag DO (mol/m3) for the lag cathodic loss
+  DO_lag_ref=0.174849986629,   # Echem D129: typed reference lag DO (mol/m3) for the lag cathodic loss
   Q_CO2=199.8, Q_CO2_cal=199.8, fit_n_min=3, pulse_V0_factor=1.0, pulse_floor=0.25, flush_factor=1.0, R=8.314462618, M_CO2=44.0095,
   # --- water properties (now temperature-tracking, not frozen constants) ---
   sigma_0=0.07589, sigma_k=-0.000157,     # IAPWS R1-76(2014) linear fit, 15-40 C
@@ -135,7 +135,7 @@ BASE = dict(
   stir_rpm=1000, stir_len=12, kL_surf_factor=1.0,   # factor = order-of-magnitude uncertainty
   # --- dissolved CO2 / H2 / vent ---
   ks_O2=0.14,                             # Biology D122: O2 Setschenow coefficient (L/mol per unit ionic strength)
-  pH_ref_DIC=6.09,                        # Chemistry D291: reference pH of the DIC capacity
+  pH_ref_DIC=6.35994620453,                        # Chemistry D291: reference pH of the DIC capacity
   pw_A=610.94, pw_B=17.625, pw_C=243.04,  # MT D203:D205 Magnus coefficients (Pa, -, degC)
   H_CO2ref=3.3e-4, H_CO2T=2400, Km_CO2=50,
   H_H2ref=7.8e-6, H_H2T=500,
@@ -312,7 +312,8 @@ def model(p):
     km_Cl = p['km_O2'] * (p['D_Cl'] / D_O2) ** p['km_exp']                         # D129, scaled from km_O2
     k_Cl_turn = km_Cl * A_wet / 1000 / (V_charge / 1000)                 # D271, transport-limited turnover
     kt = k_Cl_turn * p['tau_NH2Cl'] * 3600
-    I_Cl = min(I_app * p['FE_CER'], 2 * p['F'] * km_Cl * (Cl_M / (1 + kt) / 1000) * A_wet)   # D133, free chloride only (D278)
+    Cl_bound = min(Cl_M * kt / (1 + kt), I_app * p['FE_CER'] / (2 * p['F'] * (V_charge / 1000)) * p['tau_NH2Cl'] * 3600, NT)
+    I_Cl = min(I_app * p['FE_CER'], 2 * p['F'] * km_Cl * ((Cl_M - Cl_bound) / 1000) * A_wet)   # D133, free chloride only (D278)
     etaF_OER_calc = max(0.0, 1 - I_Cl / I_app - p['corr_I_frac'])        # D104
     etaF = etaF_calc                                                     # D18 (no calibration override)
     etaF_OER = etaF_OER_calc                                             # D26
@@ -321,12 +322,12 @@ def model(p):
     O2_cath = I_app * (1 - etaF) / (n_ORR_eff * p['F']) * 3600
     O2_net = rO2 - O2_cath                                               # Echem D29
     # R5-m2: lag-phase cathodic O2 loss at the typed reference lag DO (Echem D129-D133)
-    O2_ORR_lag = min(I_app / (n_ORR_eff * p['F']) * 3600, O2_cath * p['DO_lag_ref'] / DO_design)   # D131
+    O2_ORR_lag = min(I_app / (n_ORR_eff * p['F']) * 3600, i_ORR / (n_ORR_eff * p['F']) * 3600 * p['DO_lag_ref'] / DO_design)   # D131
     O2_net_lag = rO2 - O2_ORR_lag                                        # D132 = MT D394 = MT D310
     rH2_lag = max(0.0, I_app - O2_ORR_lag / 3600 * n_ORR_eff * p['F']) / (p['z_e_H2'] * p['F']) * 3600   # D133 = MT D395
     O2_cons = rH2 * p['bio_O2'] / p['bio_H2']
     CO2_cons = rH2 * p['bio_CO2'] / p['bio_H2']
-    O2_excess = O2_net - O2_cons                                         # Biology D16
+    O2_excess = max(0.0, O2_net - O2_cons)                                         # Biology D16
 
     # --- surface transfer (MT D67-D73, D98) ---
     tip = PI * (p['stir_len'] / 1000) * p['stir_rpm'] / 60
@@ -365,7 +366,7 @@ def model(p):
     # --- iterH: ONE headspace balance (MT 300-382). Steady flux-weighted composition
     #     y_i = (in_i + y_air,i F_vent_ex) / (F_vent_ex + CO2_supply + O2_src + H2_src - CO2_fix)
     #     shared by the O2 sizing, the CO2 pool and the flammability block. ---
-    n_hs = p['P_atm'] * hs_m3 / (R * T_K)                                # D150, mol
+    n_hs = P_dry * hs_m3 / (R * T_K)                                # D150, mol
     Q_used = {'Outflow only': 0.0, 'Open vent': p['Q_backdraw'],
               'Air exchange': p['Q_vent']}.get(p['vent_model'], NAN)     # D386, mL/min
     F_ex = p['P_atm'] * (Q_used / 1e6 / 60) / (R * T_K) * 3600           # D308, mol/h
@@ -421,7 +422,14 @@ def model(p):
     duty = spg_dur / (spg_int * 60)                                      # D105, valve-time duty
     spg_dur_run = max(p['pulse_floor'], math.floor(spg_dur / 0.05 + 0.5 + 1e-12) * 0.05)   # MT D242 (pulse_res 0.05 s, MROUND)
     spg_dur_run_eq = (V0 + Q_fit * spg_dur_run) / (p['Q_CO2'] / 60)      # as-run pulse on the delivered-volume basis
-    spg_int_run = math.floor(spg_dur_run_eq / (60 * duty_actual) + 0.5)  # Summary D16, whole minutes
+    spg_int_run = math.floor(spg_dur_run_eq / (60 * duty_actual) / 0.01 + 1e-12) * 0.01  # Summary D16, whole minutes
+
+    spg_dur_opt, spg_int_opt = spg_dur, spg_int
+    spg_dur, spg_int = spg_dur_run, spg_int_run
+    if spg_int * 60 <= spg_dur:
+        spg_int = spg_int_run = NAN
+        feasible = False  # no executable schedule; propagate missing operating outputs
+    duty = spg_dur / (spg_int * 60)
 
     # --- both-phase sawtooth at the schedule in use (MT 323-374) ---
     V_pulse = V0 + Q_fit * spg_dur                                       # D411, mL
@@ -577,7 +585,7 @@ def model(p):
     H2O2_ss = r_H2O2 / (p['k_cat_cells'] * 3600)                         # D95, growing culture
     k_anode = (p['km_O2'] / 100) * (A_wet / 10000) / (V_charge / 1e6)   # D151, 1/s: peroxide re-oxidised at the anode
     DO_lag = hs['Lag']['DO_avg']                                         # D150 = MT D135 = DO_avg_l, mol/m3
-    r_H2O2_lag = r_H2O2 * DO_lag / DO_design                             # D152
+    r_H2O2_lag = p['f_HOOH'] * O2_ORR_lag * p['M_H2O2'] * 1000 / (V_charge / 1000)                             # D152
     H2O2_lag_1h = (r_H2O2_lag / (k_anode * 3600) * (1 - math.exp(-k_anode * 3600)))   # D96, no biomass
 
     # --- dissolved CO2 / H2 diagnostics ---
@@ -593,14 +601,13 @@ def model(p):
         NH3_free = NT / (1 + 10 ** (pKa_NH4 - pH_op))                    # D138
         P_HOCl = I_Cl / (2 * p['F'] * (V_charge / 1000))                 # D134, n_e_Cl = 2
         HOCl_mgL = P_HOCl / (p['k1_NH2Cl'] * NH3_free) * M_HOCl
-        NH2Cl = min(Cl_M * M_HOCl * kt / (1 + kt),
-                    CL_PER_N * NT * MW_N * M_HOCl / M_Cl2)               # D143, pool depletes as it turns over
+        NH2Cl = Cl_bound * M_HOCl
         C_eff = p['f_local'] * HOCl_mgL + NH2Cl / p['R_chloramine']      # D145
     else:
         NH3_free = HOCl_mgL = NH2Cl = C_eff = NAN
 
     return dict(
-        spg_dur=spg_dur, spg_int_opt=spg_int, spg_int_opt_s=spg_int * 60,
+        spg_dur=spg_dur_opt, spg_int_opt=spg_int_opt, spg_int_opt_s=spg_int_opt * 60,
         spg_int_DO=spg_int_DO, spg_int_carbon=spg_int_carbon, spg_int_max=spg_int_max,
         duty_DO=duty_DO, duty_actual=duty_actual, duty_opt=duty_opt,
         opt_binding=opt_binding, spg_int_regime=regime, feasible=feasible,

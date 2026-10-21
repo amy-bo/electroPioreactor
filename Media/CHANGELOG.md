@@ -4,6 +4,9 @@ Done-work audit for `electroPioreactorGasModel.xlsx`. Newest first. Open work is
 
 ## 2026-10-21
 
+- [x] **Astra review: operating schedule and species budgets repaired** — all operating outputs now evaluate the rounded command (0.65 s / 7.17 min), with decimal-minute intervals rounded down and overlapping schedules rejected. Ideal design remains 0.674 s / 7.399 min. Saturated headspace uses dry-species inventory consistently; assumed flow reference conditions remain a measurement gap. Lag peroxide shares the capped ORR oxygen/charge budget; DIC and lag-DO references converged and target claims check reference validity. Chloramine recycling respects the electrical production limit and flags exhausted nitrogen; chloride-free Nernst couples are explicitly unavailable and the hidden chlorine-note #DIV/0! is fixed. Remedy bounds use the commanded pulse, protective rounding and an executable-gap check. Pressure closure no longer claims measured cap behaviour. Verification expanded to 382/382 Excel-cached outputs, sensitivity 49/49 + four combinations, and eight regression checks (including conservation, schedule identity, zero chlorine production and capped lag peroxide). Every workbook change recalculated in real Excel; source cmp passed before promotion.
+
+
 - [x] **Astra review: sensitivity re-based to Nelly’s inputs** — AMYBO03 / Xanthobacter / 30 °C baseline, with independent recipe-to-ion calculations for all three media. Baseline and combination mismatches now exit non-zero before sweeps; temperature and chlorine commentary follows the selected baseline. Verified twin 371/371, sensitivity 49/49 and all four headspace combinations; three regression checks cover all media, invalid selection and rejection of a stale cache. No workbook change in this commit.
 
 

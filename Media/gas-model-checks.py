@@ -39,6 +39,54 @@ class GasModelChecks(unittest.TestCase):
                 for a, b in zip(got, expected):
                     self.assertTrue(math.isclose(a, b, rel_tol=1e-12, abs_tol=1e-14), (a, b))
 
+    def twin(self, **overrides):
+        src = TWIN.read_text()
+        for key, value in overrides.items():
+            src, count = re.subn(r'(?m)^' + re.escape(key) + r'\s*=.*$',
+                                 key + ' = ' + repr(value), src)
+            self.assertEqual(count, 1, key)
+        ns = {'__name__': 'test_twin', '__file__': str(TWIN)}
+        exec(compile(src, str(TWIN), 'exec'), ns)
+        return ns
+
+    def test_dry_headspace_co2_conservation(self):
+        n = self.twin()
+        # Vent loss F*C/Csat must equal pool decay coefficient times stored moles.
+        self.assertTrue(math.isclose(n['k_eff_CO2'] * (n['V_L_CO2'] + n['Vg_CO2']),
+                                     n['F_gap_sched'] / 3600 / n['C_sat_CO2'], rel_tol=1e-12))
+        self.assertTrue(math.isclose(n['n_hs_gas'], n['P_dry'] * n['headspace_V_m3'] /
+                                     (n['R_gas'] * n['T_K']), rel_tol=1e-12))
+
+    def test_dashboard_and_operating_schedule_are_identical(self):
+        for settings in ({}, dict(user_spg_dur=0.5, user_spg_int=3.25),
+                         dict(sched_mode='Manual', spg_dur_man=0.4, spg_int_man=2.5)):
+            with self.subTest(settings=settings):
+                n = self.twin(**settings)
+                self.assertEqual(n['S_D14'], n['spg_dur'])
+                self.assertEqual(n['S_D16'], n['spg_int'])
+        self.assertTrue(math.isnan(self.twin(user_spg_dur=60, user_spg_int=1)['spg_int']))
+
+    def test_chlorine_requires_electrical_production(self):
+        p = dict(self.sens['BASE'], media='UdG phosphate', FE_CER=0)
+        self.assertEqual(self.sens['model'](p)['C_eff_Cl2'], 0)
+        n = self.twin(media_sel='UdG phosphate', FE_CER=0)
+        self.assertEqual(n['NH2Cl_mgL'], 0)
+        self.assertEqual(n['Cl_free_frac'], 1)
+
+    def test_lag_peroxide_matches_capped_oxygen_budget(self):
+        for settings in ({}, dict(DO_lag_ref=10)):
+            n = self.twin(**settings)
+            self.assertLessEqual(n['O2_ORR_lag'] * n['n_ORR_eff'] * n['F_const'] / 3600,
+                                 n['I_app'] * (1 + 1e-12))
+            self.assertTrue(math.isclose(n['r_H2O2_lag'] * n['ec_V_L'] /
+                                         (n['M_H2O2'] * 1000), n['f_HOOH'] * n['O2_ORR_lag'], rel_tol=1e-12))
+
+    def test_zero_biological_surplus_is_defined(self):
+        n = self.twin(bio_O2=4)
+        self.assertEqual(n['O2_excess'], 0)
+        self.assertEqual(n['t_O2_ceiling'], 'never (source <= 0)')
+        self.assertEqual(n['kLa_margin_g'], 'no positive source')
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))

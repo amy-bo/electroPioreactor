@@ -16,6 +16,12 @@ Open backlog and parked items. Done work is in `CHANGELOG.md`. Bench SOPs for th
 - [ ] **AMYBO03 sheet house style**: inputs are plain text, not blue; no defined names (Chemistry D44–D47, D180, D185 point at `AMYBO03!$D$54:$D$59` directly, and D58 at `Chemistry!D166:D174` rather than `lam_*`).
 - [ ] **Conductivity factor at AMYBO03 strength**: `kappa_fI` (0.78) is anchored near I ≈ 0.1 M; AMYBO03 is I ≈ 0.20 M, so `kappa_med` is likely a little high and the ohmic drop a little low.
 
+### From the Codex/Astra review (2026-10-21)
+
+- [ ] **Record gas-flow reference conditions.** The model now consistently balances dry species, but CO₂ and air flows are expressed as dry-equivalent volumes at reactor pressure/temperature; the existing collection data do not record gas humidity, collection temperature or pressure. Measure/record these before claiming absolute molar dosing accuracy.
+- [ ] **Validate pressure closure through the real vent.** Positive assumed ingress does not prove enough make-up air enters after CO₂ absorption. Measure the required make-up flow / pressure trace; the workbook now labels closure unverified instead of asserting that the headspace refills.
+- [ ] **Measure AMYBO03 conductivity at operating temperature.** Keep the empirical finite-strength factor until measured; its old I≈0.1 M anchor does not validate it at I≈0.2 M. Trace-ion mobilities, phosphate speciation and metal complexation remain disclosed approximations, not invented constants.
+
 ### From the wave-4 review (2026-08-12; detail and derivations in `electroPioreactorGasModel-Review.md`)
 
 

@@ -414,7 +414,8 @@ i_ORR_design = n_ORR_eff * F_const * (km_O2 / 100) * ec_DO_design * (A_cath_wet 
 i_ORR_ceiling = n_ORR_eff * F_const * (km_O2 / 100) * ec_O2_ceil * (A_cath_wet / 10000)    # D87 (A)
 etaF_calc     = max(0.0, 1 - i_ORR_design / I_app)     # D88 (-)
 etaF_calc_min = max(0.0, 1 - i_ORR_ceiling / I_app)    # D89 (-) worst case at the ceiling DO
-etaF          = etaF_calc                              # D18 = IFERROR(cal_etaF, etaF_calc)
+cal_etaF     = NA                                      # empty calibration; assert against Calibrations D26
+etaF          = cal_etaF if isnum(cal_etaF) else etaF_calc                              # D18 = IFERROR(cal_etaF, etaF_calc)
 
 
 # ============================================================================
@@ -428,7 +429,7 @@ TKc   = T_K                                           # D4 (K)
 Iappc = I_app                                         # D6 (A)
 Fcc   = F_const                                       # D7 (C/mol)
 VLc   = V_charge / 1000                               # D8 (L)
-R_gas_chem = 8.314                                    # D9 (J/mol/K)
+R_gas_chem = 8.314462618                                    # D9 (J/mol/K)
 
 
 def vant_hoff(K25, dH_kJ):
@@ -499,7 +500,9 @@ I_Cl_FE  = Iappc * FE_CER                              # D131 (A) efficiency-lim
 n_e_Cl   = 2                                           # D148 electrons per produced HOCl (moved above D132: R1-03)
 k_Cl_turn = km_Cl * A_anode / 1000 / VLc              # D271 (1/s) transport-limited chloride turnover, km.A/V
 tau_NH2Cl = 1                                          # D142 (h) monochloramine residence
-Cl_free_frac = 1 / (1 + k_Cl_turn * tau_NH2Cl * 3600)  # D278 free share of the recycled chloride pool
+Cl_bound = min(pH_Cl * k_Cl_turn * tau_NH2Cl * 3600 / (1 + k_Cl_turn * tau_NH2Cl * 3600),
+               I_Cl_FE / (n_e_Cl * Fcc * VLc) * tau_NH2Cl * 3600, pH_NT)
+Cl_free_frac = max(0.0, 1 - Cl_bound / pH_Cl) if pH_Cl > 0 else 1.0  # D278 free share of the recycled chloride pool
 I_Cl_mt  = n_e_Cl * Fcc * km_Cl * (pH_Cl * Cl_free_frac / 1000) * A_anode   # D132 (A) transport limit on FREE chloride
 I_Cl     = min(I_Cl_FE, I_Cl_mt)                       # D133 (A) binding limit (mt-limited at trace Cl-)
 # WAVE-4: n_e_Cl is now the constant 2 on every route (2Cl- -> Cl2 -> HOCl, and
@@ -531,10 +534,10 @@ rO2_gen    = I_app * etaF_OER / (z_e_O2 * F_const) * 3600      # D22 (mol/h)
 O2_cathode_ORR = I_app * (1 - etaF) / (n_ORR_eff * F_const) * 3600  # D28 (mol/h)
 O2_net_gen = rO2_gen - O2_cathode_ORR                          # D29 (mol/h)
 # R5-m2: the lag-phase cathodic O2 loss at the lag DO, through a typed reference (Electrochemistry D128-D134)
-DO_lag_ref = 0.194                                     # D129 (mol/m3) INPUT: last lag cycle-mean DO (a link would be circular)
+DO_lag_ref = 0.174849986629                                     # D129 (mol/m3) INPUT: last lag cycle-mean DO (a link would be circular)
 DO_lag_tol = 0.05                                      # D130 (-) tolerance before DO_lag_ref must be re-entered
 O2_ORR_lag = min(I_app / (n_ORR_eff * F_const) * 3600,
-                 O2_cathode_ORR * DO_lag_ref / ec_DO_design)   # D131 (mol/h) O2 reduced at the cathode during lag
+                 (O2_cathode_ORR if isnum(cal_etaF) else i_ORR_design / (n_ORR_eff * F_const) * 3600) * DO_lag_ref / ec_DO_design)   # D131 (mol/h) O2 reduced at the cathode during lag
 O2_net_lag = rO2_gen - O2_ORR_lag                      # D132 (mol/h) net O2 to the liquid during lag
 rH2_lag    = max(0.0, I_app - O2_ORR_lag / 3600 * n_ORR_eff * F_const) / (z_e_H2 * F_const) * 3600   # D133 (mol/h) H2 evolved during lag
 O2_net_lag_mt = O2_net_lag                             # MT D394 <- Electrochemistry D132
@@ -629,7 +632,7 @@ KaHOCl_c = Ka_HOCl / gam1 ** 2                        # D196
 KaN_c    = Ka_NH4                                     # D197  charges cancel exactly
 
 # --- R2-m3: bicarbonate storage in the CO2 pool (Chemistry D290-D296) ---
-pH_ref_DIC  = 6.09                                    # D291 (pH) reference pH for the DIC capacity (input; re-enter if pH moves by >0.1)
+pH_ref_DIC  = 6.35994620453                                    # D291 (pH) reference pH for the DIC capacity (input; re-enter if pH moves by >0.1)
 h_ref_DIC   = 10 ** -pH_ref_DIC                       # D292 (mol/L)
 r_HCO3_ref  = Ka1c_c / h_ref_DIC                      # D293 (-) [HCO3-]/[CO2(aq)] at the reference pH
 HCO3_ref    = (pH_SID + pH_NT * h_ref_DIC / (h_ref_DIC + KaN_c) + h_ref_DIC
@@ -832,7 +835,7 @@ CO2_rate_full = nCO2_rate * 3600                       # D178 (mol/h) sparge lin
 # only) exchanged air; drained by the vent and the fixation sink.
 headspace_V_m3 = headspace_V / 1e6                      # MT D140 (m3)
 Q_vent         = 0.5                                    # MT D142 (mL/min) restricted vent bleed / TOTAL air ingress - KEY UNCERTAIN PARAMETER, measure. INPUT
-n_hs_gas       = P_atm * headspace_V_m3 / (R_gas * T_K) # MT D150 (mol) headspace gas inventory
+n_hs_gas       = P_dry * headspace_V_m3 / (R_gas * T_K) # MT D150 (mol) headspace gas inventory
 vent_model     = vent_model_sel                         # MT D301 <- Summary D111
 vent_name_1, vent_name_2 = "Outflow only", "Air exchange"   # MT D302, D303
 vent_name_3    = "Open vent"                            # MT D384 third vent option
@@ -911,9 +914,15 @@ spg_int_man  = 1.0                                     # D83 (min)
 user_spg_dur = None                                    # Summary G13 (blank -> recommended)
 user_spg_int = None                                    # Summary G15 (blank -> recommended)
 spg_dur = (user_spg_dur if (isnum(user_spg_dur) and user_spg_dur > 0)
-           else (spg_dur_man if sched_mode == "Manual" else spg_dur_opt))   # D121
+           else (spg_dur_man if sched_mode == "Manual" else spg_dur_run))   # D121
+interval_res = 0.01                                   # MT D419 (min), plugin accepts decimal minutes
+spg_int_run = math.floor(((pulse_V0 + Q_CO2_fit * spg_dur) / (Q_CO2 / 60)) / (60 * duty_actual) / interval_res + 1e-12) * interval_res if isnum(duty_actual) else NA
+if spg_int_run * 60 <= spg_dur:
+    spg_int_run = NA                                  # D420: no positive executable gap
 spg_int = (user_spg_int if (isnum(user_spg_int) and user_spg_int > 0)
-           else (spg_int_man if sched_mode == "Manual" else spg_int_opt))   # D122
+           else (spg_int_man if sched_mode == "Manual" else spg_int_run))   # D122
+if spg_int * 60 <= spg_dur:
+    spg_int = NA  # same rejected overlap as Excel, including manual and overrides
 od_ok = "OK" if (spg_int * 60 - spg_dur >= 5) else "TIGHT"    # D95 (uses schedule in use)
 duty    = spg_dur / (spg_int * 60)                     # D105
 
@@ -972,8 +981,8 @@ DO_mf_g, DO_avg_g, DO_peak_g = hs_g["DO_mf"], hs_g["DO_avg"], hs_g["DO_peak"]  #
 DO_avg_g_mgL   = DO_avg_g * M_O2                        # MT D343 (mg/L)
 DO_peak_g_mgL  = DO_peak_g * M_O2                       # MT D344 (mg/L)
 kLa_surf_req_g = O2_src_g / (DO_target * 3600 * (V_charge / 1e6))   # MT D345 (1/s)
-kLa_margin_g   = kLa_surf_used / kLa_surf_req_g         # MT D346 (x)
-DO_feas_g      = _feas(kLa_margin_g)                    # MT D347
+kLa_margin_g   = kLa_surf_used / kLa_surf_req_g if kLa_surf_req_g > 0 else "no positive source"         # MT D346 (x)
+DO_feas_g      = _feas(kLa_margin_g) if kLa_surf_req_g > 0 else "No positive biological O2 surplus; check air ingress and operating DO"                    # MT D347
 DO_peak_chk_g  = _peak_chk(DO_peak_g, DO_peak_g_mgL)    # MT D348
 hs_l = _hs_phase(O2_src_l, H2_src_l, CO2_fix_l, DO_surf_excess_lag)  # MT D349-D363
 y_O2_mf_l, y_H2_mf_l, F_gap_l = hs_l["y_mf"], hs_l["yH2_mf"], hs_l["F_gap"]   # MT D351, D352, D353
@@ -1025,11 +1034,11 @@ spg_int_H2safe = (spg_dur_b / (60 * duty_H2safe)) if duty_H2safe > 0 else NA   #
 N2_sweep_H2safe = (max(0.0, H2_src_l_b / H2_LFL - n_flamm_src - F_vent_ex_b) / 3600 * R_gas_b * T_K / P_atm
                    * 1000000 * 60)                      # Biology D88 (mL/min)
 # R5-m3: exact sawtooth remedy interval (Biology D89-D92, imports D115-D119)
-spg_dur_opt_b   = spg_dur_opt                           # Biology D89 (s) <- MT D90
+spg_dur_opt_b   = spg_dur                           # Biology D89 (s) <- MT D90
 O2_src_l_b      = O2_src_l                              # Biology D115 (mol/h) <- MT D310
 F_gap_l_b       = F_gap_l                               # Biology D116 (mol/h) <- MT D353
 n_hs_gas_b      = n_hs_gas                              # Biology D117 (mol) <- MT D150
-flush_ret_opt_b = flush_ret_opt                         # Biology D118 (-) <- MT D321
+flush_ret_opt_b = flush_ret                         # Biology D118 (-) <- MT D321
 y_O2_end_b      = y_O2_end_l                            # Biology D119 (-) <- MT D358
 def _t_gap(src, lim):
     """Longest gap keeping the pre-pulse fraction of a species (source src mol/h) under lim: 'none needed' if it cannot reach lim."""
@@ -1041,12 +1050,14 @@ t_gap_H2_LFL = _t_gap(H2_src_l_b, H2_LFL)                                       
 t_gap_O2_LOC = _t_gap(O2_src_l_b + y_O2_air_b * F_vent_ex_b, O2_LOC_H2 * LOC_margin)   # Biology D91 (min)
 spg_int_H2safe_saw = ("any interval" if isinstance(t_gap_H2_LFL, str) or isinstance(t_gap_O2_LOC, str)
                       else max(t_gap_H2_LFL, t_gap_O2_LOC) + spg_dur_opt_b / 60)       # Biology D92 (min)
+remedy_interval = max(0, math.ceil(spg_int_H2safe_saw / 0.1) * 0.1 - 0.1) if isnum(spg_int_H2safe_saw) else NA
+interval_remedy = ("sparge every ≤" + xltext(remedy_interval, "0.0") + " min or "
+                   if remedy_interval * 60 > spg_dur else "interval remedy unavailable; ")
 if y_H2_end_b >= H2_LFL and y_O2_end_b >= O2_LOC_H2 * LOC_margin:
     H2_safety = ("FLAMMABLE HEADSPACE (lag): H\u2082 " + xltext(y_H2_hs_lag, "0%")
                  + " mean, " + xltext(y_H2_end_b, "0%") + " before each pulse; O\u2082 " + xltext(y_O2_hs_lag, "0%")
-                 + " mean, " + xltext(y_O2_end_b, "0%") + " before each pulse \u2013 until uptake starts, sparge every \u2264"
-                 + xltext(spg_int_H2safe_saw, "0.0")
-                 + " min or sweep \u2265" + xltext(N2_sweep_H2safe, "0.0")
+                 + " mean, " + xltext(y_O2_end_b, "0%") + " before each pulse \u2013 until uptake starts, "
+                 + interval_remedy + "sweep \u2265" + xltext(math.floor(N2_sweep_H2safe / 0.1) * 0.1 + 0.1, "0.0")
                  + " mL/min N\u2082; vent to a hood; no ignition sources")
 else:
     H2_safety = ("Below the H\u2082 LFL or under the O\u2082 LOC margin at every point of the cycle (lag): H\u2082 "
@@ -1075,7 +1086,7 @@ DO_lag_ref_chk = (("RE-ENTER DO_lag_ref (D129): the lag DO is now " + xltext(ec_
                   if abs(DO_lag_ref / ec_DO_lag - 1) > DO_lag_tol else
                   "OK \u2013 DO_lag_ref within " + xltext(DO_lag_tol, "0%") + " of the lag DO ("
                   + xltext(ec_DO_lag, "0.000") + " mol/m\u00b3)")   # Electrochemistry D134 (display only)
-r_H2O2_lag    = r_H2O2 * ec_DO_lag / ec_DO_design      # D152 (mg/L/h) source scaled by the lag-phase DO
+r_H2O2_lag    = f_HOOH * O2_ORR_lag * M_H2O2 * 1000 / ec_V_L      # D152 (mg/L/h) source scaled by the lag-phase DO
 H2O2_lag_1h   = r_H2O2_lag / (k_H2O2_anode * 3600) * (1 - math.exp(-k_H2O2_anode * 3600))   # D96 (mg/L) 1 h with no catalase pool, anodic loss included
 _arg = 1 - H2O2_thresh * k_H2O2_anode * 3600 / r_H2O2_lag if r_H2O2_lag > 0 else NA
 t_H2O2_thresh = (-math.log(_arg) / k_H2O2_anode / 60) if (isnum(_arg) and _arg > 0) else NA   # D98 (min)
@@ -1127,7 +1138,7 @@ else:
     bubble_regime = "Static" if We_orifice < 2 else "Dynamic"   # D64
 
 # --- O2 time-to-ceiling family ---
-t_O2_ceiling = O2_ceil_C * (V_charge / 1e6) / O2_excess * 60   # D65 (min)
+t_O2_ceiling = O2_ceil_C * (V_charge / 1e6) / O2_excess * 60 if O2_excess > 0 else "never (source <= 0)"   # D65 (min)
 t_O2_ceiling_strip = (O2_ceil_C * (V_charge / 1e6) / (O2_excess - strip_avg) * 60
                       if (O2_excess - strip_avg) > 0 else "never (strip \u2265 source)")  # D66
 # (MT D75 y_O2_vent and D76 DO_vent_eq cleared in iterR4)
@@ -1212,17 +1223,17 @@ CO2_uptake_ratio = ((C_cycle_peak - C_cycle_start) * V_L_CO2 * pulses_h / CO2_co
                     if CO2_cons > 0 else NA)            # MT D417 (x) CO2 absorbed per pulse / fixation demand (informative, not pass/fail)
 hs_sag_max     = 0.05                                   # MT D390 (-) tolerated sag for a sealed cap. INPUT
 if F_vent_ex > 0:
-    hs_sag_chk = "n/a \u2013 the vent admits air (Open vent / Air exchange), so the headspace refills"
+    hs_sag_chk = "UNVERIFIED pressure closure: air ingress is assumed; measure vent make-up flow"
 elif hs_sag > hs_sag_max:
     hs_sag_chk = ("HEADSPACE SAGS " + xltext(hs_sag, "0%") + " below 1 atm each cycle \u2013 a real cap will draw "
                   "air back: use Open vent or Air exchange")
 else:
-    hs_sag_chk = "OK \u2013 sag " + xltext(hs_sag, "0%") + " per cycle, within what a sealed cap holds"   # MT D391
+    hs_sag_chk = "OK \u2013 sag " + xltext(hs_sag, "0%") + " per cycle, within the assumed sag tolerance; cap performance unverified"   # MT D391
 C_cycle_start_b = C_cycle_start                         # Biology D97 (mol/m3) <- MT D198
 CO2_margin_trough = C_cycle_start_b * 1000 / Km_CO2     # Biology D98 (x) carbon margin at the cycle trough (R2-m4)
 CO2_cyc_avg_new = C_cycle_peak * pool_phi + pool_D_raw * pool_psi   # MT D200 (mol/m3) cycle mean
 _F_out = F_vent_ex + CO2_supply + O2_src_sched + H2_src_sched - CO2_fix_sched
-y_CO2_mf       = ((CO2_supply - CO2_fix_sched + pCO2_air / P_atm * F_vent_ex) / _F_out
+y_CO2_mf       = ((CO2_supply - CO2_fix_sched + pCO2_air / P_dry * F_vent_ex) / _F_out
                   if _F_out > 0 else NA)                # MT D381 (-) mean-field headspace CO2 (cross-check)
 C_CO2_mf       = y_CO2_mf * C_sat_CO2                   # MT D382 (mol/m3)
 CO2aqc         = min(C_sat_CO2, max(C_air_CO2, CO2_cyc_avg_new)) / 1000   # MT D162 = Chemistry D5 (mol/L)
@@ -1294,7 +1305,7 @@ M_HOCl_mg = 52460                                       # Chemistry D222 (mg/mol
 def _nh2cl(tau_h):
     """Chloride pool partly turned over to chlorine in tau: pool * k*tau/(1+k*tau), capped by the ammonium stoichiometry."""
     kt = k_Cl_turn * tau_h * 3600
-    return min(Cl_pool_mgL * kt / (1 + kt), cl_per_N * NH3_N * M_HOCl_mg / M_Cl2_mg)
+    return min(pH_Cl * kt / (1 + kt), I_Cl_FE / (n_e_Cl * Fcc * VLc) * tau_h * 3600, pH_NT) * M_HOCl_mg
 NH2Cl_mgL = _nh2cl(tau_NH2Cl)                          # D143 (mg/L) combined chlorine, pool-capped (R1-02: pool depletes as it turns over)
 R_chloramine = 25                                      # D144 monochloramine potency divisor
 # BUGFIX (review 2026-06-26) double pH-discount removed: HOCl_ss is ALREADY the
@@ -1404,11 +1415,11 @@ E0_ORR2 = 0.695                                        # D204 the parasitic cath
 E0_Cu   = 0.3419                                       # D205
 E_OER   = E0_OER - nernst_slope * pH_meas              # D206
 E_HER   = E0_HER - nernst_slope * pH_meas              # D207
-E_Cl2   = E0_Cl2 + nernst_slope * (-math.log10(max(pH_Cl, 1e-12)))  # D208
+E_Cl2   = E0_Cl2 + nernst_slope * (-math.log10(max(gam1 * pH_Cl * Cl_free_frac, 1e-12))) if pH_Cl > 0 else NA  # D208
 E_anode_op = E_OER + eta_anode + pcet_credit_op           # Chemistry D256 (V vs SHE) E_OER + eta_anode_c (Echem D111) + pcet_credit_c (Chemistry D255 <- Echem D162)
 E0_HOCl = 1.482                                        # Chemistry D257 (V) CRC
 E_HOCl_Cl = E0_HOCl + nernst_slope / 2 * (math.log10(max(HOCl_ss * f_local, 1e-12))
-                                            - pH_meas - math.log10(max(pH_Cl, 1e-12)))   # Chemistry D258 (V vs SHE)
+                                            - pH_meas - math.log10(max(gam1 * pH_Cl * Cl_free_frac, 1e-12))) if pH_Cl > 0 else NA   # Chemistry D258 (V vs SHE)
 E_Cl_margin = E_HOCl_Cl - E_anode_op                   # D209 (V) HOCl/Cl- couple minus operating anode potential
 E_ORR2  = E0_ORR2 - nernst_slope * pH_meas             # D210
 E_Cu_margin = E_anode_op - E0_Cu                       # D211 (V) operating anode above Cu2+/Cu
@@ -1446,11 +1457,9 @@ def round_sig_or_int(x):
 CAL_FIRST = "calibrate this reactor first (CO\u2082 flow section of the Calibrations tab, or a CO2 flows row)"   # R5-M1 wording
 S_D13 = iferror(lambda: spg_dur_opt,   # D13: ='Mass Transfer'!D90 (spg_dur_opt)
                 CAL_FIRST)
-S_D14 = (user_spg_dur if (isnum(user_spg_dur) and user_spg_dur > 0)
-         else (spg_dur_run if isinstance(S_D13, float) else S_D13))   # D14 -> MT D242 (R2-M4)
-S_D15 = iferror(lambda: spg_int_opt, CAL_FIRST)  # D15
-S_D16 = (user_spg_int if (isnum(user_spg_int) and user_spg_int > 0)
-         else (float(round_half_up(((pulse_V0 + Q_CO2_fit * S_D14) / (Q_CO2 / 60)) / (60 * duty_actual))) if isinstance(S_D15, float) else S_D15))   # D16 = whole minutes at the optimised duty, as-run pulse on the delivered-volume basis
+S_D14 = spg_dur if isnum(S_D13) else S_D13         # actual resolved pulse
+S_D15 = iferror(lambda: spg_int_opt, CAL_FIRST)
+S_D16 = spg_int if isnum(S_D15) else S_D15         # actual resolved interval
 S_D19 = geom_check                                      # D19 vial geometry
 S_D20 = cal_warning                                     # D20 reactor calibrated
 S_D21 = DO_peak_band                                    # D21 peak DO vs organism band (MT D374)
@@ -1526,25 +1535,17 @@ S_D124 = y_O2_mf_g                                      # D124 headspace O2 frac
 S_D125 = y_O2_mf_l                                      # D125 headspace O2 fraction, lag
 S_D126 = y_H2_mf_l                                      # D126 headspace H2 fraction, lag
 S_D127 = y_CO2_mf                                       # D127 headspace CO2 fraction, sizing phase
+DIC_ref_check = "OK" if abs(pH_ref_DIC - pH_op) <= 0.1 else "REFRESH DIC reference pH"
 if sel_invalid:
-    S_D128 = "#N/A \u2013 check the selectors in D111/D112"
+    S_D128 = "#N/A – check the selectors in D111/D112"
 elif not isnum(spg_int_DO):
-    S_D128 = ("DO target unreachable on the sizing phase (rows 120–121) – the schedule is the legacy O₂ flush guard (Mass Transfer D89)")
-elif (isnum(user_spg_dur) and user_spg_dur > 0) or (isnum(user_spg_int) and user_spg_int > 0):
-    S_D128 = ("watch \u2013 override in use (G13/G15), not the optimised schedule: pH " + xltext(pH_meas, "0.00")
-              + ", cycle-mean DO " + xltext(DO_ss, "0.0") + " mg/L against the "
-              + xltext(DO_target * M_O2, "0.0") + " mg/L target; neither target is claimed")
-elif pH_band_lo <= pH_meas <= pH_band_hi:
-    S_D128 = ("yes \u2013 the schedule holds the DO target at pH " + xltext(pH_meas, "0.00") + ", within the "
-              + xltext(pH_band_lo, "0.0") + "\u2013" + xltext(pH_band_hi, "0.0") + " band")
-elif pH_meas > pH_band_hi:
-    S_D128 = ("NO \u2013 pH " + xltext(pH_meas, "0.00") + " above the " + xltext(pH_band_hi, "0.0") + " band ceiling")
-elif spg_int_DO <= spg_int_carbon:
-    S_D128 = ("NO \u2013 holding the DO target drives pH to " + xltext(pH_meas, "0.00") + ", below the "
-              + xltext(pH_band_lo, "0.0") + " band floor")
+    S_D128 = "DO target unreachable on the sizing phase; schedule is a legacy fallback"
+elif DIC_ref_check != "OK" or abs(DO_lag_ref / ec_DO_lag - 1) > DO_lag_tol:
+    S_D128 = "watch – refresh the DIC or lag-DO reference before claiming either target"
+elif pH_band_lo <= pH_meas <= pH_band_hi and DO_ss <= DO_target * M_O2:
+    S_D128 = "yes – both targets met by the evaluated schedule"
 else:
-    S_D128 = ("NO \u2013 the carbon-limited interval (not the DO target) gives pH " + xltext(pH_meas, "0.00")
-              + ", below the " + xltext(pH_band_lo, "0.0") + " band floor")
+    S_D128 = "NO – evaluated schedule misses the pH band or mean DO target"
 
 
 # ============================================================================
@@ -1601,7 +1602,7 @@ class WorkbookReader:
         for sh in ET.fromstring(self._parts["xl/workbook.xml"]).iter(_MAIN_NS + "sheet"):
             target = rels.get(sh.get(_REL_NS + "id"), "")
             if target:
-                self._sheet_part[sh.get("name")] = "xl/" + target.lstrip("/")
+                self._sheet_part[sh.get("name")] = (target.lstrip("/") if target.startswith("/") else "xl/" + target)
         sst_xml = self._parts.get("xl/sharedStrings.xml")
         self._shared = []
         if sst_xml is not None:
@@ -2103,6 +2104,24 @@ OUTPUTS = [
 ]
 
 
+Cl_model_check = ("UNSUPPORTED – nitrogen capacity exhausted" if pH_Cl > 0 and Cl_bound >= pH_NT
+                  and P_HOCl > pH_NT / (tau_NH2Cl * 3600) else "OK")
+chlorine_note = (Cl_model_check if Cl_model_check != "OK" else
+                "Effective chlorine on the as-Cl2 basis; zero for chloride-free medium. Lifetime and potency require measurement.")
+OUTPUTS.extend([
+    ("Chemistry E107 chlorine production note", "Naive FE=1 ceiling; overstates operative production by " + xltext(bleach_rate / (P_HOCl * M_HOCl_mg * 3600), "0") + " times" if P_HOCl > 0 else "No chlorine production at the selected chloride inventory"),
+    ("Chemistry D310 DIC reference validity", DIC_ref_check),
+    ("Chemistry D311 combined chlorine inventory", Cl_bound),
+    ("Chemistry D312 chloramine validity", Cl_model_check),
+    ("Summary F36 chlorine validity", chlorine_note),
+    ("MassXfer D420 executable interval", spg_int_run),
+    ("Summary D43 current mA", I_app * 1000),
+    ("Summary D44 anode current density", j_anode),
+    ("Summary D46 maximum power", power_max),
+    ("Summary D47 maximum current mA", I_max_mA),
+    ("Summary D48 maximum anode current density", j_anode_max),
+])
+
 # Declared input -> Summary cell. Checked before anything is compared.
 INPUT_CELLS = [
     ("Reactor_sel",   "D2",  Reactor_sel),
@@ -2116,6 +2135,8 @@ INPUT_CELLS = [
     ("P_atm_set",     "D10", P_atm_set),
     ("vent_model_sel", "D111", vent_model_sel),
     ("O2_phase_sel",  "D112", O2_phase_sel),
+    ("user_spg_dur", "G13", user_spg_dur or 0.0),
+    ("user_spg_int", "G15", user_spg_int or 0.0),
 ]
 
 
@@ -2167,7 +2188,9 @@ def _match(comp, book, tol=TOL):
 
 def _input_matches(declared, book):
     """A declaration matches its Summary cell; blank/absent counts as 0.0."""
-    if book is ABSENT or book is NO_CACHE or book is None or book == "":
+    if book is NO_CACHE:
+        return False
+    if book is ABSENT or book is None or book == "":
         return declared == 0.0
     if _isnum(declared) and _isnum(book):
         return abs(declared - book) <= 1e-9 * max(1.0, abs(book))
