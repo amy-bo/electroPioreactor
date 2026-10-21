@@ -77,7 +77,7 @@ from decimal import Decimal, ROUND_HALF_UP
 #   the workbook: the harness refuses to compare a twin run at other inputs.
 # ============================================================================
 Reactor_sel    = "ed04"            # D2
-electrode_sel  = "Pt/Ti rod"       # D3
+electrode_sel  = "MMO tube"        # D3
 organism_sel   = "UdG (mixed)"     # D4
 media_sel      = "UdG phosphate"   # D5
 led_intensity  = 3.0               # D6  (%)

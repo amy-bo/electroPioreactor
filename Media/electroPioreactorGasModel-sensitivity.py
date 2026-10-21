@@ -17,7 +17,8 @@ WHAT THIS MODELS
 WHICH WORKBOOK VERSION IT MIRRORS
     electroPioreactorGasModel.xlsx (wave-4 logic, verified in Excel 2026-10-21), with the live
     selector state behind the values:
-        ed04 / Pt-Ti rod / UdG (mixed) / UdG phosphate, LED 3 %, stir 1000 rpm, T 25 C.
+        ed04 / MMO tube / UdG (mixed) / UdG phosphate, LED 3 %, stir 1000 rpm, T 25 C.
+    (Summary D3 is read from SELECTORS['electrode']; the electrode tables cover the others.)
     Formula logic is read directly out of the workbook part XML (Mass Transfer D178-D200,
     Electrochemistry D79-D122, Chemistry D166-D220). The workbook is the authority for
     both LOGIC and BASELINE INPUTS. The full twin (electroPioreactorGasModel.py) is the
@@ -95,7 +96,7 @@ NAN = float('nan')
 # ---------------------------------------------------------------------------
 # BASELINE INPUTS
 # Source of truth: the WORKBOOK's live Summary selector state (Summary D2:D10) --
-# ed04 / Pt-Ti rod / UdG (mixed) / UdG phosphate, LED 3 %, stir 1000 rpm, T 25 C.
+# ed04 / MMO tube (SELECTORS['electrode']) / UdG (mixed) / UdG phosphate, LED 3 %, stir 1000 rpm, T 25 C.
 #
 # NOTE target_DO_frac = 0.2261 (DO_opt 2.6 / DO_toxic 11.5), NOT the 0.5 this script carried
 # before. Biology D60/D61
@@ -185,6 +186,19 @@ M_O2 = 31.998      # g/mol, Mass Transfer D231 (2 x 15.999)
 D_HCO3 = 1.185e-9  # m2/s, Chemistry D251 (CRC)
 MW_N = 14007.0     # mg/mol
 CL_PER_N = 5.06    # mg Cl2 per mg ammonium-N (breakpoint)
+# Electrode lookups keyed on Summary D3 (same tables as the twin): Electrochemistry A35:N38
+ELECTRODE = {
+    'Pt/Ti rod': dict(sparger='Tube',     por=None, z_e_ORR=2),   # Echem D31 sparger, D32 sinter grade, D27 z_e_ORR
+    'MMO rod':   dict(sparger='Tube',     por=None, z_e_ORR=2),
+    'MMO tube':  dict(sparger='Sintered', por=0,    z_e_ORR=2),
+}
+ELECTRODE_GEOM = {  # anode/cathode shape + dia (mm), Echem D42/D44; plating limits jc/jm (mA/cm2) D50/D51
+    'Pt/Ti rod':    dict(a_shape='rod',  a_d=6.0, c_shape='rod', c_d=6.0, jc=100, jm=500, mat='Pt/Ti'),
+    'MMO rod':      dict(a_shape='rod',  a_d=6.0, c_shape='rod', c_d=6.0, jc=50,  jm=500, mat='MMO'),
+    'MMO tube':     dict(a_shape='tube', a_d=6.0, c_shape='rod', c_d=6.0, jc=10,  jm=60,  mat='MMO'),
+    'Graphite rod': dict(a_shape='rod',  a_d=6.0, c_shape='rod', c_d=6.0, jc=35,  jm=50,  mat='Graphite'),
+}
+POR_UM = [205, 130, 70, 28, 13, 1.3]   # MT D33:D38, sinter pore (um) by grade 0..5
 
 
 def model(p):
@@ -215,7 +229,10 @@ def model(p):
     hs_m3 = headspace_V / 1e6
     # Geometry D93: submerged length at the ACHIEVED level, not the bare datum
     L_sub = max(0.0, h_actual - p['elec_clear'])
-    A_wet = (PI * p['rod_d'] * L_sub + PI / 4 * p['rod_d'] ** 2) / 100   # cm2, rod (end face)
+    eg = ELECTRODE_GEOM[p['electrode']]                                  # Echem A35:N38 lookup on Summary D3
+    wet = lambda shape, d: (PI * d * L_sub + (PI / 4 * d ** 2 if shape == 'rod' else 0)) / 100   # cm2, rod adds its end face, tube none
+    A_wet = wet(eg['a_shape'], eg['a_d'])                                # Echem D46, anode wetted area (cm2)
+    A_cath = wet(eg['c_shape'], eg['c_d'])                               # Echem D47, cathode wetted area (cm2)
 
     # --- water properties at the reactor temperature (Mass Transfer D29-D32, D138) ---
     sigma = p['sigma_0'] + p['sigma_k'] * p['T_C']
@@ -245,8 +262,8 @@ def model(p):
                  else p['target_DO_frac'] * O2_ceil_C)                   # MT D179
     DO_design = DO_target                                                # Echem D85 = the DO target (R5-m7)
     n_ORR_eff = p['z_e_ORR'] * p['f_HOOH'] + p['z_e_O2'] * (1 - p['f_HOOH'])   # D141, e-/O2 weighted by peroxide selectivity
-    i_ORR = n_ORR_eff * p['F'] * (p['km_O2'] / 100) * DO_design * (A_wet / 10000)   # D86
-    i_ORR_ceil = n_ORR_eff * p['F'] * (p['km_O2'] / 100) * O2_ceil_C * (A_wet / 10000)
+    i_ORR = n_ORR_eff * p['F'] * (p['km_O2'] / 100) * DO_design * (A_cath / 10000)   # D86, cathode area D47
+    i_ORR_ceil = n_ORR_eff * p['F'] * (p['km_O2'] / 100) * O2_ceil_C * (A_cath / 10000)   # D87
     etaF_calc = max(0.0, 1 - i_ORR / I_app)                              # D88
     etaF_calc_min = max(0.0, 1 - i_ORR_ceil / I_app)                     # D89
     Cl_M = 2 * p['udg_CaCl2'] / MW['CaCl2']                              # Chemistry D42
@@ -402,12 +419,13 @@ def model(p):
     y_H2_lag = hs['Lag']['yH2']                                          # D352 = Biology D84
     t_lag = (O2_ceil_C * V_L / O2_net * 60) if O2_net > 1e-15 else INF   # D79
 
-    # --- bubble / sparge strip (tube); Mendelson NA-guard < 1 mm ---
-    d_or = p['spg_ID'] / 1000
-    d_b = (6 * d_or * sigma / (rho_L * p['g'])) ** (1 / 3)
+    # --- bubble / sparge strip; orifice from the electrode's sparger (MT D27:D41); sub-mm bubble -> strip 0 (D54) ---
+    d_or = (p['spg_ID'] / 1000 if ELECTRODE[p['electrode']]['sparger'] == 'Tube'
+            else POR_UM[ELECTRODE[p['electrode']]['por']] / 1e6)        # MT D41: tube bore or sinter pore (D39)
+    d_b = (6 * d_or * sigma / (rho_L * p['g'])) ** (1 / 3)              # MT D42
     if d_b < 0.001:
-        strip_avg = NAN
-        strip_ratio = NAN
+        strip_avg = 0.0                                                  # MT D54/D55: sinter bubble excluded
+        strip_ratio = 0.0 if O2_excess > 0 else NAN                      # MT D56
     else:
         u_rise = math.sqrt(p['mend_a'] * sigma / (rho_L * d_b) + p['mend_b'] * p['g'] * d_b)
         u_sg = (p['Q_CO2'] / 1e6 / 60) / (A_x / 1e6)
@@ -492,7 +510,8 @@ def model(p):
     pKa_NH4 = -math.log10(KN)
 
     # --- local-pH (buffer) verdict at the anode (Chemistry D214-D219) ---
-    j_anode = I_app * 1000 / A_wet                                       # mA/cm2
+    j_anode = I_app * 1000 / A_wet                                       # Echem D48 mA/cm2
+    j_cathode = I_app * 1000 / A_cath                                    # Echem D49 mA/cm2
     if n_cross == 1:
         C_HPO4 = PT / (1 + 10 ** (pKa2p_c - pH_op))                      # D253 (pH_op, concentration scale)
         C_HCO3 = K1c * CO2aqc / 10 ** -pH_op                             # D252
@@ -511,11 +530,11 @@ def model(p):
                + (n_MgSO4 + n_NH42SO4) * LAM['SO4'] + n_NaHCO3 * LAM['HCO3']
                + 2 * n_CaCl2 * LAM['Cl']) / 10)                          # S/m
     kappa = kappa0 * p['kappa_fI'] * (1 + p['kappa_TC'] * (T_K - 298.15))
-    R_cell = (p['k_geom'] * math.acosh(p['elec_gap'] / p['rod_d'])
+    R_cell = (p['k_geom'] * math.acosh(p['elec_gap'] / eg['a_d'])
               / (PI * kappa * (L_sub / 1000)))                           # D117
     V_IR = I_app * R_cell                                                # D118
     eta_a = p['b_anode'] * math.log10(j_anode / 1000 / p['j0_anode'])     # D111
-    eta_c = p['b_cath'] * math.log10(j_anode / 1000 / p['j0_cath'])       # D112
+    eta_c = p['b_cath'] * math.log10(j_cathode / 1000 / p['j0_cath'])     # D112, cathode density D49
     pcet_op = 0.0 if (n_cross == 1 and j_buffer_ratio > 1) else p['pcet_credit']   # Echem D162: credit withdrawn past the buffer limit
     V_cell = p['E0_OER'] + eta_a + eta_c + pcet_op + V_IR                 # D119
 
@@ -708,8 +727,10 @@ SELF_CHECK = [
 # BASE inputs vs the workbook (Summary selectors D2:D10 and the cells they feed).
 # (label, sheet, cell, value declared by this script). D9 / D10 are blank on Summary, so
 # the effective volume and pressure are checked on the cells that resolve them.
-SELECTORS = dict(reactor='ed04', electrode='Pt/Ti rod', organism='UdG (mixed)',
+SELECTORS = dict(reactor='ed04', electrode='MMO tube', organism='UdG (mixed)',
                  media='UdG phosphate')
+BASE['electrode'] = SELECTORS['electrode']                               # Summary D3 drives the electrode tables
+BASE['z_e_ORR'] = ELECTRODE[SELECTORS['electrode']]['z_e_ORR']           # Echem D27
 INPUT_CELLS = [
     ('Reactor_sel',   'Summary', 'D2', SELECTORS['reactor']),
     ('electrode_sel', 'Summary', 'D3', SELECTORS['electrode']),
@@ -842,10 +863,11 @@ for k, lab, sh, ref in SELF_CHECK:
         _fails.append(f"   {lab}: this={b[k]:.6g}  workbook {sh}!{ref}={v:.6g}")
 
 print("=" * 100)
-print("BASELINE - workbook live state: ed04 / Pt-Ti rod / UdG (mixed) / UdG phosphate,")
+print(f"BASELINE - workbook live state: {SELECTORS['reactor']} / {SELECTORS['electrode']} / "
+      f"{SELECTORS['organism']} / {SELECTORS['media']},")
 print(f"           vent model '{BASE['vent_model']}', O2 sized on the {BASE['O2_phase']} phase,")
 print(f"           LED {BASE['intensity']}%, stir {BASE['stir_rpm']} rpm, T {BASE['T_C']} C, "
-      f"tube sparger, Q_CO2 = {BASE['Q_CO2']} mL/min (ed04 calibration)")
+      f"{ELECTRODE[SELECTORS['electrode']]['sparger'].lower()} sparger, Q_CO2 = {BASE['Q_CO2']} mL/min (ed04 calibration)")
 print("=" * 100)
 for k, unit in [('spg_dur', 's'), ('spg_int_opt', 'min'), ('spg_int_opt_s', 's'),
                 ('spg_int_DO', 'min'), ('spg_int_carbon', 'min'), ('spg_int_max', 'min'),

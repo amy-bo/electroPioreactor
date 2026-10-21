@@ -59,14 +59,19 @@ Work top-to-bottom; the order is by leverage (biggest model uncertainty first). 
 
 | # | Experiment | Protocol | Calibrations section | Why it's here |
 |---|-----------|----------|----------------------|----------------|
-| 0 | Vial geometry & true headspace | [vial-geometry.md](vial-geometry.md) | Vial geometry | Biggest lever – the headline sparge pulse is ~4x as sensitive to headspace as to anything else; clears the geometry consistency flag |
-| 1 | Surface O₂ transfer (kLa) | [surface-kla.md](surface-kla.md) | Surface kLa | Highest sensitivity (~375%) – decides a short vs long sparge interval; must exceed the critical value |
-| 2 | Faradaic efficiency | [faradaic-efficiency.md](faradaic-efficiency.md) | Faradaic efficiency | Both efficiencies are assumed 1.0 until measured, which makes every O₂ figure an optimistic upper bound |
-| 3 | Dissolved oxygen & organism DO bands | [dissolved-oxygen.md](dissolved-oxygen.md) | Dissolved-oxygen thresholds | The organism's DO band sets the target operating DO and the schedule |
-| 4 | CO₂ flow calibration | [flow-calibration.md](flow-calibration.md) | CO₂ flow | Every reactor needs its own; an uncalibrated reactor reads "calibrate first" |
-| 5 | Knallgas uptake stoichiometry | [knallgas-stoichiometry.md](knallgas-stoichiometry.md) | Knallgas ratio | Sets the O₂ surplus and carbon demand the schedule is built on |
-| 6 | Sinter (frit) porosity grade | [sinter-porosity.md](sinter-porosity.md) | Sinter porosity | Sets bubble size; only matters when the sparger is a sintered frit |
-| 7 | Electrolysis current calibration | [gerrit-current.md](gerrit-current.md) | Electrolysis current | Current is the master input for all H₂/O₂ generation; re-check per electrode and cell |
+| 0 | Vial geometry & true headspace | [vial-geometry.md](vial-geometry.md) | Vial geometry | Biggest lever on the pulse: it is sized to about one headspace volume; clears the geometry consistency flag |
+| 1 | Headspace vent characterisation | [headspace-vent.md](headspace-vent.md) | None yet: set Summary D111 and, for Air exchange, Mass Transfer D142 | Decides the vent model, the single biggest input to the interval (about 0.9 to 12.7 min across plausible vents). Fix the cap leak first |
+| 2 | Surface O₂ transfer (kLa) | [surface-kla.md](surface-kla.md) | Surface kLa | Sets how far dissolved O₂ sits above the headspace and the margin of the whole DO strategy |
+| 3 | Abiotic DO trace under the schedule | [abiotic-do-trace.md](abiotic-do-trace.md) | None: compare with Summary D116–D117 | One cell-free run that tests the whole headspace balance; do it after #1 and #2 |
+| 4 | Headspace H₂/O₂ (lag-phase flammability) | [headspace-gas-safety.md](headspace-gas-safety.md) | None: compare with Summary D124–D126 | Safety: required before any unattended run from inoculation |
+| 5 | Faradaic efficiency | [faradaic-efficiency.md](faradaic-efficiency.md) | Faradaic efficiency | The cathodic efficiency is calculated from an estimated mass-transfer coefficient; measuring it pins the O₂ the schedule is sized on |
+| 6 | Electrode mass-transfer coefficient | [electrode-mass-transfer.md](electrode-mass-transfer.md) | None yet: compare with Electrochemistry D84 | Sets the cathodic O₂ loss, the peroxide source, the chlorine cap and the electrode-surface pH verdict |
+| 7 | Dissolved oxygen & organism DO bands | [dissolved-oxygen.md](dissolved-oxygen.md) | Dissolved-oxygen thresholds | The organism's DO band sets the target operating DO and the schedule |
+| 8 | CO₂ flow calibration | [flow-calibration.md](flow-calibration.md) | CO₂ flow | Every reactor needs its own; an uncalibrated reactor reads "calibrate first". Step 10 checks it with the sparger attached |
+| 9 | Knallgas uptake stoichiometry | [knallgas-stoichiometry.md](knallgas-stoichiometry.md) | Knallgas ratio | Sets the O₂ surplus and carbon demand the schedule is built on |
+| 10 | Free and combined chlorine (DPD) | [chlorine-species.md](chlorine-species.md) | None yet: compare with Chemistry D142 | Settles the monochloramine lifetime, about ±32 % on the interval |
+| 11 | Sinter (frit) porosity grade | [sinter-porosity.md](sinter-porosity.md) | Sinter porosity | Sets bubble size; only matters when the sparger is a sintered frit |
+| 12 | Electrolysis current calibration | [gerrit-current.md](gerrit-current.md) | Electrolysis current | Current is the master input for all H₂/O₂ generation; re-check per electrode and cell |
 | – | Current-density screen (new strain) | [current-density-screen.md](current-density-screen.md) | Current density | Only when a strain has no trustworthy published current-density tolerance |
 
 ## Ambient pressure (no protocol needed)
@@ -75,7 +80,7 @@ The model defaults ambient pressure to 101325 Pa. For the best Henry-solubility 
 
 ## How to use
 
-1. Pick the experiment from the table, starting at #0.
+1. Pick the experiment from the table, starting at #0. Protocols marked "None" in the Calibrations column are not on the tab yet: compare your result with the cells named and record it in your lab notebook; taking these as model inputs is on the Summary TODO (rows 145 onwards).
 2. Follow the Optimal route if you have the kit; otherwise the Budget route. Both state their accuracy.
 3. Record your raw numbers in that section of the Calibrations tab, filling Researcher, Date and the key, and setting Include to `y`.
 4. The model recomputes. Watch the gates on the Summary: the geometry check should read OK after #0; the measured kLa should exceed its critical value after #1; a calibrated reactor stops reading "calibrate first" after #4.
