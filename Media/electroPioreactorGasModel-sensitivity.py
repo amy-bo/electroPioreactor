@@ -305,7 +305,7 @@ def model(p):
     P_dry = p['P_atm'] - p_sat_w                                         # MT D418, dry-gas basis of every Henry term
     H_CO2_T = p['H_CO2ref'] * math.exp(p['H_CO2T'] * (1 / T_K - 1 / p['T_ref']))
     H_H2_T = p['H_H2ref'] * math.exp(p['H_H2T'] * (1 / T_K - 1 / p['T_ref']))
-    O2_ceil_Pa = p['O2_ceil_atm'] * p['P_atm']
+    O2_ceil_Pa = p['O2_ceil_atm'] * 101325.0                           # Biology D26: atm -> Pa (standard atmosphere)
     O2_ceil_C = H_O2_T * O2_ceil_Pa
 
     # --- electrolysis, with CALCULATED faradaic efficiencies (Echem D86-D89, D101-D104) ---
@@ -455,7 +455,8 @@ def model(p):
         Dr = (_Cair / _Csat * F_ex - fix_s) * (t_off / 3600) / (_V_L_CO2 + Vg)
         cs = (Dr * ph_ + _b * e) / (1 - _r * e)
         return min(_Csat, max(_Cair, (_r * cs + _b) * ph_ + Dr * ps_))
-    _lo, _hi = _dur / 60 + 0.01, 1500.0                                # D430 shortest executable, D436
+    _lo, _hi = math.floor(_dur / 60 / 0.01 + 1e-12) * 0.01 + 0.01, 1500.0   # D430 first command step above the pulse, D436
+    _lo0 = _lo
     if c_hi <= 0 or _cmean(_hi) >= c_hi:
         spg_int_pH = NAN                                                 # no pH bound
     elif _cmean(_lo) < c_hi:
@@ -465,7 +466,7 @@ def model(p):
             _m = math.sqrt(_lo * _hi)
             _lo, _hi = (_m, _hi) if _cmean(_m) >= c_hi else (_lo, _m)
         spg_int_pH = math.sqrt(_lo * _hi)                                # D432
-    ph_unreach = c_hi > 0 and _cmean(_dur / 60 + 0.01) < c_hi          # D434
+    ph_unreach = c_hi > 0 and _cmean(_lo0) < c_hi                      # D434
     # Lag H2/O2 hazard screen (Biology D90-D92), solved independently: longest gap whose pre-pulse
     # sawtooth top stays under the limit, x = ln((1 - k r)/(1 - k)); it bounds a Lag-sized schedule.
     _Fl = F_dil + max(0.0, O2_net_lag + rH2_lag)
@@ -506,7 +507,9 @@ def model(p):
     else:
         spg_int = min(spg_int_carbon, spg_int_max, pH_cap, H2_cap) if not ph_unreach else NAN   # D91 fallback
         opt_binding = ('pH CEILING UNREACHABLE' if ph_unreach else
-                       'pH CEILING (keeping pH at or under the band ceiling sets the interval)'
+                       'H\u2082 FLAMMABILITY SCREEN (lag sizing; Biology D92 sets the interval)'
+                       if H2_cap < min(spg_int_carbon, spg_int_max, pH_cap)
+                       else 'pH CEILING (keeping pH at or under the band ceiling sets the interval)'
                        if pH_cap < min(spg_int_carbon, spg_int_max) else 'O2-INFEASIBLE (see D134)')
         regime = ('DO TARGET UNREACHABLE -- the surface cannot carry the O2 flux at this '
                   'kLa; no interval fixes it')

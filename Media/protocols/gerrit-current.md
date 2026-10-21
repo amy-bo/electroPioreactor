@@ -74,7 +74,7 @@ tags: [electropioreactor, protocol, electrochemistry, calibration]
 
 ## What the spreadsheet does with it
 
-The Calibrations tab fits a straight line of current against intensity to your recorded points, giving a slope and an intercept for the run. It averages those results across every included run for that reactor, and feeds the averaged slope and intercept into the electrolysis-current relationship that sets the gas generation rates. Include only accepted operating-band points; keep out-of-band diagnostic measurements separate and excluded unless an expanded linear range has been established and approved.
+The Calibrations tab fits one straight line of current against intensity to every included point for that reactor (a pooled least-squares fit, so a run with more points weighs more), and feeds that slope and intercept into the electrolysis-current relationship that sets the gas generation rates. Include only accepted operating-band points; keep out-of-band diagnostic measurements separate and excluded unless an expanded linear range has been established and approved.
 
 ## Principle & background
 

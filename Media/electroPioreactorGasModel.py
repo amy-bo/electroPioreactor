@@ -1014,7 +1014,8 @@ def co2_mean_at(t_min):
 
 interval_res = 0.01                                   # MT D419 (min), plugin accepts decimal minutes
 grid_n, grid_t_max = 100, 1500.0                        # MT grid rows 440-539; D436 (min)
-grid_t_min = spg_dur / 60 + interval_res               # MT D430: the shortest executable interval
+grid_t_min = (math.floor(spg_dur / 60 / interval_res + 1e-12) * interval_res + interval_res
+              if isnum(spg_dur) else NA)                 # MT D430: first command step above the pulse
 grid_ratio = (grid_t_max / grid_t_min) ** (1 / 99)    # MT D431
 pH_grid_t = [grid_t_min * grid_ratio ** i for i in range(grid_n)]
 pH_grid_C = [co2_mean_at(t) for t in pH_grid_t]

@@ -322,7 +322,8 @@ class GasModelChecks(unittest.TestCase):
         # mistaken for infeasibility (finding 2).
         x = self.twin(media_volume=16.0, N2_sweep_set=20.0, NaHCO3_add_gL=8.0)
         self.assertFalse(x['ph_unreach_l'])
-        self.assertTrue(math.isclose(x['grid_t_min'], x['spg_dur'] / 60 + 0.01, rel_tol=1e-12))
+        self.assertTrue(math.isclose(x['grid_t_min'], math.floor(x['spg_dur'] / 60 / 0.01 + 1e-12) * 0.01 + 0.01, rel_tol=1e-12))
+        self.assertGreater(x['grid_t_min'] * 60, x['spg_dur'])                      # executable
         # Knallgas ratios are averaged per run on an H2 basis (finding 3): pinned formula text.
         with zipfile.ZipFile(BOOK) as z:
             cal = z.read('xl/worksheets/sheet8.xml').decode().replace('&quot;', '"').replace('&gt;', '>')
@@ -330,6 +331,21 @@ class GasModelChecks(unittest.TestCase):
         self.assertIn('IFERROR(IF(D112>0,E112/D112,""),"")', cal)
         # Lag H2 time mean exists for time-weighted comparisons (finding 4) and lies between the flux mean and the top.
         self.assertTrue(self.twin()['y_H2_avg_l'] > 0)
+
+    def test_review3_fixes(self):
+        # The grid starts at the first command step above the pulse (0.4 s pulse -> 0.01 min).
+        g = self.twin(user_spg_dur=0.4)
+        self.assertTrue(math.isclose(g['grid_t_min'], 0.01, rel_tol=1e-9))
+        # The sensitivity model's O2 ceiling uses the standard atmosphere, as Biology D26 (finding 2).
+        for patm in (80000.0, 101325.0):
+            t = self.twin(P_atm_set=patm)
+            m = self.sens['model'](dict(self.sens['BASE'], P_atm=patm))
+            self.assertTrue(math.isclose(t['DO_target'], m['DO_target'], rel_tol=1e-6), (patm, t['DO_target'], m['DO_target']))
+        # Sinter grades outside the listed classes are not invented (finding 4): formula text pinned.
+        with zipfile.ZipFile(BOOK) as z:
+            cal = z.read('xl/worksheets/sheet8.xml').decode().replace('&quot;', '"').replace('&gt;', '>').replace('&lt;', '<')
+        self.assertIn('"between or below the listed grades – not used"', cal)
+        self.assertIn('AND((bp_const/D81)>=por_p5_lo,(bp_const/D81)<=por_p5_hi),5', cal)
 
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
