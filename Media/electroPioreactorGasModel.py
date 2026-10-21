@@ -206,9 +206,9 @@ depth_warn     = "LIQUID OVER USABLE DEPTH" if h_actual > D_int else "OK"       
 if abs(A_x * D_int / 1000 - V_vial_total) <= 3:                                # D90
     geom_check = "OK"
 elif cal_hs is not None and cal_hs_fill is not None:
-    geom_check = "HEADSPACE MEASURED - bore depth still inconsistent (measure body volume)"
+    geom_check = "OK – headspace measured (the tapered vial differs from the cylinder, which no longer sets the headspace)"
 else:
-    geom_check = "VIAL GEOMETRY INCONSISTENT - measure true fill volume & bore depth"
+    geom_check = "VIAL GEOMETRY INCONSISTENT - measure the true headspace (protocols/vial-geometry.md)"
 # --- electrode geometry for the ohmic drop (wave-4, Geometry rows 91-93) ---
 elec_gap       = 14.0                               # D92 (mm) DATA GAP - centre-to-centre, measure with calipers
 elec_sub_L_act = max(0.0, h_actual - elec_clear)    # D93 (mm) submerged length at the ACHIEVED level
@@ -469,8 +469,9 @@ HB_a, HB_b, HB_c = -4.41, 773.8, 506.4                # D171-D173 Han & Bartels 
 cal_km_O2    = cal_km_O2_of(KM_CAL, 10 ** (HB_a + HB_b / T_K - (HB_c / T_K) ** 2) / 10000)   # Calibrations D150 (cm/s) <- Mass Transfer D32 D_O2; NA = no included run
 km_O2        = cal_km_O2 if isnum(cal_km_O2) else km_O2_default   # D83 (cm/s) measured if included, else the estimate
 M_O2 = 31.998                                          # MT D231 (g/mol) IUPAC 2 x 15.999
-DO_target     = (DO_opt / M_O2 if isnum(DO_opt)
-                 else DO_frac_target * O2_ceil_C)       # MT D179 (mol/m3) organism optimum (mg/L -> mol/m3) when measured, else the fraction rule
+O2_ceil_org   = (min(O2_ceil_C, DO_toxic / M_O2) if isnum(DO_toxic) else O2_ceil_C)   # MT D565 organism toxic DO, capped at the generic ceiling
+DO_target     = (min(DO_opt / M_O2, O2_ceil_org) if isnum(DO_opt)
+                 else DO_frac_target * O2_ceil_org)     # MT D179 (mol/m3) organism optimum (mg/L -> mol/m3) when measured, else the fraction rule
 ec_DO_design = DO_target                               # D85 (mol/m3) <- MT D179 (the DO target)
 f_HOOH        = 0.15                                   # D91 (-) peroxide selectivity on stainless (Le Bozec 2001)
 n_ORR_eff     = z_e_ORR * f_HOOH + z_e_O2 * (1 - f_HOOH)   # Electrochemistry D141 (e-/O2) selectivity-weighted: 2 e- to H2O2, 4 e- to H2O
@@ -898,7 +899,7 @@ duty_carbon = carbon_margin_min * CO2_cons / (nCO2_rate * 3600)        # D86
 O2_src_guard = O2_net_gen                              # D132 (mol/h)
 duty_O2vent = O2_src_guard / (target_DO_frac * (O2_ceil_Pa / P_atm)) / (nCO2_rate * 3600)  # D87
 duty_opt    = max(duty_carbon, duty_O2vent)            # D88
-spg_int_max = (target_DO_frac * O2_ceil_C * (V_charge / 1e6)
+spg_int_max = (target_DO_frac * O2_ceil_org * (V_charge / 1e6)
                / O2_src_guard * 60)                                   # D89 (min) lag-accumulation cap
 spg_dur_opt = max(pulse_floor, (flush_factor * headspace_V - pulse_V0) / Q_CO2_fit)  # D90 (s)
 spg_dur_eq_opt = (pulse_V0 + Q_CO2_fit * spg_dur_opt) / (Q_CO2 / 60)   # D409 (s) full-flow-equivalent time of the optimal pulse (delivered volume / nominal flow)
@@ -1166,9 +1167,9 @@ def _feas(m):
             "UNREACHABLE at this surface kLa – margin " + xltext(m, "0.00")
             + "× (raise kL_surf, lower the current, or accept a higher DO)")
 def _peak_chk(pk, pk_mgL):
-    return ("peak " + xltext(pk_mgL, "0.0") + " mg/L under the " + xltext(O2_ceil_C * M_O2, "0.0") + " mg/L ceiling"
-            if pk <= O2_ceil_C else
-            "PEAK " + xltext(pk_mgL, "0.0") + " mg/L OVER THE " + xltext(O2_ceil_C * M_O2, "0.0") + " mg/L INHIBITION CEILING")
+    return ("peak " + xltext(pk_mgL, "0.0") + " mg/L under the " + xltext(O2_ceil_org * M_O2, "0.0") + " mg/L ceiling"
+            if pk <= O2_ceil_org else
+            "PEAK " + xltext(pk_mgL, "0.0") + " mg/L OVER THE " + xltext(O2_ceil_org * M_O2, "0.0") + " mg/L INHIBITION CEILING")
 DO_surf_excess_g = O2_src_g / (kLa_surf_used * 3600 * (V_charge / 1e6))   # MT D339 (mol/m3)
 hs_g = _hs_phase(O2_src_g, H2_src_g, CO2_fix_g, DO_surf_excess_g)   # MT D327-D342
 y_O2_mf_g, y_H2_mf_g, F_gap_g = hs_g["y_mf"], hs_g["yH2_mf"], hs_g["F_gap"]   # MT D329, D330, D331
@@ -1203,7 +1204,7 @@ if isnum(DO_opt) and isnum(DO_impair):
     DO_peak_band += (("; mean " + xltext(DO_avg_sched * M_O2, "0.0") + " mg/L at/under optimum")
                      if DO_avg_sched * M_O2 <= DO_opt
                      else ("; MEAN " + xltext(DO_avg_sched * M_O2, "0.0") + " mg/L ABOVE OPTIMUM"))
-elif DO_peak_sched <= O2_ceil_C:
+elif DO_peak_sched <= O2_ceil_org:
     DO_peak_band = ("organism band unknown – peak " + xltext(DO_peak_sched * M_O2, "0.0")
                     + " mg/L is under the inhibition ceiling")
 else:
@@ -2400,6 +2401,7 @@ OUTPUTS.extend([
     ("MassXfer D562 ph_unreach_l", ph_unreach_l),
     ("MassXfer D563 spg_int_H2safe_opt", spg_int_H2safe_opt),
     ("MassXfer D564 y_H2_avg_l", y_H2_avg_l),
+    ("MassXfer D565 O2_ceil_org", O2_ceil_org),
     ("MassXfer R440 lag grid CO2 mean, first row", pH_grid_C_l[0]),
     ("MassXfer R539 lag grid CO2 mean, last row", pH_grid_C_l[-1]),
     ("MassXfer D556 DO_avg_su (mg/L)", DO_avg_su_mgL),

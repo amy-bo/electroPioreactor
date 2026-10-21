@@ -361,6 +361,18 @@ class GasModelChecks(unittest.TestCase):
         d22 = re.search(r'<c r="D22"[^>]*><f>([^<]*)</f>', geo).group(1)
         self.assertNotIn('cal_Dint', d22)
 
+    def test_review5_fixes(self):
+        # A measured toxic DO caps the target and the peak checks (finding 1).
+        t = self.twin(DO_toxic=2.0)
+        self.assertLessEqual(t['DO_target'] * t['M_O2'], 2.0 + 1e-9)
+        self.assertTrue(math.isclose(t['O2_ceil_org'] * t['M_O2'], 2.0, rel_tol=1e-12))
+        # Sinter: graded once from the averaged bubble point, never a fractional grade (finding 3).
+        with zipfile.ZipFile(BOOK) as z:
+            cal = z.read('xl/worksheets/sheet8.xml').decode().replace('&quot;', '"').replace('&gt;', '>')
+        d89 = re.search(r'<c r="D89"[^>]*><f>([^<]*)</f>', cal).group(1)
+        self.assertIn('(bp_const/cal_bp)', d89)
+        self.assertNotIn('AVERAGEIFS(E81', d89)
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))
