@@ -162,6 +162,40 @@ class GasModelChecks(unittest.TestCase):
                       'F168:F175,"&gt;="&amp;(temp_C-km_T_tol),F168:F175,"&lt;="&amp;(temp_C+km_T_tol))', sh)
         self.assertIn('AVERAGEIFS(I181:I188,C181:C188,Reactor_sel,D181:D188,media_sel,K181:K188,"y")', sh.replace('&quot;', '"'))
 
+    def test_added_alkalinity_is_coupled(self):
+        base = self.twin()
+        dose = base['alk_NaHCO3_gL']                   # first-order NaHCO3 for the pH 6.5 floor
+        n = self.twin(NaHCO3_add_gL=dose)
+        add = dose / 84.007
+        self.assertTrue(math.isclose(n['pH_SID'] - base['pH_SID'], add, rel_tol=1e-12))
+        self.assertTrue(math.isclose(n['I_ionic'] - base['I_ionic'], add, rel_tol=1e-12))
+        self.assertGreater(n['kappa_med'], base['kappa_med'])
+        self.assertGreater(n['pH_meas'], base['pH_meas'])
+        self.assertNotEqual(n['DIC_cap'], base['DIC_cap'])     # CO2 storage responds (dDIC/dCO2 falls as HCO3 rises)
+        # Coupled result lands near the target the first-order estimate aimed for, and what is
+        # still needed shrinks to a residual of the CO2-storage and ionic-strength feedback.
+        self.assertLess(abs(n['pH_meas'] - 6.5), 0.01)
+        self.assertLess(n['alk_needed'], 0.25 * base['alk_needed'])
+        # Independent sensitivity model agrees at the non-default input.
+        m = self.sens['model'](dict(self.sens['BASE'], NaHCO3_add_gL=dose))
+        for k_t, k_s in (('kappa_med', 'kappa'), ('DIC_cap', 'DIC_cap'), ('pH_meas', 'pH_meas')):
+            self.assertTrue(math.isclose(n[k_t], m[k_s], rel_tol=5e-3), (k_t, n[k_t], m[k_s]))
+
+    def test_alkalinity_formulas_in_workbook(self):
+        """The coupling is inert at baseline, so pin the workbook formula text and name scopes."""
+        with zipfile.ZipFile(BOOK) as z:
+            ch = z.read('xl/worksheets/sheet4.xml').decode()
+            wb = z.read('xl/workbook.xml').decode()
+        f = lambda ref: re.search(r'<c r="%s"[^>]*><f>([^<]*)</f>' % ref, ch).group(1).replace('&amp;', '&')
+        self.assertTrue(f('D44').endswith(')))+alk_add_M'))
+        self.assertTrue(f('D185').endswith(')))+alk_add_M'))
+        self.assertIn('+alk_add_M*(lam_Na+lam_HCO3)/10)*kappa_fI', f('D180'))
+        self.assertEqual(f('D317'), 'Summary!$D$133')
+        self.assertEqual(f('D318'), 'NaHCO3_add_gL/M_NaHCO3')
+        for name, sid, ref in (('NaHCO3_add_gL', 0, 'Summary!$D$133'), ('NaHCO3_add_gL', 3, 'Chemistry!$D$317'),
+                               ('alk_add_M', 3, 'Chemistry!$D$318')):
+            self.assertIn('<definedName name="%s" localSheetId="%d">%s</definedName>' % (name, sid, ref), wb)
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))

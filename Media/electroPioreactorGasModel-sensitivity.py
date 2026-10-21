@@ -113,6 +113,7 @@ BASE = dict(
   elec_gap=14.0,                          # Geometry D92, DATA GAP -- measure with calipers
   # --- electrolysis ---
   intensity=3, gerrit_slope=1.03, gerrit_int=2.6, F=96485.33212,
+  NaHCO3_add_gL=0.0,                      # Summary D133 NaHCO3 added on top of the recipe (blank = 0)
   z_e_H2=2, z_e_O2=4, z_e_ORR=2,          # z_e_ORR=2: peroxide pathway, SS cathode lookup
   km_O2=4.0e-3, km_exp=0.644,             # Eisenberg-Tobias-Wilke; k_m scales as D^0.644
   f_HOOH=0.15, k_cat_cells=0.0041, M_H2O2=34.0147,
@@ -291,6 +292,9 @@ def model(p):
     D_CO2 = p['D_CO2_ref'] * math.exp(-p['Ea_D_CO2'] / R * (1 / T_K - 1 / 298.15))
     Ka = {k: v[0] * math.exp(-v[1] * 1000 / R * (1 / T_K - 1 / 298.15)) for k, v in KA.items()}
     SID, PT, NT, Cl_M, I_ion, kappa0 = medium_chemistry(p)
+    alk_add = p['NaHCO3_add_gL'] / MW['NaHCO3']                          # Chemistry D318: added Na+ (and HCO3-)
+    SID, I_ion = SID + alk_add, I_ion + alk_add                          # Chemistry D44, D185
+    kappa0 = kappa0 + alk_add * (LAM['Na'] + LAM['HCO3']) / 10           # Chemistry D180 Kohlrausch term
     f_salt_O2 = 10 ** (-p['ks_O2'] * I_ion)                              # Biology D123, O2 salting-out (Setschenow, I from Chemistry D185)
     H_O2_T = p['H_O2ref'] * math.exp(p['H_O2T'] * (1 / T_K - 1 / p['T_ref'])) * f_salt_O2   # Biology D24
     p_sat_w = p['pw_A'] * math.exp(p['pw_B'] * (T_K - 273.15) / ((T_K - 273.15) + p['pw_C']))   # MT D206, Magnus
@@ -785,6 +789,7 @@ INPUT_CELLS = [
     ('T_C',           'Summary', 'D8', BASE['T_C']),
     ('media_volume',  'Summary', 'D9', None),     # blank -> recommended fill (V_max etc.)
     ('P_atm_set',     'Summary', 'D10', None),    # blank -> 101325 Pa default
+    ('NaHCO3_add_gL', 'Summary', 'D133', BASE['NaHCO3_add_gL'] or None),   # blank = no added NaHCO3
     ('vent_model',    'Summary', 'D111', BASE['vent_model']),
     ('O2_phase',      'Summary', 'D112', BASE['O2_phase']),
     ('V_max',         'Geometry', 'D23', BASE['V_max']),

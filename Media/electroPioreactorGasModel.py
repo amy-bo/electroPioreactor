@@ -90,6 +90,7 @@ stir_rpm_set   = 1000.0            # D7  (rpm)
 temp_C         = 30.0              # D8  (degC)
 media_volume   = 0.0               # D9  (mL; blank in workbook -> 0.0 -> use recommended max)
 P_atm_set      = 0.0               # D10 (Pa; blank in workbook -> 0.0 -> default 101325)
+NaHCO3_add_gL  = 0.0               # D133 (g/L NaHCO3 added on top of the recipe; blank -> 0.0)
 # Headspace-model owner decisions (Summary D111:D112, typed text; anything else -> #N/A)
 vent_model_sel = "Open vent"       # D111 ("Outflow only" | "Open vent" | "Air exchange")
 O2_phase_sel   = "Growth"          # D112 ("Growth" | "Lag") phase the O2 sizing is done on
@@ -341,7 +342,9 @@ _a = amy_mM
 I_amy = (3 * _a["Na2HPO4"] + _a["NaH2PO4_2H2O"] + 3 * _a["K2SO4"] + 4 * (_a["CaSO4_2H2O"] + _a["MgSO4_7H2O"])
          + 3 * _a["NH42SO4"] + _a["NaHCO3"]) / 1000 \
         + (4 * (amy_Fe + sum(amy_TM)) + 3 * amy_Mo + 3 * amy_H2SO4) / 1e6   # AMYBO03 D59 (mol/L)
-I_ionic = _by_media(I_mc02, I_udg, I_amy)             # D185 (mol/L)
+M_NaHCO3 = 84.007                                     # Chemistry D307 (g/mol) IUPAC
+alk_add_M = NaHCO3_add_gL / M_NaHCO3                  # Chemistry D318 (mol/L) added Na+ (strong cation)
+I_ionic = _by_media(I_mc02, I_udg, I_amy) + alk_add_M  # D185 (mol/L) recipe + added Na+ and HCO3- (z = 1)
 
 # --- Henry solubilities (van 't Hoff) ---
 H_O2ref  = 1.2e-5                                     # D21 (mol/m3/Pa)
@@ -528,7 +531,7 @@ Cl_amy  = 0.0                                                                   
 
 
 
-pH_SID = _by_media(SID_mc02, SID_udg, SID_amy)                 # D44
+pH_SID = _by_media(SID_mc02, SID_udg, SID_amy) + alk_add_M     # D44 recipe SID + added alkalinity
 pH_PT  = _by_media(PT_mc02, PT_udg, PT_amy)                   # D45
 pH_NT  = _by_media(NT_mc02, NT_udg, NT_amy)                   # D46
 pH_Cl  = _by_media(Cl_mc02, Cl_udg, Cl_amy)                   # D47
@@ -674,7 +677,8 @@ kappa0_amy = (((2 * _a["Na2HPO4"] + _a["NaH2PO4_2H2O"] + _a["NaHCO3"]) * lam_Na
               + (amy_Fe + amy_H2SO4 + sum(amy_TM)) / 1e6 * lam_SO4) / 10                # AMYBO03 D58 (S/m), trace sulfates included
 kappa_fI  = 0.78                                      # D178 (-) Lambda/Lambda0 at I ~ 0.1 M
 kappa_TC  = 0.02                                      # D179 (1/K) +2 %/K, ISO 7888
-kappa_med = _by_media(kappa0_mc02, kappa0_udg, kappa0_amy) * kappa_fI * (1 + kappa_TC * (TKc - 298.15))  # D180
+kappa_med = ((_by_media(kappa0_mc02, kappa0_udg, kappa0_amy) + alk_add_M * (lam_Na + lam_HCO3) / 10)
+             * kappa_fI * (1 + kappa_TC * (TKc - 298.15)))  # D180, added NaHCO3 in the Kohlrausch sum
 
 # --- ionic strength & Davies activity coefficients (rows 182-197) ---
 A_DH    = 1.82e6 * (78.54 * (298.15 / TKc) ** 1.368) ** -1.5 * TKc ** -1.5     # D186 (-)
@@ -1573,7 +1577,6 @@ alk_pH_target   = pH_band_lo                           # D303 (pH, probe scale) 
 alk_pH_target_c = alk_pH_target + math.log10(gam1)     # D304 (pH, concentration scale)
 alk_resid_t     = charge_residual(alk_pH_target_c)     # D305 (mol/L)
 alk_needed      = max(0.0, -alk_resid_t)               # D306 (mol/L) strong base to add
-M_NaHCO3        = 84.007                               # D307 (g/mol) IUPAC
 alk_NaHCO3_gL   = alk_needed * M_NaHCO3                # D308 (g/L)
 S_D131 = alk_NaHCO3_gL                                  # D131 NaHCO3 for the target pH (g/L) <- Chemistry D308
 S_D132 = alk_needed * 1000                              # D132 extra alkalinity (mM) <- Chemistry D306
@@ -2174,6 +2177,8 @@ OUTPUTS.extend([
     ("Chemistry D310 DIC reference validity", DIC_ref_check),
     ("Chemistry D311 combined chlorine inventory", Cl_bound),
     ("Chemistry D312 chloramine validity", Cl_model_check),
+    ("Chemistry D317 NaHCO3 added (g/L)", NaHCO3_add_gL),
+    ("Chemistry D318 alk_add_M (mol/L)", alk_add_M),
     ("Summary F36 chlorine validity", chlorine_note),
     ("MassXfer D420 executable interval", spg_int_run),
     ("Summary D43 current mA", I_app * 1000),
@@ -2200,6 +2205,7 @@ INPUT_CELLS = [
     ("temp_C",        "D8",  temp_C),
     ("media_volume",  "D9",  media_volume),
     ("P_atm_set",     "D10", P_atm_set),
+    ("NaHCO3_add_gL", "D133", NaHCO3_add_gL),
     ("vent_model_sel", "D111", vent_model_sel),
     ("O2_phase_sel",  "D112", O2_phase_sel),
     ("user_spg_dur", "G13", user_spg_dur or 0.0),
