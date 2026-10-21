@@ -945,22 +945,96 @@ spg_int_DO    = ((spg_dur_eq_opt / (60 * duty_DO) if duty_DO > 0 else spg_int_ca
                  if isnum(duty_DO) else NA)            # D185 (min); duty 0 -> carbon-limited interval
 kLa_surf_req  = O2_src_sched / (DO_target * 3600 * (V_charge / 1e6))          # D186 (1/s)
 
-sel_invalid = math.isnan(F_vent_ex + O2_src_sched)     # an unlisted vent/phase selector -> #N/A in MT D91/D94/D134
-spg_int_opt = (NA if sel_invalid else
-               min(spg_int_carbon, spg_int_DO) if isnum(spg_int_DO)
-               else min(spg_int_carbon, spg_int_max))                  # D91 (min)
-spg_int_opt_s = spg_int_opt * 60                       # D92 (s)
-duty_actual = spg_dur_eq_opt / (spg_int_opt * 60)      # D93 (-) full-flow-equivalent duty
 pulse_res   = 0.05                                     # MT D241 (s) solenoid timing resolution
 def _mround(x, m):
     """Excel MROUND (half away from zero)."""
     return float((Decimal(repr(x)) / Decimal(repr(m))).quantize(Decimal(1), rounding=ROUND_HALF_UP)) * m
 spg_dur_run = max(pulse_floor, _mround(spg_dur_opt, pulse_res))   # MT D242 (s) pulse duration as actually run
+# --- schedule mode resolution: Summary 'Your setting' override > Manual cells > Optimal ---
+sched_mode   = "Optimal"                               # D81
+spg_dur_man  = 1.0                                     # D82 (s)
+spg_int_man  = 1.0                                     # D83 (min)
+user_spg_dur = None                                    # Summary G13 (blank -> recommended)
+user_spg_int = None                                    # Summary G15 (blank -> recommended)
+spg_dur = (user_spg_dur if (isnum(user_spg_dur) and user_spg_dur > 0)
+           else (spg_dur_man if sched_mode == "Manual" else spg_dur_run))   # D121
+pH_band_hi = 7.5                                        # Chemistry D237 (pH) HOB band upper edge
+pCO2_air       = 40.0                                   # MT D139 (Pa) atmospheric pCO2 ~400 ppm INPUT
+
+# --- pH-ceiling interval (Chemistry D320-D324, MT D428-D539): the longest interval whose cycle-mean
+#     dissolved CO2 still holds the probe pH at the band ceiling. Binds only when something other than CO2
+#     dilutes the headspace (an N2 sweep, D98). The CO2-pool constants do not depend on the interval, so
+#     they are evaluated here, ahead of the schedule; they equal MT D193-D195/D380 (checked in the tests).
+pH_hi_c  = pH_band_hi + math.log10(gam1)                 # Chemistry D321 (pH, concentration scale)
+h_hi     = 10 ** -pH_hi_c                                # Chemistry D322 (mol/L)
+resid_noC_hi = (pH_SID + pH_NT * h_hi / (h_hi + KaN_c) + h_hi
+                - (pH_PT * Ka1p_c * h_hi ** 2 + 2 * pH_PT * Ka1p_c * Ka2p_c * h_hi + 3 * pH_PT * Ka1p_c * Ka2p_c * Ka3p_c)
+                / (h_hi ** 3 + Ka1p_c * h_hi ** 2 + Ka1p_c * Ka2p_c * h_hi + Ka1p_c * Ka2p_c * Ka3p_c)
+                - Kw_c / h_hi)                           # Chemistry D323 (mol/L) charge balance without the carbonate terms
+CO2_pH_hi = max(0.0, resid_noC_hi) / (Ka1c_c / h_hi + 2 * Ka1c_c * Ka2c_c / h_hi ** 2)   # Chemistry D324 (mol/L)
+_flush_ret_e = math.exp(-(P_atm * ((pulse_V0 + Q_CO2_fit * spg_dur) / 1e6) / (R_gas * T_K)) / n_hs_gas)   # = MT D324
+_F_gap_e  = F_dil + max(0.0, O2_src_sched + H2_src_sched - CO2_fix_sched)   # = MT D371
+_V_L_CO2_e = V_charge / 1e6 * DIC_cap                    # = MT D416
+_Vg_e     = headspace_V_m3 / (H_CO2_T * R_gas * T_K)     # = MT D192
+_Csat_e, _Cair_e = H_CO2_T * P_dry, H_CO2_T * pCO2_air   # = MT D145, D146
+_pool_a_e = _V_L_CO2_e / (_V_L_CO2_e + _Vg_e)
+_pool_b_e = _Csat_e * (1 - _pool_a_e) * (1 - _flush_ret_e)
+_pool_ret_e = _pool_a_e + (1 - _pool_a_e) * _flush_ret_e
+_k_eff_e  = _F_gap_e / 3600 / n_hs_gas * _Vg_e / (_V_L_CO2_e + _Vg_e)   # = MT D195
+
+
+def co2_mean_at(t_min):
+    """MT grid columns B-I: cycle-mean dissolved CO2 (mol/m3) at a trial interval, as D198-D200/D162."""
+    t_off = max(0.0, t_min * 60 - spg_dur)
+    x = _k_eff_e * t_off
+    e = math.exp(-x)
+    phi = (1 - e) / x if x > 0 else 1.0
+    psi = (x - 1 + e) / x ** 2 if x > 0 else 0.5
+    D_raw = (_Cair_e / _Csat_e * F_vent_ex - CO2_fix_sched) * (t_off / 3600) / (_V_L_CO2_e + _Vg_e)
+    C_start = (D_raw * phi + _pool_b_e * e) / (1 - _pool_ret_e * e)
+    return min(_Csat_e, max(_Cair_e, (_pool_ret_e * C_start + _pool_b_e) * phi + D_raw * psi))
+
+
+grid_t_min, grid_ratio, grid_n = 0.25, 1.09, 100        # MT D430, D431 and the 100 grid rows 440-539
+pH_grid_t = [grid_t_min * grid_ratio ** i for i in range(grid_n)]
+pH_grid_C = [co2_mean_at(t) for t in pH_grid_t]
+CO2_pH_hi_mt = CO2_pH_hi * 1000                          # MT D429 (mol/m3)
+pH_grid_start = []                                       # MT column H, CO2 at the pulse start
+for _t in pH_grid_t:
+    _toff = max(0.0, _t * 60 - spg_dur); _x = _k_eff_e * _toff; _e = math.exp(-_x)
+    _phi = (1 - _e) / _x if _x > 0 else 1.0
+    _Dr = (_Cair_e / _Csat_e * F_vent_ex - CO2_fix_sched) * (_toff / 3600) / (_V_L_CO2_e + _Vg_e)
+    pH_grid_start.append((_Dr * _phi + _pool_b_e * _e) / (1 - _pool_ret_e * _e))
+_cross = [math.exp(math.log(pH_grid_t[i]) + (math.log(pH_grid_t[i + 1]) - math.log(pH_grid_t[i]))
+                   * (pH_grid_C[i] - CO2_pH_hi_mt) / (pH_grid_C[i] - pH_grid_C[i + 1]))
+          for i in range(grid_n - 1) if pH_grid_C[i] >= CO2_pH_hi_mt > pH_grid_C[i + 1]]   # MT column J
+ph_unreach = CO2_pH_hi_mt > 0 and pH_grid_C[0] < CO2_pH_hi_mt   # MT D434
+if CO2_pH_hi_mt <= 0:
+    spg_int_pH = "no pH bound"                           # the ceiling is out of reach even without CO2
+elif ph_unreach:
+    spg_int_pH = "pH above the band ceiling at any interval \u2013 reduce the N\u2082 sweep or the added alkalinity"
+else:
+    spg_int_pH = max(_cross) if _cross else "no pH bound"   # MT D432 (min) on the pulse in use, ln-interpolated
+_dur_eq_e = (pulse_V0 + Q_CO2_fit * spg_dur) / (Q_CO2 / 60)   # = MT D410 spg_dur_eq
+spg_int_pH_opt = (spg_int_pH * spg_dur_eq_opt / _dur_eq_e if isnum(spg_int_pH)
+                  else "no pH bound")                    # MT D433: on the optimal-pulse basis of D91, so D420 runs spg_int_pH
+_pH_cap = spg_int_pH_opt if isnum(spg_int_pH_opt) else spg_int_carbon
+
+sel_invalid = math.isnan(F_vent_ex + O2_src_sched)     # an unlisted vent/phase selector -> #N/A in MT D91/D94/D134
+spg_int_opt = (NA if sel_invalid or ph_unreach else
+               min(spg_int_carbon, spg_int_DO, _pH_cap) if isnum(spg_int_DO)
+               else min(spg_int_carbon, spg_int_max, _pH_cap))         # D91 (min)
+spg_int_opt_s = spg_int_opt * 60                       # D92 (s)
+duty_actual = spg_dur_eq_opt / (spg_int_opt * 60)      # D93 (-) full-flow-equivalent duty
 if sel_invalid:
     opt_binding = "INVALID SELECTOR (Summary D111/D112)"
+elif ph_unreach:
+    opt_binding = "pH CEILING UNREACHABLE \u2013 reduce the N\u2082 sweep or the added alkalinity"
+elif isnum(spg_int_pH_opt) and spg_int_pH_opt < min(spg_int_carbon, spg_int_DO if isnum(spg_int_DO) else spg_int_max):
+    opt_binding = "pH CEILING (keeping pH at or under the band ceiling sets the interval)"
 elif not isnum(spg_int_DO):
     opt_binding = "O2-INFEASIBLE \u2013 the legacy O2 flush guard (D89) sets the interval (see D134)"
-elif spg_int_DO <= spg_int_carbon:
+elif spg_int_DO < spg_int_carbon:
     opt_binding = "O2-DILUTION (headspace O2 sets the interval)"
 else:
     opt_binding = "CARBON (CO2 supply sets the interval)"   # D94
@@ -975,14 +1049,6 @@ else:
     spg_int_regime = ("ESTIMATED kLa — DO-limited interval is " + xltext(spg_int_DO, "0.0")
                       + " min; confirm by measuring kL_surf")   # D134
 
-# --- schedule mode resolution: Summary 'Your setting' override > Manual cells > Optimal ---
-sched_mode   = "Optimal"                               # D81
-spg_dur_man  = 1.0                                     # D82 (s)
-spg_int_man  = 1.0                                     # D83 (min)
-user_spg_dur = None                                    # Summary G13 (blank -> recommended)
-user_spg_int = None                                    # Summary G15 (blank -> recommended)
-spg_dur = (user_spg_dur if (isnum(user_spg_dur) and user_spg_dur > 0)
-           else (spg_dur_man if sched_mode == "Manual" else spg_dur_run))   # D121
 interval_res = 0.01                                   # MT D419 (min), plugin accepts decimal minutes
 spg_int_run = math.floor(((pulse_V0 + Q_CO2_fit * spg_dur) / (Q_CO2 / 60)) / (60 * duty_actual) / interval_res + 1e-12) * interval_res if isnum(duty_actual) else NA
 if spg_int_run * 60 <= spg_dur:
@@ -1087,7 +1153,7 @@ CO2_rate_full_b = CO2_rate_full                         # Biology D77 (mol/h) <-
 spg_dur_b       = spg_dur_eq_opt                        # Biology D78 (s)     <- MT D409
 R_gas_b         = R_gas                                 # Biology D79 (J/mol/K) <- MT D101
 F_vent_ex_b     = F_vent_ex                             # Biology D111 (mol/h) <- MT D308
-F_dil_b         = F_dil                                 # Biology D120 (mol/h) <- MT D425 (air + N2)
+F_dil_b         = F_dil                                 # Biology D125 (mol/h) <- MT D425 (air + N2)
 y_O2_air_b      = y_O2_air                              # Biology D112 (-)     <- MT D307
 H2_LFL     = 0.04                                       # Biology D80 (-) H2 lower flammability limit
 O2_LOC_H2  = 0.052                                      # Biology D81 (-) limiting O2 conc., CO2 diluent
@@ -1119,14 +1185,15 @@ t_gap_H2_LFL = _t_gap(H2_src_l_b, H2_LFL)                                       
 t_gap_O2_LOC = _t_gap(O2_src_l_b + y_O2_air_b * F_vent_ex_b, O2_LOC_H2 * LOC_margin)   # Biology D91 (min)
 spg_int_H2safe_saw = ("any interval" if isinstance(t_gap_H2_LFL, str) or isinstance(t_gap_O2_LOC, str)
                       else max(t_gap_H2_LFL, t_gap_O2_LOC) + spg_dur_opt_b / 60)       # Biology D92 (min)
-remedy_interval = max(0, math.ceil(spg_int_H2safe_saw / 0.1) * 0.1 - 0.1) if isnum(spg_int_H2safe_saw) else NA
+remedy_res = 0.1                                       # Biology D120 (min or mL/min) remedy display resolution
+remedy_interval = max(0, math.ceil(spg_int_H2safe_saw / remedy_res) * remedy_res - remedy_res) if isnum(spg_int_H2safe_saw) else NA
 interval_remedy = ("sparge every ≤" + xltext(remedy_interval, "0.0") + " min or "
                    if remedy_interval * 60 > spg_dur else "interval remedy unavailable; ")
 if y_H2_end_b >= H2_LFL and y_O2_end_b >= O2_LOC_H2 * LOC_margin:
     H2_safety = ("POTENTIAL FLAMMABILITY (lag screen): H\u2082 " + xltext(y_H2_hs_lag, "0%")
                  + " mean, " + xltext(y_H2_end_b, "0%") + " before each pulse; O\u2082 " + xltext(y_O2_hs_lag, "0%")
                  + " mean, " + xltext(y_O2_end_b, "0%") + " before each pulse \u2013 until uptake starts, "
-                 + interval_remedy + "sweep \u2265" + xltext(math.floor(N2_sweep_H2safe / 0.1) * 0.1 + 0.1, "0.0")
+                 + interval_remedy + "sweep \u2265" + xltext(math.floor(N2_sweep_H2safe / remedy_res) * remedy_res + remedy_res, "0.0")
                  + " mL/min N\u2082; vent to a hood; no ignition sources")
 else:
     H2_safety = ("Below nominal H\u2082/O\u2082 screening thresholds (lag; not safety certification): H\u2082 "
@@ -1233,7 +1300,7 @@ else:
     DO_ss_vs_min = "minimum DO unknown - measure"        # D110
 tip_warn = "TIP SPEED > 1.5 m/s" if tip_speed > 1.5 else "OK"  # D111
 sched_regime = ("Carbon supply alone holds the DO target – the interval may relax to "
-                + xltext(spg_int_carbon, "0") + " min"
+                + xltext(min(spg_int_carbon, _pH_cap), "0") + " min"
                 if DO_at_carbon <= DO_target
                 else "Do NOT relax: at the carbon-limited interval (" + xltext(spg_int_carbon, "0")
                 + " min) the cycle-mean DO would be \u2248" + xltext(DO_at_carbon * M_O2, "0")
@@ -1264,7 +1331,6 @@ kL_surf_crit = kLa_surf_req / a_surf                    # D131 (m/s)
 #   CO2aqc (Chemistry D5) reads the pooled cycle average.
 # ============================================================================
 D_CO2          = D_CO2_ref * math.exp(-Ea_D_CO2 / R_gas * (1 / T_K - 1 / 298.15))  # MT D138 (m2/s)
-pCO2_air       = 40.0                                   # MT D139 (Pa) atmospheric pCO2 ~400 ppm INPUT
 V_L_m3         = V_charge / 1e6                         # MT D141 (m3)   (D140, D142 defined with the headspace balance)
 V_L_CO2        = V_L_m3 * DIC_cap                       # MT D416 (m3) liquid volume with its bicarbonate storage (DIC_cap = D415 <- Chemistry D296)
 k_vent         = F_gap_sched / 3600 / n_hs_gas          # MT D143 (1/s) headspace turnover between pulses
@@ -1292,6 +1358,9 @@ pool_D_gap     = pool_D_raw * pool_phi                  # MT D379 (mol/m3)
 pool_ret       = pool_a + (1 - pool_a) * flush_ret      # MT D380 (-) pool share retained through a pulse
 C_cycle_start  = (pool_D_gap + pool_b * pool_e) / (1 - pool_ret * pool_e)   # MT D198 (mol/m3) fixed point of the cycle
 C_cycle_peak   = pool_ret * C_cycle_start + pool_b      # MT D199 (mol/m3)
+pool_start_chk = ("WATCH \u2013 the carbon pool empties within the cycle (pulse-start CO\u2082 below air "
+                  "equilibrium): fixation outruns supply at this interval"
+                  if C_cycle_start < C_air_CO2 else "OK")   # MT D435
 hs_sag         = (pool_a * (C_cycle_peak - C_cycle_start) * (V_L_CO2 + Vg_CO2)
                   + max(0.0, CO2_fix_sched - O2_src_sched - H2_src_sched) * t_gap_h) / n_hs_gas   # MT D389 (-) fractional headspace pressure sag per cycle
 CO2_uptake_ratio = ((C_cycle_peak - C_cycle_start) * V_L_CO2 * pulses_h / CO2_cons
@@ -1301,11 +1370,11 @@ if F_N2 > 0 and F_N2 * t_gap_h >= hs_sag * n_hs_gas:
     hs_sag_chk = "OK \u2013 the N\u2082 sweep supplies the per-cycle make-up gas; vent outflow unverified"
 elif F_vent_ex > 0:
     hs_sag_chk = "UNVERIFIED pressure closure: air ingress is assumed; measure vent make-up flow"
-elif hs_sag > hs_sag_max:
-    hs_sag_chk = ("HEADSPACE SAGS " + xltext(hs_sag, "0%") + " below 1 atm each cycle \u2013 a real cap will draw "
+elif hs_sag - F_N2 * t_gap_h / n_hs_gas > hs_sag_max:
+    hs_sag_chk = ("HEADSPACE SAGS " + xltext(hs_sag - F_N2 * t_gap_h / n_hs_gas, "0%") + " below 1 atm each cycle \u2013 a real cap will draw "
                   "air back: use Open vent or Air exchange")
 else:
-    hs_sag_chk = "OK \u2013 sag " + xltext(hs_sag, "0%") + " per cycle, within the assumed sag tolerance; cap performance unverified"   # MT D391
+    hs_sag_chk = "OK \u2013 sag " + xltext(max(0.0, hs_sag - F_N2 * t_gap_h / n_hs_gas), "0%") + " per cycle, within the assumed sag tolerance; cap performance unverified"   # MT D391
 C_cycle_start_b = C_cycle_start                         # Biology D97 (mol/m3) <- MT D198
 CO2_margin_trough = C_cycle_start_b * 1000 / Km_CO2     # Biology D98 (x) carbon margin at the cycle trough (R2-m4)
 CO2_cyc_avg_new = C_cycle_peak * pool_phi + pool_D_raw * pool_psi   # MT D200 (mol/m3) cycle mean
@@ -1592,7 +1661,6 @@ alk_needed      = max(0.0, -alk_resid_t)               # D306 (mol/L) strong bas
 alk_NaHCO3_gL   = alk_needed * M_NaHCO3                # D308 (g/L)
 S_D131 = alk_NaHCO3_gL                                  # D131 NaHCO3 for the target pH (g/L) <- Chemistry D308
 S_D132 = alk_needed * 1000                              # D132 extra alkalinity (mM) <- Chemistry D306
-pH_band_hi = 7.5                                        # Chemistry D237 (pH) HOB band upper edge
 S_D111 = vent_model_sel                                 # D111 vent model (input)
 S_D112 = O2_phase_sel                                   # D112 O2 sizing phase (input)
 S_D113 = Q_vent_used                                    # D113 vent air ingress in use (mL/min) -> MT D386
@@ -2064,7 +2132,19 @@ OUTPUTS = [
     ("MassXfer D424 F_N2 (mol/h)",                     F_N2),
     ("MassXfer D425 F_dil (mol/h)",                    F_dil),
     ("MassXfer D426 N2 sweep for DO at carbon duty (mL/min)", N2_for_DO),
-    ("Biology  D120 F_dil_b (mol/h)",                  F_dil_b),
+    ("Chemistry D321 pH_hi_c", pH_hi_c),
+    ("Chemistry D323 resid_noC_hi (mol/L)", resid_noC_hi),
+    ("Chemistry D324 CO2_pH_hi (mol/L)", CO2_pH_hi),
+    ("MassXfer D429 CO2_pH_hi_mt (mol/m3)", CO2_pH_hi_mt),
+    ("MassXfer D432 spg_int_pH (min)", spg_int_pH),
+    ("MassXfer D433 spg_int_pH_opt (min)", spg_int_pH_opt),
+    ("MassXfer D434 ph_unreach", ph_unreach),
+    ("MassXfer D435 pool_start_chk", pool_start_chk),
+    ("MassXfer I440 grid CO2 mean, first row", pH_grid_C[0]),
+    ("MassXfer I539 grid CO2 mean, last row", pH_grid_C[-1]),
+    ("Summary D101 pH-ceiling interval", spg_int_pH),
+    ("Biology  D125 F_dil_b (mol/h)",                  F_dil_b),
+    ("Biology  D120 remedy_res",                       remedy_res),
     ("Summary D99 N2 for DO at carbon duty",           N2_for_DO),
     ("Summary D100 N2 for lag H2 below LFL",           N2_sweep_H2safe),
     ("MassXfer D384 vent_name_3",                      vent_name_3),

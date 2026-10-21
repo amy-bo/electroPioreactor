@@ -215,6 +215,73 @@ class GasModelChecks(unittest.TestCase):
         for k_t, k_s in (('spg_int', 'spg_int_run'), ('pH_meas', 'pH_meas'), ('DO_ss', 'DO_ss')):
             self.assertTrue(math.isclose(n[k_t], m[k_s], rel_tol=5e-3), (k_t, n[k_t], m[k_s]))
 
+    def test_ph_ceiling_interval(self):
+        base = self.twin()
+        # Inert at baseline: far above the carbon and DO bounds.
+        self.assertGreater(base['spg_int_pH'], base['spg_int_carbon'])
+        self.assertEqual(base['opt_binding'], 'O2-DILUTION (headspace O2 sets the interval)')
+        # The early (pre-schedule) pool constants equal the late ones, with and without a sweep.
+        for kw in ({}, dict(N2_sweep_set=1.0), dict(N2_sweep_set=1.0, O2_phase_sel='Lag'),
+                   dict(N2_sweep_set=1.0, vent_model_sel='Air exchange'), dict(user_spg_dur=1.0)):
+            n = self.twin(**kw)
+            for e, l in (('_k_eff_e', 'k_eff_CO2'), ('_pool_b_e', 'pool_b'), ('_pool_ret_e', 'pool_ret'),
+                         ('_V_L_CO2_e', 'V_L_CO2'), ('_Vg_e', 'Vg_CO2'), ('_dur_eq_e', 'spg_dur_eq')):
+                self.assertTrue(math.isclose(n[e], n[l], rel_tol=1e-12), (kw, e))
+            self.assertTrue(math.isclose(n['co2_mean_at'](n['spg_int']), n['CO2_cyc_avg_new'], rel_tol=1e-12), kw)
+        # With the sweep that frees CO2 from O2 duty, the pH ceiling binds and pH lands at the band ceiling.
+        n = self.twin(N2_sweep_set=base['N2_for_DO'])
+        self.assertTrue(n['opt_binding'].startswith('pH CEILING ('))
+        self.assertTrue(math.isclose(n['spg_int_opt'], n['spg_int_pH_opt'], rel_tol=1e-12))
+        self.assertLessEqual(n['spg_int'], n['spg_int_pH'] + 1e-9)
+        self.assertLess(n['spg_int_pH'] - n['spg_int'], 0.011)
+        self.assertTrue(7.47 < n['pH_meas'] <= 7.5 + 1e-9, n['pH_meas'])
+        # Any pulse override: the executable interval is converted back, so pH still holds the ceiling.
+        for dur in (0.3, 1.0, 2.0):
+            o = self.twin(N2_sweep_set=1.0, user_spg_dur=dur)
+            self.assertTrue(7.47 < o['pH_meas'] <= 7.5 + 1e-9, (dur, o['pH_meas']))
+        # Unreachable ceiling: no schedule rather than the carbon interval.
+        u = self.twin(N2_sweep_set=20.0, pH_band_hi=6.0)
+        self.assertTrue(u['ph_unreach'])
+        self.assertTrue(math.isnan(u['spg_int_opt']))
+        self.assertTrue(u['opt_binding'].startswith('pH CEILING UNREACHABLE'))
+        # MC02 never reaches the ceiling: no bound, and the carbon bound stands with a sweep.
+        mc = self.twin(media_sel='MC02', N2_sweep_set=1.0)
+        self.assertEqual(mc['spg_int_pH'], 'no pH bound')
+        self.assertTrue(mc['opt_binding'].startswith('CARBON'))
+        # The sensitivity model's independent bisection agrees with the workbook grid across states.
+        for kw, skw in ((dict(N2_sweep_set=base['N2_for_DO']), dict(N2_sweep=base['N2_for_DO'])),
+                        (dict(N2_sweep_set=1.0), dict(N2_sweep=1.0)),
+                        (dict(N2_sweep_set=1.0, media_sel='UdG phosphate'), dict(N2_sweep=1.0, media='UdG phosphate')),
+                        (dict(N2_sweep_set=1.0, vent_model_sel='Outflow only'), dict(N2_sweep=1.0, vent_model='Outflow only')),
+                        (dict(N2_sweep_set=2.0, vent_model_sel='Air exchange'), dict(N2_sweep=2.0, vent_model='Air exchange'))):
+            t = self.twin(**kw)
+            m = self.sens['model'](dict(self.sens['BASE'], **skw))
+            self.assertTrue(math.isclose(t['spg_int_pH'], m['spg_int_pH'], rel_tol=5e-3), (kw, t['spg_int_pH'], m['spg_int_pH']))
+            self.assertTrue(math.isclose(t['spg_int'], m['spg_int_run'], rel_tol=5e-3), (kw, t['spg_int'], m['spg_int_run']))
+
+    def test_ph_ceiling_formulas_in_workbook(self):
+        with zipfile.ZipFile(BOOK) as z:
+            mt = z.read('xl/worksheets/sheet6.xml').decode()
+        f = lambda ref: re.search(r'<c r="%s"[^>]*><f>([^<]*)</f>' % ref, mt).group(1).replace('&quot;', '"').replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
+        self.assertEqual(f('D433'), 'IF(ISNUMBER(spg_int_pH),spg_int_pH*spg_dur_eq_opt/spg_dur_eq,"no pH bound")')
+        self.assertIn('IF(ph_unreach,NA(),MIN(spg_int_carbon,IF(ISNUMBER(spg_int_DO),spg_int_DO,spg_int_max),IF(ISNUMBER(spg_int_pH_opt),spg_int_pH_opt,spg_int_carbon)))', f('D91'))
+        self.assertEqual(f('I441'), 'MIN(C_sat_CO2,MAX(C_air_CO2,(pool_ret*H441+pool_b)*E441+G441*F441))')
+        self.assertEqual(f('H441'), '(G441*E441+pool_b*D441)/(1-pool_ret*D441)')
+        self.assertEqual(f('B441'), 'MAX(0,A441*60-spg_dur)')
+
+    def test_no_cell_carries_two_names_in_one_scope(self):
+        """A new parameter written over an existing named input would leave two names on one cell."""
+        with zipfile.ZipFile(BOOK) as z:
+            wb = z.read('xl/workbook.xml').decode()
+        seen = {}
+        for m in re.finditer(r'<definedName name="([^"]+)"(?: localSheetId="(\d+)")?[^>]*>([^<]*)</definedName>', wb):
+            if ':' in m.group(3):
+                continue
+            key = (m.group(2), m.group(3))
+            seen.setdefault(key, []).append(m.group(1))
+        dup = {k: v for k, v in seen.items() if len(v) > 1}
+        self.assertEqual(dup, {})
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))

@@ -114,6 +114,7 @@ BASE = dict(
   # --- electrolysis ---
   intensity=3, gerrit_slope=1.03, gerrit_int=2.6, F=96485.33212,
   NaHCO3_add_gL=0.0,                      # Summary D133 NaHCO3 added on top of the recipe (blank = 0)
+  pH_band_hi=7.5,                         # Chemistry D237 HOB band ceiling (the pH-ceiling interval)
   N2_sweep=0.0,                           # Summary D98 continuous N2 headspace sweep, mL/min (blank = 0)
   z_e_H2=2, z_e_O2=4, z_e_ORR=2,          # z_e_ORR=2: peroxide pathway, SS cathode lookup
   km_O2=4.0e-3, km_exp=0.644,             # Eisenberg-Tobias-Wilke; k_m scales as D^0.644
@@ -406,6 +407,62 @@ def model(p):
     # margin > 1 => DO target reachable; < 1 => UNREACHABLE at any interval
     do_margin = kLa_surf_used / kLa_surf_req if kLa_surf_req > 0 else INF
 
+    Vg = hs_m3 / (H_CO2_T * R * T_K)                                     # D192
+    A_DH = 1.82e6 * (78.54 * (298.15 / T_K) ** 1.368) ** -1.5 * T_K ** -1.5   # D186
+    sI = math.sqrt(I_ion)
+    dav = lambda z: 10 ** (-A_DH * z * z * (sI / (1 + sI) - 0.3 * I_ion))     # Davies
+    g1, g2, g3 = dav(1), dav(2), dav(3)
+    K1c, K2c = Ka['Ka1c'] / g1 ** 2, Ka['Ka2c'] / g2
+    K1p, K2p = Ka['Ka1p'] / g1 ** 2, Ka['Ka2p'] / g2
+    K3p = Ka['Ka3p'] * g2 / (g1 * g3)
+    KN, Kw = Ka['KaN'], Ka['Kw'] / g1 ** 2
+    # R2-m3: bicarbonate storage -- the liquid holds DIC_cap x its CO2(aq) volume (Chemistry D290-D296)
+    h_ref = 10 ** -p['pH_ref_DIC']                                       # D292
+    r_HCO3 = K1c / h_ref                                                 # D293
+    HCO3_ref = (SID + NT * h_ref / (h_ref + KN) + h_ref
+                - (PT * K1p * h_ref ** 2 + 2 * PT * K1p * K2p * h_ref + 3 * PT * K1p * K2p * K3p)
+                / (h_ref ** 3 + K1p * h_ref ** 2 + K1p * K2p * h_ref + K1p * K2p * K3p)
+                - Kw / h_ref) / (1 + 2 * K2c / h_ref)                    # D294
+    beta_nonC = math.log(10) * (PT * K1p * h_ref / (K1p + h_ref) ** 2 + PT * K2p * h_ref / (K2p + h_ref) ** 2
+                                + NT * KN * h_ref / (KN + h_ref) ** 2 + h_ref + Kw / h_ref)   # D295
+    DIC_cap = 1 + r_HCO3 * beta_nonC / (beta_nonC + math.log(10) * HCO3_ref)   # D296
+    V_L_CO2 = V_L * DIC_cap                                              # MT D416
+    # --- pH-ceiling interval (Chemistry D320-D324, MT D428-D539), solved here independently by
+    #     bisection on ln(interval) rather than the workbook's 100-row grid. ---
+    h_hi = 10 ** -(p['pH_band_hi'] + math.log10(g1))                     # D321-D322
+    resid0 = (SID + NT * h_hi / (h_hi + KN) + h_hi
+              - (PT * K1p * h_hi ** 2 + 2 * PT * K1p * K2p * h_hi + 3 * PT * K1p * K2p * K3p)
+              / (h_hi ** 3 + K1p * h_hi ** 2 + K1p * K2p * h_hi + K1p * K2p * K3p) - Kw / h_hi)   # D323
+    c_hi = max(0.0, resid0) / (K1c / h_hi + 2 * K1c * K2c / h_hi ** 2) * 1000   # D324 -> mol/m3
+    _dur = max(p['pulse_floor'], math.floor(spg_dur / 0.05 + 0.5 + 1e-12) * 0.05)   # commanded pulse (D242)
+    _ret = math.exp(-(p['P_atm'] * ((V0 + Q_fit * _dur) / 1e6) / (R * T_K)) / n_hs)   # D324 at that pulse
+    _V_L_CO2 = V_L * DIC_cap
+    _a = _V_L_CO2 / (_V_L_CO2 + Vg)
+    _Csat, _Cair = H_CO2_T * P_dry, H_CO2_T * p['pCO2_air']
+    _b, _r = _Csat * (1 - _a) * (1 - _ret), _a + (1 - _a) * _ret
+    _k = (F_dil + max(0.0, O2_s + H2_s - fix_s)) / 3600 / n_hs * Vg / (_V_L_CO2 + Vg)
+
+    def _cmean(t_min):
+        t_off = max(0.0, t_min * 60 - _dur)
+        x = _k * t_off
+        e = math.exp(-x)
+        ph_, ps_ = ((1 - e) / x, (x - 1 + e) / x ** 2) if x > 0 else (1.0, 0.5)
+        Dr = (_Cair / _Csat * F_ex - fix_s) * (t_off / 3600) / (_V_L_CO2 + Vg)
+        cs = (Dr * ph_ + _b * e) / (1 - _r * e)
+        return min(_Csat, max(_Cair, (_r * cs + _b) * ph_ + Dr * ps_))
+    _lo, _hi = 0.25, 0.25 * 1.09 ** 99
+    if c_hi <= 0 or _cmean(_hi) >= c_hi:
+        spg_int_pH = NAN                                                 # no pH bound
+    elif _cmean(_lo) < c_hi:
+        spg_int_pH = NAN                                                 # pH above the ceiling at any interval (D434)
+    else:
+        for _ in range(200):
+            _m = math.sqrt(_lo * _hi)
+            _lo, _hi = (_m, _hi) if _cmean(_m) >= c_hi else (_lo, _m)
+        spg_int_pH = math.sqrt(_lo * _hi)                                # D432
+    ph_unreach = c_hi > 0 and _cmean(0.25) < c_hi                      # D434
+    pH_cap = (spg_int_pH * spg_dur_eq_opt / ((V0 + Q_fit * _dur) / (p['Q_CO2'] / 60))
+              if not math.isnan(spg_int_pH) else INF)                  # D433, optimal-pulse basis
     duty_carbon = p['carbon_margin_min'] * CO2_cons / CO2_rate_full      # D86
     spg_int_carbon = spg_dur_eq_opt / (60 * duty_carbon) if duty_carbon > 0 else INF   # D112
     if spg_int_DO is None:
@@ -417,14 +474,19 @@ def model(p):
     spg_int_max = ((p['target_DO_frac'] * O2_ceil_C * V_L / O2_src_guard * 60)
                    if O2_src_guard > 1e-15 else INF)                     # D89
     if feasible:
-        spg_int = min(spg_int_carbon, spg_int_DO)                        # D91 branch 1
-        opt_binding = ('O2-DILUTION (headspace O2 sets the interval)'
-                       if spg_int_DO <= spg_int_carbon
+        spg_int = min(spg_int_carbon, spg_int_DO, pH_cap) if not ph_unreach else NAN   # D91 branch 1
+        opt_binding = ('pH CEILING UNREACHABLE' if ph_unreach else
+                       'pH CEILING (keeping pH at or under the band ceiling sets the interval)'
+                       if pH_cap < min(spg_int_carbon, spg_int_DO)
+                       else 'O2-DILUTION (headspace O2 sets the interval)'
+                       if spg_int_DO < spg_int_carbon
                        else 'CARBON (CO2 supply sets the interval)')     # D94
         regime = 'DO REACHABLE (estimated kLa) -- DO-limited interval %.1f min' % spg_int_DO
     else:
-        spg_int = min(spg_int_carbon, spg_int_max)                       # D91 fallback
-        opt_binding = 'O2-INFEASIBLE (see D134)'
+        spg_int = min(spg_int_carbon, spg_int_max, pH_cap) if not ph_unreach else NAN   # D91 fallback
+        opt_binding = ('pH CEILING UNREACHABLE' if ph_unreach else
+                       'pH CEILING (keeping pH at or under the band ceiling sets the interval)'
+                       if pH_cap < min(spg_int_carbon, spg_int_max) else 'O2-INFEASIBLE (see D134)')
         regime = ('DO TARGET UNREACHABLE -- the surface cannot carry the O2 flux at this '
                   'kLa; no interval fixes it')
     duty_actual = spg_dur_eq_opt / (spg_int * 60)                        # D93, full-flow-equivalent duty
@@ -504,27 +566,7 @@ def model(p):
     # pulses. The SUPERSEDED form (D161) let the liquid absorb 2.4x the CO2 ever
     # delivered; this one is bounded by the pulse.
     # ------------------------------------------------------------------
-    Vg = hs_m3 / (H_CO2_T * R * T_K)                                     # D192
     k_vent = hs_s['F_gap'] / 3600 / n_hs                                 # D143, headspace turnover between pulses
-    A_DH = 1.82e6 * (78.54 * (298.15 / T_K) ** 1.368) ** -1.5 * T_K ** -1.5   # D186
-    sI = math.sqrt(I_ion)
-    dav = lambda z: 10 ** (-A_DH * z * z * (sI / (1 + sI) - 0.3 * I_ion))     # Davies
-    g1, g2, g3 = dav(1), dav(2), dav(3)
-    K1c, K2c = Ka['Ka1c'] / g1 ** 2, Ka['Ka2c'] / g2
-    K1p, K2p = Ka['Ka1p'] / g1 ** 2, Ka['Ka2p'] / g2
-    K3p = Ka['Ka3p'] * g2 / (g1 * g3)
-    KN, Kw = Ka['KaN'], Ka['Kw'] / g1 ** 2
-    # R2-m3: bicarbonate storage -- the liquid holds DIC_cap x its CO2(aq) volume (Chemistry D290-D296)
-    h_ref = 10 ** -p['pH_ref_DIC']                                       # D292
-    r_HCO3 = K1c / h_ref                                                 # D293
-    HCO3_ref = (SID + NT * h_ref / (h_ref + KN) + h_ref
-                - (PT * K1p * h_ref ** 2 + 2 * PT * K1p * K2p * h_ref + 3 * PT * K1p * K2p * K3p)
-                / (h_ref ** 3 + K1p * h_ref ** 2 + K1p * K2p * h_ref + K1p * K2p * K3p)
-                - Kw / h_ref) / (1 + 2 * K2c / h_ref)                    # D294
-    beta_nonC = math.log(10) * (PT * K1p * h_ref / (K1p + h_ref) ** 2 + PT * K2p * h_ref / (K2p + h_ref) ** 2
-                                + NT * KN * h_ref / (KN + h_ref) ** 2 + h_ref + Kw / h_ref)   # D295
-    DIC_cap = 1 + r_HCO3 * beta_nonC / (beta_nonC + math.log(10) * HCO3_ref)   # D296
-    V_L_CO2 = V_L * DIC_cap                                              # MT D416
     k_eff = k_vent * Vg / (V_L_CO2 + Vg)                                 # D195
     pool_a = V_L_CO2 / (V_L_CO2 + Vg)                                    # D193
     C_air = H_CO2_T * p['pCO2_air']                                      # D146
@@ -636,7 +678,7 @@ def model(p):
         pool_beta_ratio=pool_beta_ratio, carbon_margin=carbon_margin,
         carbon_margin_trough=carbon_margin_trough, k_Cl_turn=k_Cl_turn,
         spg_dur_run=spg_dur_run, spg_int_run=spg_int_run, r_H2O2_lag=r_H2O2_lag, n_ORR_eff=n_ORR_eff, t_H2_sat=t_H2_sat,
-        pH_meas=pH_meas, pH_op=pH_op, n_cross=n_cross,
+        pH_meas=pH_meas, pH_op=pH_op, n_cross=n_cross, spg_int_pH=spg_int_pH, CO2_pH_hi=c_hi / 1000,
         j_anode=j_anode, j_buffer_lim=j_buffer_lim, j_buffer_ratio=j_buffer_ratio,
         kappa=kappa, R_cell=R_cell, V_IR=V_IR, V_cell_est=V_cell,
         r_H2O2=r_H2O2, H2O2_ss=H2O2_ss, H2O2_lag_1h=H2O2_lag_1h, C_eff=C_eff,
