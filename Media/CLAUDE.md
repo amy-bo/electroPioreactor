@@ -11,9 +11,28 @@ These are agent-facing modelling rules. They used to sit in the spreadsheet's he
 ## Selectors
 - Selector inputs (dropdowns) accept exactly their listed valid values; anything else returns an error by design (the `IF(sel=valid1,…,IF(sel=valid2,…,NA()))` pattern). Do not soften these to default-on-invalid.
 
-## Colour conventions — two orthogonal encodings
-- **Column E (Source/assumption) FILL = confidence.** Six levels, legend on the Summary, rows 144–156: green `FFC6EFCE` = verified/handbook/defined/standard; light-blue `FFBDD7EE` = literature-supported ~90%; cream `FFFFF2CC` = design assumption ~70%; gold `FFFFE699` = weak/coarse estimate ~50%; peach `FFFCE4D6` = guess; pink `FFFFC7CE` = DATA GAP (measure, do not invent).
-- **Column D (Value) FONT = provenance of the value:** blue `FF0000FF` (bold) = an input you set or measure; black `FF000000` = a formula/derived value. Apply rigorously to every cell, and keep this convention shown in the key.
+## Formats — every one is in the Summary Key (rows 159–174); use no other
+- **Column E (Source / assumption) FILL = confidence**, with the Key's font colour on each fill:
+  - verified / handbook / defined / standard: theme 3 tint 0.6, black text;
+  - literature-supported (~90 %): theme 8 tint 0.6, black text;
+  - design assumption (~70 %): `FFFFF2CC`, theme-3 text;
+  - weak / coarse estimate (~50 %): `FFFFC000`, white text;
+  - guess: theme 9 tint −0.25, white text;
+  - DATA GAP (measure, do not invent): theme 5, white text.
+
+  A lookup-table value with no source column of its own carries the fill itself; a `?` in a lookup table is DATA GAP.
+- **Value font:** blue bold `FF0000FF` = an input you set or measure (Summary inputs, blue cells on the calculation sheets, every entry cell of the Calibrations and CO2 flows tables, empty or not); black `FF000000` = a formula. Labels, units and notes are plain black Calibri (notes 9 pt).
+- **Names** in column B: Consolas 9, `FF7030A0`. **Links** (HYPERLINK): Calibri 9, blue, underlined (white on a dark fill or a band).
+- **Heading** = white bold on `FF4472C4`: column-header rows and sheet titles. **SUBHEADING** = white bold on theme 4 tint 0.4: section rows.
+- **Traffic lights** are conditional formats using only the Key's three dxfs:
+  - **OK:** `FF006100` on `FFC6EFCE`.
+  - **Caution:** `FF9C5700` on `FFFFEB9C`.
+  - **Problem:** `FF9C0006` on `FFFFC7CE`.
+
+  They colour checks; experiment status (Done / Not needed, Approximate, Not done); input validation (Problem = empty-but-required or impossible, Caution = valid but not the best choice, thresholds in the Summary threshold rows); a model value overridden in Summary column G (Caution); and excluded data points (CO2 flows, Problem). The DATA GAP fill is also used as a conditional format on Summary column E, while the start-up power is extrapolated.
+- **Never used:** colour scales, data bars, coloured cell outlines, grey "computed" fills. Rule anchors: Excel anchors a multi-range rule at the top-left cell of the whole range, so write the formula against that cell.
+- **Numbers:** formula results get about four significant figures (`#,##0` / `0.0` / `0.00` / `0.000` / `0.0000` / `0.00000` / `0.000E+00` by magnitude); plugin values on Summary rows 21–23 `0.00`; dates `yyyy-mm-dd`; inputs keep General so they show what was typed.
+- **Summary rows are found by name, never by number**: the twin, the sensitivity model and the tests read `Summary <name>` (or `F@name` for another column of a named row).
 
 ## Data gaps
 - Pink (DATA GAP) cells are to be measured, never invented. Do not replace a flagged gap with a guessed number to make the sheet look complete.

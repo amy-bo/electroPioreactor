@@ -151,7 +151,7 @@ BASE = dict(
   O2_phase='Growth',                      # 'Growth' | 'Lag': the phase the O2 schedule is sized on
   y_O2_air=0.2095,                        # MT D307
   # --- optimiser inputs ---
-  target_DO_frac=0.226086956521739, carbon_margin_min=2,
+  target_DO_frac=0.226086956521739, carbon_margin_min=2, carbon_trough_min=2.0,
   DO_opt=None,                            # mg/L; None = unmeasured (UdG) -> DO target from the fraction rule (MT D179)
   # --- cell-voltage budget ---
   b_anode=0.12, j0_anode=1e-10, b_cath=0.14, j0_cath=1.5e-6, pcet_credit=-0.15,
@@ -489,6 +489,25 @@ def model(p):
             _lo, _hi = (_m, _hi) if _cmean(_m) >= c_hi else (_lo, _m)
         spg_int_pH = math.sqrt(_lo * _hi)                                # D432
     ph_unreach = c_hi > 0 and _cmean(_lo0) < c_hi                      # D434
+
+    def _cstart(t_min):
+        t_off = max(0.0, t_min * 60 - _dur)
+        x = _k * t_off
+        e = math.exp(-x)
+        Dr = (_Cair / _Csat * F_ex - fix_s) * (t_off / 3600) / (_V_L_CO2 + Vg)
+        return (Dr * _phi_s(x) + _b * e) / (1 - _r * e)
+    # Carbon-trough bound (MT D592-D596), solved here by bisection: the CO2 at the pulse start stays at or
+    # above carbon_trough_min x RuBisCO Km.
+    c_tr = p['carbon_trough_min'] * p['Km_CO2'] / 1000
+    trough_unreach = _cstart(_lo0) < c_tr
+    if trough_unreach or _cstart(1500.0) >= c_tr:
+        spg_int_trough = NAN
+    else:
+        _a1, _a2 = _lo0, 1500.0
+        for _ in range(200):
+            _m = math.sqrt(_a1 * _a2)
+            _a1, _a2 = (_m, _a2) if _cstart(_m) >= c_tr else (_a1, _m)
+        spg_int_trough = math.sqrt(_a1 * _a2)                         # D594
     # Lag H2/O2 hazard screen (Biology D90-D92), solved independently: longest gap whose pre-pulse
     # sawtooth top stays under the limit, x = ln((1 - k r)/(1 - k)); it bounds a Lag-sized schedule.
     _Fl = F_dil + max(0.0, O2_net_lag + rH2_lag)
@@ -505,6 +524,8 @@ def model(p):
         H2_cap = INF
     pH_cap = (spg_int_pH * spg_dur_eq_opt / ((V0 + Q_fit * _dur) / (p['Q_CO2'] / 60))
               if not math.isnan(spg_int_pH) else INF)                  # D433, optimal-pulse basis
+    tr_cap = (spg_int_trough * spg_dur_eq_opt / ((V0 + Q_fit * _dur) / (p['Q_CO2'] / 60))
+              if not math.isnan(spg_int_trough) else INF)              # D595, optimal-pulse basis
     duty_carbon = p['carbon_margin_min'] * CO2_cons / CO2_rate_full      # D86
     spg_int_carbon = spg_dur_eq_opt / (60 * duty_carbon) if duty_carbon > 0 else INF   # D112
     if spg_int_DO is None:
@@ -516,10 +537,13 @@ def model(p):
     spg_int_max = ((p['target_DO_frac'] * O2_ceil_org * V_L / O2_src_guard * 60)
                    if O2_src_guard > 1e-15 else INF)                     # D89
     if feasible:
-        spg_int = min(spg_int_carbon, spg_int_DO, pH_cap, H2_cap) if not ph_unreach else NAN   # D91 branch 1
+        spg_int = min(spg_int_carbon, tr_cap, spg_int_DO, pH_cap, H2_cap) if not (ph_unreach or trough_unreach) else NAN   # D91 branch 1
         opt_binding = ('pH CEILING UNREACHABLE' if ph_unreach else
+                       'CARBON TROUGH UNREACHABLE' if trough_unreach else
                        'H\u2082 FLAMMABILITY SCREEN (lag sizing; Biology D92 sets the interval)'
-                       if H2_cap < min(spg_int_carbon, spg_int_DO, pH_cap)
+                       if H2_cap < min(spg_int_carbon, spg_int_DO, pH_cap, tr_cap)
+                       else 'CARBON TROUGH (the margin over RuBisCO Km at the pulse start sets the interval)'
+                       if tr_cap < min(spg_int_carbon, spg_int_DO, pH_cap)
                        else 'pH CEILING (keeping pH at or under the band ceiling sets the interval)'
                        if pH_cap < min(spg_int_carbon, spg_int_DO)
                        else 'O2-DILUTION (headspace O2 sets the interval)'
@@ -527,10 +551,13 @@ def model(p):
                        else 'CARBON (CO2 supply sets the interval)')     # D94
         regime = 'DO REACHABLE (estimated kLa) -- DO-limited interval %.1f min' % spg_int_DO
     else:
-        spg_int = min(spg_int_carbon, spg_int_max, pH_cap, H2_cap) if not ph_unreach else NAN   # D91 fallback
+        spg_int = min(spg_int_carbon, tr_cap, spg_int_max, pH_cap, H2_cap) if not (ph_unreach or trough_unreach) else NAN   # D91 fallback
         opt_binding = ('pH CEILING UNREACHABLE' if ph_unreach else
+                       'CARBON TROUGH UNREACHABLE' if trough_unreach else
                        'H\u2082 FLAMMABILITY SCREEN (lag sizing; Biology D92 sets the interval)'
-                       if H2_cap < min(spg_int_carbon, spg_int_max, pH_cap)
+                       if H2_cap < min(spg_int_carbon, spg_int_max, pH_cap, tr_cap)
+                       else 'CARBON TROUGH (the margin over RuBisCO Km at the pulse start sets the interval)'
+                       if tr_cap < min(spg_int_carbon, spg_int_max, pH_cap)
                        else 'pH CEILING (keeping pH at or under the band ceiling sets the interval)'
                        if pH_cap < min(spg_int_carbon, spg_int_max) else 'O2-INFEASIBLE (see D134)')
         regime = ('DO TARGET UNREACHABLE -- the surface cannot carry the O2 flux at this '
@@ -743,7 +770,7 @@ def model(p):
         pool_beta_ratio=pool_beta_ratio, carbon_margin=carbon_margin,
         carbon_margin_trough=carbon_margin_trough, k_Cl_turn=k_Cl_turn,
         spg_dur_run=spg_dur_run, spg_int_run=spg_int_run, r_H2O2_lag=r_H2O2_lag, n_ORR_eff=n_ORR_eff, t_H2_sat=t_H2_sat,
-        pH_meas=pH_meas, pH_op=pH_op, n_cross=n_cross, spg_int_pH=spg_int_pH, CO2_pH_hi=c_hi / 1000,
+        pH_meas=pH_meas, pH_op=pH_op, n_cross=n_cross, spg_int_pH=spg_int_pH, CO2_pH_hi=c_hi / 1000, spg_int_trough=spg_int_trough,
         j_anode=j_anode, j_buffer_lim=j_buffer_lim, j_buffer_ratio=j_buffer_ratio,
         kappa=kappa, R_cell=R_cell, V_IR=V_IR, V_cell_est=V_cell,
         r_H2O2=r_H2O2, H2O2_ss=H2O2_ss, H2O2_lag_1h=H2O2_lag_1h, C_eff=C_eff,
@@ -846,23 +873,23 @@ SELF_CHECK = [
     ('CO2_cyc_avg_new', 'CO2_cyc_avg_new (mol/m3)', 'Mass Transfer',    'D200'),
     ('pH_meas',         'pH_meas (-)',              'Chemistry',        'D220'),
     ('j_buffer_ratio',  'j_buffer_ratio (-)',       'Chemistry',        'D218'),
-    ('C_eff_Cl2',       'C_eff_Cl2 (mg/L)',         'Summary',          'D25'),
+    ('C_eff_Cl2',       'C_eff_Cl2 (mg/L)',         'Summary',          'res_Cl2'),
     ('n_ORR_eff',       'n_ORR_eff (e-/O2)',        'Electrochemistry', 'D141'),
     ('H2O2_lag_1h',     'H2O2_lag_1h (mg/L)',       'Electrochemistry', 'D96'),
     ('k_Cl_turn',       'k_Cl_turn (1/s)',          'Chemistry',        'D271'),
     ('j_buffer_lim',    'j_buffer_lim (mA/cm2)',    'Chemistry',        'D216'),
-    ('carbon_margin_trough', 'carbon margin at trough (x)', 'Summary',  'D76'),
+    ('carbon_margin_trough', 'carbon margin at trough (x)', 'Summary',  'res_carbon_margin'),
     ('spg_dur_run',     'spg_dur_run (s)',          'Mass Transfer',    'D242'),
-    ('spg_int_run',     'spg_int_run (min)',        'Summary',          'D21'),
+    ('spg_int_run',     'spg_int_run (min)',        'Summary',          'res_spg_int_run'),
     ('saw_factor',      'saw_factor (-)',           'Mass Transfer',    'D322'),
     ('F_vent_ex',       'F_vent_ex (mol/h)',        'Mass Transfer',    'D308'),
     ('y_O2_actual',     'y_O2_actual (-)',          'Mass Transfer',    'D187'),
     ('k_vent',          'k_vent (1/s)',             'Mass Transfer',    'D143'),
     ('pool_b',          'pool_b (mol/m3)',          'Mass Transfer',    'D194'),
     ('C_start',         'C_cycle_start (mol/m3)',   'Mass Transfer',    'D198'),
-    ('DO_peak',         'DO_peak sizing (mg/L)',    'Summary',          'D60'),
-    ('DO_ss_lag',       'DO cycle-mean lag (mg/L)', 'Summary',          'D61'),
-    ('DO_peak_lag',     'DO peak lag (mg/L)',       'Summary',          'D62'),
+    ('DO_peak',         'DO_peak sizing (mg/L)',    'Summary',          'res_DO_peak_g'),
+    ('DO_ss_lag',       'DO cycle-mean lag (mg/L)', 'Summary',          'res_DO_avg_l'),
+    ('DO_peak_lag',     'DO peak lag (mg/L)',       'Summary',          'res_DO_peak_l'),
     ('y_H2_lag',        'y_H2 lag (-)',             'Biology',          'D84'),
     ('O2_net_lag',      'O2_net_lag (mol/h)',       'Electrochemistry', 'D132'),
     ('rH2_lag',         'rH2_lag (mol/h)',          'Electrochemistry', 'D133'),
@@ -902,6 +929,8 @@ INPUT_CELLS = [
     ('N2_sweep',      'Summary', 'D14', BASE['N2_sweep'] or None),         # blank = no N2
     ('pulse_res',     'Summary', 'D15', BASE['pulse_res']),
     ('vent_model',    'Summary', 'D11', BASE['vent_model']),
+    ('N_source',      'Summary', 'N_source_sel', 'Ammonium (recipe)'),   # this script models the recipe's ammonium only
+    ('pulse_rule',    'Summary', 'pulse_rule_sel', 'Headspace flush'),   # and the headspace-flush pulse
     ('O2_phase',      'Summary', 'D12', BASE['O2_phase']),
     ('V_max',         'Geometry', 'D23', BASE['V_max']),
     ('V_vial_total',  'Geometry', 'D24', BASE['V_vial_total']),
@@ -957,10 +986,24 @@ def _read_workbook(path):
                         val = v.text
                 cells[c.get("r")] = val
             out[sh.get("name")] = cells
+        sheets = [sh.get("name") for sh in ET.fromstring(z.read("xl/workbook.xml")).iter(_NS + "sheet")]
+        names = {}
+        for dn in ET.fromstring(z.read("xl/workbook.xml")).iter(_NS + "definedName"):
+            loc = dn.get("localSheetId")
+            names[(sheets[int(loc)] if loc is not None else None, dn.get("name"))] = dn.text or ""
+        out["__names__"] = names
     return out
 
 
 def _cell(wb, sheet, ref):
+    """A cell by reference, or a Summary row by its defined name (rows move; names do not)."""
+    if not re.fullmatch(r"[A-Z]{1,3}[0-9]{1,7}", ref):
+        names = wb["__names__"]
+        tgt = names.get((sheet, ref)) or names.get((None, ref)) or ""
+        m = re.fullmatch(r"'?([^'!]+)'?!\$([A-Z]+)\$(\d+)", tgt)
+        if not m:
+            return ABSENT
+        sheet, ref = m.group(1), m.group(2) + m.group(3)
     return wb.get(sheet, {}).get(ref, ABSENT)
 
 
@@ -1075,7 +1118,7 @@ TWIN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "electroPio
 
 
 def _twin_state(vent_model, O2_phase):
-    """(Summary D20, D23, D24) from the full twin run at the given selector state."""
+    """(Summary res_spg_int, res_pH, res_DO_ss) from the full twin run at the given selector state."""
     with open(TWIN_PATH, encoding="utf-8") as fh:
         src = fh.read()
     src, n1 = re.subn(r'(?m)^vent_model_sel\s*=\s*"[^"]*"', f'vent_model_sel = "{vent_model}"', src)
@@ -1093,14 +1136,14 @@ COMBO_REF = {}      # (vent_model, O2_phase) -> (reference triple, where it came
 for _k in (('Open vent', 'Growth'), ('Outflow only', 'Growth'),
            ('Air exchange', 'Growth'), ('Open vent', 'Lag')):
     if _k == _live:
-        _lv = tuple(_cell(_wb, 'Summary', r) for r in ('D20', 'D23', 'D24'))
+        _lv = tuple(_cell(_wb, 'Summary', r) for r in ('res_spg_int', 'res_pH', 'res_DO_ss'))
         COMBO_REF[_k] = (_lv if all(isinstance(v, float) for v in _lv) else None, "workbook")
     else:
         _tw = _twin_state(*_k)
         COMBO_REF[_k] = (_tw if all(isinstance(v, float) for v in _tw) else None, "twin")
 print("\n" + "=" * 100)
 print("HEADSPACE SELECTORS -- headline in all four vent-model / sizing-phase states")
-print("   reference: live state = workbook cached D20/D23/D24; the other three = the full twin")
+print("   reference: live state = workbook cached res_spg_int/res_pH/res_DO_ss; the other three = the full twin")
 print(f"{'vent_model':14}{'O2 phase':9}{'interval min':>14}{'pH':>8}{'DO mg/L':>9}"
       f"{'DO peak':>9}{'binding':>16}   vs reference (0.5 %)")
 _combo_fail = []

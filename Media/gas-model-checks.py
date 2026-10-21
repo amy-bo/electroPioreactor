@@ -20,6 +20,46 @@ TWIN = HERE / 'electroPioreactorGasModel.py'
 BOOK = HERE / 'electroPioreactorGasModel.xlsx'
 
 
+def _shift(formula, dr, dc):
+    """Move the relative A1 references of a shared formula by (dr, dc), leaving strings and names alone."""
+    def col2n(c):
+        n = 0
+        for ch in c:
+            n = n * 26 + ord(ch) - 64
+        return n
+
+    def n2col(n):
+        s = ''
+        while n:
+            n, r = divmod(n - 1, 26)
+            s = chr(65 + r) + s
+        return s
+
+    def ref(m):
+        cd, c, rd, r = m.groups()
+        return cd + (c if cd else n2col(col2n(c) + dc)) + rd + (r if rd else str(int(r) + dr))
+    parts = re.split(r'("(?:[^"]|"")*")', formula)
+    tok = re.compile(r'(?<![A-Za-z_0-9.$])(\$?)([A-Z]{1,3})(\$?)(\d+)(?![A-Za-z_0-9(])')
+    return ''.join(p if p.startswith('"') else tok.sub(ref, p) for p in parts)
+
+
+def cell_formula(sheet_xml, ref):
+    """Formula text of one cell, unescaped; a shared-formula child is rebuilt from its master."""
+    import html
+    m = re.search(r'<c r="%s"[^>]*>(?:(?!</c>).)*?<f([^>]*?)(?:/>|>([^<]*)</f>)' % ref, sheet_xml, re.S)
+    if not m:
+        return None
+    attrs, text = m.group(1), m.group(2)
+    if text:
+        return html.unescape(text)
+    si = re.search(r'si="(\d+)"', attrs).group(1)
+    mm = re.search(r'<c r="([A-Z]+)(\d+)"[^>]*>(?:(?!</c>).)*?<f t="shared" ref="[^"]*" si="%s"[^>]*>([^<]*)</f>' % si, sheet_xml, re.S)
+    c0, r0 = mm.group(1), int(mm.group(2))
+    c1, r1 = re.fullmatch(r'([A-Z]+)(\d+)', ref).groups()
+    n = lambda c: sum((ord(ch) - 64) * 26 ** i for i, ch in enumerate(reversed(c)))
+    return _shift(html.unescape(mm.group(3)), int(r1) - r0, n(c1) - n(c0))
+
+
 class GasModelChecks(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -154,7 +194,7 @@ class GasModelChecks(unittest.TestCase):
         """The calibration rows are hand-written XML; pin their formula text to the twin's algebra."""
         with zipfile.ZipFile(BOOK) as z:
             sh = z.read('xl/worksheets/sheet8.xml').decode()
-        f = lambda ref: re.search(r'<c r="%s"[^>]*><f>([^<]*)</f>' % ref, sh).group(1).replace('&quot;', '"').replace('&gt;', '>').replace('&lt;', '<').replace('&amp;', '&')
+        f = lambda ref: cell_formula(sh, ref)
         self.assertEqual(f('K142'), 'IF(OR(G142="",H142="",I142=""),"",IFERROR((G142/1000)/(n_e_fcn*F_const*(H142/10000)*I142)*100,""))')
         self.assertEqual(f('L142'), 'IF(OR(K142="",J142=""),"",IFERROR(K142*(D_O2/J142)^km_exp,""))')
         self.assertEqual(f('I155'), 'IF(OR(E155="",F155="",G155="",H155=""),"",IF(E155/M_Cl2>=G155,"not invertible: plateau at or above the chloride pool",IFERROR(MAX(E155/M_Cl2/(F155*(G155-E155/M_Cl2)),E155/M_Cl2/H155)/3600,"")))')
@@ -186,8 +226,9 @@ class GasModelChecks(unittest.TestCase):
         with zipfile.ZipFile(BOOK) as z:
             ch = z.read('xl/worksheets/sheet4.xml').decode()
             wb = z.read('xl/workbook.xml').decode()
-        f = lambda ref: re.search(r'<c r="%s"[^>]*><f>([^<]*)</f>' % ref, ch).group(1).replace('&amp;', '&')
-        self.assertTrue(f('D44').endswith(')))+alk_add_M'))
+        f = lambda ref: cell_formula(ch, ref)
+        self.assertTrue(f('D332').endswith(')))+alk_add_M'))     # recipe SID; D44 adds the nitrogen-source swap
+        self.assertEqual(f('D44'), 'pH_SID_rec+IF(N_src_idx=1,0,pH_NT_rec)')
         self.assertTrue(f('D185').endswith(')))+alk_add_M'))
         self.assertIn('+alk_add_M*(lam_Na+lam_HCO3)/10)*kappa_fI', f('D180'))
         self.assertEqual(f('D317'), 'Summary!NaHCO3_add_gL')
@@ -228,8 +269,9 @@ class GasModelChecks(unittest.TestCase):
                          ('_V_L_CO2_e', 'V_L_CO2'), ('_Vg_e', 'Vg_CO2'), ('_dur_eq_e', 'spg_dur_eq')):
                 self.assertTrue(math.isclose(n[e], n[l], rel_tol=1e-12), (kw, e))
             self.assertTrue(math.isclose(n['co2_mean_at'](n['spg_int']), n['CO2_cyc_avg_new'], rel_tol=1e-12), kw)
-        # With the sweep that frees CO2 from O2 duty, the pH ceiling binds and pH lands at the band ceiling.
-        n = self.twin(N2_sweep_set=base['N2_for_DO'])
+        # With the sweep that frees CO2 from O2 duty, the pH ceiling binds and pH lands at the band ceiling
+        # (carbon-trough bound switched off here; test_carbon_trough_bound covers it).
+        n = self.twin(N2_sweep_set=base['N2_for_DO'], carbon_trough_min=-1e9)
         self.assertTrue(n['opt_binding'].startswith('pH CEILING ('))
         self.assertTrue(math.isclose(n['spg_int_opt'], n['spg_int_pH_opt'], rel_tol=1e-12))
         self.assertLessEqual(n['spg_int'], n['spg_int_pH'] + 1e-9)
@@ -237,7 +279,7 @@ class GasModelChecks(unittest.TestCase):
         self.assertTrue(7.47 < n['pH_meas'] <= 7.5 + 1e-9, n['pH_meas'])
         # Any pulse override: the executable interval is converted back, so pH still holds the ceiling.
         for dur in (0.3, 1.0, 2.0):
-            o = self.twin(N2_sweep_set=1.0, user_spg_dur=dur)
+            o = self.twin(N2_sweep_set=1.0, user_spg_dur=dur, carbon_trough_min=-1e9)
             self.assertTrue(7.47 < o['pH_meas'] <= 7.5 + 1e-9, (dur, o['pH_meas']))
         # Unreachable ceiling: no schedule rather than the carbon interval.
         u = self.twin(N2_sweep_set=20.0, pH_band_hi=6.0)
@@ -257,14 +299,16 @@ class GasModelChecks(unittest.TestCase):
             t = self.twin(**kw)
             m = self.sens['model'](dict(self.sens['BASE'], **skw))
             self.assertTrue(math.isclose(t['spg_int_pH'], m['spg_int_pH'], rel_tol=5e-3), (kw, t['spg_int_pH'], m['spg_int_pH']))
+            if isinstance(t['spg_int_trough'], float):
+                self.assertTrue(math.isclose(t['spg_int_trough'], m['spg_int_trough'], rel_tol=5e-3), (kw, t['spg_int_trough'], m['spg_int_trough']))
             self.assertTrue(math.isclose(t['spg_int'], m['spg_int_run'], rel_tol=5e-3), (kw, t['spg_int'], m['spg_int_run']))
 
     def test_ph_ceiling_formulas_in_workbook(self):
         with zipfile.ZipFile(BOOK) as z:
             mt = z.read('xl/worksheets/sheet6.xml').decode()
-        f = lambda ref: re.search(r'<c r="%s"[^>]*><f>([^<]*)</f>' % ref, mt).group(1).replace('&quot;', '"').replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
+        f = lambda ref: cell_formula(mt, ref)
         self.assertEqual(f('D433'), 'IF(ISNUMBER(spg_int_pH),spg_int_pH*spg_dur_eq_opt/spg_dur_eq,"no pH bound")')
-        self.assertIn('IF(ph_unreach,NA(),MIN(spg_int_carbon,IF(ISNUMBER(spg_int_DO),spg_int_DO,spg_int_max),IF(ISNUMBER(spg_int_pH_opt),spg_int_pH_opt,spg_int_carbon),IF(O2_sizing_phase=phase_name_2,IF(ISNUMBER(spg_int_H2safe_opt),spg_int_H2safe_opt,spg_int_carbon),spg_int_carbon))))', f('D91'))
+        self.assertIn('IF(OR(ph_unreach,trough_unreach),NA(),MIN(spg_int_carbon,IF(ISNUMBER(spg_int_trough_opt),spg_int_trough_opt,spg_int_carbon),IF(ISNUMBER(spg_int_DO),spg_int_DO,spg_int_max),IF(ISNUMBER(spg_int_pH_opt),spg_int_pH_opt,spg_int_carbon),IF(O2_sizing_phase=phase_name_2,IF(ISNUMBER(spg_int_H2safe_opt),spg_int_H2safe_opt,spg_int_carbon),spg_int_carbon))))', f('D91'))
         self.assertEqual(f('I441'), 'MIN(C_sat_CO2,MAX(C_air_CO2,(pool_ret*H441+pool_b)*E441+G441*F441))')
         self.assertEqual(f('H441'), '(G441*E441+pool_b*D441)/(1-pool_ret*D441)')
         self.assertEqual(f('B441'), 'MAX(0,A441*60-spg_dur)')
@@ -495,7 +539,7 @@ class GasModelChecks(unittest.TestCase):
                 sm = re.search(r's="(\d+)"', a)
                 self.assertIn('wrapText="1"', xfs[int(sm.group(1))] if sm else '', 'Summary F' + m.group(1))
         # Long column-A labels beside an occupied column B wrap too (fourteenth review).
-        occB = {int(m.group(1)) for m in re.finditer(r'<c r="B(\d+)"[^>]*?>(?:(?!</c>).)*?<(?:v|t)[^>]*>[^<]+', sh, re.S)}
+        occB = {int(m.group(1)) for m in re.finditer(r'<c r="B(\d+)"[^>]*?(?<!/)>(?:(?!</c>).)*?<(?:v|t)[^>]*>[^<]+', sh, re.S)}
         for m in re.finditer(r'<c r="A(\d+)"([^>]*?)>(.*?)</c>', sh, re.S):
             a, body = m.group(2), m.group(3)
             v = re.search(r'<v>([^<]*)</v>', body)
@@ -504,6 +548,93 @@ class GasModelChecks(unittest.TestCase):
             if int(m.group(1)) in occB and len(t) > 34:
                 sm = re.search(r's="(\d+)"', a)
                 self.assertIn('wrapText="1"', xfs[int(sm.group(1))] if sm else '', 'Summary A' + m.group(1))
+
+    def test_nitrogen_source_and_media_options(self):
+        base = self.twin()
+        # Ammonium uptake acidifies: the end-of-run pH sits below the start; the swap is charge-neutral at the start.
+        self.assertLess(base['pH_end_A'], base['pH_meas'])
+        self.assertTrue(math.isclose(base['n_up_end'], 1.0 * 0.114 / 14.007, rel_tol=1e-12))
+        self.assertGreater(base['pH_end_N'], base['pH_meas'])               # nitrate uptake consumes acid
+        self.assertLess(abs(base['pH_end_U'] - base['pH_meas']), 1e-3)      # urea: no net acid
+        for sel, key in (('Nitrate (KNO\u2083)', 'pH_end_N'), ('Urea', 'pH_end_U')):
+            t = self.twin(N_source_sel=sel)
+            self.assertLess(abs(t['pH_meas'] - base['pH_meas']), 2e-3, sel)  # same start pH
+            self.assertTrue(math.isclose(t['pH_end'], base[key], rel_tol=1e-3), sel)   # CO2 storage shifts slightly with the start pH
+            self.assertEqual(t['pH_NT'], 0.0)
+        # The NaHCO3 that holds the band floor through the run lands the end-of-run pH on the floor.
+        t = self.twin(NaHCO3_add_gL=base['alk_run_gL'])
+        self.assertLess(abs(t['pH_end_A'] - 6.5), 0.02, t['pH_end_A'])
+        # No biomass: no uptake, end equals start.
+        z = self.twin(X_end_gL=0.0)
+        self.assertLess(abs(z['pH_end'] - z['pH_meas']), 1e-9 + 2e-3)
+        # Too much biomass for the nitrogen: uptake capped and flagged.
+        big = self.twin(X_end_gL=10.0)
+        self.assertEqual(big['n_up_end'], big['pH_NT_rec'])
+        self.assertTrue(big['N_limit_chk'].startswith('NITROGEN RUNS OUT'))
+        # An unlisted nitrogen source returns no pH, as the selectors do elsewhere.
+        bad = self.twin(N_source_sel='Ammonia')
+        self.assertTrue(math.isnan(bad['pH_SID']))
+
+    def test_carbon_trough_bound(self):
+        base = self.twin()
+        self.assertGreater(base['spg_int_trough'], base['spg_int'])          # inert at baseline
+        q = base['N2_for_DO']
+        n = self.twin(N2_sweep_set=q)
+        # With the N2 sweep the 2x Km trough binds before the pH ceiling, and the pool start then sits at the margin.
+        self.assertTrue(n['opt_binding'].startswith('CARBON TROUGH ('), n['opt_binding'])
+        self.assertTrue(math.isclose(n['spg_int_opt'], n['spg_int_trough_opt'], rel_tol=1e-12))
+        m = self.sens['model'](dict(self.sens['BASE'], N2_sweep=q))
+        self.assertTrue(math.isclose(n['spg_int'], m['spg_int_run'], rel_tol=5e-3), (n['spg_int'], m['spg_int_run']))
+        self.assertTrue(m['opt_binding'].startswith('CARBON TROUGH ('))
+        # An impossible margin returns no schedule rather than a starving one.
+        u = self.twin(carbon_trough_min=1e6)
+        self.assertTrue(u['trough_unreach'])
+        self.assertTrue(math.isnan(u['spg_int_opt']))
+
+    def test_pulse_rule_and_startup_current(self):
+        base = self.twin()
+        s = self.twin(pulse_rule_sel='Shortest reliable pulse')
+        self.assertEqual(s['spg_dur_opt'], s['pulse_floor'])
+        self.assertLess(s['spg_dur_opt'], base['spg_dur_opt'])
+        self.assertTrue(math.isnan(self.twin(pulse_rule_sel='Longest')['spg_dur_opt']))
+        # Start-up current: below the set current while the lag DO target is unreachable, and the net lag O2
+        # at that current is what the surface kLa in use holds at the target.
+        self.assertLess(base['kLa_margin_l'], 1)
+        self.assertLess(base['I_su'], base['I_app'])
+        net = base['rO2_per_A'] * base['I_su'] - base['O2_ORR_lag'] + base['O2_H2O2_lag_adj']
+        self.assertTrue(math.isclose(net, base['kLa_margin_l'] * base['O2_net_lag'], rel_tol=1e-12))
+        self.assertTrue(base['power_su_basis'].startswith('EXTRAPOLATED') and 'DATA GAP' in base['power_su_basis'])
+        hi = self.twin(temp_C=20.0, led_intensity=3.0)
+        if hi['kLa_margin_l'] >= 1:
+            self.assertTrue(hi['power_su_basis'].startswith('not needed'))
+
+    def test_summary_layout_and_formats(self):
+        """Every Summary value row has a name, every check sits under Checks, and only the Key's formats are used."""
+        import html
+        with zipfile.ZipFile(BOOK) as z:
+            wb = z.read('xl/workbook.xml').decode()
+            sh = z.read('xl/worksheets/sheet1.xml').decode()
+            st = z.read('xl/styles.xml').decode()
+            parts = [z.read(n).decode() for n in z.namelist() if n.startswith('xl/worksheets/sheet')]
+        names = {m.group(1): int(m.group(2)) for m in
+                 re.finditer(r'<definedName name="([^"]+)" localSheetId="0">Summary!\$D\$(\d+)</definedName>', wb)}
+        checks_row = min(r for n, r in names.items() if n.startswith('chk_'))
+        self.assertTrue(all(r >= checks_row for n, r in names.items() if n.startswith('chk_')))
+        self.assertTrue(all(r < checks_row for n, r in names.items() if n.startswith('res_')))
+        # no colour scales, data bars or decorative outlines; traffic lights use only the Key's three dxfs and DATA GAP
+        for x in parts:
+            self.assertNotIn('colorScale', x)
+            self.assertNotIn('dataBar', x)
+        borders = re.findall(r'<border\b.*?</border>|<border/>', re.search(r'<borders.*?</borders>', st, re.S).group(0), re.S)
+        xfs = re.findall(r'<xf [^>]*?(?:/>|>.*?</xf>)', re.search(r'<cellXfs count="\d+">(.*?)</cellXfs>', st, re.S).group(1), re.S)
+        used = {int(m.group(1)) for x in parts for m in re.finditer(r'<c r="[A-Z]+\d+"[^>]*\ss="(\d+)"', x)}
+        for i in used:
+            b = int(re.search(r'borderId="(\d+)"', xfs[i]).group(1))
+            self.assertNotIn('style="medium"', borders[b], i)
+        dxfs = re.findall(r'<dxf>.*?</dxf>', st, re.S)
+        for x in parts:
+            for d in re.findall(r'dxfId="(\d+)"', x):
+                self.assertTrue(re.search(r'FF006100|FF9C5700|FF9C0006|theme="0"', dxfs[int(d)]), dxfs[int(d)])
 
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):

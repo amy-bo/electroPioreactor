@@ -105,6 +105,9 @@ media_volume   = 0.0               # D9  (mL; blank in workbook -> 0.0 -> use re
 P_atm_set      = 0.0               # D10 (Pa; blank in workbook -> 0.0 -> default 101325)
 NaHCO3_add_gL  = 0.0               # D13 (g/L NaHCO3 added on top of the recipe; blank -> 0.0)
 pulse_res_set  = 0.05              # D15 (s) solenoid command resolution, an input (owner T8)
+N_source_sel   = "Ammonium (recipe)"   # D16 nitrogen source ("Ammonium (recipe)" | "Nitrate (KNO₃)" | "Urea")
+X_end_gL       = 1.0               # D17 (g/L dry weight) biomass at the end of the run; blank -> 0.0
+pulse_rule_sel = "Headspace flush" # D18 pulse-length rule ("Headspace flush" | "Shortest reliable pulse")
 N2_sweep_set   = 0.0               # D14 (mL/min continuous N2 headspace sweep; blank -> 0.0, owner decision T7)
 # Headspace-model owner decisions (Summary D11:D12, typed text; anything else -> #N/A)
 vent_model_sel = "Open vent"       # D11 ("Outflow only" | "Open vent" | "Air exchange")
@@ -562,9 +565,12 @@ Cl_amy  = 0.0                                                                   
 
 
 
-pH_SID = _by_media(SID_mc02, SID_udg, SID_amy) + alk_add_M     # D44 recipe SID + added alkalinity
+pH_SID_rec = _by_media(SID_mc02, SID_udg, SID_amy) + alk_add_M   # D332 recipe SID + added alkalinity
+pH_NT_rec  = _by_media(NT_mc02, NT_udg, NT_amy)                 # D333 recipe total ammonium
+N_src_idx  = {"Ammonium (recipe)": 1, "Nitrate (KNO₃)": 2, "Urea": 3}.get(N_source_sel, NA)   # D331
+pH_SID = pH_SID_rec + (0.0 if N_src_idx == 1 else pH_NT_rec) if isnum(N_src_idx) else NA   # D44: K+ replaces NH4+
 pH_PT  = _by_media(PT_mc02, PT_udg, PT_amy)                   # D45
-pH_NT  = _by_media(NT_mc02, NT_udg, NT_amy)                   # D46
+pH_NT  = (pH_NT_rec if N_src_idx == 1 else 0.0) if isnum(N_src_idx) else NA                # D46
 pH_Cl  = _by_media(Cl_mc02, Cl_udg, Cl_amy)                   # D47
 
 # --- chlorine current: the binding limit of efficiency vs chloride arrival ---
@@ -925,7 +931,9 @@ duty_O2vent = O2_src_guard / (target_DO_frac * (O2_ceil_Pa / P_atm)) / (nCO2_rat
 duty_opt    = max(duty_carbon, duty_O2vent)            # D88
 spg_int_max = (target_DO_frac * O2_ceil_org * (V_charge / 1e6)
                / O2_src_guard * 60)                                   # D89 (min) lag-accumulation cap
-spg_dur_opt = max(pulse_floor, (flush_factor * headspace_V - pulse_V0) / Q_CO2_fit)  # D90 (s)
+pulse_rule_idx = {"Headspace flush": 1, "Shortest reliable pulse": 2}.get(pulse_rule_sel, NA)   # MT D590
+spg_dur_opt = ((pulse_floor if pulse_rule_idx == 2 else max(pulse_floor, (flush_factor * headspace_V - pulse_V0) / Q_CO2_fit))
+               if isnum(pulse_rule_idx) else NA)       # D90 (s): headspace flush, or the solenoid floor
 spg_dur_eq_opt = (pulse_V0 + Q_CO2_fit * spg_dur_opt) / (Q_CO2 / 60)   # D409 (s) full-flow-equivalent time of the optimal pulse (delivered volume / nominal flow)
 pulse_res   = pulse_res_set                            # MT D241 (s) <- Summary D15 solenoid command resolution
 def _mround(x, m):
@@ -1064,6 +1072,16 @@ _dur_eq_e = (pulse_V0 + Q_CO2_fit * spg_dur) / (Q_CO2 / 60)   # = MT D410 spg_du
 spg_int_pH_opt = (spg_int_pH * spg_dur_eq_opt / _dur_eq_e if isnum(spg_int_pH)
                   else "no pH bound")                    # MT D433: on the optimal-pulse basis of D91, so D420 runs spg_int_pH
 _pH_cap = spg_int_pH_opt if isnum(spg_int_pH_opt) else spg_int_carbon
+carbon_trough_min = 2.0                                  # MT D592 (x Km) owner decision pending
+CO2_trough_mt = carbon_trough_min * Km_CO2 / 1000        # MT D593 (mol/m3)
+_trg = [math.exp(math.log(pH_grid_t[i]) + (math.log(pH_grid_t[i + 1]) - math.log(pH_grid_t[i]))
+                 * (pH_grid_start[i] - CO2_trough_mt) / (pH_grid_start[i] - pH_grid_start[i + 1]))
+        for i in range(grid_n - 1) if pH_grid_start[i] >= CO2_trough_mt > pH_grid_start[i + 1]]   # MT column K
+trough_unreach = pH_grid_start[0] < CO2_trough_mt         # MT D596
+spg_int_trough = ("carbon trough under the margin at any interval" if trough_unreach
+                  else max(_trg) if _trg else "no carbon-trough bound")   # MT D594 (min, pulse in use)
+spg_int_trough_opt = (spg_int_trough * spg_dur_eq_opt / _dur_eq_e if isnum(spg_int_trough) else spg_int_trough)   # MT D595
+_trough_cap = spg_int_trough_opt if isnum(spg_int_trough_opt) else spg_int_carbon
 H2_LFL     = 0.04                                       # Biology D80 (-) H2 lower flammability limit
 O2_LOC_H2  = 0.052                                      # Biology D81 (-) limiting O2 conc., CO2 diluent
 LOC_margin = 0.6                                        # Biology D82 (-) NFPA 69 design margin
@@ -1114,17 +1132,21 @@ _H2_cap = spg_int_H2safe_opt if isnum(spg_int_H2safe_opt) else spg_int_carbon
 _H2_sz = _H2_cap if O2_phase_sel == "Lag" else spg_int_carbon   # the H2 screen bounds a Lag-sized schedule
 
 sel_invalid = math.isnan(F_vent_ex + O2_src_sched)     # an unlisted vent/phase selector -> #N/A in MT D91/D94/D134
-spg_int_opt = (NA if sel_invalid or ph_unreach else
-               min(spg_int_carbon, spg_int_DO, _pH_cap, _H2_sz) if isnum(spg_int_DO)
-               else min(spg_int_carbon, spg_int_max, _pH_cap, _H2_sz))   # D91 (min)
+spg_int_opt = (NA if sel_invalid or ph_unreach or trough_unreach else
+               min(spg_int_carbon, _trough_cap, spg_int_DO, _pH_cap, _H2_sz) if isnum(spg_int_DO)
+               else min(spg_int_carbon, _trough_cap, spg_int_max, _pH_cap, _H2_sz))   # D91 (min)
 spg_int_opt_s = spg_int_opt * 60                       # D92 (s)
 duty_actual = spg_dur_eq_opt / (spg_int_opt * 60)      # D93 (-) full-flow-equivalent duty
 if sel_invalid:
     opt_binding = "INVALID SELECTOR (check Summary D2–D5, D11, D12)"
 elif ph_unreach:
     opt_binding = "pH CEILING UNREACHABLE \u2013 reduce the N\u2082 or the added alkalinity"
+elif trough_unreach:
+    opt_binding = "CARBON TROUGH UNREACHABLE \u2013 the pool runs under the margin at any interval"
 elif O2_phase_sel == "Lag" and isnum(spg_int_H2safe_opt) and spg_int_opt == spg_int_H2safe_opt:
     opt_binding = "H\u2082 FLAMMABILITY SCREEN (lag sizing; Biology D92 sets the interval)"
+elif isnum(spg_int_trough_opt) and spg_int_opt == spg_int_trough_opt:
+    opt_binding = "CARBON TROUGH (the margin over RuBisCO Km at the pulse start sets the interval)"
 elif isnum(spg_int_pH_opt) and spg_int_opt == spg_int_pH_opt:
     opt_binding = "pH CEILING (keeping pH at or under the band ceiling sets the interval)"
 elif not isnum(spg_int_DO):
@@ -1232,6 +1254,17 @@ DO_avg_l_mgL   = DO_avg_l * M_O2                        # MT D364 (mg/L)
 DO_peak_l_mgL  = DO_peak_l * M_O2                       # MT D365 (mg/L)
 kLa_surf_req_l = O2_src_l / (DO_target * 3600 * (V_charge / 1e6))   # MT D366 (1/s)
 kLa_margin_l   = kLa_surf_used / kLa_surf_req_l         # MT D367 (x)
+# Start-up current for the lag DO target (Electrochemistry D177-D183): first order, cathodic O2 loss held
+rO2_per_A = rO2_gen / I_app                               # Echem D179 (mol/h/A)
+I_su = (I_app if kLa_margin_l >= 1 else
+        min(I_app, (kLa_margin_l * O2_net_lag + O2_ORR_lag - O2_H2O2_lag_adj) / rO2_per_A))   # Echem D180 (A)
+power_su = intensity if kLa_margin_l >= 1 else (I_su * 1000 - gerrit_int) / gerrit_slope   # Echem D181 (%)
+gerrit_max = 25.0                                         # Echem D14 (%)
+power_su_basis = ("not needed \u2013 the lag DO target is reachable at the set power" if kLa_margin_l >= 1 else
+                  "BELOW the fit\u2019s zero-power current \u2013 DATA GAP: measure the low-power current curve" if power_su < 0 else
+                  "EXTRAPOLATED below the " + xltext(gerrit_min, "General") + " % current curve \u2013 DATA GAP: measure the low-power current curve"
+                  if power_su < gerrit_min else
+                  "within the measured current curve (" + xltext(gerrit_min, "General") + "\u2013" + xltext(gerrit_max, "General") + " %)")   # Echem D183
 DO_feas_l      = _feas(kLa_margin_l)                    # MT D368
 DO_peak_chk_l  = _peak_chk(DO_peak_l, DO_peak_l_mgL)    # MT D369
 y_H2_end_l     = H2_src_l * t_gap_h / n_hs_gas * hs_l["phi"] / (1 - flush_ret * math.exp(-x_hs_l))   # MT D388 (-) lag H2 fraction just before the next pulse
@@ -1463,7 +1496,7 @@ else:
     DO_ss_vs_min = "minimum DO unknown - measure"        # D110
 tip_warn = "TIP SPEED > 1.5 m/s" if tip_speed > 1.5 else "OK"  # D111
 sched_regime = ("Carbon supply alone holds the DO target – the interval may relax to "
-                + xltext(min(spg_int_carbon, _pH_cap), "0") + " min"
+                + xltext(min(spg_int_carbon, _pH_cap, _trough_cap), "0") + " min"
                 if DO_at_carbon <= DO_target
                 else "Do NOT relax: at the carbon-limited interval (" + xltext(spg_int_carbon, "0")
                 + " min) the cycle-mean DO would be \u2248" + xltext(DO_at_carbon * M_O2, "0")
@@ -1598,7 +1631,8 @@ NH3_N    = pH_NT * 14007                               # D135 (mg/L) ammonium as
 k1_NH2Cl = 4.2e6                                       # D136 (M^-1 s^-1) HOCl+NH3 rate constant
 pKa_NH4  = -math.log10(Ka_NH4)                         # D137 (from the van 't Hoff-corrected Ka_NH4)
 NH3_free = pH_NT / (1 + 10 ** (pKa_NH4 - pH_op))       # D138 (M) reactive free ammonia
-HOCl_ss  = P_HOCl / (k1_NH2Cl * NH3_free)              # D139 (M) steady bulk free HOCl (already the undissociated acid)
+HOCl_ss  = (P_HOCl / (k1_NH2Cl * NH3_free) if NH3_free > 0 else
+            pH_Cl if P_HOCl > 0 else 0.0)              # D139 (M) steady bulk free HOCl; no ammonia -> the chloride pool
 HOCl_ss_mgL = HOCl_ss * 52460                          # D140 (mg/L)
 f_local  = 10                                          # D141 anode boundary-layer enrichment (numerically inert: chloramine dominates ~1e4x)
 # BUGFIX (review 2026-06-26) chloride mass balance: chlorine (free + combined)
@@ -1778,7 +1812,7 @@ S_D39 = sched_regime                                    # D39 interval relaxable
 S_D40 = H2_safety                                       # D40 H2 headspace safe
 S_D41 = bubble_regime                                   # D41 bubble model valid
 S_D42 = iferror(lambda: f"×{CO2_sd_ratio:.1f}" + (" OK" if CO2_sd_ratio >= 1 else " SHORTFALL (CO2 < demand)")
-                + f" delivered; ×{CO2_uptake_ratio:.1f} absorbed per pulse (row 77)",
+                + f" delivered; ×{CO2_uptake_ratio:.1f} absorbed per pulse (row 88)",
                 "calibrate this reactor first")         # D26 CO2 supply : demand (this schedule)
 S_D43 = iferror(lambda: dur_ok, CAL_FIRST)  # D43 pulse >= floor
 S_D44 = iferror(lambda: od_ok, CAL_FIRST)   # D44 dosing window
@@ -1803,11 +1837,11 @@ S_D96 = V_cell_est                                      # D96 estimated cell vol
 S_D97 = V_flag                                          # D97 cell-voltage verdict
 S_D98 = H2O2_flag                                       # D98 peroxide verdict
 S_D99 = buffer_flag                                     # D99 electrode-surface pH verdict
-S_D100 = E_Cl_margin                                     # D100 chlorine headroom above O2 evolution
+S_D100 = E_Cl_margin if pH_Cl > 0 else "n/a \u2013 no chloride in the medium"                                    # D100 chlorine headroom above O2 evolution
 S_D101 = E_Cu_margin                                     # D101 copper dissolution headroom
 S_D102 = pH_meas                                         # D102 measured (activity-scale) pH
 S_D103 = kLa_surf_req * 3600                             # D103 surface kLa required for the DO target (1/h, R5-m6)
-S_A15 = "CO\u2082 sparge interval (" + vent_model_sel + ", sized on " + O2_phase_sel + ")"   # A15 label (formula)
+S_A15 = "CO\u2082 sparge interval \u2014 ideal (" + vent_model_sel + ", sized on " + O2_phase_sel + ")"   # A15 label (formula)
 S_F121 = ("Same on the lag source. Currently " + xltext(kLa_margin_l, "0.00") + "\u00d7: "
           + ("the target cannot be held during lag at the kLa in use, whatever the schedule \u2014 an owner decision (target the ceiling with a margin during lag?)."
              if kLa_margin_l < 1 else "the target can be held during lag at the kLa in use."))   # F121 (formula)
@@ -1824,6 +1858,49 @@ alk_pH_target_c = alk_pH_target + math.log10(gam1)     # D304 (pH, concentration
 alk_resid_t     = charge_residual(alk_pH_target_c)     # D305 (mol/L)
 alk_needed      = max(0.0, -alk_resid_t)               # D306 (mol/L) strong base to add
 alk_NaHCO3_gL   = alk_needed * M_NaHCO3                # D308 (g/L)
+pH_red_lo, pH_red_hi = 6.0, 8.0                        # Chemistry D299-D300 (pH) red band edges
+
+
+def _residual_with(pH, SID, NT):
+    """The D50 charge residual for another strong-ion difference and total ammonium (Chemistry grid columns D-I)."""
+    h = 10 ** (-pH)
+    return (SID + NT * h / (h + KaN_c) + h
+            - (pH_PT * Ka1p_c * h ** 2 + 2 * pH_PT * Ka1p_c * Ka2p_c * h + 3 * pH_PT * Ka1p_c * Ka2p_c * Ka3p_c)
+            / (h ** 3 + Ka1p_c * h ** 2 + Ka1p_c * Ka2p_c * h + Ka1p_c * Ka2p_c * Ka3p_c)
+            - Ka1c_c * CO2aqc / h - 2 * Ka1c_c * Ka2c_c * CO2aqc / h ** 2 - Kw_c / h)
+
+
+def _root_with(SID, NT):
+    r = [_residual_with(p, SID, NT) for p in _pH_grid]
+    roots = [_pH_grid[i] + 0.1 * r[i] / (r[i] - r[i + 1]) for i in range(len(r) - 1) if r[i] >= 0 and r[i + 1] < 0]
+    return roots[0] - math.log10(gam1) if len(roots) == 1 else NA   # probe (activity) scale
+
+
+# Nitrogen source and uptake (Chemistry D326-D364): uptake of NH4+ releases one H+ per N (NT falls at a fixed SID),
+# nitrate uptake consumes one (SID rises), urea is neutral; K2SO4 replaces (NH4)2SO4 for nitrate and urea.
+X_end    = X_end_gL                                    # D334 (g/L)
+f_N_bio  = 0.114                                       # D335 (-) CH1.8O0.5N0.2
+MW_N_g   = 14.007                                      # Chemistry D225 (g/mol)
+n_up_end = min(X_end * f_N_bio / MW_N_g, pH_NT_rec)    # D336 (mol/L)
+N_limit_chk = ("NITROGEN RUNS OUT at " + xltext(pH_NT_rec * MW_N_g / f_N_bio, "0.00")
+               + " g/L biomass, below the end-of-run biomass on Summary" if X_end * f_N_bio / MW_N_g > pH_NT_rec else "OK")   # D337
+SID_end_A, NT_end_A = pH_SID_rec, pH_NT_rec - n_up_end          # D338-D339
+SID_end_N = pH_SID_rec + pH_NT_rec + n_up_end                    # D340
+SID_end_U = pH_SID_rec + pH_NT_rec                               # D341
+pH_end_A, pH_end_N, pH_end_U = _root_with(SID_end_A, NT_end_A), _root_with(SID_end_N, 0.0), _root_with(SID_end_U, 0.0)   # D345-D347
+_pick = lambda a, b, c: (a, b, c)[N_src_idx - 1] if isnum(N_src_idx) else NA
+pH_end = _pick(pH_end_A, pH_end_N, pH_end_U)                     # D348
+pH_min_A, pH_min_N, pH_min_U = min(pH_meas, pH_end_A), min(pH_meas, pH_end_N), min(pH_meas, pH_end_U)   # D349-D351
+pH_min = _pick(pH_min_A, pH_min_N, pH_min_U)                     # D352
+SID_end, NT_end = _pick(SID_end_A, SID_end_N, SID_end_U), _pick(NT_end_A, 0.0, 0.0)   # D353-D354
+alk_resid_end = _residual_with(alk_pH_target_c, SID_end, NT_end)   # D355
+alk_end    = max(0.0, -alk_resid_end)                    # D356 (mol/L)
+alk_run_gL = max(alk_needed, alk_end) * M_NaHCO3         # D357 (g/L)
+pH_min_alk = alk_pH_target if alk_run_gL > 0 else pH_min   # D358
+NH42SO4_rec_gL = pH_NT_rec / 2 * MW["NH42SO4"]          # D359
+K2SO4_swap_gL  = pH_NT_rec / 2 * MW["K2SO4"]            # D360
+KNO3_gL        = pH_NT_rec * 101.103                     # D362
+urea_gL        = pH_NT_rec / 2 * 60.056                  # D364
 S_D80 = alk_NaHCO3_gL                                  # D80 NaHCO3 for the target pH (g/L) <- Chemistry D308
 S_D81 = alk_needed * 1000                              # D81 extra alkalinity (mM) <- Chemistry D306
 S_D11 = vent_model_sel                                 # D11 vent model (input)
@@ -1917,6 +1994,17 @@ class WorkbookReader:
             for si in ET.fromstring(sst_xml):
                 self._shared.append("".join(t.text or "" for t in si.iter(_MAIN_NS + "t")))
         self._cells = {}   # sheet name -> {cell ref: value}
+        # Defined names -> (sheet, cell), sheet-local names first, so Summary rows are found by name
+        # wherever they sit (labels "Summary res_pH" or "Summary F@res_pH" in OUTPUTS).
+        self._names = {}
+        sheets = [sh.get("name") for sh in ET.fromstring(self._parts["xl/workbook.xml"]).iter(_MAIN_NS + "sheet")]
+        for dn in ET.fromstring(self._parts["xl/workbook.xml"]).iter(_MAIN_NS + "definedName"):
+            m = re.fullmatch(r"'?([^'!]+)'?!\$([A-Z]+)\$(\d+)", dn.text or "")
+            if not m:
+                continue
+            loc = dn.get("localSheetId")
+            scope = sheets[int(loc)] if loc is not None else None
+            self._names[(scope, dn.get("name"))] = (m.group(1), m.group(2) + m.group(3))
 
     def sheet_names(self):
         return list(self._sheet_part)
@@ -1963,8 +2051,20 @@ class WorkbookReader:
         self._cells[sheet_name] = cells
         return cells
 
+    def resolve(self, sheet_name, ref):
+        """'D12' stays; 'name' -> its cell; 'F@name' -> column F of the named cell's row."""
+        if re.fullmatch(r"[A-Z]{1,3}[0-9]{1,7}", ref):
+            return sheet_name, ref
+        col, _, name = ref.rpartition("@")
+        tgt = self._names.get((sheet_name, name)) or self._names.get((None, name))
+        if tgt is None:
+            raise KeyError(f"no defined name {name!r} on {sheet_name}")
+        sh, cell = tgt
+        return sh, (col + re.sub(r"[A-Z]+", "", cell)) if col else cell
+
     def cached(self, sheet_name, cell_ref):
         """Cached value of one cell: float, str, NA (#N/A), NO_CACHE or ABSENT."""
+        sheet_name, cell_ref = self.resolve(sheet_name, cell_ref)
         cells = self._cells.get(sheet_name)
         if cells is None:
             cells = self._load(sheet_name)
@@ -1995,7 +2095,7 @@ SHEET_OF_PREFIX = {
     "Calib": "Calibrations",
 }
 
-_LABEL_RE = re.compile(r"^(\w+)\s+(\$?[A-Z]{1,3}\$?[0-9]{1,7})\b")
+_LABEL_RE = re.compile(r"^(\w+)\s+((?:[A-Z]@)?[A-Za-z_][\w.]*|\$?[A-Z]{1,3}\$?[0-9]{1,7})\b")
 
 
 def cell_of(label):
@@ -2003,7 +2103,7 @@ def cell_of(label):
     m = _LABEL_RE.match(label)
     if not m:
         raise ValueError(f"cannot parse a workbook cell out of label {label!r}")
-    prefix, ref = m.group(1), m.group(2).replace("$", "")
+    prefix, ref = m.group(1), m.group(2).replace("$", "") if re.fullmatch(r"\$?[A-Z]{1,3}\$?[0-9]{1,7}", m.group(2)) else m.group(2)
     if prefix not in SHEET_OF_PREFIX:
         raise ValueError(f"unknown sheet prefix {prefix!r} in label {label!r}")
     return SHEET_OF_PREFIX[prefix], ref
@@ -2077,65 +2177,63 @@ OUTPUTS = [
     ("Echem D149 r_H2_HOR (mol/h)",                    r_H2_HOR),
 
     # --- Summary tab (every cell with a Value/result) ---
-    ("Summary D18  CO2 pulse duration (s)",            S_D18),
-    ("Summary D19  CO2 pulse duration rounded (s)",    S_D19),
-    ("Summary D20  CO2 sparge interval (min)",         S_D20),
-    ("Summary D21  CO2 sparge interval rounded (min)", S_D21),
-    ("Summary D35  Vial geometry consistent?",         S_D35),
-    ("Summary D36  Reactor calibrated?",               S_D36),
-    ("Summary D37  O2 at/under optimum?",              S_D37),
-    ("Summary D38  O2 above minimum?",                 S_D38),
-    ("Summary D39  Interval relaxable?",               S_D39),
-    ("Summary D40  H2 headspace safe?",                S_D40),
-    ("Summary D41  Bubble model valid?",               S_D41),
-    ("Summary D42  CO2 supply : demand",               S_D42),
-    ("Summary D43  Pulse >= solenoid floor?",          S_D43),
-    ("Summary D44  Dosing window OK?",                 S_D44),
-    ("Summary D45  Carryover risk?",                   S_D45),
-    ("Summary D46  Tip-speed shear OK?",               S_D46),
-    ("Summary D47  Media volume fits vial?",           S_D47),
-    ("Summary D48  Liquid level OK?",                  S_D48),
-    ("Summary D49  LED current-law in range?",         S_D49),
-    ("Summary D50  Organism DO data present?",         S_D50),
-    ("Summary D23  Endpoint pH (activity scale)",      S_D23),
-    ("Summary D25  C_eff_Cl2 (mg/L)",                  S_D25),
-    ("Summary D24  Steady-state DO (mg/L)",            S_D24),
-    ("Summary D28  Sparge interval if O2 handled (min)", S_D28),
-    ("Summary D75  Stir-bar tip speed (m/s)",          S_D75),
-    ("Summary D76  Carbon margin at cycle trough (x)", S_D76),
-    ("Summary D32  As-run / optimised duty (x)",       S_D32),
-    ("Summary D95  Cathodic faradaic efficiency",      S_D95),
-    ("Summary D96  Estimated cell voltage (V)",        S_D96),
-    ("Summary D97  Cell-voltage verdict",              S_D97),
-    ("Summary D98  Peroxide verdict",                  S_D98),
-    ("Summary D99  Electrode-surface pH verdict",      S_D99),
-    ("Summary D100  Chlorine headroom (V)",             S_D100),
-    ("Summary D101  Copper dissolution headroom (V)",   S_D101),
-    ("Summary D102  Measured (activity-scale) pH",      S_D102),
-    ("Summary D103  Surface kLa required (1/h)",        S_D103),
+    ("Summary res_spg_dur  CO2 pulse duration (s)",            S_D18),
+    ("Summary res_spg_dur_run  CO2 pulse duration rounded (s)",    S_D19),
+    ("Summary res_spg_int  CO2 sparge interval (min)",         S_D20),
+    ("Summary res_spg_int_run  CO2 sparge interval rounded (min)", S_D21),
+    ("Summary chk_geom  Vial geometry consistent?",         S_D35),
+    ("Summary chk_cal  Reactor calibrated?",               S_D36),
+    ("Summary chk_DO_opt  O2 at/under optimum?",              S_D37),
+    ("Summary chk_DO_min  O2 above minimum?",                 S_D38),
+    ("Summary res_relax  Interval relaxable?",               S_D39),
+    ("Summary chk_H2  H2 headspace safe?",                S_D40),
+    ("Summary chk_bubble  Bubble model valid?",               S_D41),
+    ("Summary chk_CO2_supply  CO2 supply : demand",               S_D42),
+    ("Summary chk_pulse_floor  Pulse >= solenoid floor?",          S_D43),
+    ("Summary chk_od_window  Dosing window OK?",                 S_D44),
+    ("Summary chk_carryover  Carryover risk?",                   S_D45),
+    ("Summary chk_tip  Tip-speed shear OK?",               S_D46),
+    ("Summary chk_media_vol  Media volume fits vial?",           S_D47),
+    ("Summary chk_level  Liquid level OK?",                  S_D48),
+    ("Summary chk_led_law  LED current-law in range?",         S_D49),
+    ("Summary chk_DO_data  Organism DO data present?",         S_D50),
+    ("Summary res_pH  Endpoint pH (activity scale)",      S_D23),
+    ("Summary res_Cl2  C_eff_Cl2 (mg/L)",                  S_D25),
+    ("Summary res_DO_ss  Steady-state DO (mg/L)",            S_D24),
+    ("Summary res_spg_int_carbon  Sparge interval if O2 handled (min)", S_D28),
+    ("Summary res_tip_speed  Stir-bar tip speed (m/s)",          S_D75),
+    ("Summary res_carbon_margin  Carbon margin at cycle trough (x)", S_D76),
+    ("Summary res_duty_ratio  As-run / optimised duty (x)",       S_D32),
+    ("Summary res_etaF  Cathodic faradaic efficiency",      S_D95),
+    ("Summary res_V_cell  Estimated cell voltage (V)",        S_D96),
+    ("Summary chk_V_cell  Cell-voltage verdict",              S_D97),
+    ("Summary chk_H2O2  Peroxide verdict",                  S_D98),
+    ("Summary chk_buffer  Electrode-surface pH verdict",      S_D99),
+    ("Summary res_E_Cl_margin  Chlorine headroom (V)",             S_D100),
+    ("Summary res_E_Cu_margin  Copper dissolution headroom (V)",   S_D101),
     # --- Summary iterH block (rows 111-128) ---
-    ("Summary D11 Vent model (input echo)",           S_D11),
-    ("Summary D12 O2 sizing phase (input echo)",      S_D12),
-    ("Summary D58 Vent air ingress in use (mL/min)",    S_D58),
-    ("Summary D59 Cycle-mean DO growth (mg/L)",       S_D59),
-    ("Summary D60 Peak DO growth (mg/L)",             S_D60),
-    ("Summary D61 Cycle-mean DO lag (mg/L)",          S_D61),
-    ("Summary D62 Peak DO lag (mg/L)",                S_D62),
-    ("Summary D63 Peak under ceiling? growth",        S_D63),
-    ("Summary D64 Peak under ceiling? lag",           S_D64),
-    ("Summary D65 DO target reachable? growth",       S_D65),
-    ("Summary D66 DO target reachable? lag",          S_D66),
-    ("Summary D67 Surface kLa required growth (1/h)", S_D67),
-    ("Summary D68 Surface kLa required lag (1/s)",    S_D68),
-    ("Summary D69 Headspace O2 fraction growth",      S_D69),
-    ("Summary D70 Headspace O2 fraction lag",         S_D70),
-    ("Summary D71 Headspace H2 fraction lag",         S_D71),
-    ("Summary D72 Headspace CO2 fraction",            S_D72),
-    ("Summary D52 DO target and pH band together?",   S_D52),
-    ("Summary D53 Headspace sag per cycle (-)",       S_D53),
-    ("Summary D54 Sealed-cap plausibility",           S_D54),
-    ("Summary A20  CO2 sparge interval label",         S_A15),
-    ("Summary F66 Lag target note",                   S_F121),
+    ("Summary vent_model_sel Vent model (input echo)",           S_D11),
+    ("Summary O2_phase_sel O2 sizing phase (input echo)",      S_D12),
+    ("Summary res_Q_vent Vent air ingress in use (mL/min)",    S_D58),
+    ("Summary res_DO_avg_g Cycle-mean DO growth (mg/L)",       S_D59),
+    ("Summary res_DO_peak_g Peak DO growth (mg/L)",             S_D60),
+    ("Summary res_DO_avg_l Cycle-mean DO lag (mg/L)",          S_D61),
+    ("Summary res_DO_peak_l Peak DO lag (mg/L)",                S_D62),
+    ("Summary chk_DO_peak_g Peak under ceiling? growth",        S_D63),
+    ("Summary chk_DO_peak_l Peak under ceiling? lag",           S_D64),
+    ("Summary chk_DO_feas_g DO target reachable? growth",       S_D65),
+    ("Summary chk_DO_feas_l DO target reachable? lag",          S_D66),
+    ("Summary res_kLa_req_g Surface kLa required growth (1/h)", S_D67),
+    ("Summary res_kLa_req_l Surface kLa required lag (1/s)",    S_D68),
+    ("Summary res_yO2_g Headspace O2 fraction growth",      S_D69),
+    ("Summary res_yO2_l Headspace O2 fraction lag",         S_D70),
+    ("Summary res_yH2_l Headspace H2 fraction lag",         S_D71),
+    ("Summary res_yCO2 Headspace CO2 fraction",            S_D72),
+    ("Summary chk_DO_pH DO target and pH band together?",   S_D52),
+    ("Summary res_hs_sag Headspace sag per cycle (-)",       S_D53),
+    ("Summary chk_hs_sag_ok Sealed-cap plausibility",           S_D54),
+    ("Summary A@res_spg_int  CO2 sparge interval label",         S_A15),
+    ("Summary F@chk_DO_feas_l Lag target note",                   S_F121),
 
     # --- Chemistry ---
     ("Chemistry D103  pH_op (concentration scale)",    pH_op),
@@ -2307,11 +2405,11 @@ OUTPUTS = [
     ("MassXfer D435 pool_start_chk", pool_start_chk),
     ("MassXfer I440 grid CO2 mean, first row", pH_grid_C[0]),
     ("MassXfer I539 grid CO2 mean, last row", pH_grid_C[-1]),
-    ("Summary D30 pH-ceiling interval", spg_int_pH),
+    ("Summary res_spg_int_pH pH-ceiling interval", spg_int_pH),
     ("Biology  D125 F_dil_b (mol/h)",                  F_dil_b),
     ("Biology  D120 remedy_res",                       remedy_res),
-    ("Summary D82 N2 for DO at carbon duty",           N2_for_DO),
-    ("Summary D83 N2 for lag H2 below LFL",           N2_sweep_H2safe),
+    ("Summary res_N2_DO N2 for DO at carbon duty",           N2_for_DO),
+    ("Summary res_N2_H2 N2 for lag H2 below LFL",           N2_sweep_H2safe),
     ("MassXfer D384 vent_name_3",                      vent_name_3),
     ("MassXfer D385 Q_backdraw (mL/min)",              Q_backdraw),
     ("MassXfer D386 Q_vent_used (mL/min)",             Q_vent_used),
@@ -2417,8 +2515,8 @@ OUTPUTS = [
     ("Echem D161 ec_jbuf_ratio (-)",                    ec_jbuf_ratio),
     ("Echem D162 pcet_credit_op (V)",                   pcet_credit_op),
     ("Echem D163 pcet_credit_gmax (V)",                 pcet_credit_gmax),
-    ("Summary D80 NaHCO3 for target pH (g/L)",        S_D80),
-    ("Summary D81 Extra alkalinity (mM)",             S_D81),
+    ("Summary res_NaHCO3_gL NaHCO3 for target pH (g/L)",        S_D80),
+    ("Summary res_alk_mM Extra alkalinity (mM)",             S_D81),
     ("Chemistry D304 alk_pH_target_c (pH)",            alk_pH_target_c),
     ("Chemistry D305 alk_resid_t (mol/L)",              alk_resid_t),
     ("AMYBO03 D54 PT_AMYBO03 (mol/L)",                 PT_amy),
@@ -2426,8 +2524,8 @@ OUTPUTS = [
     ("AMYBO03 D56 NT_AMYBO03 (mol/L)",                 NT_amy),
     ("AMYBO03 D58 kappa0_AMYBO03 (S/m)",               kappa0_amy),
     ("AMYBO03 D59 I_AMYBO03 (mol/L)",                  I_amy),
-    ("Summary D77 CO2 uptake ratio (x)",               S_D77),
-    ("Summary D51 Carryover velocity rule of thumb",   S_D51),
+    ("Summary res_CO2_uptake CO2 uptake ratio (x)",               S_D77),
+    ("Summary chk_carry_usg Carryover velocity rule of thumb",   S_D51),
 ]
 
 
@@ -2436,19 +2534,58 @@ Cl_model_check = ("UNSUPPORTED – nitrogen capacity exhausted" if pH_Cl > 0 and
 chlorine_note = (Cl_model_check if Cl_model_check != "OK" else
                 "Effective chlorine on the as-Cl2 basis; zero for chloride-free medium. Lifetime and potency require measurement.")
 OUTPUTS.extend([
+    # Nitrogen source, end-of-run pH and the media options (Chemistry D326-D364, Summary rows 16-17, 28, 64-67)
+    ("Chemistry D44 pH_SID (mol/L)", pH_SID),
+    ("Chemistry D46 pH_NT (mol/L)", pH_NT),
+    ("Chemistry D336 n_up_end (mol/L)", n_up_end),
+    ("Chemistry D337 N_limit_chk", N_limit_chk),
+    ("Chemistry D345 pH_end_A", pH_end_A),
+    ("Chemistry D346 pH_end_N", pH_end_N),
+    ("Chemistry D347 pH_end_U", pH_end_U),
+    ("Chemistry D356 alk_end (mol/L)", alk_end),
+    ("Chemistry D357 alk_run_gL (g/L)", alk_run_gL),
+    ("Summary res_pH_end end-of-run pH", pH_end),
+    ("Summary med_none minimum pH, no change", pH_min),
+    ("Summary med_NaHCO3 minimum pH with NaHCO3", pH_min_alk),
+    ("Summary med_nitrate minimum pH, nitrate", pH_min_N),
+    ("Summary med_urea minimum pH, urea", pH_min_U),
+    ("Summary A@med_NaHCO3 NaHCO3 label", "Add " + xltext(alk_run_gL, "0.00") + " g/L NaHCO\u2083 (on top of row 13)"),
+    ("Summary A@med_nitrate nitrate label", "Nitrate: " + xltext(NH42SO4_rec_gL, "0.00") + " g/L (NH\u2084)\u2082SO\u2084 \u2192 "
+     + xltext(K2SO4_swap_gL, "0.00") + " g/L K\u2082SO\u2084 + " + xltext(KNO3_gL, "0.00") + " g/L KNO\u2083"),
+    ("Summary A@med_urea urea label", "Urea: " + xltext(NH42SO4_rec_gL, "0.00") + " g/L (NH\u2084)\u2082SO\u2084 \u2192 "
+     + xltext(K2SO4_swap_gL, "0.00") + " g/L K\u2082SO\u2084 + " + xltext(urea_gL, "0.00") + " g/L urea"),
+    ("Summary chk_pH_end end-of-run pH check",
+     "#N/A \u2013 check the nitrogen source (row 16)" if not isnum(pH_end) else
+     "pH BELOW " + xltext(pH_red_lo, "0.0") + " by the end of the run (" + xltext(pH_end, "0.00") + "): fix the medium" if pH_end < pH_red_lo else
+     "pH ABOVE " + xltext(pH_red_hi, "0.0") + " by the end of the run (" + xltext(pH_end, "0.00") + "): fix the medium" if pH_end > pH_red_hi else
+     "watch \u2013 pH " + xltext(pH_end, "0.00") + " by the end of the run, outside the " + xltext(pH_band_lo, "0.0") + "\u2013"
+     + xltext(pH_band_hi, "0.0") + " band" if (pH_end < pH_band_lo or pH_end > pH_band_hi) else
+     "OK \u2013 pH " + xltext(pH_end, "0.00") + " at the end of the run"),
+    # Pulse rule, carbon-trough bound (Mass Transfer D586-D596)
+    ("MassXfer D90 spg_dur_opt (s)", spg_dur_opt),
+    ("MassXfer D594 spg_int_trough (min)", spg_int_trough),
+    ("MassXfer D595 spg_int_trough_opt (min)", spg_int_trough_opt),
+    ("Summary res_spg_int_trough carbon-trough interval", spg_int_trough),
+    # Start-up current (Electrochemistry D177-D183)
+    ("Echem D180 I_su (A)", I_su),
+    ("Echem D181 power_su (%)", power_su),
+    ("Summary res_power_su start-up power", power_su),
+    ("Summary res_I_su start-up current (mA)", I_su * 1000),
+    ("Summary res_su_power_basis basis", power_su_basis),
+    ("Summary chk_su_current check", power_su_basis),
     ("Chemistry E107 chlorine production note", "Naive FE=1 ceiling; overstates operative production by " + xltext(bleach_rate / (P_HOCl * M_HOCl_mg * 3600), "0") + " times" if P_HOCl > 0 else "No chlorine production at the selected chloride inventory"),
     ("Chemistry D310 DIC reference validity", DIC_ref_check),
     ("Chemistry D311 combined chlorine inventory", Cl_bound),
     ("Chemistry D312 chloramine validity", Cl_model_check),
     ("Chemistry D317 NaHCO3 added (g/L)", NaHCO3_add_gL),
     ("Chemistry D318 alk_add_M (mol/L)", alk_add_M),
-    ("Summary F25 chlorine validity", chlorine_note),
+    ("Summary F@res_Cl2 chlorine validity", chlorine_note),
     ("MassXfer D420 executable interval", spg_int_run),
-    ("Summary D86 current mA", I_app * 1000),
-    ("Summary D87 anode current density", j_anode),
-    ("Summary D89 maximum power", power_max),
-    ("Summary D90 maximum current mA", I_max_mA),
-    ("Summary D91 maximum anode current density", j_anode_max),
+    ("Summary res_I_mA current mA", I_app * 1000),
+    ("Summary res_j_anode anode current density", j_anode),
+    ("Summary res_power_max maximum power", power_max),
+    ("Summary res_I_max maximum current mA", I_max_mA),
+    ("Summary res_j_anode_max maximum anode current density", j_anode_max),
     # Measured electrode k_m and monochloramine lifetime enter through the Calibrations tab
     ("Calib D150 cal_km_O2 value in use", cal_km_O2 if isnum(cal_km_O2) else NO_CAL_TXT),
     ("Calib D163 cal_tau_NH2Cl value in use", cal_tau_NH2Cl if isnum(cal_tau_NH2Cl) else NO_CAL_TXT),
@@ -2486,16 +2623,19 @@ OUTPUTS.extend([
     ("MassXfer D556 DO_avg_su (mg/L)", DO_avg_su_mgL),
     ("MassXfer D557 DO_peak_su (mg/L)", DO_peak_su_mgL),
     ("MassXfer D558 y_H2_end_su", y_H2_end_su),
-    ("Summary D15 solenoid resolution", pulse_res_set),
-    ("Summary D22 binding constraint", opt_binding),
-    ("Summary D29 DO-limited interval", spg_int_DO),
-    ("Summary D31 start-up interval", S_D31),
-    ("Summary D33 start-up state", S_D33),
-    ("Summary D55 pool check", pool_start_chk),
+    ("Summary pulse_res_set solenoid resolution", pulse_res_set),
+    ("Summary res_binding binding constraint", opt_binding),
+    ("Summary res_spg_int_DO DO-limited interval", spg_int_DO),
+    ("Summary res_spg_int_su start-up interval", S_D31),
+    ("Summary res_su_state start-up state", S_D33),
+    ("Summary chk_pool pool check", pool_start_chk),
 ])
 
 # Declared input -> Summary cell. Checked before anything is compared.
 INPUT_CELLS = [
+    ("N_source_sel",  "N_source_sel",  N_source_sel),
+    ("X_end_gL",      "X_end_gL",      X_end_gL),
+    ("pulse_rule_sel", "pulse_rule_sel", pulse_rule_sel),
     ("Reactor_sel",   "D2",  Reactor_sel),
     ("electrode_sel", "D3",  electrode_sel),
     ("organism_sel",  "D4",  organism_sel),
@@ -2510,8 +2650,8 @@ INPUT_CELLS = [
     ("pulse_res_set", "D15",  pulse_res_set),
     ("vent_model_sel", "D11", vent_model_sel),
     ("O2_phase_sel",  "D12", O2_phase_sel),
-    ("user_spg_dur", "G18", user_spg_dur or 0.0),
-    ("user_spg_int", "G20", user_spg_int or 0.0),
+    ("user_spg_dur", "override_spg_dur_s", user_spg_dur or 0.0),
+    ("user_spg_int", "override_spg_int_min", user_spg_int or 0.0),
 ]
 
 

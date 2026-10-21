@@ -1,41 +1,122 @@
 # electroPioreactorGasModel – open work
 
-Two lists, mirrored on the Summary tab. **Experiments to improve accuracy** are bench measurements that replace an estimate or a data gap in the workbook (Summary rows 105–131); the protocols are in `protocols/`. **Potential model improvements** are changes to the spreadsheet itself, each waiting on the owner decision or data named (Summary rows 133–139). Done work is in `CHANGELOG.md`.
+Two lists, mirrored on the Summary tab.
+- **Experiments to improve accuracy** are bench measurements that replace an estimate or fill a data gap in the workbook (Summary rows 127–153). The protocols are in `protocols/`.
+- **Potential model improvements** are changes to the spreadsheet itself (Summary rows 156–157).
+
+Done work is in `CHANGELOG.md`.
 
 ## Experiments to improve accuracy
 
-In rough leverage order. Enter results in the matching **Calibrations** section where one exists, leaving Include blank until the protocol's acceptance, species-balance and transferability gates are met. Numbers quoted are for the AMYBO03 baseline (ed04, MMO tube, *Xanthobacter tagetidis*, 30 °C); read the workbook for other selections.
+The order matches the Summary. Impact runs HIGH > MED > LOW. Within each impact level, effort runs low > med > high, and within each impact and effort pair the most leverage comes first. So reading top to bottom is a sensible programme.
 
-- [!] **Vial geometry and true headspace (blocker for the pulse).** Total vial volume (20 mL nominal) and the cylinder geometry (`A_x`·`D_int` ≈ 27.6 mL) disagree by about 38 %, and the pulse moves almost 1:1 with the headspace. `Geometry!geom_check` flags INCONSISTENT until measured (`protocols/vial-geometry.md`; Calibrations vial-geometry section). Wall thickness with calipers at the same time.
-- [ ] **Vent back-draw flow.** The vent type is settled (open: tubes or needles to 0.2 µm PTFE filters, no check valve; owner T5) and the cap leak is taken as fixed (T6), so what remains is the air drawn back after each pulse (`Q_backdraw`, Mass Transfer D385, an estimate), the biggest remaining input to the interval (`protocols/headspace-vent.md`, pressure trace or headspace O₂ tracer). Pressure sensing must resolve both signs around ambient, and liquid O₂ exchange must be shown negligible or modelled jointly.
-- [ ] **Surface kLa** (`protocols/surface-kla.md`; Calibrations surface-kLa section, 1/h). Sets how far DO must sit above the headspace and the feasibility margin of the DO strategy (growth 1.72×, lag 0.61× on the estimate).
-- [ ] **Electrode mass-transfer coefficient** (`protocols/electrode-mass-transfer.md`; Calibrations rows 142–149, at the Summary rpm and temperature). Sets the cathodic O₂ loss, the peroxide source and sink, the chlorine cap and the electrode-surface pH verdict.
-- [ ] **Abiotic DO trace under the schedule** (`protocols/abiotic-do-trace.md`). One cell-free run tests the whole headspace balance against the lag predictions (Summary rows 61–62, and row 33 at the start-up schedule).
-- [ ] **Headspace H₂/O₂ during lag, before any unattended run** (`protocols/headspace-gas-safety.md`). The model puts the lag headspace near 9–10 % H₂ mean and 14 % before each pulse at the growth schedule, 3 % before each pulse at the start-up schedule (Summary row 33). Needs an owner-approved, non-perturbing sampling and gas-clearance procedure first; the workbook is a screen, not a certificate.
-- [ ] **Off-gas H₂ at steady growth** and the **knallgas uptake ratio** (`protocols/knallgas-stoichiometry.md`; Calibrations knallgas section). Sets the O₂ surplus (`bio_O2`, up to ±200 % on the schedule) and the carbon demand.
-- [ ] **Cathodic and anodic Faradaic efficiency** (`protocols/faradaic-efficiency.md`). The collection rig is not finalised and separation changes O₂ crossover: establish recovery, species balance and transferability to the undivided cell before including a result. A low H₂ yield alone cannot quantify ORR.
-- [ ] **Cell voltage at a known setpoint** (multimeter) and the **electrode centre-to-centre gap** (calipers). The budget predicts about 2.65 V of the 5 V rail at 3 % (Electrochemistry D119).
-- [ ] **Dissolved Cu/Ni/Fe in spent medium.** The anode sits about 1.2 V above Cu²⁺/Cu, so dissolution is allowed; closes the anodic charge budget and tests the prime suspect for the Exp-2 death.
-- [ ] **CO₂ flow of the reactor actually used, and per-reactor flows** (`protocols/flow-calibration.md`). ed04 stands in as the only calibrated reactor; an AEP0.2 build needs its own run, then select it in Summary D2. Record collection humidity, temperature and pressure (gas reference conditions).
-- [ ] **Per-pulse CO₂ volume with the sparger attached and the shortest reliable pulse** (flow-calibration steps 9–10). Keep new calibration rows excluded until short-pulse delivery and the per-pulse intercept are validated.
-- [ ] **No-carryover maximum flow** per reactor (CO2 flows column M; Summary D45 reads "not measured").
-- [ ] **Free and combined chlorine (DPD)** in spent UdG (`protocols/chlorine-species.md`; Calibrations rows 155–162). Settles the monochloramine lifetime (about +15 %/−7 % on the UdG interval (9.4 to 7.6 min against 8.1 min at the 1 h default, over lifetimes of 1 min to 5 h)); AMYBO03 is chloride-free. Confirm the CaCl₂ hydrate state at the same time (−24 % on every chlorine figure).
-- [ ] **Organism DO thresholds** (`protocols/dissolved-oxygen.md`; Calibrations DO section). Minimum, optimum and impairment DO for the organism in use are data gaps, and the *C. necator* optimum (2.6 mg/L) and impairment (3.0 mg/L) that set the fallback target fraction for every unmeasured organism (Biology D61) are provisional working values, not sourced measurements. Owner must set the screen's controls and analysis first: gas-matched current-density controls, replicates and equivalence margins.
-- [ ] **AMYBO03 conductivity at the operating temperature.** The finite-strength factor 0.78 is anchored near I ≈ 0.1 M; AMYBO03 is about 0.2 M.
-- [ ] **Low-power current curve below 3 %** (`protocols/gerrit-current.md`). Off and below-fit settings are rejected today; needed before a start-up current ramp can be modelled.
-- [ ] **Supplier facts:** the LED-driver rail and compliance, and whether the strain current-density limits are per anode or cathode, geometric or wetted area.
-- [ ] **Electrochemist review** of the calculated electrochemistry. The weakest inputs are the anodic exchange-current density (four decades in the literature) and the mass-transfer coefficient.
+Summary column E shows each experiment's status in the situation selected on the Summary (reactor, electrode, organism, medium and temperature):
+- **Done:** green.
+- **Approximate:** amber. Useful data that could be improved.
+- **Not done:** red.
+- **Not needed:** green, when the selection makes the experiment irrelevant.
+
+How the status is found:
+- An included run in the matching Calibrations section counts.
+- So does a row in the **experiment record** at the bottom of the Calibrations tab. In a record row, any condition left blank means the result holds for any value of it.
+- `Calibrations!xs_*` holds the logic for each experiment.
+
+Enter results in the matching Calibrations section where there is one. Leave Include blank until the protocol's acceptance, species-balance and transferability gates are met. The numbers quoted below are for the AMYBO03 baseline: ed04, MMO tube, *Xanthobacter tagetidis*, 30 °C.
+
+### HIGH impact
+
+- [!] **Vial total volume and true headspace (blocker for the pulse).** HIGH, low effort.
+  - The total vial volume (20 mL nominal) and the cylinder geometry (`A_x`·`D_int` ≈ 27.6 mL) disagree by about 38 %, and the pulse moves almost 1:1 with the headspace.
+  - `Geometry!geom_check` reads INCONSISTENT until this is measured.
+  - Protocol: `protocols/vial-geometry.md`.
+- [ ] **CO₂ flow of the reactor in use.** HIGH, low effort.
+  - Done for ed04 (CO2 flows, 17 Jun 2026).
+  - An AEP0.2 build needs its own run.
+  - Record the collection humidity, temperature and pressure.
+  - Protocol: `protocols/flow-calibration.md`.
+- [ ] **Electrode mass-transfer coefficient.** HIGH, low effort.
+  - Protocol: `protocols/electrode-mass-transfer.md`, at the Summary rpm and temperature.
+  - It sets the cathodic O₂ loss, the peroxide source and sink, the chlorine cap and the electrode-surface pH verdict.
+- [ ] **Low-power current curve below 3 %.** HIGH, low effort; raised from MED in this pass.
+  - The start-up power for the lag DO target (Summary row 24, about 1.0 % at baseline) is extrapolated below Gerrit's Law, which is fitted from 3 % up.
+  - That extrapolation is the worst class of data in the model. It shows as DATA GAP on Summary rows 24, 59, 60 and 124.
+  - Protocol: `protocols/gerrit-current.md`.
+- [ ] **Electrochemist review of the calculated electrochemistry.** HIGH, low effort.
+  - The weakest inputs are the anodic exchange-current density (four decades of spread in the literature) and the electrode mass-transfer coefficient.
+- [ ] **Cell voltage at a known setpoint.** HIGH, low effort.
+  - Approximate in UdG phosphate: about 3.4 V at 3 % in Exp 1, with the meter not recorded. Not done in AMYBO03.
+  - The budget predicts about 2.65 V of the 5 V rail.
+- [ ] **Headspace H₂/O₂ during lag, before any unattended run.** HIGH, med effort.
+  - The model puts the lag headspace at about 9–10 % H₂ mean and 14 % before each pulse at the growth schedule, and 3 % before each pulse at the start-up schedule.
+  - It needs an owner-approved, non-perturbing sampling and gas-clearance procedure first.
+  - Protocol: `protocols/headspace-gas-safety.md`.
+- [ ] **Vent back-draw flow.** HIGH, med effort.
+  - This is `Q_backdraw` (Mass Transfer D385), the biggest remaining input to the interval.
+  - Protocol: `protocols/headspace-vent.md`.
+- [ ] **Surface kLa.** HIGH, med effort.
+  - Protocol: `protocols/surface-kla.md`.
+  - The current margins on the estimate are 1.72× in growth and 0.61× in lag.
+- [ ] **Abiotic DO trace under the schedule.** HIGH, med effort.
+  - Protocol: `protocols/abiotic-do-trace.md`.
+- [ ] **pH through a growth run.** HIGH, med effort; new.
+  - Protocol: `protocols/ph-growth-run.md`.
+  - It tests the nitrogen-uptake acidification: end-of-run pH 6.43 against 6.49 at the start, with 1 g/L biomass on ammonium.
+  - It also tests the biomass nitrogen content (11.4 %).
+- [ ] **Dissolved Cu/Ni/Fe in spent medium.** HIGH, med effort.
+  - The anode sits about 1.2 V above Cu²⁺/Cu.
+  - This is the prime suspect for the Exp-2 death.
+- [ ] **Cathodic Faradaic efficiency.** HIGH, med effort.
+  - Protocol: `protocols/faradaic-efficiency.md`.
+- [ ] **Off-gas H₂ at steady growth.** HIGH, high effort.
+  - Protocol: `protocols/knallgas-stoichiometry.md`.
+
+### MED impact
+
+- [ ] **Organism DO thresholds.** MED, low effort.
+  - Protocol: `protocols/dissolved-oxygen.md`.
+  - The rating is worth revisiting: these thresholds set the DO target fraction behind every schedule, so the impact is arguably HIGH. The owner's screen design (controls, replicates) makes the effort high too.
+- [ ] **CO₂ flow calibration for each reactor.** MED, low effort.
+  - Approximate: only ed04 is calibrated.
+- [ ] **Vial wall thickness.** MED, low effort.
+  - Measure with calipers, at the same time as the vial volume.
+- [ ] **Free and combined chlorine (DPD).** MED, low effort.
+  - Protocol: `protocols/chlorine-species.md`.
+  - Not needed in chloride-free AMYBO03.
+- [ ] **Conductivity of the medium in use at the operating temperature.** MED, low effort.
+- [ ] **Electrode centre-to-centre gap.** MED, low effort.
+  - Measure with calipers.
+- [ ] **Anodic Faradaic efficiency.** MED, med effort.
+- [ ] **Knallgas uptake ratio.** MED, high effort.
+
+### LOW impact
+
+- [ ] **Solenoid pulse floor.** LOW, low effort.
+  - Approximate: 0.25 s on ed04.
+  - It now also matters for the "Shortest reliable pulse" rule (Summary row 18).
+- [ ] **Per-pulse CO₂ with the sparger attached.** LOW, low effort.
+  - Approximate: the ed04 ladder was collected from the inlet tube.
+- [ ] **No-carryover maximum flow.** LOW, low effort.
+  - Approximate: 3.33 mL/s set by inspection. CO2 flows column M is still blank.
+- [ ] **Sinter porosity.** LOW, low effort.
+- [ ] **Lab ambient pressure.** LOW, low effort.
 
 ## Potential model improvements
 
-Spreadsheet changes. Each needs the decision or data named before it can be made well.
+These are changes to the spreadsheet only.
 
-- [ ] **Separate N₂ flush in the sawtooth.** Summary D14 enters N₂ by its mean flow, exact for the mean-field fractions but not for the sawtooth: N₂ pulsed apart from the CO₂ pulses (owner T7) lets H₂ and O₂ build for longer between flushes, so the pre-pulse peaks can be substantially higher than the continuous surrogate shows. Model the flush before relying on pulsed N₂. Waits on: whether N₂ is used at all; the owner prefers fixing the medium.
-- [ ] **Nitrate or urea instead of NH₄⁺.** Ammonium uptake releases acid as the culture grows; the model holds NH₄⁺ at its recipe value. Part of fixing the medium. Waits on: the owner's nitrogen source and a measured uptake rate.
-- [ ] **Pulse length from the shortest reliable pulse.** Summary D18 is a rule of thumb (about one headspace volume per pulse). A twin trial at a 0.25 s floor held pH and growth DO on about 7 % less CO₂ but raised lag-phase DO. Waits on: the measured solenoid floor and per-pulse volume.
-- [ ] **Start-up current ramp.** Lag DO stays unreachable at the estimated surface kLa at any interval (Summary row 66), so the remaining lever is less current until uptake starts. Waits on: the low-power current curve.
-- [ ] **Carbon bound on the pool trough.** The carbon interval (Mass Transfer D112) is sized on mean supply; Mass Transfer D435 warns when a long interval lets the pool run dry within the cycle. Only reachable with N₂ at present. Waits on: the owner's trough margin over RuBisCO Km (Biology D98).
-- [!] Rename the `Reactor` / `Reactor_sel` / `reactor_sel` defined-name triplet – **parked**: high reference-break risk for a naming nit.
+- [ ] **Separate N₂ flush in the sawtooth.**
+  - Summary row 14 enters N₂ by its mean flow. That is exact for the mean-field fractions, but not for the sawtooth: pulsing N₂ apart from CO₂ lets H₂ and O₂ build for longer, so the pre-pulse peaks run higher.
+  - The flush model would not change whether N₂ is warranted, only how to pulse it safely. It waits until N₂ is chosen (owner, 21 Oct 2026).
+- [ ] **Ionic strength of each media option.**
+  - The end-of-run pH and the media options (Summary rows 28 and 64–67) keep today's activity coefficients.
+  - Solving each option at its own ionic strength would move those pH values by a few hundredths.
+- [!] Rename the `Reactor` / `Reactor_sel` / `reactor_sel` defined-name triplet. **Parked:** a high risk of breaking references for a naming nit.
 
 ## Notes
-The model shows that CO₂ alone cannot dilute electrolytic O₂ to the DO target and hold pH in band (Summary D52). The owner's route is to fix the medium (T7): Summary rows 80–81 give the NaHCO₃ for the band floor at today's schedule (about 0.13 g/L on AMYBO03). N₂ remains available as an input, pulsed apart from CO₂ if used.
+
+- The model shows that CO₂ alone cannot dilute electrolytic O₂ to the DO target and also hold pH in band (Summary row 93).
+- The owner's route is to fix the medium (T7). Summary rows 64–67 compare the options at today's schedule for the end-of-run biomass in row 17. On AMYBO03 with 1 g/L biomass:
+  - Ammonium (no change): minimum pH 6.43.
+  - Add 0.81 g/L NaHCO₃: holds the 6.50 floor for the whole run.
+  - Nitrate or urea in place of (NH₄)₂SO₄: minimum 6.49, the start-of-run value.
+- With nitrate or urea there is no ammonia to scavenge free chlorine. In a chloride-containing medium such as UdG, free chlorine would then accumulate to the chloride pool (Chemistry D139).

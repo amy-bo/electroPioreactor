@@ -4,6 +4,54 @@ Done-work audit for `electroPioreactorGasModel.xlsx`. Newest first. Open work is
 
 ## 2026-10-21
 
+- [x] **The owner's Key applied everywhere; Summary regrouped; experiment status; four model improvements built**
+
+  **Formats.** Every cell on every tab now uses only the formats in the owner's revised Key (Summary rows 159–174):
+  - the six confidence fills, with their own font colours, on column E;
+  - blue bold for inputs and black for formulas;
+  - Consolas-purple names and small blue links;
+  - Heading and SUBHEADING bands;
+  - the OK / Caution / Problem traffic lights.
+
+  Formats in use but missing from the Key were folded into Key formats, not added to it:
+  - the grey Arial units and source text became plain text and the Key's confidence fonts;
+  - the grey "computed" fill in the Calibrations tables went, because black already means computed;
+  - the override highlight became Caution;
+  - the CO2 flows local marks became the weak-estimate fill (set by inspection) and a Problem rule on column N (excluded points);
+  - the coloured cell outlines (an old source-tab colour code) went;
+  - the stale single-cell colour scales and the data bars went;
+  - every traffic-light dxf now uses the Key's font and fill pair.
+
+  Formula results get about four significant figures, plugin values 0.00, and dates yyyy-mm-dd.
+
+  **Input validation.** Summary inputs show Problem when empty-but-required or impossible, and Caution when valid but not the best choice. The thresholds are named cells in the threshold rows, and the validation rules read them. Calculation-sheet numeric inputs show Problem when blank, non-numeric or ≤0 for a positive quantity.
+
+  **Summary regrouped.**
+  - **Results** opens with the values to type into the plugin: 0.65 s every 7.07 min, and the 1.16 min start-up. The unrounded ideals sit under "How the schedule is sized".
+  - **Checks** has three subheadings: safety and culture health, operation and hardware, and model validity.
+  - Checks that sat under result subheadings moved, and advice and figures that sat under Checks moved out.
+  - Two duplicate rows were dropped, and every Summary value has a defined name.
+  - The twin, the sensitivity model and the tests now read Summary rows by name, so rows can move without breaking them.
+
+  **Experiments.**
+  - The list is in programme order: impact, then effort, then leverage. The low-power current curve is raised to HIGH, and pH through a growth run is new (protocols/ph-growth-run.md).
+  - Column E gives Done / Approximate / Not done / Not needed for the selections in use. It comes from included Calibrations runs plus a new experiment record on the Calibrations tab, seeded with the ed04 bench data and the Exp 1 voltage.
+
+  **Model improvements built:**
+  - **Nitrogen source.** Summary D16–D17 and Chemistry D326–D364 add the acid ammonium uptake releases at the end-of-run biomass (11.4 % N): AMYBO03 at 1 g/L falls from 6.49 to 6.43. The media-options table in Summary rows 63–67 compares NaHCO₃ that holds the floor all run (0.81 g/L), nitrate and urea. With no ammonia, free chlorine now accumulates to the chloride pool instead of dividing by zero.
+  - **Pulse-length rule** (Summary D18).
+  - **Carbon-trough bound** (Mass Transfer D586–D596, grid column K). It is inert at baseline (204 min); with an N₂ sweep it binds before the pH ceiling.
+  - **Start-up current for the lag DO target** (Electrochemistry D177–D183): about 1.0 % power, extrapolated below the 3 % current curve. That is flagged as DATA GAP through to Summary rows 24, 59, 60 and 124.
+
+  The N₂ sawtooth flush stays on the list (owner: it would not decide whether N₂ is warranted).
+
+  **Verification.**
+  - Real Excel: no error cells.
+  - Twin 470/470.
+  - Three non-default selections (nitrate in UdG; the shortest pulse with N₂; urea, Lag, 3 g/L) also 470/470 in Excel.
+  - Sensitivity 49/49 plus the four-combination check.
+  - 34 regression tests.
+
 - [x] **Fifteenth Codex review: sign-off** — the fifteenth independent pass verified the fourteenth-pass fixes, re-ran the twin (444/444), the sensitivity model and the 30 regression tests, checked 72 more selector combinations and found no further issue: “Would I now sign the workbook off, apart from items properly on the two lists? Yes.” TODO.md's quoted lag figures are refreshed to the current model (growth kLa margin 1.72×, lag pre-pulse H₂ 14 %).
 
 - [x] **Fourteenth Codex review fixes: Summary labels wrap; lifetime calibration note** — the fourteenth pass confirmed the thirteenth-pass fixes, found no numerical regressions and raised two presentation items, both fixed. Long Summary labels in column A that sit beside an occupied column B (e.g. A20, A30, A37, A52) now wrap with fitted rows instead of being clipped, and the regression test covers them. Chemistry E142 now describes the lifetime calibration as the steady-state inversion τ = max(B/(k(C − B)), B/P) the Calibrations tab actually performs, not a division by a τ-dependent production rate. Real Excel recalculation of the saved workbook: no error cells, 3157 formula caches unchanged; 30 regression tests.
