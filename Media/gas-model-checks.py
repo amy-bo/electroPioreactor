@@ -287,16 +287,18 @@ class GasModelChecks(unittest.TestCase):
         self.assertIn('legacy', base['su_binding'])
         self.assertLess(base['y_H2_end_su'], 0.04)
         self.assertEqual(base['_H2safe_e'], base['spg_int_H2safe_saw'])    # early H2 screen = Biology D92
-        # The start-up schedule is exactly the Lag-sized headline, whichever bound binds (review finding 3).
+        # Sized on Growth, the start-up uses the no-cathodic-loss bounds (ninth review), so it is never longer
+        # than the Lag-sized headline; sized on Lag, it is exactly that headline.
         for kw in ({}, dict(kLa_meas=100.0), dict(N2_sweep_set=20.0, NaHCO3_add_gL=2.0), dict(vent_model_sel='Outflow only')):
             g = self.twin(**kw)
             l = self.twin(O2_phase_sel='Lag', **kw)
             if isinstance(g['spg_int_su_run'], float) and math.isnan(g['spg_int_su_run']):
                 self.assertTrue(math.isnan(l['spg_int']), kw)
             else:
-                self.assertEqual(g['spg_int_su_run'], l['spg_int'], (kw, g['su_binding'], l['opt_binding']))
+                self.assertLessEqual(g['spg_int_su_run'], l['spg_int'], (kw, g['su_binding'], l['opt_binding']))
+                self.assertEqual(l['spg_int_su_run'], l['spg_int'], kw)
         hk = self.twin(kLa_meas=100.0)
-        self.assertIn('H\u2082', hk['su_binding'])
+        self.assertIn('hazard screen', hk['su_binding'])
         self.assertTrue(self.twin(O2_phase_sel='Lag', kLa_meas=100.0)['opt_binding'].startswith('H\u2082 FLAMMABILITY'))
         # Lag pH ceiling now bounds the start-up schedule (review finding 2).
         x = self.twin(N2_sweep_set=20.0, NaHCO3_add_gL=2.0)
@@ -418,6 +420,26 @@ class GasModelChecks(unittest.TestCase):
         self.assertTrue(math.isclose(b['t_O2_ceiling_strip'], t * 60, rel_tol=1e-3))
         # D80 never reports a non-crossing as a pass (finding 1).
         self.assertIn("not a pass", b['t_O2_ceiling_rem'])
+
+    def test_review9_fixes(self):
+        # The start-up schedule sizes on the no-cathodic-loss bounds (finding 1): its sources are at
+        # least the lag ones, and in the reviewer's case (DO_opt 5 mg/L) the advertised start-up
+        # interval clears the hazard screen on those bounds.
+        for kw in ({}, {'DO_opt': 5.0}):
+            t = self.twin(**kw)
+            self.assertGreaterEqual(t['O2_src_su'], t['O2_src_l'])
+            self.assertGreaterEqual(t['H2_src_su'], t['H2_src_l'])
+            if 'hazard' in t['su_binding']:
+                self.assertTrue(t['y_H2_end_su'] < t['H2_LFL'] * (1 + 1e-6)
+                                or t['y_O2_end_su'] < t['O2_LOC_H2'] * t['LOC_margin'] * (1 + 1e-6))
+        # Sized on Lag the start-up equals the headline schedule's lag sources.
+        g = self.twin(O2_phase_sel='Lag')
+        self.assertEqual(g['O2_src_su'], g['O2_src_l'])
+        # The relaxation warning uses the organism ceiling (finding 3).
+        r = self.twin(DO_toxic=2.0, N2_sweep_set=0.4)
+        self.assertIn('2.0 mg/L inhibition ceiling', r['sched_regime'])
+        # z_e_ORR is fixed, not swept (finding 2).
+        self.assertNotIn('z_e_ORR', [row[0] for row in self.sens['SWEEP']])
 
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):

@@ -1275,35 +1275,59 @@ spg_int_H2safe_saw = ("any interval" if isinstance(t_gap_H2_LFL, str) or isinsta
 remedy_res = 0.1                                       # Biology D120 (min or mL/min) remedy display resolution
 remedy_interval = max(0, math.ceil(spg_int_H2safe_saw / remedy_res) * remedy_res - remedy_res) if isnum(spg_int_H2safe_saw) else NA
 
-# --- start-up (lag-phase) schedule, shown beside the growth one (MT D541-D558; Summary rows 31 and 33) ---
-y_O2_star_l = ((DO_target - DO_surf_excess_lag) / (H_O2_T * P_dry)
-               if DO_target - DO_surf_excess_lag > 0 else NA)          # MT D542
-duty_DO_l = (max(0.0, ((O2_src_l + y_O2_air * F_vent_ex) * saw_factor / y_O2_star_l - F_dil - O2_src_l
-                       - H2_src_l + CO2_fix_l) / CO2_rate_full) if isnum(y_O2_star_l) else NA)   # MT D543
+# --- start-up (lag-phase) schedule, shown beside the growth one (MT D541-D558, D570-D583; Summary rows 31 and 33) ---
+# Sized on Growth, the start-up runs at a DO other than DO_lag_ref, so it uses the no-cathodic-loss bounds
+# (Electrochemistry D174-D175): conservative for DO and the hazard screen. Sized on Lag the lag sources are consistent.
+O2_net_su_max = rO2_gen + (0.0 if isnum(cal_etaF_OER) else r_H2O2_an_g / 2)   # Echem D174 (mol/h)
+rH2_su_max = I_app / (z_e_H2 * F_const) * 3600                              # Echem D175 (mol/h)
+_su_lag = O2_sizing_phase == phase_name_2
+O2_src_su = O2_src_l if _su_lag else O2_net_su_max                          # MT D572
+H2_src_su = H2_src_l if _su_lag else max(0.0, rH2_su_max - H2_HOR_mt)       # MT D573
+S_O2_su = O2_src_su + y_O2_air * F_vent_ex                                  # MT D574
+F_gap_su = F_dil + max(0.0, O2_src_su + H2_src_su - CO2_fix_l)              # MT D575
+DO_surf_excess_su = O2_src_su / (kLa_surf_used * 3600 * (V_charge / 1e6))   # MT D576
+def _t_gap_su(src, lim):
+    if src > lim * F_gap_su:
+        q = lim * F_gap_su / src
+        return n_hs_gas / F_gap_su * math.log((1 - q * flush_ret) / (1 - q)) * 60
+    return "none needed"
+t_gap_H2_su = _t_gap_su(H2_src_su, H2_LFL)                                  # MT D579
+t_gap_O2_su = _t_gap_su(S_O2_su, O2_LOC_H2 * LOC_margin)                    # MT D580
+spg_int_H2safe_su = ("any interval" if isinstance(t_gap_H2_su, str) or isinstance(t_gap_O2_su, str)
+                     else max(t_gap_H2_su, t_gap_O2_su) + spg_dur / 60)     # MT D581
+spg_int_H2safe_su_opt = (spg_int_H2safe_su * spg_dur_eq_opt / spg_dur_eq
+                         if isnum(spg_int_H2safe_su) else "any interval")   # MT D582
+spg_int_max_su = (spg_int_max if _su_lag else
+                  target_DO_frac * O2_ceil_org * (V_charge / 1e6) / max(O2_src_guard, O2_src_su) * 60)   # MT D583
+_H2_cap_su = spg_int_H2safe_su_opt if isnum(spg_int_H2safe_su_opt) else spg_int_carbon
+y_O2_star_l = ((DO_target - DO_surf_excess_su) / (H_O2_T * P_dry)
+               if DO_target - DO_surf_excess_su > 0 else NA)           # MT D542
+duty_DO_l = (max(0.0, ((O2_src_su + y_O2_air * F_vent_ex) * saw_factor / y_O2_star_l - F_dil - O2_src_su
+                       - H2_src_su + CO2_fix_l) / CO2_rate_full) if isnum(y_O2_star_l) else NA)   # MT D543
 spg_int_DO_l = ((spg_dur_eq_opt / (60 * duty_DO_l) if duty_DO_l > 0 else spg_int_carbon) if isnum(duty_DO_l)
                 else "lag DO target unreachable at this surface kLa")   # MT D544
-_su_O2 = spg_int_DO_l if isnum(spg_int_DO_l) else spg_int_max
+_su_O2 = spg_int_DO_l if isnum(spg_int_DO_l) else spg_int_max_su
 _su_pH = spg_int_pH_l * spg_dur_eq_opt / spg_dur_eq if isnum(spg_int_pH_l) else spg_int_carbon
-spg_int_su_opt = NA if ph_unreach_l else min(spg_int_carbon, _su_O2, _H2_cap, _su_pH)   # MT D546 (min) optimal-pulse basis
+spg_int_su_opt = NA if ph_unreach_l else min(spg_int_carbon, _su_O2, _H2_cap_su, _su_pH)   # MT D546 (min) optimal-pulse basis
 _su_x = spg_int_su_opt * spg_dur_eq / spg_dur_eq_opt
 _su = math.floor(_su_x / interval_res + 1e-12) * interval_res if isnum(_su_x) else NA
 spg_int_su_run = _su if isnum(_su) and _su * 60 > spg_dur else NA      # MT D547 (min) as run
 su_binding = ("pH ceiling unreachable in lag" if ph_unreach_l else
-              "the H\u2082 flammability screen (Biology D92)" if spg_int_su_opt == _H2_cap else
+              "the start-up hazard screen (D581)" if spg_int_su_opt == _H2_cap_su else
               "the pH ceiling (lag)" if spg_int_su_opt == _su_pH else
               "carbon supply" if spg_int_su_opt == spg_int_carbon else
               "lag O\u2082 dilution" if isnum(spg_int_DO_l)
               else "the legacy O\u2082 flush guard (lag DO target unreachable)")   # MT D548
 t_gap_su_h = max(0.0, spg_int_su_run * 60 - spg_dur) / 3600   # MT D549
-x_su = hs_l["F_gap"] * t_gap_su_h / n_hs_gas             # MT D550
+x_su = F_gap_su * t_gap_su_h / n_hs_gas             # MT D550
 phi_su, psi_su = _phi(x_su), _psi(x_su)                  # MT D551, D552
-dy_O2_su = hs_l["S_O2"] * t_gap_su_h / n_hs_gas          # MT D553
+dy_O2_su = S_O2_su * t_gap_su_h / n_hs_gas          # MT D553
 y_O2_end_su = dy_O2_su * phi_su / (1 - flush_ret * math.exp(-x_su))   # MT D554
 y_O2_avg_su = y_O2_end_su * flush_ret * phi_su + dy_O2_su * psi_su    # MT D555
-DO_avg_su_mgL = (DO_surf_excess_lag + H_O2_T * P_dry * y_O2_avg_su) * M_O2   # MT D556
-DO_peak_su_mgL = (DO_surf_excess_lag + H_O2_T * P_dry
-                  * _z_peak(hs_l["S_O2"], hs_l["F_gap"], y_O2_end_su * flush_ret, t_gap_su_h)) * M_O2   # MT D557 via D568
-y_H2_end_su = H2_src_l * t_gap_su_h / n_hs_gas * phi_su / (1 - flush_ret * math.exp(-x_su))   # MT D558
+DO_avg_su_mgL = (DO_surf_excess_su + H_O2_T * P_dry * y_O2_avg_su) * M_O2   # MT D556
+DO_peak_su_mgL = (DO_surf_excess_su + H_O2_T * P_dry
+                  * _z_peak(S_O2_su, F_gap_su, y_O2_end_su * flush_ret, t_gap_su_h)) * M_O2   # MT D557 via D568
+y_H2_end_su = H2_src_su * t_gap_su_h / n_hs_gas * phi_su / (1 - flush_ret * math.exp(-x_su))   # MT D558
 S_D31 = spg_int_su_run
 S_D33 = ("DO " + xltext(DO_avg_su_mgL, "0.0") + " mg/L mean, " + xltext(DO_peak_su_mgL, "0.0") + " peak; H\u2082 "
          + xltext(y_H2_end_su, "0%") + " before each pulse; set by " + su_binding
@@ -1435,8 +1459,8 @@ sched_regime = ("Carbon supply alone holds the DO target – the interval may re
                 else "Do NOT relax: at the carbon-limited interval (" + xltext(spg_int_carbon, "0")
                 + " min) the cycle-mean DO would be \u2248" + xltext(DO_at_carbon * M_O2, "0")
                 + " mg/L, "
-                + ("above the " + xltext(O2_ceil_C * M_O2, "0.0") + " mg/L inhibition ceiling"
-                   if DO_at_carbon > O2_ceil_C
+                + ("above the " + xltext(O2_ceil_org * M_O2, "0.0") + " mg/L inhibition ceiling"
+                   if DO_at_carbon > O2_ceil_org
                    else "against a " + xltext(DO_target * M_O2, "0.0") + " mg/L target")
                 + " (peaks higher)")   # D113
 cal_warning = (f"calibrated: {Reactor}" + cal_source_txt if has_cal > 0
@@ -2435,6 +2459,11 @@ OUTPUTS.extend([
     ("MassXfer D563 spg_int_H2safe_opt", spg_int_H2safe_opt),
     ("MassXfer D564 y_H2_avg_l", y_H2_avg_l),
     ("MassXfer D565 O2_ceil_org", O2_ceil_org),
+    ("MassXfer D572 O2_src_su", O2_src_su),
+    ("MassXfer D581 spg_int_H2safe_su", spg_int_H2safe_su),
+    ("MassXfer D583 spg_int_max_su", spg_int_max_su),
+    ("MassXfer D558 y_H2_end_su", y_H2_end_su),
+    ("MassXfer D554 y_O2_end_su", y_O2_end_su),
     ("MassXfer D342 DO_peak_g (mol/m3) exact periodic", DO_peak_g),
     ("Echem D173 O2_cat_ret_g", O2_cat_ret_g),
     ("Echem D95 H2O2_ss two sinks", H2O2_ss),

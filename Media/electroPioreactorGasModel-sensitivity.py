@@ -768,7 +768,7 @@ SWEEP = [
  # ---- ESTIMATE ----
  ('km_O2', 0.002, 0.006, 'ESTIMATE'),           # ETW at 10-40 cm/s swirl past the rod
  ('f_HOOH', 0.10, 0.20, 'ESTIMATE'),            # Le Bozec 2001 peroxide selectivity band
- ('z_e_ORR', 2, 4, 'ESTIMATE'),                 # 2 is the physical floor, so base at lo
+ # z_e_ORR is not swept: Echem D27 fixes it at 2 (the peroxide branch); selectivity varies through f_HOOH above
  ('k_geom', 1.0, 3.0, 'ESTIMATE'),              # cell-constant correction
  ('kappa_fI', 0.66, 0.90, 'ESTIMATE'),          # Kohlrausch finite-strength factor +/-15 %
  ('pcet_credit', -0.20, -0.10, 'ESTIMATE'),     # phosphate PCET credit, 100-200 mV
