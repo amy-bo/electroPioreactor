@@ -17,7 +17,7 @@ WHAT THIS MODELS
 WHICH WORKBOOK VERSION IT MIRRORS
     electroPioreactorGasModel.xlsx (wave-4 logic, verified in Excel 2026-10-21), with the live
     selector state behind the values:
-        ed04 / MMO tube / UdG (mixed) / UdG phosphate, LED 3 %, stir 1000 rpm, T 25 C.
+        ed04 / MMO tube / Xanthobacter tagetidis / AMYBO03, LED 3 %, stir 1000 rpm, T 30 C.
     (Summary D3 is read from SELECTORS['electrode']; the electrode tables cover the others.)
     Formula logic is read directly out of the workbook part XML (Mass Transfer D178-D200,
     Electrochemistry D79-D122, Chemistry D166-D220). The workbook is the authority for
@@ -96,7 +96,7 @@ NAN = float('nan')
 # ---------------------------------------------------------------------------
 # BASELINE INPUTS
 # Source of truth: the WORKBOOK's live Summary selector state (Summary D2:D10) --
-# ed04 / MMO tube (SELECTORS['electrode']) / UdG (mixed) / UdG phosphate, LED 3 %, stir 1000 rpm, T 25 C.
+# ed04 / MMO tube (SELECTORS['electrode']) / Xanthobacter tagetidis / AMYBO03, LED 3 %, stir 1000 rpm, T 30 C.
 #
 # NOTE target_DO_frac = 0.2261 (DO_opt 2.6 / DO_toxic 11.5), NOT the 0.5 this script carried
 # before. Biology D60/D61
@@ -119,7 +119,7 @@ BASE = dict(
   # --- biology ---
   bio_H2=6, bio_O2=2, bio_CO2=1,
   # --- O2 ceiling / Henry ---
-  T_C=25, P_atm=101325, H_O2ref=1.2e-5, H_O2T=1500, T_ref=298.15, O2_ceil_atm=0.3,
+  T_C=30, P_atm=101325, H_O2ref=1.2e-5, H_O2T=1500, T_ref=298.15, O2_ceil_atm=0.3,
   # --- CO2 dosing (ed04 calibrated: 3.33 mL/s = 199.8 mL/min) ---
   DO_lag_ref=0.194,   # Echem D129: typed reference lag DO (mol/m3) for the lag cathodic loss
   Q_CO2=199.8, Q_CO2_cal=199.8, fit_n_min=3, pulse_V0_factor=1.0, pulse_floor=0.25, flush_factor=1.0, R=8.314462618, M_CO2=44.0095,
@@ -172,7 +172,8 @@ CO2_FIT_PTS = [
 ]
 
 MW = dict(KH2PO4=136.086, Na2HPO4=141.96, NaHCO3=84.007,
-          MgSO4=246.48, NH42SO4=132.14, CaCl2=110.98)
+          MgSO4=246.48, NH42SO4=132.14, CaCl2=110.98,
+          NaH2PO4_2H2O=156.01, K2SO4=174.26, CaSO4_2H2O=172.17)
 # CRC Handbook (Vanysek), limiting molar conductivities at 25 C, S cm2/mol, PER MOLE OF ION
 LAM = dict(Na=50.08, K=73.48, NH4=73.5, Mg=106.0, Ca=118.94,
            H2PO4=36.0, HPO4=114.0, SO4=160.0, HCO3=44.5, Cl=76.31)
@@ -199,6 +200,54 @@ ELECTRODE_GEOM = {  # anode/cathode shape + dia (mm), Echem D42/D44; plating lim
     'Graphite rod': dict(a_shape='rod',  a_d=6.0, c_shape='rod', c_d=6.0, jc=35,  jm=50,  mat='Graphite'),
 }
 POR_UM = [205, 130, 70, 28, 13, 1.3]   # MT D33:D38, sinter pore (um) by grade 0..5
+
+
+def _by_media(media, mc02_val, udg_val, amy_val):
+    """Exact selector branches, as in Chemistry D44:D47; reject unknown media."""
+    return {'MC02': mc02_val, 'UdG phosphate': udg_val,
+            'AMYBO03': amy_val}[media]
+
+
+def medium_chemistry(p):
+    """Derive analytical ions from each recipe, independently of the workbook caches.
+
+    Concentrations are mol/L. Sulfate salts cancel from strong-ion difference
+    except ammonium sulfate; ammonium is handled by the charge-balance solve.
+    AMYBO03 stock acid removes two equivalents per mole. Trace metal sulfates
+    cancel in SID but contribute to ionic strength and sulfate conductivity.
+    """
+    mc = dict(Na2HPO4=2.895, NaH2PO4_2H2O=3.06, K2SO4=0.17,
+              CaSO4_2H2O=0.097, MgSO4=0.8, NH42SO4=0.943)
+    udg = {salt: p['udg_' + salt] for salt in
+           ('KH2PO4', 'Na2HPO4', 'NaHCO3', 'MgSO4', 'NH42SO4', 'CaCl2')}
+    amy = dict(Na2HPO4=4.26, NaH2PO4_2H2O=4.68, K2SO4=0.17,
+               CaSO4_2H2O=0.097, MgSO4=0.8, NH42SO4=0.943, NaHCO3=3.36)
+    recipe = _by_media(p['media'], mc, udg, amy)
+    n = {salt: mass / MW[salt] for salt, mass in recipe.items()}
+    q = lambda salt: n.get(salt, 0.0)
+    ions = dict(Na=2*q('Na2HPO4') + q('NaH2PO4_2H2O') + q('NaHCO3'),
+                K=q('KH2PO4') + 2*q('K2SO4'), NH4=2*q('NH42SO4'),
+                Mg=q('MgSO4'), Ca=q('CaSO4_2H2O') + q('CaCl2'),
+                H2PO4=q('KH2PO4') + q('NaH2PO4_2H2O'), HPO4=q('Na2HPO4'),
+                SO4=q('MgSO4') + q('CaSO4_2H2O') + q('NH42SO4') + q('K2SO4'),
+                HCO3=q('NaHCO3'), Cl=2*q('CaCl2'))
+    SID = ions['Na'] + ions['K'] + 2*(ions['Mg'] + ions['Ca']) - 2*ions['SO4'] - ions['Cl']
+    I_ion = sum(c * (4 if ion in ('Mg', 'Ca', 'HPO4', 'SO4') else 1)
+                for ion, c in ions.items()) / 2
+    kappa0 = sum(c * LAM[ion] for ion, c in ions.items()) / 10
+    if p['media'] == 'AMYBO03':
+        # AMYBO03 B15:B16 dose mL/L; stock g/L / molar mass * dose / 1000.
+        Fe = 15 / 278.01 * 0.68 / 1000
+        acid = 0.2 * (0.68 + 0.05) / 1000
+        trace = sum(c / mw * 0.05 / 1000 for c, mw in
+                    ((2.4, 287.54), (2.4, 169.02), (0.48, 249.68),
+                     (1.5, 262.85), (0.0402, 281.1)))
+        Mo = 1.8 / 241.95 * 0.05 / 1000
+        SID -= 2 * acid
+        I_ion += 4*(Fe + trace) + 3*Mo + 3*acid
+        # Same explicit trace approximation as AMYBO03 D58: sulfate only.
+        kappa0 += (Fe + trace + acid) * LAM['SO4'] / 10
+    return SID, ions['H2PO4'] + ions['HPO4'], ions['NH4'], ions['Cl'], I_ion, kappa0
 
 
 def model(p):
@@ -240,13 +289,7 @@ def model(p):
     D_O2 = 10 ** (p['HB_a'] + p['HB_b'] / T_K - (p['HB_c'] / T_K) ** 2) / 10000 * p['D_O2_fit']
     D_CO2 = p['D_CO2_ref'] * math.exp(-p['Ea_D_CO2'] / R * (1 / T_K - 1 / 298.15))
     Ka = {k: v[0] * math.exp(-v[1] * 1000 / R * (1 / T_K - 1 / 298.15)) for k, v in KA.items()}
-    n = lambda salt, mw: p[salt] / MW[mw]
-    n_NaHCO3, n_Na2HPO4 = n('udg_NaHCO3', 'NaHCO3'), n('udg_Na2HPO4', 'Na2HPO4')
-    n_KH2PO4, n_NH42SO4 = n('udg_KH2PO4', 'KH2PO4'), n('udg_NH42SO4', 'NH42SO4')
-    n_MgSO4, n_CaCl2 = n('udg_MgSO4', 'MgSO4'), n('udg_CaCl2', 'CaCl2')
-    I_ion = 0.5 * ((n_NaHCO3 + 2 * n_Na2HPO4) + n_KH2PO4 + 2 * n_NH42SO4
-                   + 4 * n_MgSO4 + 4 * n_CaCl2 + n_KH2PO4 + 4 * n_Na2HPO4
-                   + 4 * (n_MgSO4 + n_NH42SO4) + n_NaHCO3 + 2 * n_CaCl2)   # D184
+    SID, PT, NT, Cl_M, I_ion, kappa0 = medium_chemistry(p)
     f_salt_O2 = 10 ** (-p['ks_O2'] * I_ion)                              # Biology D123, O2 salting-out (Setschenow, I from Chemistry D185)
     H_O2_T = p['H_O2ref'] * math.exp(p['H_O2T'] * (1 / T_K - 1 / p['T_ref'])) * f_salt_O2   # Biology D24
     p_sat_w = p['pw_A'] * math.exp(p['pw_B'] * (T_K - 273.15) / ((T_K - 273.15) + p['pw_C']))   # MT D206, Magnus
@@ -266,7 +309,6 @@ def model(p):
     i_ORR_ceil = n_ORR_eff * p['F'] * (p['km_O2'] / 100) * O2_ceil_C * (A_cath / 10000)   # D87
     etaF_calc = max(0.0, 1 - i_ORR / I_app)                              # D88
     etaF_calc_min = max(0.0, 1 - i_ORR_ceil / I_app)                     # D89
-    Cl_M = 2 * p['udg_CaCl2'] / MW['CaCl2']                              # Chemistry D42
     km_Cl = p['km_O2'] * (p['D_Cl'] / D_O2) ** p['km_exp']                         # D129, scaled from km_O2
     k_Cl_turn = km_Cl * A_wet / 1000 / (V_charge / 1000)                 # D271, transport-limited turnover
     kt = k_Cl_turn * p['tau_NH2Cl'] * 3600
@@ -455,10 +497,6 @@ def model(p):
     K1p, K2p = Ka['Ka1p'] / g1 ** 2, Ka['Ka2p'] / g2
     K3p = Ka['Ka3p'] * g2 / (g1 * g3)
     KN, Kw = Ka['KaN'], Ka['Kw'] / g1 ** 2
-    SID = ((n_NaHCO3 + 2 * n_Na2HPO4 + n_KH2PO4 + 2 * n_MgSO4 + 2 * n_CaCl2)
-           - (2 * (n_NH42SO4 + n_MgSO4) + 2 * n_CaCl2))                  # D40
-    PT = n_KH2PO4 + n_Na2HPO4                                            # D39
-    NT = 2 * n_NH42SO4                                                   # D41
     # R2-m3: bicarbonate storage -- the liquid holds DIC_cap x its CO2(aq) volume (Chemistry D290-D296)
     h_ref = 10 ** -p['pH_ref_DIC']                                       # D292
     r_HCO3 = K1c / h_ref                                                 # D293
@@ -524,11 +562,6 @@ def model(p):
         j_buffer_lim = j_buffer_ratio = NAN
 
     # --- conductivity and the cell-voltage budget (Chemistry D177-D180, Echem D106-D119) ---
-    kappa0 = (((n_NaHCO3 + 2 * n_Na2HPO4) * LAM['Na'] + n_KH2PO4 * LAM['K']
-               + 2 * n_NH42SO4 * LAM['NH4'] + n_MgSO4 * LAM['Mg'] + n_CaCl2 * LAM['Ca']
-               + n_Na2HPO4 * LAM['HPO4'] + n_KH2PO4 * LAM['H2PO4']
-               + (n_MgSO4 + n_NH42SO4) * LAM['SO4'] + n_NaHCO3 * LAM['HCO3']
-               + 2 * n_CaCl2 * LAM['Cl']) / 10)                          # S/m
     kappa = kappa0 * p['kappa_fI'] * (1 + p['kappa_TC'] * (T_K - 298.15))
     R_cell = (p['k_geom'] * math.acosh(p['elec_gap'] / eg['a_d'])
               / (PI * kappa * (L_sub / 1000)))                           # D117
@@ -642,7 +675,7 @@ SWEEP = [
  # ---- LITERATURE (well-known) ----
  ('D_O2_fit', 0.92, 1.08, 'LITERATURE'),        # Han & Bartels correlation scatter
  ('H_O2ref', 1.10e-5, 1.30e-5, 'LITERATURE'),
- ('H_O2T', 1275, 1725, 'LITERATURE'),           # numerically inert at T = T_ref = 25 C
+ ('H_O2T', 1275, 1725, 'LITERATURE'),           # temperature dependence relative to T_ref = 25 C
  ('H_CO2ref', 3.05e-4, 3.55e-4, 'LITERATURE'),
  ('H_H2ref', 7.2e-6, 8.4e-6, 'LITERATURE'),
  ('Ea_D_CO2', 15000.0, 23000.0, 'LITERATURE'),
@@ -657,7 +690,7 @@ SWEEP = [
  ('carbon_margin_min', 1.5, 3.0, 'KNOB'),
  ('flush_factor', 0.5, 2.0, 'KNOB'),
  ('stir_rpm', 125, 1500, 'KNOB'),               # 125 = the documented stall floor
- ('T_C', 20, 37, 'KNOB'),                       # brackets workbook 25 C and pack 30 C
+ ('T_C', 20, 37, 'KNOB'),                       # brackets the 30 C workbook baseline
 ]
 
 # Outputs that decide whether we reach growth / what schedule to run.
@@ -727,8 +760,9 @@ SELF_CHECK = [
 # BASE inputs vs the workbook (Summary selectors D2:D10 and the cells they feed).
 # (label, sheet, cell, value declared by this script). D9 / D10 are blank on Summary, so
 # the effective volume and pressure are checked on the cells that resolve them.
-SELECTORS = dict(reactor='ed04', electrode='MMO tube', organism='UdG (mixed)',
-                 media='UdG phosphate')
+SELECTORS = dict(reactor='ed04', electrode='MMO tube', organism='Xanthobacter tagetidis',
+                 media='AMYBO03')
+BASE['media'] = SELECTORS['media']
 BASE['electrode'] = SELECTORS['electrode']                               # Summary D3 drives the electrode tables
 BASE['z_e_ORR'] = ELECTRODE[SELECTORS['electrode']]['z_e_ORR']           # Echem D27
 INPUT_CELLS = [
@@ -893,7 +927,7 @@ print(f"   => recommended schedule: {b['spg_dur']:.3g}s pulse every {b['spg_int_
 if _fails:
     print("\n!! WORKBOOK MISMATCH - this script has drifted from electroPioreactorGasModel.xlsx:")
     print("\n".join(_fails))
-    print("   Re-base BASE / model() against the workbook before using any number below.")
+    raise SystemExit("Re-base BASE / model() against the workbook before using any number below.")
 else:
     print(f"      self-check: all {len(SELF_CHECK)} baseline values reproduce the workbook "
           "cached values (rel tol 5e-5); inputs match Summary D2:D10, D111:D112")
@@ -963,6 +997,8 @@ for _vm, _ph in (('Open vent', 'Growth'), ('Outflow only', 'Growth'),
           f"{_r['opt_binding'].split(' ')[0]:>16}   {_v}{_tag}")
 print("      four-combination check: " + ("all 4 states agree within 0.5 % (live vs workbook, other three vs twin)"
       if not _combo_fail else f"{len(_combo_fail)} FAILED: {_combo_fail}"))
+if _combo_fail:
+    raise SystemExit("Four-combination verification failed; no sensitivity analysis was run.")
 
 # ============================================================================
 # INFEASIBILITY CLIFF -- the single biggest non-linearity in the revised model.
@@ -1090,9 +1126,8 @@ for name, tier, sp, crit, flips, min_margin, cross in rows:
     mm = "inf" if math.isinf(min_margin) else f"{min_margin:.2f}"
     print(f"{name:18}{tier:10}{sched:>8}{doss:>7}{f('pH_meas', 7, 2)}"
           f"{f('r_H2O2')}{f('V_cell_est', 8, 3)}{f('t_O2_ceiling_lag', 9)}{mm:>11}")
-print("   H_O2T (and every van 't Hoff enthalpy) is numerically inert at the baseline")
-print(f"   because T = T_ref = {BASE['T_ref'] - 273.15:.0f} C; it regains leverage the")
-print("   moment the workbook moves off that point.")
+print("   Temperature coefficients vanish only at their reference temperature (25 C);"
+      " at this 30 C baseline they contribute to the sensitivity.")
 print("\n   TWO STRUCTURAL ZEROS -- read these before concluding an input is harmless:")
 print("   * DO_ss (cycle mean) is PINNED near DO_target whenever the DO-limited interval")
 print("     binds: the sizing puts the flux-mean headspace O2 at y*/saw_factor, so the")
@@ -1189,5 +1224,5 @@ for name, lo, hi, tier in CL_SWEEP:
 print(f"\n   full one-at-a-time C_eff envelope: {min(ce_lo_all):.3f} .. "
       f"{max(ce_hi_all):.3f} mg/L")
 print(f"   kill threshold = 2.0 mg/L -> "
-      f"{'REACHED' if max(ce_hi_all) >= 2.0 else 'NOT reached'}: the chloride-pool cap "
-      "holds\n   C_eff sub-lethal across the whole knob box for UdG.")
+      f"{'REACHED' if max(ce_hi_all) >= 2.0 else 'NOT reached'} over this OAT sweep "
+      f"for {SELECTORS['media']}; this is a model estimate, not a toxicity assay.")

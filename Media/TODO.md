@@ -12,7 +12,6 @@ Open backlog and parked items. Done work is in `CHANGELOG.md`. Bench SOPs for th
 - [ ] **Fill the HOB DO bands** for the non-necator organisms and the minimum-DO column (currently pink gaps).
 ### Nelly set-up (2026-10-21: ed04, MMO tube, *Xanthobacter tagetidis*, AMYBO03, 30 °C)
 
-- [ ] **Re-base the sensitivity script** (`electroPioreactorGasModel-sensitivity.py`) on these inputs. Its input guard refuses to run until then (organism, medium and temperature drift), and its medium chemistry is hard-wired to the UdG recipe: make it medium-aware the way the twin is (`_by_media` with the AMYBO03 branch).
 - [ ] **Calibrate the reactor actually used.** ed04 (MEP0.3: 20 mL vial, 16 mL max) stands in because it is the only reactor with a CO₂ flow calibration; an AEP0.2 build (ed06–ed08) needs its own `protocols/flow-calibration.md` run, then select it in Summary D2.
 - [ ] **AMYBO03 sheet house style**: inputs are plain text, not blue; no defined names (Chemistry D44–D47, D180, D185 point at `AMYBO03!$D$54:$D$59` directly, and D58 at `Chemistry!D166:D174` rather than `lam_*`).
 - [ ] **Conductivity factor at AMYBO03 strength**: `kappa_fI` (0.78) is anchored near I ≈ 0.1 M; AMYBO03 is I ≈ 0.20 M, so `kappa_med` is likely a little high and the ohmic drop a little low.
