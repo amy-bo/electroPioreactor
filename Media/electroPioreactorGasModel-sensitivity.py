@@ -338,7 +338,9 @@ def model(p):
     rH2 = I_app * etaF / (p['z_e_H2'] * p['F']) * 3600
     rO2 = I_app * etaF_OER / (p['z_e_O2'] * p['F']) * 3600
     O2_cath = I_app * (1 - etaF) / (n_ORR_eff * p['F']) * 3600
-    O2_net = rO2 - O2_cath + r_an_g                                      # Echem D29
+    r_cat_g = (p['f_HOOH'] * I_app * (1 - etaF_calc) / (n_ORR_eff * p['F']) * 3600
+               * p['k_cat_cells'] / (k_anode + p['k_cat_cells']))       # catalase share of the growth peroxide
+    O2_net = rO2 - O2_cath + r_an_g + r_cat_g / 2                        # Echem D29 (anode returns 1 O2, catalase 1/2)
     # R5-m2: lag-phase cathodic O2 loss at the typed reference lag DO (Echem D129-D133)
     O2_ORR_lag = min(I_app / (n_ORR_eff * p['F']) * 3600, i_ORR / (n_ORR_eff * p['F']) * 3600 * p['DO_lag_ref'] / DO_design)   # D131
     O2_net_lag = rO2 - O2_ORR_lag + p['f_HOOH'] * O2_ORR_lag / 2 + r_an_g / 2   # D132 = MT D394 = MT D310
@@ -545,6 +547,26 @@ def model(p):
     phi = lambda x: (1 - math.exp(-x)) / x if x > 0 else 1.0
     psi = lambda x: (x - 1 + math.exp(-x)) / x ** 2 if x > 0 else 0.5
 
+    def _z_peak(S, F_gap, yp, T, y_mean, steps=400):
+        # Liquid-equilibrium O2 fraction z follows dz/dt = (y - z)/tau over one gap; the cycle map is
+        # linear, z(T) = A z0 + B, so integrate twice (RK4) and take the periodic fixed point.
+        # Solved numerically here, independently of the workbook's closed form (MT D566-D568).
+        b, n = 1 / tau_L_h, n_hs
+        y = ((lambda t: S / F_gap + (yp - S / F_gap) * math.exp(-F_gap / n * t)) if F_gap > 0
+             else (lambda t: yp + S / n * t))
+        def run(z):
+            h = T / steps
+            for i in range(steps):
+                t = i * h
+                f = lambda tt, zz: b * (y(tt) - zz)
+                k1 = f(t, z); k2 = f(t + h / 2, z + h * k1 / 2); k3 = f(t + h / 2, z + h * k2 / 2); k4 = f(t + h, z + h * k3)
+                z += h * (k1 + 2 * k2 + 2 * k3 + k4) / 6
+            return z
+        if not T > 0:
+            return NAN
+        B = run(0.0); A = run(1.0) - B
+        return B / (1 - A) if 1 - A > 1e-12 else y_mean    # liquid too slow to follow: it sits at the time mean
+
     def _hs(O2_src, H2_src, fix, exc):
         S = O2_src + y_air * F_ex                                        # D327/D349
         F_all = F_dil + CO2_supply + O2_src + H2_src - fix               # F_dil + F_hs_net
@@ -558,7 +580,7 @@ def model(p):
         k = H_O2_T * P_dry
         return dict(y_mf=y_mf, yH2=yH2, F_gap=F_gap, DO_mf=exc + k * y_mf,
                     DO_avg=exc + k * y_avg,
-                    DO_peak=exc + k * max(y_avg, y_end - (S - F_gap * y_end) / n_hs * tau_L_h))
+                    DO_peak=exc + k * _z_peak(S, F_gap, y_end * flush_ret, t_gap_h, y_avg))
     hs = {'Growth': _hs(*phases['Growth'], DO_surf_excess_g),
           'Lag': _hs(*phases['Lag'], DO_surf_excess_lag)}
     hs_s = hs.get(p['O2_phase'], dict(y_mf=NAN, F_gap=NAN, DO_avg=NAN, DO_peak=NAN))
@@ -570,7 +592,7 @@ def model(p):
     DO_ss_g, DO_peak_g = hs['Growth']['DO_avg'] * M_O2, hs['Growth']['DO_peak'] * M_O2   # Summary D59/D60
     DO_ss_lag, DO_peak_lag = hs['Lag']['DO_avg'] * M_O2, hs['Lag']['DO_peak'] * M_O2     # Summary D61/D62
     y_H2_lag = hs['Lag']['yH2']                                          # D352 = Biology D84
-    t_lag = (O2_ceil_org * V_L / O2_net * 60) if O2_net > 1e-15 else INF   # D79
+    t_lag = (O2_ceil_org * V_L / O2_net_lag * 60) if O2_net_lag > 1e-15 else INF   # D79 (lag source)
 
     # --- bubble / sparge strip; orifice from the electrode's sparger (MT D27:D41); sub-mm bubble -> strip 0 (D54) ---
     d_or = (p['spg_ID'] / 1000 if ELECTRODE[p['electrode']]['sparger'] == 'Tube'
@@ -665,7 +687,7 @@ def model(p):
     # --- peroxide (Echem D93-D98) ---
     r_H2O2 = (p['f_HOOH'] * I_app * (1 - etaF) / (n_ORR_eff * p['F'])
               * p['M_H2O2'] * 1000 * 3600 / (V_charge / 1000))           # D93
-    H2O2_ss = r_H2O2 / (p['k_cat_cells'] * 3600)                         # D95, growing culture
+    H2O2_ss = r_H2O2 / ((p['k_cat_cells'] + k_anode) * 3600)             # D95, growing culture, both sinks
     DO_lag = hs['Lag']['DO_avg']                                         # D150 = MT D135 = DO_avg_l, mol/m3
     r_H2O2_lag = p['f_HOOH'] * O2_ORR_lag * p['M_H2O2'] * 1000 / (V_charge / 1000)                             # D152
     H2O2_lag_1h = (r_H2O2_lag / (k_anode * 3600) * (1 - math.exp(-k_anode * 3600)))   # D96, no biomass

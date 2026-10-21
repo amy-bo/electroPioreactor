@@ -388,6 +388,20 @@ class GasModelChecks(unittest.TestCase):
         self.assertTrue(math.isclose(n['O2_net_lag'], oer_lag + n['r_H2O2_an_l'] - n['O2_ORR_lag'], rel_tol=1e-12))
         self.assertTrue(math.isclose(n['O2_net_lag'], self.sens['model'](self.sens['BASE'])['O2_net_lag'], rel_tol=1e-9))
 
+    def test_review7_fixes(self):
+        # Exact periodic peak: the twin's closed form equals an independent RK4 periodic solve
+        # (sensitivity model) in the reviewer's case where the quasi-steady form under-read the peak.
+        t = self.twin(DO_opt=2.0, DO_toxic=2.3, user_spg_int=6.32)
+        m = self.sens['model'](dict(self.sens['BASE'], DO_opt=2.0, DO_toxic=2.3))
+        self.assertGreater(t['DO_peak_g'] * t['M_O2'], 2.33)
+        b = self.twin()
+        mb = self.sens['model'](self.sens['BASE'])
+        self.assertTrue(math.isclose(b['DO_peak_g'] * b['M_O2'], mb['DO_peak_g'], rel_tol=1e-6))
+        # Growth peroxide sees both sinks, and catalase returns half an O2 (findings 1-2).
+        self.assertTrue(math.isclose(b['H2O2_ss'], b['r_H2O2'] / ((b['k_cat_cells'] + b['k_H2O2_anode']) * 3600), rel_tol=1e-12))
+        r_tot = b['f_HOOH'] * b['O2_cathode_ORR']
+        self.assertTrue(math.isclose(b['O2_H2O2_ret_g'] + 2 * b['O2_cat_ret_g'], r_tot, rel_tol=1e-12))
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))

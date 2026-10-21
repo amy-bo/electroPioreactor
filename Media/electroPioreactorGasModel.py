@@ -623,7 +623,8 @@ r_H2_HOR    = (f_HOR_anode * I_app / (z_e_H2 * F_const) * 3600
 rH2_gen    = I_app * etaF / (z_e_H2 * F_const) * 3600          # D21 (mol/h)
 rO2_gen    = I_app * etaF_OER / (z_e_O2 * F_const) * 3600      # D22 (mol/h)
 O2_cathode_ORR = I_app * (1 - etaF) / (n_ORR_eff * F_const) * 3600  # D28 (mol/h)
-O2_net_gen = rO2_gen - O2_cathode_ORR + O2_H2O2_ret_g          # D29 (mol/h) incl. O2 returned by anodic peroxide oxidation
+O2_cat_ret_g = f_HOOH * O2_cathode_ORR * k_cat_cells / (k_H2O2_anode + k_cat_cells) / 2   # D173 (mol/h) catalase: 2 H2O2 -> O2
+O2_net_gen = rO2_gen - O2_cathode_ORR + O2_H2O2_ret_g + O2_cat_ret_g   # D29 (mol/h) incl. O2 returned by peroxide removal
 # R5-m2: the lag-phase cathodic O2 loss at the lag DO, through a typed reference (Electrochemistry D128-D134)
 DO_lag_ref = 0.174849986629                                     # D129 (mol/m3) INPUT: last lag cycle-mean DO (a link would be circular)
 DO_lag_tol = 0.05                                      # D130 (-) tolerance before DO_lag_ref must be re-entered
@@ -647,7 +648,7 @@ V_gas_total = V_H2_gen + V_O2_gen                              # D25 (mL/min)
 # ============================================================================
 M_H2O2        = 34.0147                                # D92 (g/mol)
 r_H2O2        = f_HOOH * I_app * (1 - etaF) / (n_ORR_eff * F_const) * M_H2O2 * 1000 * 3600 / ec_V_L  # D93 (mg/L/h)
-H2O2_ss       = r_H2O2 / (k_cat_cells * 3600)          # D95 (mg/L) growing culture
+H2O2_ss       = r_H2O2 / ((k_cat_cells + k_H2O2_anode) * 3600)   # D95 (mg/L) growing culture, both sinks
 H2O2_thresh   = 0.17                                   # D97 (mg/L) 5 uM sustained slows growth (Li & Imlay 2018)
 # (D96 H2O2_lag_1h, D98 t_H2O2_thresh and D99 H2O2_flag need the lag-phase DO from
 #  Mass Transfer D135, so they are evaluated further down, after the schedule.)
@@ -1154,6 +1155,18 @@ def _phi(x):
 def _psi(x):
     """Psi(x) = (x-1+e^-x)/x^2, limit 1/2."""
     return (x - 1 + math.exp(-x)) / x ** 2 if x > 0 else 0.5
+def _z_peak(S, F, yp, T):
+    """MT D566-D568: exact periodic peak of a first-order liquid (rate 1/tau_L_h) following the
+    headspace ramp y(t) = S/F + (yp - S/F) e^(-F t/n) of one gap of length T (linear when F = 0)."""
+    b = 1 / tau_L_h
+    if F > 0:
+        a = F / n_hs_gas
+        g = (b / (b - a) * (math.exp(-a * T) - math.exp(-b * T)) if abs(b - a) > 1e-9 * b
+             else b * T * math.exp(-b * T))
+        return S / F + (yp - S / F) * g / (1 - math.exp(-b * T))
+    return yp - S / n_hs_gas / b + S / n_hs_gas * T / (1 - math.exp(-b * T))
+
+
 def _hs_phase(O2_src, H2_src, CO2_fix, DO_exc):
     """One phase of the display block (growth rows 327-342, lag rows 349-363)."""
     S_O2   = O2_src + y_O2_air * F_vent_ex                          # D327/D349 (mol/h)
@@ -1169,7 +1182,7 @@ def _hs_phase(O2_src, H2_src, CO2_fix, DO_exc):
     y_avg  = y_post * phi + dy * psi                                # D338/D360 (-)
     DO_mf  = DO_exc + H_O2_T * P_dry * y_mf                         # D340/D361 (mol/m3)
     DO_avg = DO_exc + H_O2_T * P_dry * y_avg                        # D341/D362 (mol/m3)
-    DO_pk  = DO_exc + H_O2_T * P_dry * max(y_avg, y_end - (S_O2 - F_gap * y_end) / n_hs_gas * tau_L_h)  # D342/D363
+    DO_pk  = DO_exc + H_O2_T * P_dry * _z_peak(S_O2, F_gap, y_post, t_gap_h)   # D342/D363 via D566/D567
     return dict(S_O2=S_O2, F_net=F_net, y_mf=y_mf, yH2_mf=yH2_mf, F_gap=F_gap, x=x, phi=phi, psi=psi,
                 dy=dy, y_end=y_end, y_post=y_post, y_avg=y_avg, DO_mf=DO_mf, DO_avg=DO_avg, DO_peak=DO_pk)
 def _feas(m):
@@ -1286,7 +1299,7 @@ y_O2_end_su = dy_O2_su * phi_su / (1 - flush_ret * math.exp(-x_su))   # MT D554
 y_O2_avg_su = y_O2_end_su * flush_ret * phi_su + dy_O2_su * psi_su    # MT D555
 DO_avg_su_mgL = (DO_surf_excess_lag + H_O2_T * P_dry * y_O2_avg_su) * M_O2   # MT D556
 DO_peak_su_mgL = (DO_surf_excess_lag + H_O2_T * P_dry
-                  * max(y_O2_avg_su, y_O2_end_su - (hs_l["S_O2"] - hs_l["F_gap"] * y_O2_end_su) / n_hs_gas * tau_L_h)) * M_O2   # MT D557
+                  * _z_peak(hs_l["S_O2"], hs_l["F_gap"], y_O2_end_su * flush_ret, t_gap_su_h)) * M_O2   # MT D557 via D568
 y_H2_end_su = H2_src_l * t_gap_su_h / n_hs_gas * phi_su / (1 - flush_ret * math.exp(-x_su))   # MT D558
 S_D31 = spg_int_su_run
 S_D33 = ("DO " + xltext(DO_avg_su_mgL, "0.0") + " mg/L mean, " + xltext(DO_peak_su_mgL, "0.0") + " peak; H\u2082 "
@@ -1386,16 +1399,17 @@ else:
     bubble_regime = "Static" if We_orifice < 2 else "Dynamic"   # D64
 
 # --- O2 time-to-ceiling family ---
-t_O2_ceiling = O2_ceil_C * (V_charge / 1e6) / O2_excess * 60 if O2_excess > 0 else "never (source <= 0)"   # D65 (min)
-t_O2_ceiling_strip = (O2_ceil_C * (V_charge / 1e6) / (O2_excess - strip_avg) * 60
-                      if (O2_excess - strip_avg) > 0 else "never (strip \u2265 source)")  # D66
+_r_org = O2_ceil_org / O2_ceil_C                        # removal capacities scale with the ceiling driving force
+t_O2_ceiling = O2_ceil_org * (V_charge / 1e6) / O2_excess * 60 if O2_excess > 0 else "never (source <= 0)"   # D65 (min)
+t_O2_ceiling_strip = (O2_ceil_org * (V_charge / 1e6) / (O2_excess - strip_avg * _r_org) * 60
+                      if (O2_excess - strip_avg * _r_org) > 0 else "never (strip \u2265 source)")  # D66
 # (MT D75 y_O2_vent and D76 DO_vent_eq cleared in iterR4)
 hs_flush_time = headspace_V * spg_int / V_pulse         # D77 (min) headspace volumes per interval / delivered volume
 surf_ratio = (surf_strip / O2_excess) if O2_excess > 0 else NA   # D74
 O2_removal_ratio = ((strip_avg + surf_strip) / O2_excess) if O2_excess > 0 else NA  # D78
-t_O2_ceiling_lag = O2_ceil_C * (V_charge / 1e6) / O2_net_gen * 60   # D79 (min)
-t_O2_ceiling_rem = (O2_ceil_C * (V_charge / 1e6) / (O2_net_gen - strip_avg - surf_strip) * 60
-                    if (O2_net_gen - strip_avg - surf_strip) > 0 else "never (removal \u2265 source)")  # D80
+t_O2_ceiling_lag = O2_ceil_org * (V_charge / 1e6) / O2_net_lag_mt * 60   # D79 (min) lag source
+t_O2_ceiling_rem = (O2_ceil_org * (V_charge / 1e6) / (O2_net_lag_mt - (strip_avg + surf_strip) * _r_org) * 60
+                    if (O2_net_lag_mt - (strip_avg + surf_strip) * _r_org) > 0 else "never (removal \u2265 source)")  # D80
 
 kinetic_caveat = "see note ->"                          # D96
 
@@ -2411,6 +2425,11 @@ OUTPUTS.extend([
     ("MassXfer D563 spg_int_H2safe_opt", spg_int_H2safe_opt),
     ("MassXfer D564 y_H2_avg_l", y_H2_avg_l),
     ("MassXfer D565 O2_ceil_org", O2_ceil_org),
+    ("MassXfer D342 DO_peak_g (mol/m3) exact periodic", DO_peak_g),
+    ("Echem D173 O2_cat_ret_g", O2_cat_ret_g),
+    ("Echem D95 H2O2_ss two sinks", H2O2_ss),
+    ("MassXfer D80 t_O2_ceiling_rem", t_O2_ceiling_rem),
+    ("MassXfer D79 t_O2_ceiling_lag", t_O2_ceiling_lag),
     ("Echem D168 r_H2O2_an_g", r_H2O2_an_g),
     ("Echem D170 f_H2O2_anode", f_H2O2_anode),
     ("Echem D172 O2_H2O2_lag_adj", O2_H2O2_lag_adj),
