@@ -62,7 +62,6 @@ Model work not yet done (mirrored in the Summary TODO, rows 145 onwards); each i
 
 ### From the 2026-10-21 /vsss session (record in `electroPioreactorGasModel-GPT6Astra-Review.md`)
 
-- [ ] **Recalculate the 2026-10-21 /vsss additions in real Excel** at a non-default state (an included k_m and τ row; later, added NaHCO₃ and an N₂ sweep). They are inert at the baseline, so the shipped caches are Excel's own, but their non-default arithmetic has only been checked against the twin. Needs the MBA SSH round trip (fromClaude T9).
 - [ ] **Carbon bound on the pool, not only the mean supply.** D112 sizes the carbon interval on mean supply ÷ demand; at long intervals the pool's pulse-start CO₂ can fall below air equilibrium (Mass Transfer D435 now warns). Only reachable with an N₂ sweep at present. A bound on the trough (e.g. Biology D98 against a Km margin) via the pH grid's column H would close it; needs the owner's carbon-margin choice for the trough.
 
 ## Notes

@@ -66,6 +66,7 @@ voltage) -> Mass Transfer -> Chemistry (pH solve). Every step is still a pure
 function of the inputs; nothing is circular.
 """
 
+import builtins
 import math
 import os
 import re
@@ -97,6 +98,20 @@ vent_model_sel = "Open vent"       # D111 ("Outflow only" | "Open vent" | "Air e
 O2_phase_sel   = "Growth"          # D112 ("Growth" | "Lag") phase the O2 sizing is done on
 
 NA = float("nan")                  # spreadsheet #N/A sentinel for unmeasured data
+
+
+def _nan_in(args):
+    return any(isinstance(v, float) and math.isnan(v)
+               for a in args for v in (a if isinstance(a, (list, tuple)) else (a,)))
+
+
+def max(*args, **kw):
+    """Excel MAX/MIN propagate an error (#N/A); Python's silently skip a NaN depending on argument order."""
+    return float("nan") if _nan_in(args) else builtins.max(*args, **kw)
+
+
+def min(*args, **kw):
+    return float("nan") if _nan_in(args) else builtins.min(*args, **kw)
 
 
 def isnum(x):
