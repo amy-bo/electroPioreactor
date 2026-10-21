@@ -965,7 +965,7 @@ pulse_res   = pulse_res_set                            # MT D241 (s) <- Summary 
 def _mround(x, m):
     """Excel MROUND (half away from zero)."""
     return float((Decimal(repr(x)) / Decimal(repr(m))).quantize(Decimal(1), rounding=ROUND_HALF_UP)) * m
-spg_dur_run = max(pulse_floor, _mround(spg_dur_opt, pulse_res))   # MT D242 (s) pulse duration as actually run
+spg_dur_run = max(math.ceil(pulse_floor / pulse_res - 1e-9) * pulse_res, _mround(spg_dur_opt, pulse_res))   # MT D242 (s) floor rounded up to the resolution
 # --- schedule mode resolution: Summary 'Your setting' override > Manual cells > Optimal ---
 sched_mode   = "Optimal"                               # D81
 spg_dur_man  = 1.0                                     # D82 (s)
@@ -973,7 +973,7 @@ spg_int_man  = 1.0                                     # D83 (min)
 user_spg_dur = None                                    # Summary G18 (blank -> recommended)
 user_spg_int = None                                    # Summary G20 (blank -> recommended)
 spg_dur = (user_spg_dur if (isnum(user_spg_dur) and user_spg_dur > 0)
-           else (spg_dur_man if sched_mode == "Manual" else spg_dur_run))   # D121
+           else spg_dur_man if sched_mode == "Manual" else spg_dur_run if sched_mode == "Optimal" else NA)   # D121 (#N/A for an unlisted mode)
 pH_band_hi = 7.5                                        # Chemistry D237 (pH) HOB band upper edge
 pCO2_air       = 40.0                                   # MT D139 (Pa) atmospheric pCO2 ~400 ppm INPUT
 
@@ -1035,18 +1035,60 @@ _dur_eq_e = (pulse_V0 + Q_CO2_fit * spg_dur) / (Q_CO2 / 60)   # = MT D410 spg_du
 spg_int_pH_opt = (spg_int_pH * spg_dur_eq_opt / _dur_eq_e if isnum(spg_int_pH)
                   else "no pH bound")                    # MT D433: on the optimal-pulse basis of D91, so D420 runs spg_int_pH
 _pH_cap = spg_int_pH_opt if isnum(spg_int_pH_opt) else spg_int_carbon
+H2_LFL     = 0.04                                       # Biology D80 (-) H2 lower flammability limit
+O2_LOC_H2  = 0.052                                      # Biology D81 (-) limiting O2 conc., CO2 diluent
+LOC_margin = 0.6                                        # Biology D82 (-) NFPA 69 design margin
+# Lag H2-screen interval (Biology D90-D92) and the lag pH ceiling, evaluated ahead of the schedule because
+# lag sizing (Summary D12 = Lag) and the start-up schedule use them; both are interval-independent.
+_F_gap_l_e = F_dil + max(0.0, O2_src_l + H2_src_l - CO2_fix_l)   # = MT D353
+def _t_gap_e(src, lim):
+    if src > lim * _F_gap_l_e:
+        q = lim * _F_gap_l_e / src
+        return n_hs_gas / _F_gap_l_e * math.log((1 - q * _flush_ret_e) / (1 - q)) * 60
+    return "none needed"
+_tH2, _tO2 = _t_gap_e(H2_src_l, H2_LFL), _t_gap_e(O2_src_l + y_O2_air * F_vent_ex, O2_LOC_H2 * LOC_margin)
+_H2safe_e = ("any interval" if isinstance(_tH2, str) or isinstance(_tO2, str)
+             else max(_tH2, _tO2) + spg_dur / 60)        # = Biology D92 (min, pulse in use)
+spg_int_H2safe_opt = (_H2safe_e * spg_dur_eq_opt / _dur_eq_e if isnum(_H2safe_e) else "any interval")   # MT D563
+_k_eff_l_e = _F_gap_l_e / 3600 / n_hs_gas * _Vg_e / (_V_L_CO2_e + _Vg_e)   # MT D560 k_eff_CO2_l
+
+
+def co2_mean_lag_at(t_min):
+    """MT grid columns L-R: as co2_mean_at on the lag phase (lag gas flow, no fixation)."""
+    t_off = max(0.0, t_min * 60 - spg_dur)
+    x = _k_eff_l_e * t_off
+    e = math.exp(-x)
+    phi = (1 - e) / x if x > 0 else 1.0
+    psi = (x - 1 + e) / x ** 2 if x > 0 else 0.5
+    D_raw = (_Cair_e / _Csat_e * F_vent_ex - CO2_fix_l) * (t_off / 3600) / (_V_L_CO2_e + _Vg_e)
+    C_start = (D_raw * phi + _pool_b_e * e) / (1 - _pool_ret_e * e)
+    return min(_Csat_e, max(_Cair_e, (_pool_ret_e * C_start + _pool_b_e) * phi + D_raw * psi))
+
+
+pH_grid_C_l = [co2_mean_lag_at(t) for t in pH_grid_t]
+_cross_l = [math.exp(math.log(pH_grid_t[i]) + (math.log(pH_grid_t[i + 1]) - math.log(pH_grid_t[i]))
+                     * (pH_grid_C_l[i] - CO2_pH_hi_mt) / (pH_grid_C_l[i] - pH_grid_C_l[i + 1]))
+            for i in range(grid_n - 1) if pH_grid_C_l[i] >= CO2_pH_hi_mt > pH_grid_C_l[i + 1]]
+ph_unreach_l = CO2_pH_hi_mt > 0 and pH_grid_C_l[0] < CO2_pH_hi_mt   # MT D562
+spg_int_pH_l = ("no pH bound" if CO2_pH_hi_mt <= 0 else
+                "pH above the band ceiling at any interval in lag" if ph_unreach_l else
+                max(_cross_l) if _cross_l else "no pH bound")   # MT D561
+_H2_cap = spg_int_H2safe_opt if isnum(spg_int_H2safe_opt) else spg_int_carbon
+_H2_sz = _H2_cap if O2_phase_sel == "Lag" else spg_int_carbon   # the H2 screen bounds a Lag-sized schedule
 
 sel_invalid = math.isnan(F_vent_ex + O2_src_sched)     # an unlisted vent/phase selector -> #N/A in MT D91/D94/D134
 spg_int_opt = (NA if sel_invalid or ph_unreach else
-               min(spg_int_carbon, spg_int_DO, _pH_cap) if isnum(spg_int_DO)
-               else min(spg_int_carbon, spg_int_max, _pH_cap))         # D91 (min)
+               min(spg_int_carbon, spg_int_DO, _pH_cap, _H2_sz) if isnum(spg_int_DO)
+               else min(spg_int_carbon, spg_int_max, _pH_cap, _H2_sz))   # D91 (min)
 spg_int_opt_s = spg_int_opt * 60                       # D92 (s)
 duty_actual = spg_dur_eq_opt / (spg_int_opt * 60)      # D93 (-) full-flow-equivalent duty
 if sel_invalid:
-    opt_binding = "INVALID SELECTOR (Summary D11/D12)"
+    opt_binding = "INVALID SELECTOR (check Summary D2–D5, D11, D12)"
 elif ph_unreach:
-    opt_binding = "pH CEILING UNREACHABLE \u2013 reduce the N\u2082 sweep or the added alkalinity"
-elif isnum(spg_int_pH_opt) and spg_int_pH_opt < min(spg_int_carbon, spg_int_DO if isnum(spg_int_DO) else spg_int_max):
+    opt_binding = "pH CEILING UNREACHABLE \u2013 reduce the N\u2082 or the added alkalinity"
+elif O2_phase_sel == "Lag" and isnum(spg_int_H2safe_opt) and spg_int_opt == spg_int_H2safe_opt:
+    opt_binding = "H\u2082 FLAMMABILITY SCREEN (lag sizing; Biology D92 sets the interval)"
+elif isnum(spg_int_pH_opt) and spg_int_opt == spg_int_pH_opt:
     opt_binding = "pH CEILING (keeping pH at or under the band ceiling sets the interval)"
 elif not isnum(spg_int_DO):
     opt_binding = "O2-INFEASIBLE \u2013 the legacy O2 flush guard (D89) sets the interval (see D134)"
@@ -1055,7 +1097,7 @@ elif spg_int_DO < spg_int_carbon:
 else:
     opt_binding = "CARBON (CO2 supply sets the interval)"   # D94
 if sel_invalid:
-    spg_int_regime = "INVALID SELECTOR (Summary D11/D12) \u2013 no schedule until both are listed values"
+    spg_int_regime = "INVALID SELECTOR (check Summary D2–D5, D11, D12) \u2013 no schedule until both are listed values"
 elif not isnum(spg_int_DO):
     spg_int_regime = ("DO TARGET UNREACHABLE — the surface cannot carry the O2 flux at this kLa; "
                       "no interval fixes it (raise kL_surf, lower the current, or accept a higher DO)")
@@ -1066,11 +1108,11 @@ else:
                       + " min; confirm by measuring kL_surf")   # D134
 
 interval_res = 0.01                                   # MT D419 (min), plugin accepts decimal minutes
-spg_int_run = math.floor(((pulse_V0 + Q_CO2_fit * spg_dur) / (Q_CO2 / 60)) / (60 * duty_actual) / interval_res + 1e-12) * interval_res if isnum(duty_actual) else NA
+spg_int_run = math.floor(((pulse_V0 + Q_CO2_fit * spg_dur) / (Q_CO2 / 60)) / (60 * duty_actual) / interval_res + 1e-12) * interval_res if isnum(duty_actual) and isnum(spg_dur) else NA
 if spg_int_run * 60 <= spg_dur:
     spg_int_run = NA                                  # D420: no positive executable gap
 spg_int = (user_spg_int if (isnum(user_spg_int) and user_spg_int > 0)
-           else (spg_int_man if sched_mode == "Manual" else spg_int_run))   # D122
+           else spg_int_man if sched_mode == "Manual" else spg_int_run if sched_mode == "Optimal" else NA)   # D122
 if spg_int * 60 <= spg_dur:
     spg_int = NA  # same rejected overlap as Excel, including manual and overrides
 od_ok = "OK" if (spg_int * 60 - spg_dur >= 5) else "TIGHT"    # D95 (uses schedule in use)
@@ -1171,9 +1213,6 @@ R_gas_b         = R_gas                                 # Biology D79 (J/mol/K) 
 F_vent_ex_b     = F_vent_ex                             # Biology D111 (mol/h) <- MT D308
 F_dil_b         = F_dil                                 # Biology D125 (mol/h) <- MT D425 (air + N2)
 y_O2_air_b      = y_O2_air                              # Biology D112 (-)     <- MT D307
-H2_LFL     = 0.04                                       # Biology D80 (-) H2 lower flammability limit
-O2_LOC_H2  = 0.052                                      # Biology D81 (-) limiting O2 conc., CO2 diluent
-LOC_margin = 0.6                                        # Biology D82 (-) NFPA 69 design margin
 n_flamm_src = H2_src_l_b + O2_src_l_b                      # Biology D83 (mol/h) gas into headspace, lag
 y_H2_hs_lag = H2_src_l_b / (n_flamm_src + CO2_supply_b + F_dil_b)        # Biology D84 (-) = MT D352
 y_O2_hs_lag = ((O2_src_l_b + y_O2_air_b * F_vent_ex_b)
@@ -1212,12 +1251,16 @@ duty_DO_l = (max(0.0, ((O2_src_l + y_O2_air * F_vent_ex) * saw_factor / y_O2_sta
 spg_int_DO_l = ((spg_dur_eq_opt / (60 * duty_DO_l) if duty_DO_l > 0 else spg_int_carbon) if isnum(duty_DO_l)
                 else "lag DO target unreachable at this surface kLa")   # MT D544
 _su_O2 = spg_int_DO_l if isnum(spg_int_DO_l) else spg_int_max
-_su_H2 = spg_int_H2safe_saw * spg_dur_eq_opt / spg_dur_eq if isnum(spg_int_H2safe_saw) else _su_O2
-spg_int_su_opt = min(_su_O2, _su_H2)                     # MT D546 (min) optimal-pulse basis
-_su = math.floor(spg_int_su_opt * spg_dur_eq / spg_dur_eq_opt / interval_res + 1e-12) * interval_res
-spg_int_su_run = _su if _su * 60 > spg_dur else NA      # MT D547 (min) as run
-su_binding = ("the H\u2082 flammability screen (Biology D92)" if _su_H2 < _su_O2
-              else "lag O\u2082 dilution" if isnum(spg_int_DO_l)
+_su_pH = spg_int_pH_l * spg_dur_eq_opt / spg_dur_eq if isnum(spg_int_pH_l) else spg_int_carbon
+spg_int_su_opt = NA if ph_unreach_l else min(spg_int_carbon, _su_O2, _H2_cap, _su_pH)   # MT D546 (min) optimal-pulse basis
+_su_x = spg_int_su_opt * spg_dur_eq / spg_dur_eq_opt
+_su = math.floor(_su_x / interval_res + 1e-12) * interval_res if isnum(_su_x) else NA
+spg_int_su_run = _su if isnum(_su) and _su * 60 > spg_dur else NA      # MT D547 (min) as run
+su_binding = ("pH ceiling unreachable in lag" if ph_unreach_l else
+              "the H\u2082 flammability screen (Biology D92)" if spg_int_su_opt == _H2_cap else
+              "the pH ceiling (lag)" if spg_int_su_opt == _su_pH else
+              "carbon supply" if spg_int_su_opt == spg_int_carbon else
+              "lag O\u2082 dilution" if isnum(spg_int_DO_l)
               else "the legacy O\u2082 flush guard (lag DO target unreachable)")   # MT D548
 t_gap_su_h = max(0.0, spg_int_su_run * 60 - spg_dur) / 3600   # MT D549
 x_su = hs_l["F_gap"] * t_gap_su_h / n_hs_gas             # MT D550
@@ -1726,7 +1769,7 @@ S_D71 = y_H2_mf_l                                      # D71 headspace H2 fracti
 S_D72 = y_CO2_mf                                       # D72 headspace CO2 fraction, sizing phase
 DIC_ref_check = "OK" if abs(pH_ref_DIC - pH_op) <= 0.1 else "REFRESH DIC reference pH"
 if sel_invalid:
-    S_D52 = "#N/A – check the selectors in D11/D12"
+    S_D52 = "#N/A – check the selectors in D2–D5, D11 and D12"
 elif not isnum(spg_int_DO):
     S_D52 = "DO target unreachable on the sizing phase; schedule is a legacy fallback"
 elif DIC_ref_check != "OK" or abs(DO_lag_ref / ec_DO_lag - 1) > DO_lag_tol:
@@ -2343,6 +2386,12 @@ OUTPUTS.extend([
     ("MassXfer D546 spg_int_su_opt (min)", spg_int_su_opt),
     ("MassXfer D547 spg_int_su_run (min)", spg_int_su_run),
     ("MassXfer D548 su_binding", su_binding),
+    ("MassXfer D560 k_eff_CO2_l (1/s)", _k_eff_l_e),
+    ("MassXfer D561 spg_int_pH_l", spg_int_pH_l),
+    ("MassXfer D562 ph_unreach_l", ph_unreach_l),
+    ("MassXfer D563 spg_int_H2safe_opt", spg_int_H2safe_opt),
+    ("MassXfer R440 lag grid CO2 mean, first row", pH_grid_C_l[0]),
+    ("MassXfer R539 lag grid CO2 mean, last row", pH_grid_C_l[-1]),
     ("MassXfer D556 DO_avg_su (mg/L)", DO_avg_su_mgL),
     ("MassXfer D557 DO_peak_su (mg/L)", DO_peak_su_mgL),
     ("MassXfer D558 y_H2_end_su", y_H2_end_su),

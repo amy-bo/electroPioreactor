@@ -114,7 +114,8 @@ BASE = dict(
   # --- electrolysis ---
   intensity=3, gerrit_slope=1.03, gerrit_int=2.6, F=96485.33212,
   NaHCO3_add_gL=0.0,                      # Summary D13 NaHCO3 added on top of the recipe (blank = 0)
-  pH_band_hi=7.5,                         # Chemistry D237 HOB band ceiling (the pH-ceiling interval)
+  pH_band_hi=7.5,
+  H2_LFL=0.04, O2_LOC_H2=0.052, LOC_margin=0.6,   # Biology D80-D82 lag hazard screen                         # Chemistry D237 HOB band ceiling (the pH-ceiling interval)
   pulse_res=0.05,                         # Summary D15 solenoid command resolution (s), an input
   N2_sweep=0.0,                           # Summary D14 continuous N2 headspace sweep, mL/min (blank = 0)
   z_e_H2=2, z_e_O2=4, z_e_ORR=2,          # z_e_ORR=2: peroxide pathway, SS cathode lookup
@@ -435,7 +436,8 @@ def model(p):
               - (PT * K1p * h_hi ** 2 + 2 * PT * K1p * K2p * h_hi + 3 * PT * K1p * K2p * K3p)
               / (h_hi ** 3 + K1p * h_hi ** 2 + K1p * K2p * h_hi + K1p * K2p * K3p) - Kw / h_hi)   # D323
     c_hi = max(0.0, resid0) / (K1c / h_hi + 2 * K1c * K2c / h_hi ** 2) * 1000   # D324 -> mol/m3
-    _dur = max(p['pulse_floor'], math.floor(spg_dur / p['pulse_res'] + 0.5 + 1e-12) * p['pulse_res'])   # commanded pulse (D242)
+    _dur = max(math.ceil(p['pulse_floor'] / p['pulse_res'] - 1e-9) * p['pulse_res'],
+               math.floor(spg_dur / p['pulse_res'] + 0.5 + 1e-12) * p['pulse_res'])   # commanded pulse (D242)
     _ret = math.exp(-(p['P_atm'] * ((V0 + Q_fit * _dur) / 1e6) / (R * T_K)) / n_hs)   # D324 at that pulse
     _V_L_CO2 = V_L * DIC_cap
     _a = _V_L_CO2 / (_V_L_CO2 + Vg)
@@ -462,6 +464,20 @@ def model(p):
             _lo, _hi = (_m, _hi) if _cmean(_m) >= c_hi else (_lo, _m)
         spg_int_pH = math.sqrt(_lo * _hi)                                # D432
     ph_unreach = c_hi > 0 and _cmean(0.25) < c_hi                      # D434
+    # Lag H2/O2 hazard screen (Biology D90-D92), solved independently: longest gap whose pre-pulse
+    # sawtooth top stays under the limit, x = ln((1 - k r)/(1 - k)); it bounds a Lag-sized schedule.
+    _Fl = F_dil + max(0.0, O2_net_lag + rH2_lag)
+    def _gap(src, lim):
+        if src <= lim * _Fl:
+            return None
+        q = lim * _Fl / src
+        return n_hs / _Fl * math.log((1 - q * _ret) / (1 - q)) * 60
+    _g1, _g2 = _gap(rH2_lag, p['H2_LFL']), _gap(O2_net_lag + y_air * F_ex, p['O2_LOC_H2'] * p['LOC_margin'])
+    _eq_run = (V0 + Q_fit * _dur) / (p['Q_CO2'] / 60)
+    H2_cap = ((max(_g1, _g2) + _dur / 60) * spg_dur_eq_opt / _eq_run
+              if (_g1 is not None and _g2 is not None) else INF)
+    if p['O2_phase'] != 'Lag':
+        H2_cap = INF
     pH_cap = (spg_int_pH * spg_dur_eq_opt / ((V0 + Q_fit * _dur) / (p['Q_CO2'] / 60))
               if not math.isnan(spg_int_pH) else INF)                  # D433, optimal-pulse basis
     duty_carbon = p['carbon_margin_min'] * CO2_cons / CO2_rate_full      # D86
@@ -475,7 +491,7 @@ def model(p):
     spg_int_max = ((p['target_DO_frac'] * O2_ceil_C * V_L / O2_src_guard * 60)
                    if O2_src_guard > 1e-15 else INF)                     # D89
     if feasible:
-        spg_int = min(spg_int_carbon, spg_int_DO, pH_cap) if not ph_unreach else NAN   # D91 branch 1
+        spg_int = min(spg_int_carbon, spg_int_DO, pH_cap, H2_cap) if not ph_unreach else NAN   # D91 branch 1
         opt_binding = ('pH CEILING UNREACHABLE' if ph_unreach else
                        'pH CEILING (keeping pH at or under the band ceiling sets the interval)'
                        if pH_cap < min(spg_int_carbon, spg_int_DO)
@@ -484,7 +500,7 @@ def model(p):
                        else 'CARBON (CO2 supply sets the interval)')     # D94
         regime = 'DO REACHABLE (estimated kLa) -- DO-limited interval %.1f min' % spg_int_DO
     else:
-        spg_int = min(spg_int_carbon, spg_int_max, pH_cap) if not ph_unreach else NAN   # D91 fallback
+        spg_int = min(spg_int_carbon, spg_int_max, pH_cap, H2_cap) if not ph_unreach else NAN   # D91 fallback
         opt_binding = ('pH CEILING UNREACHABLE' if ph_unreach else
                        'pH CEILING (keeping pH at or under the band ceiling sets the interval)'
                        if pH_cap < min(spg_int_carbon, spg_int_max) else 'O2-INFEASIBLE (see D134)')
@@ -492,7 +508,8 @@ def model(p):
                   'kLa; no interval fixes it')
     duty_actual = spg_dur_eq_opt / (spg_int * 60)                        # D93, full-flow-equivalent duty
     duty = spg_dur / (spg_int * 60)                                      # D105, valve-time duty
-    spg_dur_run = max(p['pulse_floor'], math.floor(spg_dur / p['pulse_res'] + 0.5 + 1e-12) * p['pulse_res'])   # MT D242 (pulse_res = Summary D15, MROUND)
+    spg_dur_run = max(math.ceil(p['pulse_floor'] / p['pulse_res'] - 1e-9) * p['pulse_res'],
+                      math.floor(spg_dur / p['pulse_res'] + 0.5 + 1e-12) * p['pulse_res'])   # MT D242 (pulse_res = Summary D15, MROUND)
     spg_dur_run_eq = (V0 + Q_fit * spg_dur_run) / (p['Q_CO2'] / 60)      # as-run pulse on the delivered-volume basis
     spg_int_run = math.floor(spg_dur_run_eq / (60 * duty_actual) / 0.01 + 1e-12) * 0.01  # Summary D21, whole minutes
 

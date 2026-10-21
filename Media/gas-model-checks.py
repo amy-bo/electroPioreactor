@@ -264,7 +264,7 @@ class GasModelChecks(unittest.TestCase):
             mt = z.read('xl/worksheets/sheet6.xml').decode()
         f = lambda ref: re.search(r'<c r="%s"[^>]*><f>([^<]*)</f>' % ref, mt).group(1).replace('&quot;', '"').replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
         self.assertEqual(f('D433'), 'IF(ISNUMBER(spg_int_pH),spg_int_pH*spg_dur_eq_opt/spg_dur_eq,"no pH bound")')
-        self.assertIn('IF(ph_unreach,NA(),MIN(spg_int_carbon,IF(ISNUMBER(spg_int_DO),spg_int_DO,spg_int_max),IF(ISNUMBER(spg_int_pH_opt),spg_int_pH_opt,spg_int_carbon)))', f('D91'))
+        self.assertIn('IF(ph_unreach,NA(),MIN(spg_int_carbon,IF(ISNUMBER(spg_int_DO),spg_int_DO,spg_int_max),IF(ISNUMBER(spg_int_pH_opt),spg_int_pH_opt,spg_int_carbon),IF(O2_sizing_phase=phase_name_2,IF(ISNUMBER(spg_int_H2safe_opt),spg_int_H2safe_opt,spg_int_carbon),spg_int_carbon))))', f('D91'))
         self.assertEqual(f('I441'), 'MIN(C_sat_CO2,MAX(C_air_CO2,(pool_ret*H441+pool_b)*E441+G441*F441))')
         self.assertEqual(f('H441'), '(G441*E441+pool_b*D441)/(1-pool_ret*D441)')
         self.assertEqual(f('B441'), 'MAX(0,A441*60-spg_dur)')
@@ -284,20 +284,33 @@ class GasModelChecks(unittest.TestCase):
 
     def test_startup_schedule_and_resolution_input(self):
         base = self.twin()
-        lag = self.twin(O2_phase_sel='Lag')
-        # The start-up schedule is the lag-sized one (H2 screen not binding at the baseline).
-        self.assertEqual(base['spg_int_su_run'], lag['spg_int'])
         self.assertIn('legacy', base['su_binding'])
         self.assertLess(base['y_H2_end_su'], 0.04)
-        # Make the H2 screen bind: a longer guard leaves the flammability interval in charge.
-        h = self.twin(target_DO_frac=0.9)
-        if h['_su_H2'] < h['_su_O2']:
-            self.assertIn('H\u2082', h['su_binding'])
-        # Command resolution is an input: 0.1 s rounds the 0.674 s optimum to 0.7 s.
+        self.assertEqual(base['_H2safe_e'], base['spg_int_H2safe_saw'])    # early H2 screen = Biology D92
+        # The start-up schedule is exactly the Lag-sized headline, whichever bound binds (review finding 3).
+        for kw in ({}, dict(kLa_meas=100.0), dict(N2_sweep_set=20.0, NaHCO3_add_gL=2.0), dict(vent_model_sel='Outflow only')):
+            g = self.twin(**kw)
+            l = self.twin(O2_phase_sel='Lag', **kw)
+            if isinstance(g['spg_int_su_run'], float) and math.isnan(g['spg_int_su_run']):
+                self.assertTrue(math.isnan(l['spg_int']), kw)
+            else:
+                self.assertEqual(g['spg_int_su_run'], l['spg_int'], (kw, g['su_binding'], l['opt_binding']))
+        hk = self.twin(kLa_meas=100.0)
+        self.assertIn('H\u2082', hk['su_binding'])
+        self.assertTrue(self.twin(O2_phase_sel='Lag', kLa_meas=100.0)['opt_binding'].startswith('H\u2082 FLAMMABILITY'))
+        # Lag pH ceiling now bounds the start-up schedule (review finding 2).
+        x = self.twin(N2_sweep_set=20.0, NaHCO3_add_gL=2.0)
+        self.assertTrue(isinstance(x['spg_int_pH_l'], float))
+        self.assertLessEqual(x['spg_int_su_opt'], x['spg_int_pH_l'] * x['spg_dur_eq_opt'] / x['spg_dur_eq'] + 1e-9)
+        # Command resolution is an input; the floor is rounded up to it too (review finding 1).
         r = self.twin(pulse_res_set=0.1)
         self.assertTrue(math.isclose(r['spg_dur_run'], 0.7, rel_tol=1e-12))
+        c = self.twin(pulse_res_set=1.0, media_volume=16.0)
+        self.assertTrue(math.isclose(c['spg_dur_run'] % 1.0, 0.0, abs_tol=1e-9) or math.isclose(c['spg_dur_run'] % 1.0, 1.0, abs_tol=1e-9), c['spg_dur_run'])
         m = self.sens['model'](dict(self.sens['BASE'], pulse_res=0.1))
         self.assertTrue(math.isclose(r['spg_int'], m['spg_int_run'], rel_tol=5e-3))
+        # An unlisted schedule mode returns no schedule, as the workbook does (review finding 5).
+        self.assertTrue(math.isnan(self.twin(sched_mode='typo')['spg_int']))
 
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
