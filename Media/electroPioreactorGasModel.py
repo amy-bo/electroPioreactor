@@ -413,11 +413,17 @@ pH_Cl  = _by_media(Cl_mc02, Cl_udg)                   # D47
 
 # --- chlorine current: the binding limit of efficiency vs chloride arrival ---
 FE_CER   = 0.5                                         # D128 max CER efficiency (high-Cl plateau)
-km_Cl    = 0.00405                                     # D129 (cm/s) = km_O2 x (D_Cl/D_O2)^0.644
+HB_a, HB_b, HB_c = -4.41, 773.8, 506.4                # D171-D173 Han & Bartels (1996)
+D_O2_cl  = 10 ** (HB_a + HB_b / T_K - (HB_c / T_K) ** 2) / 10000   # = Mass Transfer D32 via Electrochemistry D81 (Chemistry D274)
+D_Cl     = 2.032e-9                                    # D277 (m2/s) CRC Vanysek, 25 C
+km_Cl    = km_O2 * (D_Cl / D_O2_cl) ** km_exp          # D129 (cm/s) scaled from km_O2 by D^0.644
 A_anode  = A_anode_wet                                 # D130 (cm2) <- Electrochemistry D46
 I_Cl_FE  = Iappc * FE_CER                              # D131 (A) efficiency-limited
 n_e_Cl   = 2                                           # D148 electrons per produced HOCl (moved above D132: R1-03)
-I_Cl_mt  = n_e_Cl * Fcc * km_Cl * (pH_Cl / 1000) * A_anode   # D132 (A) chloride mass-transport limit (2 e- per Cl- -> HOCl)
+k_Cl_turn = km_Cl * A_anode / 1000 / VLc              # D271 (1/s) transport-limited chloride turnover, km.A/V
+tau_NH2Cl = 1                                          # D142 (h) monochloramine residence
+Cl_free_frac = 1 / (1 + k_Cl_turn * tau_NH2Cl * 3600)  # D278 free share of the recycled chloride pool
+I_Cl_mt  = n_e_Cl * Fcc * km_Cl * (pH_Cl * Cl_free_frac / 1000) * A_anode   # D132 (A) transport limit on FREE chloride
 I_Cl     = min(I_Cl_FE, I_Cl_mt)                       # D133 (A) binding limit (mt-limited at trace Cl-)
 # WAVE-4: n_e_Cl is now the constant 2 on every route (2Cl- -> Cl2 -> HOCl, and
 # the direct Cl- + H2O -> HOCl route, are both 2 e- per HOCl). The n = 1 in the
@@ -625,7 +631,6 @@ min_sparge_cal = sum(r[2] for r in _latest) / _n_latest if _latest else 0.0  # M
 stir_len  = stir_bar_L                                # D5 (mm)  (from Geometry)
 sigma_0, sigma_k = 0.07589, -0.000157                 # D167, D168 IAPWS R1-76(2014) linear fit
 rho_0,   rho_k   = 1003.33, -0.2556                   # D169, D170 IAPWS-95 linear fit
-HB_a, HB_b, HB_c = -4.41, 773.8, 506.4                # D171-D173 Han & Bartels (1996)
 D_CO2_ref = 1.92e-9                                   # D174 (m2/s) CO2 in water at 25 degC
 Ea_D_CO2  = 19000.0                                   # D175 (J/mol) Arrhenius / Stokes-Einstein equivalent
 sigma     = sigma_0 + sigma_k * (T_K - 273.15)        # D29 (N/m)
@@ -970,7 +975,6 @@ bleach_t1ppm  = 1 / bleach_rate * 60                   # D108 (min)
 HOCl_max = pH_Cl * pH_fHOCl * 52460                    # D125 (naive FE=1 ceiling, superseded)
 # --- graded kinetic free-chlorine penalty model (operative; Chemistry rows 128-149) ---
 P_HOCl   = I_Cl / (n_e_Cl * Fcc * VLc)                 # D134 (mol/L/s) volumetric free-Cl production
-k_Cl_turn = (P_HOCl / pH_Cl) if pH_Cl > 0 else 0.0     # D271 (1/s) fractional chloride turnover rate: volumetric Cl- consumption / pool
 NH3_N    = pH_NT * 14007                               # D135 (mg/L) ammonium as N
 k1_NH2Cl = 4.2e6                                       # D136 (M^-1 s^-1) HOCl+NH3 rate constant
 pKa_NH4  = -math.log10(Ka_NH4)                         # D137 (from the van 't Hoff-corrected Ka_NH4)
@@ -978,7 +982,6 @@ NH3_free = pH_NT / (1 + 10 ** (pKa_NH4 - pH_op))       # D138 (M) reactive free 
 HOCl_ss  = P_HOCl / (k1_NH2Cl * NH3_free)              # D139 (M) steady bulk free HOCl (already the undissociated acid)
 HOCl_ss_mgL = HOCl_ss * 52460                          # D140 (mg/L)
 f_local  = 10                                          # D141 anode boundary-layer enrichment (numerically inert: chloramine dominates ~1e4x)
-tau_NH2Cl = 1                                          # D142 (h) monochloramine residence
 # BUGFIX (review 2026-06-26) chloride mass balance: chlorine (free + combined)
 # can never exceed the medium chloride pool. The old cap was on ammonium
 # capacity (5.06*NH3_N, never binds) and let NH2Cl reach 17 mg/L from only
@@ -1416,6 +1419,9 @@ OUTPUTS = [
     ("Chemistry D133  I_Cl (A)",                       I_Cl),
     ("Chemistry D134  P_HOCl (mol/L/s)",               P_HOCl),
     ("Chemistry D271  k_Cl_turn (1/s)",                k_Cl_turn),
+    ("Chemistry D278  Cl_free_frac (-)",               Cl_free_frac),
+    ("Chemistry D129  km_Cl (cm/s)",                   km_Cl),
+    ("Chemistry D132  I_Cl_mt (A)",                    I_Cl_mt),
     ("Chemistry D154  NH2Cl_lo (mg/L)",                NH2Cl_lo),
     ("Chemistry D155  NH2Cl_hi (mg/L)",                NH2Cl_hi),
     ("Chemistry D139  HOCl_ss (M)",                    HOCl_ss),

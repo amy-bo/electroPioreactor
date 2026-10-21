@@ -127,7 +127,7 @@ BASE = dict(
   b_anode=0.12, j0_anode=1e-10, b_cath=0.14, j0_cath=1.5e-6, pcet_credit=-0.15,
   E0_OER=1.229, k_geom=1.0, kappa_fI=0.78, kappa_TC=0.02,
   # --- local-pH (buffer) verdict ---
-  D_HPO4=7.59e-10,                        # film thickness delta is now DERIVED: D_O2/km_O2 (Chemistry D215)
+  D_HPO4=7.59e-10, D_Cl=2.032e-9,                        # film thickness delta is now DERIVED: D_O2/km_O2 (Chemistry D215)
   # --- UdG recipe (g/L) ---
   udg_KH2PO4=2.3, udg_Na2HPO4=2.9, udg_NaHCO3=1.05,
   udg_MgSO4=0.5, udg_NH42SO4=0.47, udg_CaCl2=0.01,
@@ -202,7 +202,10 @@ def model(p):
     etaF_calc = max(0.0, 1 - i_ORR / I_app)                              # D88
     etaF_calc_min = max(0.0, 1 - i_ORR_ceil / I_app)                     # D89
     Cl_M = 2 * p['udg_CaCl2'] / MW['CaCl2']                              # Chemistry D42
-    I_Cl = min(I_app * p['FE_CER'], 2 * p['F'] * p['km_Cl'] * (Cl_M / 1000) * A_wet)   # D133 (D132 carries n_e_Cl = 2)
+    km_Cl = p['km_O2'] * (p['D_Cl'] / D_O2) ** p['km_exp']                         # D129, scaled from km_O2
+    k_Cl_turn = km_Cl * A_wet / 1000 / (V_charge / 1000)                 # D271, transport-limited turnover
+    kt = k_Cl_turn * p['tau_NH2Cl'] * 3600
+    I_Cl = min(I_app * p['FE_CER'], 2 * p['F'] * km_Cl * (Cl_M / (1 + kt) / 1000) * A_wet)   # D133, free chloride only (D278)
     etaF_OER_calc = max(0.0, 1 - I_Cl / I_app - p['corr_I_frac'])        # D104
     etaF = etaF_calc                                                     # D18 (no calibration override)
     etaF_OER = etaF_OER_calc                                             # D26
@@ -423,13 +426,11 @@ def model(p):
         NH3_free = NT / (1 + 10 ** (pKa_NH4 - pH_op))                    # D138
         P_HOCl = I_Cl / (2 * p['F'] * (V_charge / 1000))                 # D134, n_e_Cl = 2
         HOCl_mgL = P_HOCl / (p['k1_NH2Cl'] * NH3_free) * M_HOCl
-        k_Cl_turn = P_HOCl / Cl_M if Cl_M > 0 else 0.0                    # D271, 1/s chloride turnover
-        kt = k_Cl_turn * p['tau_NH2Cl'] * 3600
         NH2Cl = min(Cl_M * M_HOCl * kt / (1 + kt),
                     CL_PER_N * NT * MW_N * M_HOCl / M_Cl2)               # D143, pool depletes as it turns over
         C_eff = p['f_local'] * HOCl_mgL + NH2Cl / p['R_chloramine']      # D145
     else:
-        NH3_free = HOCl_mgL = NH2Cl = C_eff = k_Cl_turn = NAN
+        NH3_free = HOCl_mgL = NH2Cl = C_eff = NAN
 
     return dict(
         spg_dur=spg_dur, spg_int_opt=spg_int, spg_int_opt_s=spg_int * 60,
@@ -480,7 +481,6 @@ SWEEP = [
  ('pulse_floor', 0.2, 1.0, 'DATA-GAP'),
  # ---- ESTIMATE ----
  ('km_O2', 0.002, 0.006, 'ESTIMATE'),           # ETW at 10-40 cm/s swirl past the rod
- ('km_Cl', 0.002, 0.006, 'ESTIMATE'),           # same basis, scaled by D^0.644
  ('f_HOOH', 0.10, 0.20, 'ESTIMATE'),            # Le Bozec 2001 peroxide selectivity band
  ('z_e_ORR', 2, 4, 'ESTIMATE'),                 # 2 is the physical floor, so base at lo
  ('k_geom', 1.0, 3.0, 'ESTIMATE'),              # cell-constant correction
@@ -927,7 +927,6 @@ for name, crit, flips, mm, cross in knobs:
 CL_SWEEP = [
  ('tau_NH2Cl', 1 / 60, 5.0, 'DATA-GAP'),   # 1 min .. 5 h monochloramine residence
  ('R_chloramine', 18, 70, 'ESTIMATE'),     # potency-divisor band
- ('km_Cl', 0.001, 0.01, 'ESTIMATE'),       # chloride mass-transfer coeff (cm/s)
  ('FE_CER', 0.2, 0.8, 'DATA-GAP'),         # max CER faradaic efficiency
  ('f_local', 1.0, 30.0, 'DATA-GAP'),       # anode boundary-layer enrichment
 ]
