@@ -72,7 +72,7 @@ The table is a priority list by leverage, not an execution sequence. DO operatin
 | 7 | Dissolved oxygen & organism DO bands | [dissolved-oxygen.md](dissolved-oxygen.md) | Dissolved-oxygen thresholds | The organism's DO band sets the target operating DO and the schedule |
 | 8 | CO₂ flow calibration | [flow-calibration.md](flow-calibration.md) | CO₂ flow | Every reactor needs its own; an uncalibrated reactor reads "calibrate first". Step 10 checks it with the sparger attached |
 | 9 | Knallgas uptake stoichiometry | [knallgas-stoichiometry.md](knallgas-stoichiometry.md) | Knallgas ratio | Sets the O₂ surplus and carbon demand the schedule is built on |
-| 10 | Free and combined chlorine (DPD) | [chlorine-species.md](chlorine-species.md) | Monochloramine lifetime (feeds Chemistry D142, per medium) | Settles the monochloramine lifetime, about ±32 % on the interval |
+| 10 | Free and combined chlorine (DPD) | [chlorine-species.md](chlorine-species.md) | Monochloramine lifetime (feeds Chemistry D142, per medium) | Settles the monochloramine lifetime, about +15 %/−7 % on the UdG interval |
 | 11 | Sinter (frit) porosity grade | [sinter-porosity.md](sinter-porosity.md) | Sinter porosity | Sets bubble size; only matters when the sparger is a sintered frit |
 | 12 | Electrolysis current calibration | [gerrit-current.md](gerrit-current.md) | Electrolysis current | Current is the master input for all H₂/O₂ generation; re-check per electrode and cell |
 | – | Current-density screen (new strain) | [current-density-screen.md](current-density-screen.md) | Current density | Only when a strain has no trustworthy published current-density tolerance |
