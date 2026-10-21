@@ -192,7 +192,7 @@ M_Cl2 = 70906.0    # mg/mol (Chemistry D223); thresholds are on the as-Cl2 basis
 M_O2 = 31.998      # g/mol, Mass Transfer D231 (2 x 15.999)
 D_HCO3 = 1.185e-9  # m2/s, Chemistry D251 (CRC)
 MW_N = 14007.0     # mg/mol
-CL_PER_N = 5.06    # mg Cl2 per mg ammonium-N (breakpoint)
+CL_PER_N = 5.06    # mg Cl2 per mg ammonium-N: 1:1 monochloramine formation (breakpoint to N2 is ~7.6)
 # Electrode lookups keyed on Summary D3 (same tables as the twin): Electrochemistry A35:N38
 ELECTRODE = {
     'Pt/Ti rod': dict(sparger='Tube',     por=None, z_e_ORR=2),   # Echem D31 sparger, D32 sinter grade, D27 z_e_ORR

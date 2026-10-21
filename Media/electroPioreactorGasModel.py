@@ -1057,6 +1057,15 @@ O2_LOC_H2  = 0.052                                      # Biology D81 (-) limiti
 LOC_margin = 0.6                                        # Biology D82 (-) NFPA 69 design margin
 # Lag H2-screen interval (Biology D90-D92) and the lag pH ceiling, evaluated ahead of the schedule because
 # lag sizing (Summary D12 = Lag) and the start-up schedule use them; both are interval-independent.
+# Start-up sources (Echem D174-D175, MT D572-D576), needed here by the start-up pH grid (MT D560)
+O2_net_su_max = rO2_gen + (0.0 if isnum(cal_etaF_OER) else r_H2O2_an_g / 2)   # Echem D174 (mol/h)
+rH2_su_max = I_app / (z_e_H2 * F_const) * 3600                              # Echem D175 (mol/h)
+_su_lag = O2_sizing_phase == phase_name_2
+O2_src_su = O2_src_l if _su_lag else O2_net_su_max                          # MT D572
+H2_src_su = H2_src_l if _su_lag else max(0.0, rH2_su_max - H2_HOR_mt)       # MT D573
+S_O2_su = O2_src_su + y_O2_air * F_vent_ex                                  # MT D574
+F_gap_su = F_dil + max(0.0, O2_src_su + H2_src_su - CO2_fix_l)              # MT D575
+DO_surf_excess_su = O2_src_su / (kLa_surf_used * 3600 * (V_charge / 1e6))   # MT D576
 _F_gap_l_e = F_dil + max(0.0, O2_src_l + H2_src_l - CO2_fix_l)   # = MT D353
 def _t_gap_e(src, lim):
     if src > lim * _F_gap_l_e:
@@ -1067,7 +1076,7 @@ _tH2, _tO2 = _t_gap_e(H2_src_l, H2_LFL), _t_gap_e(O2_src_l + y_O2_air * F_vent_e
 _H2safe_e = ("any interval" if isinstance(_tH2, str) or isinstance(_tO2, str)
              else max(_tH2, _tO2) + spg_dur / 60)        # = Biology D92 (min, pulse in use)
 spg_int_H2safe_opt = (_H2safe_e * spg_dur_eq_opt / _dur_eq_e if isnum(_H2safe_e) else "any interval")   # MT D563
-_k_eff_l_e = _F_gap_l_e / 3600 / n_hs_gas * _Vg_e / (_V_L_CO2_e + _Vg_e)   # MT D560 k_eff_CO2_l
+_k_eff_l_e = F_gap_su / 3600 / n_hs_gas * _Vg_e / (_V_L_CO2_e + _Vg_e)   # MT D560 k_eff_CO2_l, start-up flow
 
 
 def co2_mean_lag_at(t_min):
@@ -1278,14 +1287,6 @@ remedy_interval = max(0, math.ceil(spg_int_H2safe_saw / remedy_res) * remedy_res
 # --- start-up (lag-phase) schedule, shown beside the growth one (MT D541-D558, D570-D583; Summary rows 31 and 33) ---
 # Sized on Growth, the start-up runs at a DO other than DO_lag_ref, so it uses the no-cathodic-loss bounds
 # (Electrochemistry D174-D175): conservative for DO and the hazard screen. Sized on Lag the lag sources are consistent.
-O2_net_su_max = rO2_gen + (0.0 if isnum(cal_etaF_OER) else r_H2O2_an_g / 2)   # Echem D174 (mol/h)
-rH2_su_max = I_app / (z_e_H2 * F_const) * 3600                              # Echem D175 (mol/h)
-_su_lag = O2_sizing_phase == phase_name_2
-O2_src_su = O2_src_l if _su_lag else O2_net_su_max                          # MT D572
-H2_src_su = H2_src_l if _su_lag else max(0.0, rH2_su_max - H2_HOR_mt)       # MT D573
-S_O2_su = O2_src_su + y_O2_air * F_vent_ex                                  # MT D574
-F_gap_su = F_dil + max(0.0, O2_src_su + H2_src_su - CO2_fix_l)              # MT D575
-DO_surf_excess_su = O2_src_su / (kLa_surf_used * 3600 * (V_charge / 1e6))   # MT D576
 def _t_gap_su(src, lim):
     if src > lim * F_gap_su:
         q = lim * F_gap_su / src
@@ -1599,7 +1600,7 @@ f_local  = 10                                          # D141 anode boundary-lay
 # (In a closed batch this pool also DEPLETES; a steady value at the cap presumes
 #  chloride is regenerated as HOCl is reduced back to Cl- - stated, not proven.)
 Cl_pool_mgL = pH_Cl * 52460                            # D149 (mg/L as HOCl-equiv) chloride-pool ceiling
-cl_per_N = 5.06                                        # (mg Cl2 per mg NH3-N) NH2Cl stoichiometric cap; x M_HOCl/M_Cl2 puts it on the HOCl-equivalent basis
+cl_per_N = 5.06                                        # Chemistry D224 (mg Cl2 per mg NH3-N) 1:1 NH2Cl formation cap, not breakpoint (~7.6); x M_HOCl/M_Cl2 puts it on the HOCl-equivalent basis
 M_HOCl_mg = 52460                                       # Chemistry D222 (mg/mol)
 def _nh2cl(tau_h):
     """Chloride pool partly turned over to chlorine in tau: pool * k*tau/(1+k*tau), capped by the ammonium stoichiometry."""

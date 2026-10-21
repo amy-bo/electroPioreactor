@@ -441,6 +441,16 @@ class GasModelChecks(unittest.TestCase):
         # z_e_ORR is fixed, not swept (finding 2).
         self.assertNotIn('z_e_ORR', [row[0] for row in self.sens['SWEEP']])
 
+    def test_review10_fixes(self):
+        # The start-up pH grid decays the pool on the start-up gas flow (finding 1), which is the
+        # lag flow when sized on Lag.
+        for kw in ({}, {'N2_sweep_set': 2.0, 'NaHCO3_add_gL': 20.015}):
+            t = self.twin(**kw)
+            ratio = t['_Vg_e'] / (t['_V_L_CO2_e'] + t['_Vg_e']) / 3600 / t['n_hs_gas']
+            self.assertTrue(math.isclose(t['_k_eff_l_e'], t['F_gap_su'] * ratio, rel_tol=1e-12))
+        g = self.twin(O2_phase_sel='Lag')
+        self.assertTrue(math.isclose(g['F_gap_su'], g['_F_gap_l_e'], rel_tol=1e-12))
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))
