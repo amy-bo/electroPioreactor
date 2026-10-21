@@ -373,6 +373,21 @@ class GasModelChecks(unittest.TestCase):
         self.assertIn('(bp_const/cal_bp)', d89)
         self.assertNotIn('AVERAGEIFS(E81', d89)
 
+    def test_review6_fixes(self):
+        # The sensitivity model carries the organism toxic ceiling too (finding 1).
+        t = self.twin(DO_toxic=2.0)
+        m = self.sens['model'](dict(self.sens['BASE'], DO_toxic=2.0))
+        self.assertTrue(math.isclose(t['DO_target'], m['DO_target'], rel_tol=1e-9))
+        self.assertTrue(math.isclose(t['spg_int'], m['spg_int_run'], rel_tol=5e-3), (t['spg_int'], m['spg_int_run']))
+        # Anodic peroxide oxidation closes the O2 balance (finding 3): growth and lag sources
+        # equal anode O2 + returned O2 - cathode loss, with the charge taken off the OER.
+        n = self.twin()
+        F = n['F_const']
+        self.assertTrue(math.isclose(n['f_H2O2_anode'], 2 * F * n['r_H2O2_an_g'] / 3600 / n['I_app'], rel_tol=1e-12))
+        oer_lag = n['I_app'] * (n['etaF_OER'] + n['f_H2O2_anode']) / (4 * F) * 3600 - n['r_H2O2_an_l'] / 2
+        self.assertTrue(math.isclose(n['O2_net_lag'], oer_lag + n['r_H2O2_an_l'] - n['O2_ORR_lag'], rel_tol=1e-12))
+        self.assertTrue(math.isclose(n['O2_net_lag'], self.sens['model'](self.sens['BASE'])['O2_net_lag'], rel_tol=1e-9))
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))

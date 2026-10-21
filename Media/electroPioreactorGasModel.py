@@ -601,7 +601,16 @@ ec_I_Cl     = I_Cl                                     # D101 (A)  <- Chemistry 
 ec_corr_I   = NA                                       # D102 (-)  <- Chemistry D158 (DATA GAP)
 f_HOR_anode = NA                                       # D145 (-)  fraction of anodic charge lost to H2 oxidation. DATA GAP (empty cell) - measure
 f_Cl_anode  = ec_I_Cl / I_app                          # D103 (-)
-etaF_OER_calc = max(0.0, 1 - f_Cl_anode
+k_H2O2_anode  = (km_O2 / 100) * (A_anode_wet / 10000) / (ec_V_L / 1000)   # D151 (1/s) peroxide re-oxidised at the anode
+k_cat_cells   = 4.1e-3                                 # D94 (1/s) whole-culture catalase clearance, ~1e8 cells/mL
+cal_etaF_OER = NA                                      # Calibrations D32 (no included anodic runs)
+# Peroxide oxidised at the anode (Electrochemistry D167-D172): H2O2 -> O2 + 2H+ + 2e- draws anodic current
+# and returns one O2; growth competes with catalase, the lag plateau oxidises all peroxide made.
+r_H2O2_an_g = (f_HOOH * I_app * (1 - etaF) / (n_ORR_eff * F_const) * 3600
+               * k_H2O2_anode / (k_H2O2_anode + k_cat_cells))   # D168 (mol/h)
+f_H2O2_anode = 0.0 if isnum(cal_etaF_OER) else 2 * F_const * r_H2O2_an_g / 3600 / I_app   # D170 (-)
+O2_H2O2_ret_g = 0.0 if isnum(cal_etaF_OER) else r_H2O2_an_g   # D171 (mol/h)
+etaF_OER_calc = max(0.0, 1 - f_Cl_anode - f_H2O2_anode
                     - (ec_corr_I if isnum(ec_corr_I) else 0.0)
                     - (f_HOR_anode if isnum(f_HOR_anode) else 0.0))   # D104 (-)
 etaF_OER    = etaF_OER_calc                            # D26 = IFERROR(cal_etaF_OER, etaF_OER_calc)
@@ -614,13 +623,15 @@ r_H2_HOR    = (f_HOR_anode * I_app / (z_e_H2 * F_const) * 3600
 rH2_gen    = I_app * etaF / (z_e_H2 * F_const) * 3600          # D21 (mol/h)
 rO2_gen    = I_app * etaF_OER / (z_e_O2 * F_const) * 3600      # D22 (mol/h)
 O2_cathode_ORR = I_app * (1 - etaF) / (n_ORR_eff * F_const) * 3600  # D28 (mol/h)
-O2_net_gen = rO2_gen - O2_cathode_ORR                          # D29 (mol/h)
+O2_net_gen = rO2_gen - O2_cathode_ORR + O2_H2O2_ret_g          # D29 (mol/h) incl. O2 returned by anodic peroxide oxidation
 # R5-m2: the lag-phase cathodic O2 loss at the lag DO, through a typed reference (Electrochemistry D128-D134)
 DO_lag_ref = 0.174849986629                                     # D129 (mol/m3) INPUT: last lag cycle-mean DO (a link would be circular)
 DO_lag_tol = 0.05                                      # D130 (-) tolerance before DO_lag_ref must be re-entered
 O2_ORR_lag = min(I_app / (n_ORR_eff * F_const) * 3600,
                  (O2_cathode_ORR if isnum(cal_etaF) else i_ORR_design / (n_ORR_eff * F_const) * 3600) * DO_lag_ref / ec_DO_design)   # D131 (mol/h) O2 reduced at the cathode during lag
-O2_net_lag = rO2_gen - O2_ORR_lag                      # D132 (mol/h) net O2 to the liquid during lag
+r_H2O2_an_l = f_HOOH * O2_ORR_lag                      # D169 (mol/h) lag plateau: all peroxide oxidised at the anode
+O2_H2O2_lag_adj = 0.0 if isnum(cal_etaF_OER) else r_H2O2_an_l / 2 + r_H2O2_an_g / 2   # D172 (mol/h)
+O2_net_lag = rO2_gen - O2_ORR_lag + O2_H2O2_lag_adj    # D132 (mol/h) net O2 to the liquid during lag
 rH2_lag    = max(0.0, I_app - O2_ORR_lag / 3600 * n_ORR_eff * F_const) / (z_e_H2 * F_const) * 3600   # D133 (mol/h) H2 evolved during lag
 O2_net_lag_mt = O2_net_lag                             # MT D394 <- Electrochemistry D132
 rH2_lag_mt    = rH2_lag                                # MT D395 <- Electrochemistry D133
@@ -636,7 +647,6 @@ V_gas_total = V_H2_gen + V_O2_gen                              # D25 (mL/min)
 # ============================================================================
 M_H2O2        = 34.0147                                # D92 (g/mol)
 r_H2O2        = f_HOOH * I_app * (1 - etaF) / (n_ORR_eff * F_const) * M_H2O2 * 1000 * 3600 / ec_V_L  # D93 (mg/L/h)
-k_cat_cells   = 4.1e-3                                 # D94 (1/s) whole-culture catalase clearance, ~1e8 cells/mL
 H2O2_ss       = r_H2O2 / (k_cat_cells * 3600)          # D95 (mg/L) growing culture
 H2O2_thresh   = 0.17                                   # D97 (mg/L) 5 uM sustained slows growth (Li & Imlay 2018)
 # (D96 H2O2_lag_1h, D98 t_H2O2_thresh and D99 H2O2_flag need the lag-phase DO from
@@ -1314,7 +1324,6 @@ N2_for_DO = ((max(0.0, (O2_src_sched + y_O2_air * F_vent_ex) * saw_factor / y_O2
 
 # --- Electrochemistry D96/D98/D99 + rows 150-152: lag-phase peroxide, first-order anodic loss (R1-09) ---
 ec_DO_lag     = DO_ss_sawtooth_lag                     # Electrochemistry D150 (mol/m3) <- MT D135
-k_H2O2_anode  = (km_O2 / 100) * (A_anode_wet / 10000) / (ec_V_L / 1000)   # D151 (1/s) peroxide re-oxidised at the anode
 def _pct_signed(x):
     """TEXT(x,"+0%;-0%")."""
     return ("+" if x >= 0 else "-") + xltext(abs(x), "0%")
@@ -2402,6 +2411,9 @@ OUTPUTS.extend([
     ("MassXfer D563 spg_int_H2safe_opt", spg_int_H2safe_opt),
     ("MassXfer D564 y_H2_avg_l", y_H2_avg_l),
     ("MassXfer D565 O2_ceil_org", O2_ceil_org),
+    ("Echem D168 r_H2O2_an_g", r_H2O2_an_g),
+    ("Echem D170 f_H2O2_anode", f_H2O2_anode),
+    ("Echem D172 O2_H2O2_lag_adj", O2_H2O2_lag_adj),
     ("MassXfer R440 lag grid CO2 mean, first row", pH_grid_C_l[0]),
     ("MassXfer R539 lag grid CO2 mean, last row", pH_grid_C_l[-1]),
     ("MassXfer D556 DO_avg_su (mg/L)", DO_avg_su_mgL),

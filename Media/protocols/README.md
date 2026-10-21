@@ -27,7 +27,7 @@ These preconditions are shared across every protocol; each protocol assumes them
 - **Working volume per build** – about 15 mL for the 20 mL build, about 30 mL for the 40 mL build (or the actual working volume you run).
 - **Run temperature** – 30 °C.
 - **Current baseline** – ed04, MMO tube assembly, *Xanthobacter tagetidis*, chloride-free AMYBO03, 30 °C. Record actual fill, assembly, power, stirring, pressure and Summary selections. Historical examples are not current-run settings.
-- **Schedule** – read Summary D19 (pulse duration, s) and D21 (interval, min) with the recorded selections. Current baseline values are 0.65 s and 7.20 min, not fixed commands. Read gas predictions with those same selections.
+- **Schedule** – read Summary D19 (pulse duration, s) and D21 (interval, min) with the recorded selections. Current baseline values are 0.65 s and 7.19 min, not fixed commands. Read gas predictions with those same selections.
 - **Power** – the model fit refuses power outside 3–10 %; plugin runtime clamps at 10 %. Historical 25 % diagnostics require a separately authorised test rig, not bypassing the clamp.
 - **Gas clearance and sampling** – An owner-approved gas-clearance procedure and acceptance criterion are prerequisites before opening or handling; elapsed intervals or routine CO₂ pulses alone do not establish clearance. Validate sampling apparatus for the mixture, range, recovery and disturbance before interpreting readings as undisturbed headspace. The headspace check is a hazard screen, not safety certification.
 - **Ambient pressure** – enter the station pressure for the day on the Summary (see below).

@@ -312,8 +312,10 @@ def model(p):
     if not 3 <= p['intensity'] <= 10:
         raise ValueError('Unsupported electrolysis power: model requires 3–10%')
     I_app = (p['gerrit_slope'] * p['intensity'] + p['gerrit_int']) / 1000
-    DO_target = (p['DO_opt'] / M_O2 if p['DO_opt'] is not None
-                 else p['target_DO_frac'] * O2_ceil_C)                   # MT D179
+    O2_ceil_org = (min(O2_ceil_C, p['DO_toxic'] / M_O2) if p.get('DO_toxic') is not None
+                   else O2_ceil_C)                                        # MT D565 organism toxic DO, capped
+    DO_target = (min(p['DO_opt'] / M_O2, O2_ceil_org) if p['DO_opt'] is not None
+                 else p['target_DO_frac'] * O2_ceil_org)                 # MT D179
     DO_design = DO_target                                                # Echem D85 = the DO target (R5-m7)
     n_ORR_eff = p['z_e_ORR'] * p['f_HOOH'] + p['z_e_O2'] * (1 - p['f_HOOH'])   # D141, e-/O2 weighted by peroxide selectivity
     i_ORR = n_ORR_eff * p['F'] * (p['km_O2'] / 100) * DO_design * (A_cath / 10000)   # D86, cathode area D47
@@ -325,16 +327,21 @@ def model(p):
     kt = k_Cl_turn * p['tau_NH2Cl'] * 3600
     Cl_bound = min(Cl_M * kt / (1 + kt), I_app * p['FE_CER'] / (2 * p['F'] * (V_charge / 1000)) * p['tau_NH2Cl'] * 3600, NT)
     I_Cl = min(I_app * p['FE_CER'], 2 * p['F'] * km_Cl * ((Cl_M - Cl_bound) / 1000) * A_wet)   # D133, free chloride only (D278)
-    etaF_OER_calc = max(0.0, 1 - I_Cl / I_app - p['corr_I_frac'])        # D104
+    # anodic peroxide oxidation (Echem D167-D172): 2 e- per H2O2, one O2 returned; catalase competes in growth
+    k_anode = (p['km_O2'] / 100) * (A_wet / 10000) / (V_charge / 1e6)   # D151, 1/s
+    r_an_g = (p['f_HOOH'] * I_app * (1 - etaF_calc) / (n_ORR_eff * p['F']) * 3600
+              * k_anode / (k_anode + p['k_cat_cells']))                   # D168, mol/h
+    etaF_OER_calc = max(0.0, 1 - I_Cl / I_app - p['corr_I_frac']
+                        - 2 * p['F'] * r_an_g / 3600 / I_app)            # D104
     etaF = etaF_calc                                                     # D18 (no calibration override)
     etaF_OER = etaF_OER_calc                                             # D26
     rH2 = I_app * etaF / (p['z_e_H2'] * p['F']) * 3600
     rO2 = I_app * etaF_OER / (p['z_e_O2'] * p['F']) * 3600
     O2_cath = I_app * (1 - etaF) / (n_ORR_eff * p['F']) * 3600
-    O2_net = rO2 - O2_cath                                               # Echem D29
+    O2_net = rO2 - O2_cath + r_an_g                                      # Echem D29
     # R5-m2: lag-phase cathodic O2 loss at the typed reference lag DO (Echem D129-D133)
     O2_ORR_lag = min(I_app / (n_ORR_eff * p['F']) * 3600, i_ORR / (n_ORR_eff * p['F']) * 3600 * p['DO_lag_ref'] / DO_design)   # D131
-    O2_net_lag = rO2 - O2_ORR_lag                                        # D132 = MT D394 = MT D310
+    O2_net_lag = rO2 - O2_ORR_lag + p['f_HOOH'] * O2_ORR_lag / 2 + r_an_g / 2   # D132 = MT D394 = MT D310
     rH2_lag = max(0.0, I_app - O2_ORR_lag / 3600 * n_ORR_eff * p['F']) / (p['z_e_H2'] * p['F']) * 3600   # D133 = MT D395
     O2_cons = rH2 * p['bio_O2'] / p['bio_H2']
     CO2_cons = rH2 * p['bio_CO2'] / p['bio_H2']
@@ -491,7 +498,7 @@ def model(p):
     duty_O2vent = (O2_src_guard / (p['target_DO_frac'] * (O2_ceil_Pa / p['P_atm']))
                    / CO2_rate_full)                                      # D87
     duty_opt = max(duty_carbon, duty_O2vent)                             # D88
-    spg_int_max = ((p['target_DO_frac'] * O2_ceil_C * V_L / O2_src_guard * 60)
+    spg_int_max = ((p['target_DO_frac'] * O2_ceil_org * V_L / O2_src_guard * 60)
                    if O2_src_guard > 1e-15 else INF)                     # D89
     if feasible:
         spg_int = min(spg_int_carbon, spg_int_DO, pH_cap, H2_cap) if not ph_unreach else NAN   # D91 branch 1
@@ -563,7 +570,7 @@ def model(p):
     DO_ss_g, DO_peak_g = hs['Growth']['DO_avg'] * M_O2, hs['Growth']['DO_peak'] * M_O2   # Summary D59/D60
     DO_ss_lag, DO_peak_lag = hs['Lag']['DO_avg'] * M_O2, hs['Lag']['DO_peak'] * M_O2     # Summary D61/D62
     y_H2_lag = hs['Lag']['yH2']                                          # D352 = Biology D84
-    t_lag = (O2_ceil_C * V_L / O2_net * 60) if O2_net > 1e-15 else INF   # D79
+    t_lag = (O2_ceil_org * V_L / O2_net * 60) if O2_net > 1e-15 else INF   # D79
 
     # --- bubble / sparge strip; orifice from the electrode's sparger (MT D27:D41); sub-mm bubble -> strip 0 (D54) ---
     d_or = (p['spg_ID'] / 1000 if ELECTRODE[p['electrode']]['sparger'] == 'Tube'
@@ -659,7 +666,6 @@ def model(p):
     r_H2O2 = (p['f_HOOH'] * I_app * (1 - etaF) / (n_ORR_eff * p['F'])
               * p['M_H2O2'] * 1000 * 3600 / (V_charge / 1000))           # D93
     H2O2_ss = r_H2O2 / (p['k_cat_cells'] * 3600)                         # D95, growing culture
-    k_anode = (p['km_O2'] / 100) * (A_wet / 10000) / (V_charge / 1e6)   # D151, 1/s: peroxide re-oxidised at the anode
     DO_lag = hs['Lag']['DO_avg']                                         # D150 = MT D135 = DO_avg_l, mol/m3
     r_H2O2_lag = p['f_HOOH'] * O2_ORR_lag * p['M_H2O2'] * 1000 / (V_charge / 1000)                             # D152
     H2O2_lag_1h = (r_H2O2_lag / (k_anode * 3600) * (1 - math.exp(-k_anode * 3600)))   # D96, no biomass
