@@ -43,4 +43,4 @@ Model work not yet done:
 
 
 ## Notes
-The earlier waves' blockers B2/B3/B4 and majors M1–M5 are resolved (see `CHANGELOG.md`), but the wave-4 review (2026-08-12) reopened the release question: the arithmetic is faithful throughout, while the sparge-interval recommendation, the O₂ surface path, the CO₂ sawtooth and both Python verification scripts each have a live defect. Those defects are fixed in the live workbook (wave-4 swapped in 2026-10-21 after a full Excel recalculation). Of the three broken protocol routes, the surface-kLa unit contradiction and the CO2-flow route are fixed; the vial-headspace measurement still does not reach the model.
+Wave 5 (2026-10-21) recalculated the workbook in real Excel for the first time and closed the wave-4 items and the wave-5 review findings (see `CHANGELOG.md` and the wave-5 section of `electroPioreactorGasModel-Review.md`). What remains is measurement and owner decisions: the model now shows that CO₂ alone cannot dilute electrolytic O₂ to the DO target and hold pH in band (Summary D128), and its headline interval rests mainly on the vent behaviour, the chloramine lifetime and the H₂ uptake ratio.

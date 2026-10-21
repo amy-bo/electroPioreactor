@@ -14,7 +14,7 @@ It sizes CO₂ dosing and O₂ management for an aseptic electro-bioreactor grow
 
 **Method.** For the first time the workbook was recalculated by Excel itself (Excel 16.114 on the lab MacBook Air, driven over SSH; that copy is View Only, so edits were made to the file's XML and Excel's own recalculated values were written back into the caches, with every change round-tripped through Excel). Four independent reviews ran against the Excel values: electrochemistry and chemistry (R1, Claude Fable), gas transfer, scheduling and safety (R2, Claude Opus, with a time-stepped limit-cycle simulation), house-rule hygiene (R3, Claude Sonnet), and an adversarial review of the redesigned headspace balance (R4, Opus; the redesign itself was drafted on Fable). Every fix was verified in Excel and mirrored in both Python companions (twin: every compared output within 0.5 %; sensitivity script: self-check against the workbook's cached values). Full reports were working files; this section is the record.
 
-**Headline, before → after** (ed04, UdG phosphate, 3 %, 1000 rpm, 25 °C): CO₂ pulse 0.78 s every 16.46 min → **0.78 s every 9.0 min** (as run 0.8 s / 9 min) with an open vent, 12.7 min with a check valve; pH 6.60 → **6.19, below the 6.5 band**; effective chlorine 0.50 → 0.34 mg/L as Cl₂; cathodic faradaic efficiency 0.977 → 0.958; cell voltage 3.26 → 2.85 V.
+**Headline, before → after** (ed04, UdG phosphate, 3 %, 1000 rpm, 25 °C): CO₂ pulse 0.78 s every 16.46 min → **0.67 s every 8.95 min** (as run 0.65 s / 9 min) with an open vent, 12.6 min with a check valve; pH 6.60 → **6.20, below the 6.5 band**; effective chlorine 0.50 → 0.34 mg/L as Cl₂; cathodic faradaic efficiency 0.977 → 0.958; cell voltage 3.26 → 2.85 V.
 
 ## What was wrong, and what changed
 
@@ -38,8 +38,8 @@ It sizes CO₂ dosing and O₂ management for an aseptic electro-bioreactor grow
 
 ## What the model now says, and what it cannot settle
 
-- **CO₂ cannot do three jobs.** Diluting electrolytic O₂ to the DO target with CO₂ alone drives pH to 6.16–6.23 for every vent assumption (Summary D128 "NO"), and holding the lag-phase headspace non-flammable needs a still shorter interval. A small inert (N₂) headspace sweep would decouple both from pH; owner question T7.
-- **The interval is fragile.** It moves 15× across plausible vents (check valve 12.7 min, open vent 9.0, 0.5 mL/min exchange 0.9) and ±30 % with the chloramine lifetime, because the O₂ surplus is a small difference of large numbers. The vent test and a DPD chlorine assay are the two cheapest, highest-leverage measurements (`TODO.md`).
+- **CO₂ cannot do three jobs.** Diluting electrolytic O₂ to the DO target with CO₂ alone drives pH to 6.18–6.24 for every vent assumption (Summary D128 "NO"), and holding the lag-phase headspace non-flammable needs a still shorter interval. A small inert (N₂) headspace sweep would decouple both from pH; owner question T7.
+- **The interval is fragile.** It moves 15× across plausible vents (check valve 12.6 min, open vent 8.95, 0.5 mL/min exchange 0.86) and ±30 % with the chloramine lifetime, because the O₂ surplus is a small difference of large numbers. The vent test and a DPD chlorine assay are the two cheapest, highest-leverage measurements (`TODO.md`).
 - **Lag is unreachable** at the estimated surface kLa (margin 0.64×) whatever the interval.
 - Still open model work and every measurement are listed in `TODO.md` under "From the wave-5 review".
 
