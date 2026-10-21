@@ -451,6 +451,23 @@ class GasModelChecks(unittest.TestCase):
         g = self.twin(O2_phase_sel='Lag')
         self.assertTrue(math.isclose(g['F_gap_su'], g['_F_gap_l_e'], rel_tol=1e-12))
 
+    def test_review11_near_zero_vent_flow(self):
+        # Outflow only at 25 C and 10 % power leaves a ~1e-20 mol/h residual vent flow; the helpers
+        # and the exact peak must take their zero-flow limits, not collapse (twelfth review, finding 1).
+        kw = dict(vent_model_sel='Outflow only', temp_C=25.0, led_intensity=10.0)
+        t = self.twin(**kw)
+        self.assertLess(t['hs_g']['x'], 1e-12)
+        self.assertFalse(t['ph_unreach'])
+        self.assertAlmostEqual(t['S_D21'], 0.57, places=9)
+        self.assertGreater(t['pH_grid_C'][0], 30.0)
+        m = self.sens['model'](dict(self.sens['BASE'], vent_model='Outflow only', T_C=25.0, intensity=10.0))
+        self.assertTrue(math.isclose(m['spg_int_run'], 0.57, rel_tol=1e-9))
+        self.assertTrue(math.isclose(t['DO_peak_g'] * t['M_O2'], m['DO_peak_g'], rel_tol=1e-6))
+        # The series and the closed forms agree across the switch.
+        for f, g in ((t['_phi'], lambda x: (1 - math.exp(-x)) / x), (t['_psi'], lambda x: (x - 1 + math.exp(-x)) / x ** 2)):
+            xs = t['x_series']
+            self.assertTrue(math.isclose(f(xs * 0.999999), g(xs * 1.000001), rel_tol=1e-6))
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))

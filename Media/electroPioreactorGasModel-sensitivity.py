@@ -256,6 +256,18 @@ def medium_chemistry(p):
     return SID, ions['H2PO4'] + ions['HPO4'], ions['NH4'], ions['Cl'], I_ion, kappa0
 
 
+
+def _phi_s(x):
+    """(1 - e^-x)/x without cancellation as x -> 0 (expm1; independent of the workbook's series switch)."""
+    return -math.expm1(-x) / x if x > 0 else 1.0
+
+
+def _psi_s(x):
+    """(x - 1 + e^-x)/x^2 without cancellation: series for small x, closed form otherwise."""
+    if x < 1e-2:
+        return 0.5 - x / 6 + x ** 2 / 24 - x ** 3 / 120 + x ** 4 / 720
+    return (x + math.expm1(-x)) / x ** 2
+
 def model(p):
     T_K = p['T_C'] + 273.15
     R = p['R']
@@ -460,7 +472,7 @@ def model(p):
         t_off = max(0.0, t_min * 60 - _dur)
         x = _k * t_off
         e = math.exp(-x)
-        ph_, ps_ = ((1 - e) / x, (x - 1 + e) / x ** 2) if x > 0 else (1.0, 0.5)
+        ph_, ps_ = _phi_s(x), _psi_s(x)
         Dr = (_Cair / _Csat * F_ex - fix_s) * (t_off / 3600) / (_V_L_CO2 + Vg)
         cs = (Dr * ph_ + _b * e) / (1 - _r * e)
         return min(_Csat, max(_Cair, (_r * cs + _b) * ph_ + Dr * ps_))
@@ -527,7 +539,8 @@ def model(p):
     spg_dur_run = max(math.ceil(p['pulse_floor'] / p['pulse_res'] - 1e-9) * p['pulse_res'],
                       math.floor(spg_dur / p['pulse_res'] + 0.5 + 1e-12) * p['pulse_res'])   # MT D242 (pulse_res = Summary D15, MROUND)
     spg_dur_run_eq = (V0 + Q_fit * spg_dur_run) / (p['Q_CO2'] / 60)      # as-run pulse on the delivered-volume basis
-    spg_int_run = math.floor(spg_dur_run_eq / (60 * duty_actual) / 0.01 + 1e-12) * 0.01  # Summary D21, whole minutes
+    _q = spg_dur_run_eq / (60 * duty_actual) if duty_actual > 0 else NAN
+    spg_int_run = (math.floor(_q / 0.01 + 1e-12) * 0.01 if math.isfinite(_q) else NAN)   # Summary D21; NaN when no schedule
 
     spg_dur_opt, spg_int_opt = spg_dur, spg_int
     spg_dur, spg_int = spg_dur_run, spg_int_run
@@ -544,16 +557,14 @@ def model(p):
     t_gap_h = t_off / 3600                                               # D325
     flush_ret = math.exp(-CO2_pulse / n_hs)                              # D323-D324, well-mixed flush
     tau_L_h = 1 / (kLa_surf_used * 3600)                                 # D326
-    phi = lambda x: (1 - math.exp(-x)) / x if x > 0 else 1.0
-    psi = lambda x: (x - 1 + math.exp(-x)) / x ** 2 if x > 0 else 0.5
+    phi, psi = _phi_s, _psi_s
 
     def _z_peak(S, F_gap, yp, T, y_mean, steps=400):
         # Liquid-equilibrium O2 fraction z follows dz/dt = (y - z)/tau over one gap; the cycle map is
         # linear, z(T) = A z0 + B, so integrate twice (RK4) and take the periodic fixed point.
         # Solved numerically here, independently of the workbook's closed form (MT D566-D568).
         b, n = 1 / tau_L_h, n_hs
-        y = ((lambda t: S / F_gap + (yp - S / F_gap) * math.exp(-F_gap / n * t)) if F_gap > 0
-             else (lambda t: yp + S / n * t))
+        y = lambda t: yp * math.exp(-F_gap / n * t) + S / n * t * _phi_s(F_gap / n * t)   # no S/F: exact as F -> 0
         def run(z):
             h = T / steps
             for i in range(steps):
@@ -1088,7 +1099,7 @@ for _k in (('Open vent', 'Growth'), ('Outflow only', 'Growth'),
         COMBO_REF[_k] = (_tw if all(isinstance(v, float) for v in _tw) else None, "twin")
 print("\n" + "=" * 100)
 print("HEADSPACE SELECTORS -- headline in all four vent-model / sizing-phase states")
-print("   reference: live state = workbook cached D15/D35/D38; the other three = the full twin")
+print("   reference: live state = workbook cached D20/D23/D24; the other three = the full twin")
 print(f"{'vent_model':14}{'O2 phase':9}{'interval min':>14}{'pH':>8}{'DO mg/L':>9}"
       f"{'DO peak':>9}{'binding':>16}   vs reference (0.5 %)")
 _combo_fail = []

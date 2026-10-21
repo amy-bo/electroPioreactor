@@ -76,6 +76,18 @@ import xml.etree.ElementTree as ET
 from decimal import Decimal, ROUND_HALF_UP
 from gas_model_verification import verify_definition
 
+x_series = 1e-3   # MT D584 (-) below this the exponential helpers use their Taylor series (numerical)
+
+
+def _phi(x):
+    """Phi(x) = (1 - e^-x)/x, stable as x -> 0 (MT D333 etc.; series below x_series)."""
+    return (1 - math.exp(-x)) / x if x > x_series else 1 - x / 2 + x ** 2 / 6 - x ** 3 / 24
+
+
+def _psi(x):
+    """Psi(x) = (x - 1 + e^-x)/x^2, stable as x -> 0 (MT D334 etc.; series below x_series)."""
+    return (x - 1 + math.exp(-x)) / x ** 2 if x > x_series else 0.5 - x / 6 + x ** 2 / 24 - x ** 3 / 120
+
 # ============================================================================
 # SUMMARY TAB - user inputs (the only free variables in the model)
 #   These mirror Summary D2:D10 (+ D11:D14, the override cells G18 and G20) and are verified against the workbook at
@@ -1017,8 +1029,7 @@ def co2_mean_at(t_min):
     t_off = max(0.0, t_min * 60 - spg_dur)
     x = _k_eff_e * t_off
     e = math.exp(-x)
-    phi = (1 - e) / x if x > 0 else 1.0
-    psi = (x - 1 + e) / x ** 2 if x > 0 else 0.5
+    phi, psi = _phi(x), _psi(x)
     D_raw = (_Cair_e / _Csat_e * F_vent_ex - CO2_fix_sched) * (t_off / 3600) / (_V_L_CO2_e + _Vg_e)
     C_start = (D_raw * phi + _pool_b_e * e) / (1 - _pool_ret_e * e)
     return min(_Csat_e, max(_Cair_e, (_pool_ret_e * C_start + _pool_b_e) * phi + D_raw * psi))
@@ -1035,9 +1046,9 @@ CO2_pH_hi_mt = CO2_pH_hi * 1000                          # MT D429 (mol/m3)
 pH_grid_start = []                                       # MT column H, CO2 at the pulse start
 for _t in pH_grid_t:
     _toff = max(0.0, _t * 60 - spg_dur); _x = _k_eff_e * _toff; _e = math.exp(-_x)
-    _phi = (1 - _e) / _x if _x > 0 else 1.0
+    _ph = _phi(_x)
     _Dr = (_Cair_e / _Csat_e * F_vent_ex - CO2_fix_sched) * (_toff / 3600) / (_V_L_CO2_e + _Vg_e)
-    pH_grid_start.append((_Dr * _phi + _pool_b_e * _e) / (1 - _pool_ret_e * _e))
+    pH_grid_start.append((_Dr * _ph + _pool_b_e * _e) / (1 - _pool_ret_e * _e))
 _cross = [math.exp(math.log(pH_grid_t[i]) + (math.log(pH_grid_t[i + 1]) - math.log(pH_grid_t[i]))
                    * (pH_grid_C[i] - CO2_pH_hi_mt) / (pH_grid_C[i] - pH_grid_C[i + 1]))
           for i in range(grid_n - 1) if pH_grid_C[i] >= CO2_pH_hi_mt > pH_grid_C[i + 1]]   # MT column J
@@ -1084,8 +1095,7 @@ def co2_mean_lag_at(t_min):
     t_off = max(0.0, t_min * 60 - spg_dur)
     x = _k_eff_l_e * t_off
     e = math.exp(-x)
-    phi = (1 - e) / x if x > 0 else 1.0
-    psi = (x - 1 + e) / x ** 2 if x > 0 else 0.5
+    phi, psi = _phi(x), _psi(x)
     D_raw = (_Cair_e / _Csat_e * F_vent_ex - CO2_fix_l) * (t_off / 3600) / (_V_L_CO2_e + _Vg_e)
     C_start = (D_raw * phi + _pool_b_e * e) / (1 - _pool_ret_e * e)
     return min(_Csat_e, max(_Cair_e, (_pool_ret_e * C_start + _pool_b_e) * phi + D_raw * psi))
@@ -1158,25 +1168,22 @@ flush_vol      = CO2_pulse / n_hs_gas                   # MT D323 (-) headspace 
 flush_ret      = math.exp(-flush_vol)                   # MT D324 (-) well-mixed flush retains e^-V
 t_gap_h        = t_off_CO2 / 3600                       # MT D325 (h)
 tau_L_h        = 1 / (kLa_surf_used * 3600)             # MT D326 (h) liquid O2 response time
-def _phi(x):
-    """Phi(x) = (1-e^-x)/x, limit 1."""
-    return (1 - math.exp(-x)) / x if x > 0 else 1.0
-def _psi(x):
-    """Psi(x) = (x-1+e^-x)/x^2, limit 1/2."""
-    return (x - 1 + math.exp(-x)) / x ** 2 if x > 0 else 0.5
 rate_tol_rel = 1e-9                                     # MT D569 (-) numerical rate-coincidence tolerance
 
 
 def _z_peak(S, F, yp, T):
-    """MT D566-D568: exact periodic peak of a first-order liquid (rate 1/tau_L_h) following the
-    headspace ramp y(t) = S/F + (yp - S/F) e^(-F t/n) of one gap of length T (linear when F = 0)."""
-    b = 1 / tau_L_h
-    if F > 0:
-        a = F / n_hs_gas
-        g = (b / (b - a) * (math.exp(-a * T) - math.exp(-b * T)) if abs(b - a) > rate_tol_rel * b
-             else b * T * math.exp(-b * T))
-        return S / F + (yp - S / F) * g / (1 - math.exp(-b * T))
-    return yp - S / n_hs_gas / b + S / n_hs_gas * T / (1 - math.exp(-b * T))
+    """MT D566-D568: exact periodic peak of a first-order liquid (rate b = 1/tau_L_h) following the
+    headspace ramp y(t) = yp e^(-a t) + (S/F)(1 - e^(-a t)), a = F/n, over one gap of length T:
+    z = yp G + (S/n) H, written without S/F so it stays exact as F -> 0."""
+    b, a = 1 / tau_L_h, F / n_hs_gas
+    Xa, Xb = a * T, b * T
+    d = 1 - math.exp(-Xb)
+    if abs(b - a) <= rate_tol_rel * b:
+        G, H = Xb * math.exp(-Xb), (1 - (1 + Xb) * math.exp(-Xb)) / b
+    else:
+        G = b / (b - a) * (math.exp(-Xa) - math.exp(-Xb))
+        H = (Xb * _phi(Xa) - d) / (b - a)
+    return yp * G / d + S / n_hs_gas * H / d
 
 
 def _hs_phase(O2_src, H2_src, CO2_fix, DO_exc):
