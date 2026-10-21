@@ -53,7 +53,7 @@ Two measurements on the same vial: a pressure trace across pulses, and an optica
 1. Leak-check first. Plug the vent port. Pressurise the headspace gently by a CO2 pulse, brush soap solution on the cap seal, each port fitting and each septum, and watch for bubbles for 1 minute. Reseal anything that bubbles and repeat until nothing does. Then unplug the vent.
 2. Fit the transducer tube to a spare headspace port and confirm that the reading is flat at ambient pressure when the vent is open and no pulse is firing. Zero-calibrate against ambient, verify response to both pressure signs without clipping, and record baseline drift per minute.
 3. Equilibrate the medium with CO2 as described above.
-4. Pressure trace. Log pressure at 1 Hz or faster through at least 5 full pulse intervals at the operating schedule (read and record Summary D14/D16 for ed04, MMO tube, Xanthobacter tagetidis, AMYBO03, 30 °C). For each pulse note: peak overpressure, time for the pressure to return to ambient, and any dip below ambient (underpressure) before the next pulse.
+4. Pressure trace. Log pressure at 1 Hz or faster through at least 5 full pulse intervals at the operating schedule (read and record Summary D19/D21 for ed04, MMO tube, Xanthobacter tagetidis, AMYBO03, 30 °C). For each pulse note: peak overpressure, time for the pressure to return to ambient, and any dip below ambient (underpressure) before the next pulse.
 5. Interpret the pressure trace:
    - Pressure rises on the pulse and returns to ambient, with no dip below ambient afterwards: outflow-only or open vent; go to the O2 test to tell them apart.
    - Pressure returns to ambient and then sits below it between pulses, recovering slowly: record the pressure deficit and recovery time constant. This is consistent with possible ingress, but gas/liquid exchange also changes pressure; corroborate with the inventory and O₂ evidence before assigning back-draw or a leak.
@@ -70,7 +70,7 @@ Two measurements on the same vial: a pressure trace across pulses, and an optica
 
 ### What to enter
 
-- Summary D111 (named `vent_model_sel`): the selector. Choose "Outflow only", "Open vent" or "Air exchange" according to step 8.
+- Summary D11 (named `vent_model_sel`): the selector. Choose "Outflow only", "Open vent" or "Air exchange" according to step 8.
 - 'Mass Transfer'!D142 (`Q_vent`, mL/min): the measured bidirectional exchange flow from step 9. Enter only if you chose "Air exchange".
 - 'Mass Transfer'!D385 (`Q_backdraw`, mL/min; currently 0.015): the back-draw from step 10. Enter only if you chose "Open vent", or if you found a small but measurable back-draw.
 - Before entering a number, check the cell's colour and font convention in the sheet (column D font shows input versus formula); if the cell is a formula, ask the owner before overwriting.
@@ -106,11 +106,11 @@ No transducer and no optical spot. Slower and less quantitative; good enough to 
 
 ### What to enter
 
-As for the optimal route: Summary D111; 'Mass Transfer'!D142 for Air exchange; 'Mass Transfer'!D385 for Open vent. State that the value came from the budget route.
+As for the optimal route: Summary D11; 'Mass Transfer'!D142 for Air exchange; 'Mass Transfer'!D385 for Open vent. State that the value came from the budget route.
 
 ## What the spreadsheet does with it
 
-The vent selector (Summary D111, `vent_model_sel`) tells the model how gas leaves and enters the headspace. "Outflow only" is a check-valve vent: the headspace empties after each pulse and nothing returns, giving the longest pulse interval (about 12.6 min). "Open vent" lets a small amount of air be drawn back after each pulse, sized by `Q_backdraw` ('Mass Transfer'!D385) and is the default until measured (read Summary D16 for the selected configuration). "Air exchange" has air exchanged continuously at `Q_vent` ('Mass Transfer'!D142), which shortens the interval sharply and shifts the headspace O2 and the lag-phase H2 levels the model predicts. The choice therefore changes the headline CO2 schedule, the pH band check, and the lag-phase flammability check. Once you have the selector, re-read the lag-phase headspace predictions (Summary D125 for O2 and D126 for H2) before running the [headspace gas safety check](headspace-gas-safety.md).
+The vent selector (Summary D11, `vent_model_sel`) tells the model how gas leaves and enters the headspace. "Outflow only" is a check-valve vent: the headspace empties after each pulse and nothing returns, giving the longest pulse interval (about 12.6 min). "Open vent" lets a small amount of air be drawn back after each pulse, sized by `Q_backdraw` ('Mass Transfer'!D385) and is the default until measured (read Summary D21 for the selected configuration). "Air exchange" has air exchanged continuously at `Q_vent` ('Mass Transfer'!D142), which shortens the interval sharply and shifts the headspace O2 and the lag-phase H2 levels the model predicts. The choice therefore changes the headline CO2 schedule, the pH band check, and the lag-phase flammability check. Once you have the selector, re-read the lag-phase headspace predictions (Summary D70 for O2 and D71 for H2) before running the [headspace gas safety check](headspace-gas-safety.md).
 
 ## Principle and background
 

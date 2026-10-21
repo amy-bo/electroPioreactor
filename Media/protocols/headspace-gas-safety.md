@@ -28,7 +28,7 @@ Measures the real gas mixture in the headspace while electrolysis runs with no c
 
 - Hydrogen in air is flammable from a lower flammability limit (LFL) of about 4 % by volume; published values vary a little by source (the FAA has cited 4.7 %). Treat 4 % as the working figure.
 - A nominal hydrogen LOC is about 5 % O2 with nitrogen dilution (the cited secondary table gives 5.2 % with CO2). These and the air LFL are conservative hazard-screen references, not a complete classification of H2/O2/CO2/N2 mixtures. Owner verification of applicable mixture limits and margins against appropriate primary guidance, including current NFPA 69, is a prerequisite to accepting conditions. Below either quoted threshold does not establish safety.
-- Read Summary D125 (lag O2) and D126 (mean lag H2) with the recorded selections. Treat the headspace as potentially flammable; neither predictions nor this screen certify safety.
+- Read Summary D70 (lag O2) and D71 (mean lag H2) with the recorded selections. Treat the headspace as potentially flammable; neither predictions nor this screen certify safety.
 - No ignition sources: no naked flames, no sparking switches or hot plates near the vial or the vent outlet, no static (earth yourself, avoid synthetic clothing when handling), and no mobile phones in use at the vent. Use only instruments rated for the gas they sample.
 - Work in a fume hood or ventilated cabinet and vent the outlet into the extraction. Keep the cap and ports closed except for sampling.
 - Switch **electrolysis OFF** before opening the cap or a port to room air, before moving the vial, and before any syringe operation not covered by the validated sampling procedure. Closed-septum sampling under current is permitted only if that procedure explicitly covers it. An owner-approved gas-clearance procedure and acceptance criterion are prerequisites before opening or handling; elapsed intervals or routine CO₂ pulses alone do not establish clearance.
@@ -38,10 +38,10 @@ Measures the real gas mixture in the headspace while electrolysis runs with no c
 
 ## Before you start
 
-- The vial exactly as it will run: about 15 mL medium, the real vent fitted (the vent used in the vent protocol), cap leaks fixed, ed04, MMO tube assembly, chloride-free AMYBO03 at 30 °C, recorded operating power and the schedule read from Summary D14/D16. Record the *Xanthobacter tagetidis* selection even though there are no cells. No cells (lag source).
+- The vial exactly as it will run: about 15 mL medium, the real vent fitted (the vent used in the vent protocol), cap leaks fixed, ed04, MMO tube assembly, chloride-free AMYBO03 at 30 °C, recorded operating power and the schedule read from Summary D19/D21. Record the *Xanthobacter tagetidis* selection even though there are no cells. No cells (lag source).
 - Prerequisite: validate sampling apparatus for mixture response, range, recovery, dead volume and disturbance. Demonstrate that withdrawals, syringe flushes and pump flow do not materially alter pressure, induce air ingress or shift composition; otherwise report vent readings only or use a separately validated arrangement.
 - Run the full schedule for at least 1 hour before sampling and establish a repeating cycle.
-- Know the model values before you start: Summary D126 (mean H2), Summary D125 (O2), Summary D124 (growth-phase O2).
+- Know the model values before you start: Summary D71 (mean H2), Summary D70 (O2), Summary D69 (growth-phase O2).
 
 ## Optimal protocol
 
@@ -63,7 +63,7 @@ Measures the real gas mixture in the headspace while electrolysis runs with no c
 2. Run the vial at its full schedule for at least 1 hour. Note the exact time of each CO2 pulse.
 3. Sample A, end of interval: starting about 30 s before the next pulse, take 0.5 mL of headspace gas through the septum port with the gastight syringe. Rinse is not possible, so discard the first draw if the syringe was open to air; flush the syringe once with headspace gas and take a second draw. Record the time since the last pulse.
 4. Inject at once into the GC. Record H2, O2, N2 and CO2 as percentages.
-5. Wait for the next pulse and the full interval. Sample B, mid-interval: at 0.5 × Summary D16 minutes after the pulse, repeat steps 3 and 4.
+5. Wait for the next pulse and the full interval. Sample B, mid-interval: at 0.5 × Summary D21 minutes after the pulse, repeat steps 3 and 4.
 6. Repeat sample A and sample B for at least 3 intervals, switching electrolysis off while you change the syringe only if the port is open to air; closed-septum sampling under current is allowed only by the validated sampling procedure above.
 7. If you want the dilution by air from the sampling itself checked, inject a CO2 blank drawn the same way and read N2 and O2. A large air signal means the syringe or the port is leaking; discard and re-do.
 8. Report sample A (end-of-interval) and B (mid-interval) means and spreads separately. Their average is not the time mean of a nonlinear cycle. For a model cycle-mean comparison, obtain a validated trace or sufficient phase samples for a time-weighted integral over complete settled cycles and report integration uncertainty.
@@ -96,18 +96,18 @@ No GC. A portable H2 meter or combustible-gas detector at the vent outlet. Gives
 
 ## What the spreadsheet does with it
 
-The model predicts the lag-phase headspace from a well-mixed balance depending on the vent model: read mean H2 from Summary D126, lag O2 from D125 and growth-phase O2 from D124 with the recorded configuration and schedule. Its LFL/LOC comparison is a hazard screen, not certification. No Calibrations entry is made: record phase-specific measurements, validated time-weighted means if available, uncertainties and sampling limitations in the lab record against the headspace TODO.
+The model predicts the lag-phase headspace from a well-mixed balance depending on the vent model: read mean H2 from Summary D71, lag O2 from D70 and growth-phase O2 from D69 with the recorded configuration and schedule. Its LFL/LOC comparison is a hazard screen, not certification. No Calibrations entry is made: record phase-specific measurements, validated time-weighted means if available, uncertainties and sampling limitations in the lab record against the headspace TODO.
 
 ### What to compare, and what counts as agreement
 
-- Compare your measured mean H2 with Summary D126, measured O2 with Summary D125 (lag), and, if you run the growth-phase case, O2 with Summary D124.
+- Compare your measured mean H2 with Summary D71, measured O2 with Summary D70 (lag), and, if you run the growth-phase case, O2 with Summary D69.
 - +/-30 % is only a provisional model-comparison screen, not an equivalence or safety margin. Owner-approved equivalence margins and measurement uncertainty are prerequisites for declaring agreement.
-- Outside +/-30 %: investigate sampling and analyser uncertainty as well as the balance; the vent model is one suspect. Do [headspace-vent.md](headspace-vent.md) first and update Summary D111, then re-compare.
+- Outside +/-30 %: investigate sampling and analyser uncertainty as well as the balance; the vent model is one suspect. Do [headspace-vent.md](headspace-vent.md) first and update Summary D11, then re-compare.
 - Whatever the model says, H2 above 4 % together with O2 above about 5 % flags a potential flammability hazard and excludes unattended operation pending owner review. Below either reference does not establish safety: applicable mixture limits and margins must be verified.
 
 ### Proposed remedies after a hazard flag
 
-The model's remedy is to sparge CO2 more often, or to add a small N2 sweep to the headspace. Be aware that more CO2 pulses push the pH below the band (Summary D128 reads NO for CO2 alone doing all three jobs). An N2 sweep addition (about 1 mL/min was proposed in the TODO) is **not yet modelled** and is a TODO in the model; it must be measured on the bench rather than taken from the spreadsheet.
+The model's remedy is to sparge CO2 more often, or to add a small N2 sweep to the headspace. Be aware that more CO2 pulses push the pH below the band (Summary D52 reads NO for CO2 alone doing all three jobs). An N2 sweep addition (about 1 mL/min was proposed in the TODO) is **not yet modelled** and is a TODO in the model; it must be measured on the bench rather than taken from the spreadsheet.
 
 ## Principle and background
 

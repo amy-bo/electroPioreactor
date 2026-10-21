@@ -63,8 +63,8 @@ class GasModelChecks(unittest.TestCase):
                          dict(sched_mode='Manual', spg_dur_man=0.4, spg_int_man=2.5)):
             with self.subTest(settings=settings):
                 n = self.twin(**settings)
-                self.assertEqual(n['S_D14'], n['spg_dur'])
-                self.assertEqual(n['S_D16'], n['spg_int'])
+                self.assertEqual(n['S_D19'], n['spg_dur'])
+                self.assertEqual(n['S_D21'], n['spg_int'])
         self.assertTrue(math.isnan(self.twin(user_spg_dur=60, user_spg_int=1)['spg_int']))
 
     def test_chlorine_requires_electrical_production(self):
@@ -190,9 +190,9 @@ class GasModelChecks(unittest.TestCase):
         self.assertTrue(f('D44').endswith(')))+alk_add_M'))
         self.assertTrue(f('D185').endswith(')))+alk_add_M'))
         self.assertIn('+alk_add_M*(lam_Na+lam_HCO3)/10)*kappa_fI', f('D180'))
-        self.assertEqual(f('D317'), 'Summary!$D$133')
+        self.assertEqual(f('D317'), 'Summary!$D$13')
         self.assertEqual(f('D318'), 'NaHCO3_add_gL/M_NaHCO3')
-        for name, sid, ref in (('NaHCO3_add_gL', 0, 'Summary!$D$133'), ('NaHCO3_add_gL', 3, 'Chemistry!$D$317'),
+        for name, sid, ref in (('NaHCO3_add_gL', 0, 'Summary!$D$13'), ('NaHCO3_add_gL', 3, 'Chemistry!$D$317'),
                                ('alk_add_M', 3, 'Chemistry!$D$318')):
             self.assertIn('<definedName name="%s" localSheetId="%d">%s</definedName>' % (name, sid, ref), wb)
 

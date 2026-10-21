@@ -43,7 +43,7 @@ WHAT CHANGED IN THIS RE-BASE (vs the previous revision of this script)
         and both Henry constants, not only the Henry constants.
     (e) iterH: ONE headspace balance (Mass Transfer 300-382) drives the O2 sizing, the
         CO2 pool and the flammability fractions, under two owner selectors (Summary
-        D111 vent_model, D112 O2_phase). The sizing targets the CYCLE-MEAN DO (sawtooth
+        Summary D11 vent_model, D12 O2_phase). The sizing targets the CYCLE-MEAN DO (sawtooth
         factor), CO2 fixation is a sink, an outflow-only vent removes CO2 only through
         net evolved gas (so the pool runs near saturation), and a pulse is a well-mixed
         flush. A short block evaluates the headline in all four selector states.
@@ -62,7 +62,7 @@ STANDING RULE -- RE-BASE THIS FILE WHENEVER THE WORKBOOK MOVES
     be re-based whenever either of the following changes:
       (a) the guard/optimiser logic (Mass Transfer D84-D94, D112, D131-D135, D178-D200, D300-D382)
       (b) the baseline inputs (Summary D2:D10 -- reactor, electrode, organism, medium,
-          LED %, stir rpm, temperature, volume, pressure -- and the D111:D112 selectors)
+          LED %, stir rpm, temperature, volume, pressure -- and the Summary D11:D12 selectors)
     Every percentage this script prints becomes wrong the moment it drifts. The runtime
     self-check fails loudly if the baseline stops reproducing the workbook, and the
     sweep-bracket assertion fails loudly if a baseline input drifts outside its own sweep
@@ -113,9 +113,9 @@ BASE = dict(
   elec_gap=14.0,                          # Geometry D92, DATA GAP -- measure with calipers
   # --- electrolysis ---
   intensity=3, gerrit_slope=1.03, gerrit_int=2.6, F=96485.33212,
-  NaHCO3_add_gL=0.0,                      # Summary D133 NaHCO3 added on top of the recipe (blank = 0)
+  NaHCO3_add_gL=0.0,                      # Summary D13 NaHCO3 added on top of the recipe (blank = 0)
   pH_band_hi=7.5,                         # Chemistry D237 HOB band ceiling (the pH-ceiling interval)
-  N2_sweep=0.0,                           # Summary D98 continuous N2 headspace sweep, mL/min (blank = 0)
+  N2_sweep=0.0,                           # Summary D14 continuous N2 headspace sweep, mL/min (blank = 0)
   z_e_H2=2, z_e_O2=4, z_e_ORR=2,          # z_e_ORR=2: peroxide pathway, SS cathode lookup
   km_O2=4.0e-3, km_exp=0.644,             # Eisenberg-Tobias-Wilke; k_m scales as D^0.644
   f_HOOH=0.15, k_cat_cells=0.0041, M_H2O2=34.0147,
@@ -144,7 +144,7 @@ BASE = dict(
   H_CO2ref=3.3e-4, H_CO2T=2400, Km_CO2=50,
   H_H2ref=7.8e-6, H_H2T=500,
   Q_vent=0.5, Q_backdraw=0.015, pCO2_air=40.0,   # Q_backdraw: MT D385, open-vent back-draw air (mL/min) - MEASURE
-  # --- iterH headspace balance: owner selectors (Summary D111:D112) + dry-air O2 ---
+  # --- iterH headspace balance: owner selectors (Summary D11:D12) + dry-air O2 ---
   vent_model='Open vent',                 # 'Outflow only' | 'Open vent' (Q_backdraw) | 'Air exchange' (Q_vent = TOTAL air ingress)
   O2_phase='Growth',                      # 'Growth' | 'Lag': the phase the O2 schedule is sized on
   y_O2_air=0.2095,                        # MT D307
@@ -493,7 +493,7 @@ def model(p):
     duty = spg_dur / (spg_int * 60)                                      # D105, valve-time duty
     spg_dur_run = max(p['pulse_floor'], math.floor(spg_dur / 0.05 + 0.5 + 1e-12) * 0.05)   # MT D242 (pulse_res 0.05 s, MROUND)
     spg_dur_run_eq = (V0 + Q_fit * spg_dur_run) / (p['Q_CO2'] / 60)      # as-run pulse on the delivered-volume basis
-    spg_int_run = math.floor(spg_dur_run_eq / (60 * duty_actual) / 0.01 + 1e-12) * 0.01  # Summary D16, whole minutes
+    spg_int_run = math.floor(spg_dur_run_eq / (60 * duty_actual) / 0.01 + 1e-12) * 0.01  # Summary D21, whole minutes
 
     spg_dur_opt, spg_int_opt = spg_dur, spg_int
     spg_dur, spg_int = spg_dur_run, spg_int_run
@@ -535,8 +535,8 @@ def model(p):
     DO_ss_sawtooth = DO_hs_floor + DO_surf_excess                        # D133, mol/m3
     DO_ss = hs_s['DO_avg'] * M_O2                                        # D108 = D372, mg/L cycle mean
     DO_peak = hs_s['DO_peak'] * M_O2                                     # D373, mg/L
-    DO_ss_g, DO_peak_g = hs['Growth']['DO_avg'] * M_O2, hs['Growth']['DO_peak'] * M_O2   # Summary D114/D115
-    DO_ss_lag, DO_peak_lag = hs['Lag']['DO_avg'] * M_O2, hs['Lag']['DO_peak'] * M_O2     # Summary D116/D117
+    DO_ss_g, DO_peak_g = hs['Growth']['DO_avg'] * M_O2, hs['Growth']['DO_peak'] * M_O2   # Summary D59/D60
+    DO_ss_lag, DO_peak_lag = hs['Lag']['DO_avg'] * M_O2, hs['Lag']['DO_peak'] * M_O2     # Summary D61/D62
     y_H2_lag = hs['Lag']['yH2']                                          # D352 = Biology D84
     t_lag = (O2_ceil_C * V_L / O2_net * 60) if O2_net > 1e-15 else INF   # D79
 
@@ -641,7 +641,7 @@ def model(p):
 
     # --- dissolved CO2 / H2 diagnostics ---
     carbon_margin = CO2aqc * 1000 * 1000 / p['Km_CO2']
-    carbon_margin_trough = C_start * 1000 / p['Km_CO2']                  # Biology D98 = Summary D41
+    carbon_margin_trough = C_start * 1000 / p['Km_CO2']                  # Biology D98 = Summary D76
     C_H2 = H_H2_T * p['P_atm']
     t_H2_sat = C_H2 * V_L / rH2 * 60 if rH2 > 0 else INF
     CO2_sd = (CO2_supply / CO2_cons) if CO2_cons > 0 else NAN
@@ -781,23 +781,23 @@ SELF_CHECK = [
     ('CO2_cyc_avg_new', 'CO2_cyc_avg_new (mol/m3)', 'Mass Transfer',    'D200'),
     ('pH_meas',         'pH_meas (-)',              'Chemistry',        'D220'),
     ('j_buffer_ratio',  'j_buffer_ratio (-)',       'Chemistry',        'D218'),
-    ('C_eff_Cl2',       'C_eff_Cl2 (mg/L)',         'Summary',          'D36'),
+    ('C_eff_Cl2',       'C_eff_Cl2 (mg/L)',         'Summary',          'D25'),
     ('n_ORR_eff',       'n_ORR_eff (e-/O2)',        'Electrochemistry', 'D141'),
     ('H2O2_lag_1h',     'H2O2_lag_1h (mg/L)',       'Electrochemistry', 'D96'),
     ('k_Cl_turn',       'k_Cl_turn (1/s)',          'Chemistry',        'D271'),
     ('j_buffer_lim',    'j_buffer_lim (mA/cm2)',    'Chemistry',        'D216'),
-    ('carbon_margin_trough', 'carbon margin at trough (x)', 'Summary',  'D41'),
+    ('carbon_margin_trough', 'carbon margin at trough (x)', 'Summary',  'D76'),
     ('spg_dur_run',     'spg_dur_run (s)',          'Mass Transfer',    'D242'),
-    ('spg_int_run',     'spg_int_run (min)',        'Summary',          'D16'),
+    ('spg_int_run',     'spg_int_run (min)',        'Summary',          'D21'),
     ('saw_factor',      'saw_factor (-)',           'Mass Transfer',    'D322'),
     ('F_vent_ex',       'F_vent_ex (mol/h)',        'Mass Transfer',    'D308'),
     ('y_O2_actual',     'y_O2_actual (-)',          'Mass Transfer',    'D187'),
     ('k_vent',          'k_vent (1/s)',             'Mass Transfer',    'D143'),
     ('pool_b',          'pool_b (mol/m3)',          'Mass Transfer',    'D194'),
     ('C_start',         'C_cycle_start (mol/m3)',   'Mass Transfer',    'D198'),
-    ('DO_peak',         'DO_peak sizing (mg/L)',    'Summary',          'D115'),
-    ('DO_ss_lag',       'DO cycle-mean lag (mg/L)', 'Summary',          'D116'),
-    ('DO_peak_lag',     'DO peak lag (mg/L)',       'Summary',          'D117'),
+    ('DO_peak',         'DO_peak sizing (mg/L)',    'Summary',          'D60'),
+    ('DO_ss_lag',       'DO cycle-mean lag (mg/L)', 'Summary',          'D61'),
+    ('DO_peak_lag',     'DO peak lag (mg/L)',       'Summary',          'D62'),
     ('y_H2_lag',        'y_H2 lag (-)',             'Biology',          'D84'),
     ('O2_net_lag',      'O2_net_lag (mol/h)',       'Electrochemistry', 'D132'),
     ('rH2_lag',         'rH2_lag (mol/h)',          'Electrochemistry', 'D133'),
@@ -833,10 +833,10 @@ INPUT_CELLS = [
     ('T_C',           'Summary', 'D8', BASE['T_C']),
     ('media_volume',  'Summary', 'D9', None),     # blank -> recommended fill (V_max etc.)
     ('P_atm_set',     'Summary', 'D10', None),    # blank -> 101325 Pa default
-    ('NaHCO3_add_gL', 'Summary', 'D133', BASE['NaHCO3_add_gL'] or None),   # blank = no added NaHCO3
-    ('N2_sweep',      'Summary', 'D98', BASE['N2_sweep'] or None),         # blank = no N2 sweep
-    ('vent_model',    'Summary', 'D111', BASE['vent_model']),
-    ('O2_phase',      'Summary', 'D112', BASE['O2_phase']),
+    ('NaHCO3_add_gL', 'Summary', 'D13', BASE['NaHCO3_add_gL'] or None),   # blank = no added NaHCO3
+    ('N2_sweep',      'Summary', 'D14', BASE['N2_sweep'] or None),         # blank = no N2 sweep
+    ('vent_model',    'Summary', 'D11', BASE['vent_model']),
+    ('O2_phase',      'Summary', 'D12', BASE['O2_phase']),
     ('V_max',         'Geometry', 'D23', BASE['V_max']),
     ('V_vial_total',  'Geometry', 'D24', BASE['V_vial_total']),
     ('D_int',         'Geometry', 'D22', BASE['D_int']),
@@ -938,7 +938,7 @@ _drift = [(n, f"{sh}!{ref}", d, _cell(_wb, sh, ref)) for n, sh, ref, d in INPUT_
           if not _input_ok(d, _cell(_wb, sh, ref))]
 if _drift:
     print("INPUT DRIFT - this script's BASE inputs differ from the workbook "
-          "(Summary D2:D10, D111:D112 and dependants):")
+          "(Summary D2:D10, D11:D12 and dependants):")
     for n, where, d, bk in _drift:
         print(f"   {n:14} {where:26} script={_fmt(d) if d is not None else 'blank'}  "
               f"workbook={_fmt(bk)}")
@@ -993,13 +993,13 @@ if _fails:
     raise SystemExit("Re-base BASE / model() against the workbook before using any number below.")
 else:
     print(f"      self-check: all {len(SELF_CHECK)} baseline values reproduce the workbook "
-          "cached values (rel tol 5e-5); inputs match Summary D2:D10, D111:D112")
+          "cached values (rel tol 5e-5); inputs match Summary D2:D10, D11:D12")
     print("      cells checked: " + ", ".join(_checked))
 
 # ============================================================================
 # HEADSPACE SELECTORS -- the headline in all four vent-model / sizing-phase states.
 #   The workbook caches only ONE selector state, so the live default is checked against
-#   the workbook's own cached Summary D15 / D35 / D38. The three other states cannot be
+#   the workbook's own cached Summary D20 / D23 / D38. The three other states cannot be
 #   recalculated here, so they are checked against the TWIN (electroPioreactorGasModel.py,
 #   beside this script): it is an independent, full cell-by-cell implementation of the same
 #   workbook, evaluated at the same selector state (its two selector lines are overridden in
@@ -1009,7 +1009,7 @@ TWIN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "electroPio
 
 
 def _twin_state(vent_model, O2_phase):
-    """(Summary D15, D35, D38) from the full twin run at the given selector state."""
+    """(Summary D20, D23, D24) from the full twin run at the given selector state."""
     with open(TWIN_PATH, encoding="utf-8") as fh:
         src = fh.read()
     src, n1 = re.subn(r'(?m)^vent_model_sel\s*=\s*"[^"]*"', f'vent_model_sel = "{vent_model}"', src)
@@ -1019,7 +1019,7 @@ def _twin_state(vent_model, O2_phase):
                          "electroPioreactorGasModel.py")
     ns = {"__name__": "twin_combo", "__file__": TWIN_PATH}
     exec(compile(src, TWIN_PATH, "exec"), ns)
-    return (ns["S_D15"], ns["S_D35"], ns["S_D38"])
+    return (ns["S_D20"], ns["S_D23"], ns["S_D24"])
 
 
 _live = (BASE['vent_model'], BASE['O2_phase'])
@@ -1027,7 +1027,7 @@ COMBO_REF = {}      # (vent_model, O2_phase) -> (reference triple, where it came
 for _k in (('Open vent', 'Growth'), ('Outflow only', 'Growth'),
            ('Air exchange', 'Growth'), ('Open vent', 'Lag')):
     if _k == _live:
-        _lv = tuple(_cell(_wb, 'Summary', r) for r in ('D15', 'D35', 'D38'))
+        _lv = tuple(_cell(_wb, 'Summary', r) for r in ('D20', 'D23', 'D24'))
         COMBO_REF[_k] = (_lv if all(isinstance(v, float) for v in _lv) else None, "workbook")
     else:
         _tw = _twin_state(*_k)
