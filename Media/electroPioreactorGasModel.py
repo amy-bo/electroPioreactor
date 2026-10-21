@@ -688,7 +688,8 @@ hs_O2_allow   = DO_target - DO_surf_excess             # D182 (mol/m3)
 y_O2_star     = (hs_O2_allow / (H_O2_T * P_atm)) if hs_O2_allow > 0 else NA   # D183 (-)
 duty_DO       = (O2_excess * (1 - y_O2_star) / (y_O2_star * CO2_rate_full)
                  if isnum(y_O2_star) else NA)          # D184 (-)
-spg_int_DO    = (spg_dur_opt / (60 * duty_DO)) if isnum(duty_DO) else NA      # D185 (min)
+spg_int_DO    = ((spg_dur_opt / (60 * duty_DO) if duty_DO > 0 else spg_int_carbon)
+                 if isnum(duty_DO) else NA)            # D185 (min); duty 0 -> carbon-limited interval
 kLa_surf_req  = O2_excess / (DO_target * 3600 * (V_charge / 1e6))             # D186 (1/s)
 
 spg_int_opt = (min(spg_int_carbon, spg_int_DO) if isnum(spg_int_DO)
@@ -729,10 +730,38 @@ pulses_d   = pulses_h * 24                              # D125 (/d)
 CO2_supply = CO2_pulse * pulses_h                       # D100 (mol/h)
 CO2_sd_ratio = CO2_supply / CO2_cons if CO2_cons > 0 else NA  # D126
 
+# --- Biology rows 75-88: lag-phase headspace flammability (replaces the H2_turnover proxy at D44) ---
+CO2_supply_b    = CO2_supply                            # Biology D76 (mol/h) <- MT D100
+CO2_rate_full_b = CO2_rate_full                         # Biology D77 (mol/h) <- MT D178
+spg_dur_b       = spg_dur_opt                           # Biology D78 (s)     <- MT D90
+R_gas_b         = R_gas                                 # Biology D79 (J/mol/K) <- MT D101
+H2_LFL     = 0.04                                       # Biology D80 (-) H2 lower flammability limit
+O2_LOC_H2  = 0.052                                      # Biology D81 (-) limiting O2 conc., CO2 diluent
+LOC_margin = 0.6                                        # Biology D82 (-) NFPA 69 design margin
+n_flamm_src = rH2_gen + O2_net_gen                      # Biology D83 (mol/h) gas into headspace, lag
+y_H2_hs_lag = rH2_gen / (n_flamm_src + CO2_supply_b)    # Biology D84 (-)
+y_O2_hs_lag = O2_net_gen / (n_flamm_src + CO2_supply_b) # Biology D85 (-)
+duty_H2safe = max(0.0, min(rH2_gen / H2_LFL - n_flamm_src,
+                           O2_net_gen / (O2_LOC_H2 * LOC_margin) - n_flamm_src)) / CO2_rate_full_b   # Biology D86 (-)
+spg_int_H2safe = (spg_dur_b / (60 * duty_H2safe)) if duty_H2safe > 0 else NA   # Biology D87 (min)
+N2_sweep_H2safe = (max(0.0, rH2_gen / H2_LFL - n_flamm_src) / 3600 * R_gas_b * T_K / P_atm
+                   * 1000000 * 60)                      # Biology D88 (mL/min)
+if y_H2_hs_lag >= H2_LFL and y_O2_hs_lag >= O2_LOC_H2 * LOC_margin:
+    H2_safety = ("FLAMMABLE HEADSPACE (lag): H\u2082 " + xltext(y_H2_hs_lag, "0%")
+                 + ", O\u2082 " + xltext(y_O2_hs_lag, "0%")
+                 + " \u2013 until uptake starts, sparge every \u2264" + xltext(spg_int_H2safe / 2, "0.0")
+                 + " min or sweep \u2265" + xltext(N2_sweep_H2safe, "0.0")
+                 + " mL/min N\u2082; vent to a hood; no ignition sources")
+else:
+    H2_safety = "Below the H\u2082 LFL or under the O\u2082 LOC margin (lag basis)"   # Biology D44
+
 # --- steady dissolved O2 = headspace floor + the excess that drives the surface flux ---
 y_O2_actual = (O2_excess / (O2_excess + CO2_supply)) if CO2_supply > 0 else NA  # D187 (-)
 DO_hs_floor = (H_O2_T * y_O2_actual * P_atm) if isnum(y_O2_actual) else NA      # D188 (mol/m3)
-DO_ss = (DO_hs_floor + DO_surf_excess) * 32            # D108 (mg/L)
+M_O2 = 31.998                                          # MT D231 (g/mol) IUPAC 2 x 15.999
+DO_ss = (DO_hs_floor + DO_surf_excess) * M_O2          # D108 (mg/L)
+# DO if the interval relaxed to the carbon-limited one: same back-pressure + surface balance as D188/D180 at duty_carbon
+DO_at_carbon = H_O2_T * P_atm * O2_excess / (O2_excess + CO2_rate_full * duty_carbon) + DO_surf_excess   # MT D232 (mol/m3)
 DO_ss_sawtooth = DO_hs_floor + DO_surf_excess          # D133 (mol/m3, growth-phase source)
 DO_ss_sawtooth_lag = DO_hs_floor + DO_surf_excess_lag  # D135 (mol/m3, LAG source)
 
@@ -789,13 +818,12 @@ if isnum(DO_min):
 else:
     DO_ss_vs_min = "minimum DO unknown - measure"        # D110
 tip_warn = "TIP SPEED > 1.5 m/s" if tip_speed > 1.5 else "OK"  # D111
-if isnum(DO_ss) and isnum(DO_impair):
-    sched_regime = ("Surface stripping holds DO under impairment - sparge is CARBON-limited "
-                    "(long interval); the O2-limited interval is the conservative fallback "
-                    "until kL_surf is measured" if DO_ss < DO_impair
-                    else "Surface stripping insufficient - sparge must vent O2 - use the O2-limited interval")
-else:
-    sched_regime = "organism DO unknown"                # D113
+sched_regime = ("Carbon supply alone holds the DO target – the interval may relax to "
+                + xltext(spg_int_carbon, "0") + " min"
+                if DO_at_carbon <= DO_target
+                else "Do NOT relax: at the carbon-limited interval (" + xltext(spg_int_carbon, "0")
+                + " min) DO would be " + xltext(DO_at_carbon * M_O2, "0.0") + " mg/L against a "
+                + xltext(DO_target * M_O2, "0.0") + " mg/L target")   # D113
 cal_warning = (f"calibrated: {Reactor}" if has_cal > 0
                else f"NO CALIBRATION for {Reactor} - add a row in CO2 flows with nominal flowrate + minimum sparge")  # D120
 
@@ -898,7 +926,7 @@ for i in range(len(_pH_grid) - 1):
 pH_op = _interp_sum if n_cross == 1 else NA            # D103 (concentration-scale operating pH)
 pH_meas = pH_op - math.log10(gam1)                     # D220 (what a probe reads)
 
-pH_fHOCl = 1 / (1 + 10 ** (pH_meas - pKa_HOCl))        # D104
+pH_fHOCl = 1 / (1 + KaHOCl_c / 10 ** -pH_op)           # D104 concentration scale at pH_op
 # --- naive FE=1 cells (NOT operative; kept for contrast) ---
 bleach_rate   = Iappc / (2 * Fcc) * 52460 * 3600 / VLc # D107 (mg/L/h, FE=1 ceiling)
 bleach_t1ppm  = 1 / bleach_rate * 60                   # D108 (min)
@@ -908,7 +936,7 @@ P_HOCl   = I_Cl / (n_e_Cl * Fcc * VLc)                 # D134 (mol/L/s) volumetr
 NH3_N    = pH_NT * 14007                               # D135 (mg/L) ammonium as N
 k1_NH2Cl = 4.2e6                                       # D136 (M^-1 s^-1) HOCl+NH3 rate constant
 pKa_NH4  = -math.log10(Ka_NH4)                         # D137 (from the van 't Hoff-corrected Ka_NH4)
-NH3_free = pH_NT / (1 + 10 ** (pKa_NH4 - pH_meas))     # D138 (M) reactive free ammonia
+NH3_free = pH_NT / (1 + 10 ** (pKa_NH4 - pH_op))       # D138 (M) reactive free ammonia
 HOCl_ss  = P_HOCl / (k1_NH2Cl * NH3_free)              # D139 (M) steady bulk free HOCl (already the undissociated acid)
 HOCl_ss_mgL = HOCl_ss * 52460                          # D140 (mg/L)
 f_local  = 10                                          # D141 anode boundary-layer enrichment (numerically inert: chloramine dominates ~1e4x)
@@ -948,14 +976,21 @@ metal_flag = ("DATA GAP - measure dissolved Cu/Ni/Fe in spent medium; the green 
               "electrode corrosion / metal leaching as the unmodelled prime suspect for the Exp-2 death"
               if not isnum(corr_I_frac)
               else f"metal leach {metal_leach_rate:.2f} mg/L/h vs ~{metal_tox_thresh} mg/L bactericidal threshold")  # D163
-if C_eff < Cl_onset:                                   # D109
-    bleach_flag = (f"negligible free chlorine ({C_eff:.2f} mg/L < onset); "
+M_HOCl_mg = 52460                                       # Chemistry D222 (mg/mol)
+M_Cl2_mg  = 70906                                       # Chemistry D223 (mg/mol)
+C_eff_Cl2 = C_eff * M_Cl2_mg / M_HOCl_mg                # Chemistry D226 (mg/L as Cl2)
+C_eff_lo_Cl2 = C_eff_lo * M_Cl2_mg / M_HOCl_mg          # Chemistry D259 (mg/L as Cl2)
+C_eff_hi_Cl2 = C_eff_hi * M_Cl2_mg / M_HOCl_mg          # Chemistry D260 (mg/L as Cl2)
+if C_eff_Cl2 < Cl_onset:                               # D109
+    bleach_flag = ("negligible free chlorine (" + xltext(C_eff_Cl2, "0.00") + " mg/L as Cl₂ < onset); "
                    "does NOT account for the Exp-2 death - see metal_flag")
-elif C_eff < Cl_kill:
-    bleach_flag = (f"sub-lethal {C_eff:.2f} mg/L (band {C_eff_lo:.2f}-{C_eff_hi:.2f}); chloride-pool-bounded, "
-                   "cannot reach the kill threshold in this medium; does NOT explain the death - see metal_flag")
+elif C_eff_Cl2 < Cl_kill:
+    bleach_flag = ("sub-lethal " + xltext(C_eff_Cl2, "0.00") + " mg/L as Cl₂ (band "
+                   + xltext(C_eff_lo_Cl2, "0.00") + "-" + xltext(C_eff_hi_Cl2, "0.00")
+                   + "); chloride-pool-bounded, cannot reach the kill threshold in this medium; "
+                   "does NOT explain the death - see metal_flag")
 else:
-    bleach_flag = f"SEVERE free chlorine: {C_eff:.1f} mg/L → biofilm/electrode damage (Baek 2021)"
+    bleach_flag = "SEVERE free chlorine: " + xltext(C_eff_Cl2, "0.0") + " mg/L as Cl₂ - biofilm/electrode damage (Baek 2021)"
 if pH_meas < 6.5:
     pH_band_flag = "pH BELOW HOB optimum (<6.5) — reduce the CO₂ dose or lengthen the interval"
 elif pH_meas > 7.5:
@@ -972,15 +1007,21 @@ E0_Cu   = 0.3419                                       # D205
 E_OER   = E0_OER - nernst_slope * pH_meas              # D206
 E_HER   = E0_HER - nernst_slope * pH_meas              # D207
 E_Cl2   = E0_Cl2 + nernst_slope * (-math.log10(max(pH_Cl, 1e-12)))  # D208
-E_Cl_margin = E_Cl2 - E_OER                            # D209 (V) chlorine headroom over O2 evolution
+E_anode_op = E_OER + eta_anode + pcet_credit           # Chemistry D256 (V vs SHE) E_OER + eta_anode_c (Echem D111) + pcet_credit_c (Echem D113)
+E0_HOCl = 1.482                                        # Chemistry D257 (V) CRC
+E_HOCl_Cl = E0_HOCl + nernst_slope / 2 * (math.log10(max(HOCl_ss * f_local, 1e-12))
+                                            - pH_meas - math.log10(max(pH_Cl, 1e-12)))   # Chemistry D258 (V vs SHE)
+E_Cl_margin = E_HOCl_Cl - E_anode_op                   # D209 (V) HOCl/Cl- couple minus operating anode potential
 E_ORR2  = E0_ORR2 - nernst_slope * pH_meas             # D210
-E_Cu_margin = E_OER - E0_Cu                            # D211 (V)
+E_Cu_margin = E_anode_op - E0_Cu                       # D211 (V) operating anode above Cu2+/Cu
 
 # --- buffer capacity at the electrode surface (Chemistry rows 213-219) ---
 D_HPO4     = 7.59e-10                                  # D214 (m2/s) CRC tabulated
 delta_diff = 40.0                                      # D215 (um) from k_m = D/delta at the assumed swirl
-_f_HPO4    = 1 - 1 / (1 + 10 ** (pH_meas - (-math.log10(Ka2p_c))))   # HPO4(2-) share of the phosphate pool
-j_buffer_lim = Fcc * D_HPO4 * (pH_PT * _f_HPO4) * 1000 / (delta_diff / 1e6) / 10   # D216 (mA/cm2)
+D_HCO3     = 1.185e-9                                  # D251 (m2/s) CRC
+HCO3_op    = Ka1c_c * CO2aqc / 10 ** -pH_op            # D252 (mol/L) concentration scale
+HPO4_op    = pH_PT / (1 + 10 ** (-math.log10(Ka2p_c) - pH_op))   # D253 (mol/L)
+j_buffer_lim = Fcc * (D_HPO4 * HPO4_op + D_HCO3 * HCO3_op) * 1000 / (delta_diff / 1e6) / 10   # D216 (mA/cm2) phosphate + bicarbonate acceptors
 j_anode_c    = j_anode                                 # D217 <- Electrochemistry D48
 j_buffer_ratio = j_anode_c / j_buffer_lim              # D218 (-)
 if j_buffer_ratio > 1:
@@ -1043,9 +1084,6 @@ S_D33 = I_valid                                         # D33 LED current-law ra
 S_D34 = ("inputs present" if (isnum(DO_min) and isnum(DO_opt) and isnum(DO_impair) and isnum(DO_toxic))
          else "DATA GAP - organism DO thresholds unmeasured; results unreliable")  # D34
 S_D35 = pH_meas                                         # D35 endpoint pH (activity scale) = Chemistry D220
-M_HOCl_mg = 52460                                       # Chemistry D222 (mg/mol)
-M_Cl2_mg  = 70906                                       # Chemistry D223 (mg/mol)
-C_eff_Cl2 = C_eff * M_Cl2_mg / M_HOCl_mg                # Chemistry D226 (mg/L as Cl2)
 S_D36 = C_eff_Cl2                                       # D36 effective biocidal chlorine, as Cl2 = Chemistry D226
 S_D38 = DO_ss                                           # D38 steady-state DO
 S_D39 = spg_int_carbon                                  # D39 interval if O2 handled
@@ -1331,6 +1369,16 @@ OUTPUTS = [
     ("Chemistry D210  E_ORR2 (V vs SHE)",              E_ORR2),
     ("Chemistry D211  E_Cu_margin (V)",                E_Cu_margin),
     ("Chemistry D216  j_buffer_lim (mA/cm2)",          j_buffer_lim),
+    ("Chemistry D251  D_HCO3 (m2/s)",                  D_HCO3),
+    ("Chemistry D252  HCO3_op (mol/L)",                 HCO3_op),
+    ("Chemistry D253  HPO4_op (mol/L)",                 HPO4_op),
+    ("Chemistry D254  eta_anode_c (V)",                 eta_anode),
+    ("Chemistry D255  pcet_credit_c (V)",               pcet_credit),
+    ("Chemistry D256  E_anode_op (V vs SHE)",           E_anode_op),
+    ("Chemistry D257  E0_HOCl (V)",                     E0_HOCl),
+    ("Chemistry D258  E_HOCl_Cl (V vs SHE)",            E_HOCl_Cl),
+    ("Chemistry D259  C_eff_lo_Cl2 (mg/L)",             C_eff_lo_Cl2),
+    ("Chemistry D260  C_eff_hi_Cl2 (mg/L)",             C_eff_hi_Cl2),
     ("Chemistry D218  j_buffer_ratio (-)",             j_buffer_ratio),
     ("Chemistry D219  buffer_flag",                    buffer_flag),
     ("Chemistry D220  pH_meas (activity scale)",       pH_meas),
@@ -1342,6 +1390,12 @@ OUTPUTS = [
     ("Biology  D42  t_H2_sat (min)",                   t_H2_sat),
     ("Biology  D43  H2_turnover (1/h)",                H2_turnover),
     ("Biology  D44  H2_safety",                        H2_safety),
+    ("Biology  D83  n_flamm_src (mol/h)",              n_flamm_src),
+    ("Biology  D84  y_H2_hs_lag (-)",                  y_H2_hs_lag),
+    ("Biology  D85  y_O2_hs_lag (-)",                  y_O2_hs_lag),
+    ("Biology  D86  duty_H2safe (-)",                  duty_H2safe),
+    ("Biology  D87  spg_int_H2safe (min)",             spg_int_H2safe),
+    ("Biology  D88  N2_sweep_H2safe (mL/min)",         N2_sweep_H2safe),
     ("Biology  D60  DO_frac_target (-)",               DO_frac_target),
 
     # --- Mass Transfer ---
@@ -1372,6 +1426,8 @@ OUTPUTS = [
     ("MassXfer D110 DO_ss_vs_min",                     DO_ss_vs_min),
     ("MassXfer D111 tip_warn",                         tip_warn),
     ("MassXfer D113 sched_regime",                     sched_regime),
+    ("MassXfer D231 M_O2 (g/mol)",                     M_O2),
+    ("MassXfer D232 DO_at_carbon (mol/m3)",            DO_at_carbon),
     ("MassXfer D124 pulses_h (/h)",                    pulses_h),
     ("MassXfer D125 pulses_d (/d)",                    pulses_d),
     ("MassXfer D126 CO2_sd_ratio (x)",                 CO2_sd_ratio),

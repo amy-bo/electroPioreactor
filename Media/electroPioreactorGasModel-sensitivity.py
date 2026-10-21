@@ -144,6 +144,9 @@ KA = dict(Ka1c=(4.45e-7, 9.15), Ka2c=(4.69e-11, 14.9), Ka1p=(7.1e-3, -8.0),
           Ka2p=(6.31e-8, 3.6), Ka3p=(4.2e-13, 16.0), KaN=(5.6e-10, 52.2),
           Kw=(1e-14, 55.8))
 M_HOCl = 52460.0   # mg/mol
+M_Cl2 = 70906.0    # mg/mol (Chemistry D223); thresholds are on the as-Cl2 basis
+M_O2 = 31.998      # g/mol, Mass Transfer D231 (2 x 15.999)
+D_HCO3 = 1.185e-9  # m2/s, Chemistry D251 (CRC)
 MW_N = 14007.0     # mg/mol
 CL_PER_N = 5.06    # mg Cl2 per mg ammonium-N (breakpoint)
 
@@ -238,7 +241,8 @@ def model(p):
     if feasible:
         y_O2_star = hs_O2_allow / (H_O2_T * p['P_atm'])                  # D183
         duty_DO = O2_excess * (1 - y_O2_star) / (y_O2_star * CO2_rate_full)   # D184
-        spg_int_DO = spg_dur / (60 * duty_DO)                            # D185
+        spg_int_DO = (spg_dur / (60 * duty_DO) if duty_DO > 0
+                      else None)                                     # D185 (duty 0 -> carbon-limited, set below)
     else:
         y_O2_star = duty_DO = spg_int_DO = NAN
     # the feasibility floor: measured kL_surf must exceed kL_surf_crit or nothing works
@@ -249,6 +253,8 @@ def model(p):
 
     duty_carbon = p['carbon_margin_min'] * CO2_cons / CO2_rate_full      # D86
     spg_int_carbon = spg_dur / (60 * duty_carbon) if duty_carbon > 0 else INF   # D112
+    if spg_int_DO is None:
+        spg_int_DO = spg_int_carbon                                      # D185 with duty_DO = 0
     O2_src_guard = O2_net                                                # D132
     duty_O2vent = (O2_src_guard / (p['target_DO_frac'] * (O2_ceil_Pa / p['P_atm']))
                    / CO2_rate_full)                                      # D87
@@ -273,8 +279,8 @@ def model(p):
     y_O2_actual = O2_excess / (O2_excess + CO2_supply) if CO2_supply > 0 else NAN   # D187
     DO_hs_floor = H_O2_T * y_O2_actual * p['P_atm']                      # D188
     DO_ss_sawtooth = DO_hs_floor + DO_surf_excess                        # D133, mol/m3
-    DO_ss = DO_ss_sawtooth * 32                                          # D108, mg/L
-    DO_ss_lag = (DO_hs_floor + DO_surf_excess_lag) * 32                  # D135, mg/L
+    DO_ss = DO_ss_sawtooth * M_O2                                        # D108, mg/L
+    DO_ss_lag = (DO_hs_floor + DO_surf_excess_lag) * M_O2                # D135, mg/L
     t_lag = (O2_ceil_C * V_L / O2_net * 60) if O2_net > 1e-15 else INF   # D79
 
     # --- bubble / sparge strip (tube); Mendelson NA-guard < 1 mm ---
@@ -367,9 +373,10 @@ def model(p):
     # --- local-pH (buffer) verdict at the anode (Chemistry D214-D219) ---
     j_anode = I_app * 1000 / A_wet                                       # mA/cm2
     if n_cross == 1:
-        C_HPO4 = PT * (1 - 1 / (1 + 10 ** (pH_meas - pKa2p_c)))
-        j_buffer_lim = (p['F'] * p['D_HPO4'] * C_HPO4 * 1000
-                        / (p['delta_diff'] / 1e6) / 10)                  # mA/cm2
+        C_HPO4 = PT / (1 + 10 ** (pKa2p_c - pH_op))                      # D253 (pH_op, concentration scale)
+        C_HCO3 = K1c * CO2aqc / 10 ** -pH_op                             # D252
+        j_buffer_lim = (p['F'] * (p['D_HPO4'] * C_HPO4 + D_HCO3 * C_HCO3) * 1000
+                        / (p['delta_diff'] / 1e6) / 10)                  # D216 mA/cm2, phosphate + bicarbonate
         j_buffer_ratio = j_anode / j_buffer_lim
     else:
         j_buffer_lim = j_buffer_ratio = NAN
@@ -401,7 +408,7 @@ def model(p):
 
     # --- chlorine chain (Chemistry D131-D149), now driven by THIS pH, not a cached one ---
     if n_cross == 1:
-        NH3_free = NT / (1 + 10 ** (pKa_NH4 - pH_meas))                  # D138
+        NH3_free = NT / (1 + 10 ** (pKa_NH4 - pH_op))                    # D138
         P_HOCl = I_Cl / (2 * p['F'] * (V_charge / 1000))                 # D134, n_e_Cl = 2
         HOCl_mgL = P_HOCl / (p['k1_NH2Cl'] * NH3_free) * M_HOCl
         NH2Cl = min(P_HOCl * p['tau_NH2Cl'] * 3600 * M_HOCl,
@@ -430,6 +437,7 @@ def model(p):
         j_anode=j_anode, j_buffer_lim=j_buffer_lim, j_buffer_ratio=j_buffer_ratio,
         kappa=kappa, R_cell=R_cell, V_IR=V_IR, V_cell_est=V_cell,
         r_H2O2=r_H2O2, H2O2_ss=H2O2_ss, H2O2_lag_1h=H2O2_lag_1h, C_eff=C_eff,
+        C_eff_Cl2=C_eff * M_Cl2 / M_HOCl,
     )
 
 
@@ -523,6 +531,8 @@ SELF_CHECK = [
     ('r_H2O2',          'r_H2O2 (mg/L/h)',          'Electrochemistry', 'D93'),
     ('CO2_cyc_avg_new', 'CO2_cyc_avg_new (mol/m3)', 'Mass Transfer',    'D200'),
     ('pH_meas',         'pH_meas (-)',              'Chemistry',        'D220'),
+    ('j_buffer_ratio',  'j_buffer_ratio (-)',       'Chemistry',        'D218'),
+    ('C_eff_Cl2',       'C_eff_Cl2 (mg/L)',         'Summary',          'D36'),
 ]
 
 # BASE inputs vs the workbook (Summary selectors D2:D10 and the cells they feed).
@@ -676,7 +686,7 @@ for k, unit in [('spg_dur', 's'), ('spg_int_opt', 'min'), ('spg_int_opt_s', 's')
                 ('CO2_cyc_avg_new', 'mol/m3'), ('pH_meas', '-'),
                 ('etaF_calc', '-'), ('etaF_OER_calc', '-'),
                 ('kappa', 'S/m'), ('R_cell', 'ohm'), ('V_IR', 'V'), ('V_cell_est', 'V'),
-                ('r_H2O2', 'mg/L/h'), ('H2O2_ss', 'mg/L'), ('C_eff', 'mg/L'),
+                ('r_H2O2', 'mg/L/h'), ('H2O2_ss', 'mg/L'), ('C_eff', 'mg/L as HOCl'), ('C_eff_Cl2', 'mg/L as Cl2'),
                 ('j_anode', 'mA/cm2'), ('j_buffer_ratio', '-'), ('pool_beta_ratio', 'x')]:
     print(f"   {k:18}= {b[k]:>12.6g}  {unit}")
 print(f"   {'opt_binding':18}= {b['opt_binding']}")
@@ -908,12 +918,12 @@ if _bad_cl:
                                for n, lo, hi, bv in _bad_cl))
 print("\n" + "=" * 100)
 print("C_eff (effective biocidal chlorine) sensitivity -- the chlorine knobs")
-print(f"   baseline C_eff = {b['C_eff']:.3f} mg/L at pH_meas {b['pH_meas']:.3f}  "
+print(f"   baseline C_eff = {b['C_eff_Cl2']:.3f} mg/L as Cl2 at pH_meas {b['pH_meas']:.3f}  "
       f"(onset 0.1, kill 2.0 mg/L)")
 print(f"{'knob':16}{'tier':10}{'low':>12}{'high':>12}{'C_eff lo':>11}{'C_eff hi':>11}")
 ce_lo_all, ce_hi_all = [], []
 for name, lo, hi, tier in CL_SWEEP:
-    a, c = run(name, lo)['C_eff'], run(name, hi)['C_eff']
+    a, c = run(name, lo)['C_eff_Cl2'], run(name, hi)['C_eff_Cl2']
     ce_lo_all.append(min(a, c))
     ce_hi_all.append(max(a, c))
     print(f"{name:16}{tier:10}{lo:>12.4g}{hi:>12.4g}{min(a, c):>11.3f}{max(a, c):>11.3f}")
