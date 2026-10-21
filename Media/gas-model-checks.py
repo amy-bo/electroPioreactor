@@ -494,6 +494,16 @@ class GasModelChecks(unittest.TestCase):
             if len(t) > 100:
                 sm = re.search(r's="(\d+)"', a)
                 self.assertIn('wrapText="1"', xfs[int(sm.group(1))] if sm else '', 'Summary F' + m.group(1))
+        # Long column-A labels beside an occupied column B wrap too (fourteenth review).
+        occB = {int(m.group(1)) for m in re.finditer(r'<c r="B(\d+)"[^>]*?>(?:(?!</c>).)*?<(?:v|t)[^>]*>[^<]+', sh, re.S)}
+        for m in re.finditer(r'<c r="A(\d+)"([^>]*?)>(.*?)</c>', sh, re.S):
+            a, body = m.group(2), m.group(3)
+            v = re.search(r'<v>([^<]*)</v>', body)
+            t = (html.unescape(''.join(re.findall(r'<t[^>]*>([^<]*)</t>', body))) if 'inlineStr' in a else
+                 (ss[int(v.group(1))] if 't="s"' in a else v.group(1)) if v else '')
+            if int(m.group(1)) in occB and len(t) > 34:
+                sm = re.search(r's="(\d+)"', a)
+                self.assertIn('wrapText="1"', xfs[int(sm.group(1))] if sm else '', 'Summary A' + m.group(1))
 
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
