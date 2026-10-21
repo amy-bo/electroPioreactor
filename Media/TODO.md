@@ -25,7 +25,7 @@ Open backlog and parked items. Done work is in `CHANGELOG.md`. Bench SOPs for th
 - [ ] **Define biological-screen controls and analysis.** Owner must choose feasible organism-specific DO setpoints with controlled or measured H₂ supply, gas-matched current-density controls, replicates and equivalence margins. Non-significance does not establish a no-effect limit, final OD is not productivity, and a literature inhibition condition is not the protocol’s toxic endpoint.
 - [ ] **Validate attached-sparger short-pulse flow and intercept representation.** A steady-flow Calibrations entry selects a zero-intercept route; ed04’s CO2 flows fit includes an intercept. Keep new calibration rows excluded until pulse delivery, minimum pulse and any significant intercept are resolved. Collection recovery and reference-condition conversion need independent validation.
 
-### From the wave-4 review (2026-08-12; detail and derivations in `electroPioreactorGasModel-Review.md`)
+### From the wave-4 review (2026-08-12; detail and derivations in `electroPioreactorGasModel-GPT6Astra-Review.md`)
 
 
 - [ ] **Measure the electrode mass-transfer coefficient** (`protocols/electrode-mass-transfer.md`; ferricyanide limiting current, same vial, same rpm). It now sets the cathodic O2 loss, the peroxide source, the chlorine cap and the electrode-surface pH verdict — the single most load-bearing estimate in the new electrochemistry.
@@ -35,7 +35,7 @@ Open backlog and parked items. Done work is in `CHANGELOG.md`. Bench SOPs for th
 - [ ] **Get the new electrochemistry reviewed by an electrochemist.** The six questions to put to them are in the review's "Changes applied" section; the weakest inputs are the anodic exchange-current density (spans four decades in the literature) and the mass-transfer coefficient.
 - [!] Rename the `Reactor` / `Reactor_sel` / `reactor_sel` defined-name triplet for consistency – **parked**: high reference-break risk for nit-level value; revisit only if a clean rename harness exists.
 
-### From the wave-5 review (2026-10-21; reports summarised in `electroPioreactorGasModel-Review.md`)
+### From the wave-5 review (2026-10-21; reports summarised in `electroPioreactorGasModel-GPT6Astra-Review.md`)
 
 Measurements, in leverage order. Numerical examples inherited from wave 5 describe its UdG/25 °C baseline unless explicitly labelled AMYBO03; use the current workbook for the actual configuration.
 
@@ -65,4 +65,4 @@ Model work not yet done (mirrored in the Summary TODO, rows 145 onwards):
 - [ ] **Characterise the low-power/start-up current curve.** The fit is now restricted to the validated range intersected with the plugin runtime limit (3–10 %). Off and below-range settings are deliberately unsupported by this schedule model; a nonzero regression intercept is not evidence of off-state electrolysis. Measure before adding start-up predictions.
 
 ## Notes
-Wave 5 (2026-10-21) recalculated the workbook in real Excel for the first time and closed the wave-4 items and the wave-5 review findings (see `CHANGELOG.md` and the wave-5 section of `electroPioreactorGasModel-Review.md`). What remains is measurement and owner decisions: the model now shows that CO₂ alone cannot dilute electrolytic O₂ to the DO target and hold pH in band (Summary D128), and its headline interval rests mainly on the vent behaviour, the chloramine lifetime and the H₂ uptake ratio.
+Wave 5 (2026-10-21) recalculated the workbook in real Excel for the first time and closed the wave-4 items and the wave-5 review findings (see `CHANGELOG.md` and the wave-5 section of `electroPioreactorGasModel-GPT6Astra-Review.md`). What remains is measurement and owner decisions: the model now shows that CO₂ alone cannot dilute electrolytic O₂ to the DO target and hold pH in band (Summary D128), and its headline interval rests mainly on the vent behaviour, the chloramine lifetime and the H₂ uptake ratio.

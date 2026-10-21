@@ -4,6 +4,8 @@ Done-work audit for `electroPioreactorGasModel.xlsx`. Newest first. Open work is
 
 ## 2026-10-21
 
+- [x] **Review record renamed** — `electroPioreactorGasModel-Review.md` is now `electroPioreactorGasModel-GPT6Astra-Review.md` (owner's rename, content unchanged); `TODO.md` pointers updated. Historic references in this changelog and `CODEX-HANDOVER.md` keep the old name as written at the time.
+
 - [x] **Review closed: independent optimiser and final audit** — aligned the remaining submerged-outlet and pressure-background wording with the measurement prerequisites; Astra found no further concrete correction in the reviewed scope. Final baseline checks: 382/382 twin, 49/49 sensitivity plus four combinations, 10 regression tests; 1194 formula caches present, no unexpected error classes or overlong formula literals. Owner baseline preserved. Completion-email body and commit summary saved in Review; no email tool available, so no email sent. Session audit records verification, delegate usage, remaining bench/owner dependencies and local-only commits.
 
 - [x] **Final vent wording consistency** — pressure deficits and recovery are observations consistent with possible ingress, not proof of back-draw; both protocol routes now require corroborating gas/liquid inventory and O₂ evidence. This closes the independent optimiser’s remaining instruction inconsistency.
