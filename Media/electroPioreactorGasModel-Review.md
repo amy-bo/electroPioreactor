@@ -764,6 +764,9 @@ Commits:
 - `ae618a1` — commanded schedule shared by all operating predictions; consistent dry-species headspace inventory; capped lag peroxide/ORR budgets; current-limited chloramine recycling; chloride activity and zero-chloride guards; converged DIC/lag references and validity checks; conservative executable remedies and honest pressure-closure status.
 - `a10dcb2` — supported power domain restricted to 3–10%; AMYBO03 named input block and workbook typography; wider definition-drift detection; branch and boundary verification.
 - `def9f2a` — corrected 14 protocols, distinguishing model assumptions from measured quantities and making unresolved sampling, calibration and analysis prerequisites explicit; workbook gas verdict now says potential flammability screening.
+- `f08c4f0` — vent liquid-exchange, pressure-sensor and calibration-acceptance follow-up; completion findings recorded.
+- `cdb2356` — pressure observations distinguished from inferred ingress.
+- Closing audit commit — remaining submerged-outlet/background wording aligned, final independent optimiser clearance and verification recorded (commit identified by this section and the session audit).
 
 The ideal design is 0.67408 s every 7.39887 min. The actual default command is **0.65 s every 7.17 min**; operating results now evaluate that same command: **pH 6.4876**, **mean DO 2.2702 mg/L**, and first-order added NaHCO₃ **0.12423 g/L (1.4788 mM)** for the pH 6.5 floor. The alkalinity calculation's activity conversion and residual sign were checked; full feedback into ionic strength and CO₂ storage remains an explicitly deferred model extension.
 
@@ -774,3 +777,5 @@ Remaining unchecked TODOs require measurements or owner choices: true vial/heads
 Protocol corrections include DPD raw combined-chlorine comparison on the correct Cl₂ mass basis (not the toxicity-weighted Summary index), electrode k_m cell D83 (D84 is an exponent), sampling-induced headspace disturbances, CO₂ flow intercept selection, separated-cell efficiency transferability, H₂ confounding in DO experiments, equivalence versus non-significance, and final OD versus productivity. Final optimiser follow-up also requires negligible or modelled liquid O₂ exchange before inferring vent ingress, bidirectional pressure sensing, consistent gas reference conditions and conditional calibration inclusion.
 
 Completion email requested for martin@amybo.org, subject “Gas model: Codex review complete”: **not sent because no email-sending tool is available in this session**. This section is the requested completion-email body retained in the repository; no alternative sending route was attempted.
+
+Final independent Astra optimiser: no further concrete documentation correction remains within the reviewed scope; measurements, owner choices and deferred extensions stay in TODO. Final live checks again passed 382/382, 49/49 plus four combinations, and 10 regressions. All 1194 formula caches are present; formula literals satisfy the 255-character limit; remaining #N/A values are explicit unavailable/data-gap results. Session audit: `.vss/sessions/2026-10-21T12-34-26Z.md`.
