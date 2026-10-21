@@ -155,12 +155,12 @@ class GasModelChecks(unittest.TestCase):
         with zipfile.ZipFile(BOOK) as z:
             sh = z.read('xl/worksheets/sheet8.xml').decode()
         f = lambda ref: re.search(r'<c r="%s"[^>]*><f>([^<]*)</f>' % ref, sh).group(1).replace('&quot;', '"').replace('&gt;', '>').replace('&lt;', '<').replace('&amp;', '&')
-        self.assertEqual(f('K168'), 'IF(OR(G168="",H168="",I168=""),"",IFERROR((G168/1000)/(n_e_fcn*F_const*(H168/10000)*I168)*100,""))')
-        self.assertEqual(f('L168'), 'IF(OR(K168="",J168=""),"",IFERROR(K168*(D_O2/J168)^km_exp,""))')
-        self.assertEqual(f('I181'), 'IF(OR(E181="",F181="",G181="",H181=""),"",IF(E181/M_Cl2>=G181,"not invertible: plateau at or above the chloride pool",IFERROR(MAX(E181/M_Cl2/(F181*(G181-E181/M_Cl2)),E181/M_Cl2/H181)/3600,"")))')
-        self.assertIn('AVERAGEIFS(L168:L175,C168:C175,Reactor_sel,D168:D175,electrode_sel,N168:N175,"y",E168:E175,stir_rpm_set,'
-                      'F168:F175,"&gt;="&amp;(temp_C-km_T_tol),F168:F175,"&lt;="&amp;(temp_C+km_T_tol))', sh)
-        self.assertIn('AVERAGEIFS(I181:I188,C181:C188,Reactor_sel,D181:D188,media_sel,K181:K188,"y")', sh.replace('&quot;', '"'))
+        self.assertEqual(f('K142'), 'IF(OR(G142="",H142="",I142=""),"",IFERROR((G142/1000)/(n_e_fcn*F_const*(H142/10000)*I142)*100,""))')
+        self.assertEqual(f('L142'), 'IF(OR(K142="",J142=""),"",IFERROR(K142*(D_O2/J142)^km_exp,""))')
+        self.assertEqual(f('I155'), 'IF(OR(E155="",F155="",G155="",H155=""),"",IF(E155/M_Cl2>=G155,"not invertible: plateau at or above the chloride pool",IFERROR(MAX(E155/M_Cl2/(F155*(G155-E155/M_Cl2)),E155/M_Cl2/H155)/3600,"")))')
+        self.assertIn('AVERAGEIFS(L142:L149,C142:C149,Reactor_sel,D142:D149,electrode_sel,N142:N149,"y",E142:E149,stir_rpm_set,'
+                      'F142:F149,"&gt;="&amp;(temp_C-km_T_tol),F142:F149,"&lt;="&amp;(temp_C+km_T_tol))', sh)
+        self.assertIn('AVERAGEIFS(I155:I162,C155:C162,Reactor_sel,D155:D162,media_sel,K155:K162,"y")', sh.replace('&quot;', '"'))
 
     def test_added_alkalinity_is_coupled(self):
         base = self.twin()
