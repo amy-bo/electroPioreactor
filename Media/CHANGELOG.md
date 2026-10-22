@@ -2,6 +2,18 @@
 
 Done-work audit for `electroPioreactorGasModel.xlsx`. Newest first. Open work is in `TODO.md`.
 
+## 2026-10-22
+
+- [x] **Owner's Summary review**
+  - **Power cell (D6).** It now also turns Problem when the current density exceeds the strain ceiling (from about 4.2 % on the baseline). It stays Caution while the current density is above the optimum, as it already is at the 3 % minimum. Above 4.2 % it had shown no colour at all.
+  - **Checks.** These are now five subheadings: Safety (H₂ flammability), Culture health, Operation (the pulse floor and the dosing window), Hardware (carryover, volume, level and cell voltage) and Model validity.
+  - **Experiments list.**
+    - Status moves to column D (a value) and the protocol link to E (links), matching the rest of the Summary.
+    - Organism DO thresholds are rated HIGH/high and listed first in that group.
+  - **Start-up current (Summary E59).** It is no longer shaded DATA GAP: only the conversion to power extrapolates the current curve.
+  - **T10/T11** answered (AMYBO03 stays the baseline; the check valve and the cap-vacuum question go on Nelly's agenda).
+  - **Verification.** Twin 470/470, sensitivity 49/49 plus the four-combination check, and 34 tests.
+
 ## 2026-10-21
 
 - [x] **The owner's Key applied everywhere; Summary regrouped; experiment status; four model improvements built**

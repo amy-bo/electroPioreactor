@@ -107,7 +107,7 @@ The model predicts the lag-phase headspace from a well-mixed balance depending o
 
 ### Proposed remedies after a hazard flag
 
-The model's remedy is to sparge CO2 more often, or to add N2. Be aware that more CO2 pulses push the pH below the band (Summary D93 (chk_DO_pH) reads NO for CO2 alone doing all three jobs); the owner prefers to fix the medium instead (Summary rows 64–69). N2 is modelled by its mean flow (Summary D14, Mass Transfer D424–D425), as timed pulses apart from the CO2 pulses; Summary D56 (res_N2_H2) gives the mean N2 that keeps the lag H2 below the LFL. A separate N2 flush in the sawtooth is still a model improvement, and any N2 schedule must be confirmed on the bench rather than taken from the spreadsheet.
+The model's remedy is to sparge CO2 more often, or to add N2. Be aware that more CO2 pulses push the pH below the band (Summary D95 (chk_DO_pH) reads NO for CO2 alone doing all three jobs); the owner prefers to fix the medium instead (Summary rows 64–69). N2 is modelled by its mean flow (Summary D14, Mass Transfer D424–D425), as timed pulses apart from the CO2 pulses; Summary D56 (res_N2_H2) gives the mean N2 that keeps the lag H2 below the LFL. A separate N2 flush in the sawtooth is still a model improvement, and any N2 schedule must be confirmed on the bench rather than taken from the spreadsheet.
 
 ## Principle and background
 

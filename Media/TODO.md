@@ -1,8 +1,8 @@
 # electroPioreactorGasModel – open work
 
 Two lists, mirrored on the Summary tab.
-- **Experiments to improve accuracy** are bench measurements that replace an estimate or fill a data gap in the workbook (Summary rows 127–153). The protocols are in `protocols/`.
-- **Potential model improvements** are changes to the spreadsheet itself (Summary rows 156–157).
+- **Experiments to improve accuracy** are bench measurements that replace an estimate or fill a data gap in the workbook (Summary rows 131–157). The protocols are in `protocols/`.
+- **Potential model improvements** are changes to the spreadsheet itself (Summary rows 160–161).
 
 Done work is in `CHANGELOG.md`.
 
@@ -10,7 +10,7 @@ Done work is in `CHANGELOG.md`.
 
 The order matches the Summary. Impact runs HIGH > MED > LOW. Within each impact level, effort runs low > med > high, and within each impact and effort pair the most leverage comes first. So reading top to bottom is a sensible programme.
 
-Summary column E shows each experiment's status in the situation selected on the Summary (reactor, electrode, organism, medium and temperature):
+Summary column D shows each experiment's status in the situation selected on the Summary (reactor, electrode, organism, medium and temperature):
 - **Done:** green.
 - **Approximate:** amber. Useful data that could be improved.
 - **Not done:** red.
@@ -39,7 +39,7 @@ Enter results in the matching Calibrations section where there is one. Leave Inc
   - It sets the cathodic O₂ loss, the peroxide source and sink, the chlorine cap and the electrode-surface pH verdict.
 - [ ] **Low-power current curve below 3 %.** HIGH, low effort; raised from MED in this pass.
   - The start-up power for the lag DO target (Summary row 24, about 1.0 % at baseline) is extrapolated below Gerrit's Law, which is fitted from 3 % up.
-  - That extrapolation is the worst class of data in the model. It shows as DATA GAP on Summary rows 24, 59, 60 and 124.
+  - That extrapolation is the worst class of data in the model. It shows as DATA GAP on Summary rows 24, 60 and 128.
   - Protocol: `protocols/gerrit-current.md`.
 - [ ] **Electrochemist review of the calculated electrochemistry.** HIGH, low effort.
   - The weakest inputs are the anodic exchange-current density (four decades of spread in the literature) and the electrode mass-transfer coefficient.
@@ -67,14 +67,14 @@ Enter results in the matching Calibrations section where there is one. Leave Inc
   - This is the prime suspect for the Exp-2 death.
 - [ ] **Cathodic Faradaic efficiency.** HIGH, med effort.
   - Protocol: `protocols/faradaic-efficiency.md`.
+- [ ] **Organism DO thresholds.** HIGH, high effort (raised from MED/low, owner 22 Oct 2026).
+  - Protocol: `protocols/dissolved-oxygen.md`.
+  - They set the DO target fraction behind every schedule, and the owner's screen needs gas-matched controls and replicates.
 - [ ] **Off-gas H₂ at steady growth.** HIGH, high effort.
   - Protocol: `protocols/knallgas-stoichiometry.md`.
 
 ### MED impact
 
-- [ ] **Organism DO thresholds.** MED, low effort.
-  - Protocol: `protocols/dissolved-oxygen.md`.
-  - The rating is worth revisiting: these thresholds set the DO target fraction behind every schedule, so the impact is arguably HIGH. The owner's screen design (controls, replicates) makes the effort high too.
 - [ ] **CO₂ flow calibration for each reactor.** MED, low effort.
   - Approximate: only ed04 is calibrated.
 - [ ] **Vial wall thickness.** MED, low effort.
@@ -114,7 +114,7 @@ These are changes to the spreadsheet only.
 
 ## Notes
 
-- The model shows that CO₂ alone cannot dilute electrolytic O₂ to the DO target and also hold pH in band (Summary row 93).
+- The model shows that CO₂ alone cannot dilute electrolytic O₂ to the DO target and also hold pH in band (Summary row 95).
 - The owner's route is to fix the medium (T7). Summary rows 64–67 compare the options at today's schedule for the end-of-run biomass in row 17. On AMYBO03 with 1 g/L biomass:
   - Ammonium (no change): minimum pH 6.43.
   - Add 0.81 g/L NaHCO₃: holds the 6.50 floor for the whole run.

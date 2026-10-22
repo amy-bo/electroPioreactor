@@ -11,7 +11,7 @@ These are agent-facing modelling rules. They used to sit in the spreadsheet's he
 ## Selectors
 - Selector inputs (dropdowns) accept exactly their listed valid values; anything else returns an error by design (the `IF(sel=valid1,…,IF(sel=valid2,…,NA()))` pattern). Do not soften these to default-on-invalid.
 
-## Formats — every one is in the Summary Key (rows 159–174); use no other
+## Formats — every one is in the Summary Key (rows 163–178); use no other
 - **Column E (Source / assumption) FILL = confidence**, with the Key's font colour on each fill:
   - verified / handbook / defined / standard: theme 3 tint 0.6, black text;
   - literature-supported (~90 %): theme 8 tint 0.6, black text;
