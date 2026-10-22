@@ -636,6 +636,27 @@ class GasModelChecks(unittest.TestCase):
             for d in re.findall(r'dxfId="(\d+)"', x):
                 self.assertTrue(re.search(r'FF006100|FF9C5700|FF9C0006|theme="0"', dxfs[int(d)]), dxfs[int(d)])
 
+    def test_measured_hydrogen_utilisation_changes_consumption_and_residual_gas(self):
+        baseline = self.twin()
+        half = self.twin(H2_util_meas=0.5)
+        for key in ('H2_cons', 'O2_cons', 'CO2_cons'):
+            self.assertAlmostEqual(half[key], baseline[key] / 2)
+        self.assertGreater(half['O2_excess'], baseline['O2_excess'])
+        self.assertGreater(half['H2_src_g'], baseline['H2_src_g'])
+        reduced = self.sens['model'](dict(self.sens['BASE'], H2_util=0.5))
+        for key in ('spg_int_opt', 'DO_ss', 'pH_meas'):
+            self.assertTrue(math.isclose(reduced[key], half[key], rel_tol=5e-5), key)
+        with zipfile.ZipFile(BOOK) as z:
+            sh = z.read('xl/worksheets/sheet5.xml').decode()
+        self.assertEqual(cell_formula(sh, 'D13'), 'MAX(0,rH2_gen-H2_HOR_b)*H2_util')
+        self.assertIn('ISBLANK(H2_util_meas)', cell_formula(sh, 'D130'))
+
+    def test_infeasible_candidate_is_not_presented_as_an_optimum(self):
+        n = self.twin()
+        self.assertLess(n['pH_end'], n['pH_band_lo'])
+        self.assertEqual(n['res_qualification'],
+                         'NOT FEASIBLE for the stated pH/DO targets; candidate only')
+
     def test_unknown_medium_rejected(self):
         with self.assertRaises(KeyError):
             self.sens['medium_chemistry'](dict(self.sens['BASE'], media='typo'))

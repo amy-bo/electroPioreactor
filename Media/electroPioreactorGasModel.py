@@ -677,7 +677,11 @@ H2O2_thresh   = 0.17                                   # D97 (mg/L) 5 uM sustain
 # BIOLOGY TAB - part B: gas requirement ratios & consumption (rows 13-16, 42-44)
 # ============================================================================
 H2_HOR_b  = r_H2_HOR                                   # Biology D96 (mol/h) <- Electrochemistry D149
-H2_cons  = max(0.0, rH2_gen - H2_HOR_b)               # D13 (mol/h) H2 reaching the culture, net of anodic re-oxidation
+H2_util_meas = None                                    # Biology D128: accepted steady-growth uptake fraction, blank until measured
+H2_util_default = 1.0                                  # Biology D129: legacy upper bound, NOT a measurement
+H2_util = (H2_util_default if H2_util_meas is None else
+           H2_util_meas if isnum(H2_util_meas) and 0 < H2_util_meas <= 1 else NA)
+H2_cons  = max(0.0, rH2_gen - H2_HOR_b) * H2_util     # D13 (mol/h): uptake after anodic re-oxidation and vent losses
 O2_cons  = H2_cons * bio_O2 / bio_H2                  # D14 (mol/h)
 CO2_cons = H2_cons * bio_CO2 / bio_H2                 # D15 (mol/h)
 O2_excess = max(0.0, O2_net_gen - O2_cons)            # D16 (mol/h) floored: pole at the knallgas cap
@@ -1932,6 +1936,16 @@ elif pH_band_lo <= pH_meas <= pH_band_hi and DO_ss <= DO_target * M_O2:
 else:
     S_D52 = "NO – evaluated schedule misses the pH band or mean DO target"
 
+# Summary D32 qualifies the displayed candidate; it never certifies an optimum.
+_qualification_inputs = (spg_dur, spg_int, pH_meas, pH_end, DO_ss)
+if not all(isnum(v) for v in _qualification_inputs):
+    res_qualification = "INVALID OR MISSING INPUT; no qualified recommendation"
+elif (not isnum(spg_int_DO) or not pH_band_lo <= pH_meas <= pH_band_hi
+      or not pH_band_lo <= pH_end <= pH_band_hi or DO_ss > DO_target * M_O2):
+    res_qualification = "NOT FEASIBLE for the stated pH/DO targets; candidate only"
+else:
+    res_qualification = "PROVISIONAL candidate; growth/productivity optimum not established"
+
 
 # ============================================================================
 # VERIFICATION HARNESS - reads the workbook itself
@@ -2629,6 +2643,8 @@ OUTPUTS.extend([
     ("Summary res_spg_int_su start-up interval", S_D31),
     ("Summary res_su_state start-up state", S_D33),
     ("Summary chk_pool pool check", pool_start_chk),
+    ("Biology D130 H2_util fraction consumed", H2_util),
+    ("Summary res_qualification candidate qualification", res_qualification),
 ])
 
 # Declared input -> Summary cell. Checked before anything is compared.

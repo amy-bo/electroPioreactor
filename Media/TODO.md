@@ -2,7 +2,14 @@
 
 Two lists, mirrored on the Summary tab.
 - **Experiments to improve accuracy** are bench measurements that replace an estimate or fill a data gap in the workbook (Summary rows 131–157). The protocols are in `protocols/`.
-- **Potential model improvements** are changes to the spreadsheet itself (Summary rows 160–161).
+- **Potential model improvements** are changes to the spreadsheet itself (Summary rows 160–161 and 204–210). Growth-validation experiments continue at rows 213–215.
+
+**Objective clarified on 22 October 2026: highest measured growth/productivity.**
+The current pulse-rule calculation is a candidate generator, not a growth optimiser.
+Completing only the original experiment list and the two original refinements would
+not establish an optimum. Summary row 32 now qualifies the candidate explicitly.
+The baseline still misses the pH band and the lag DO target is unreachable at the
+current power/kLa. Do not interpret the candidate plugin numbers as validated settings.
 
 Done work is in `CHANGELOG.md`.
 
@@ -71,6 +78,7 @@ Enter results in the matching Calibrations section where there is one. Leave Inc
   - Protocol: `protocols/dissolved-oxygen.md`.
   - They set the DO target fraction behind every schedule, and the owner's screen needs gas-matched controls and replicates.
 - [ ] **Off-gas H₂ at steady growth.** HIGH, high effort.
+  - Enter accepted biological H₂ uptake divided by H₂ available after anodic re-oxidation in `Biology!H2_util_meas` (D128), with run/condition/uncertainty evidence in F128. The fraction now feeds H₂, O₂ and CO₂ consumption and residual growth H₂. Blank retains the explicitly provisional 100% upper bound; an uptake ratio alone cannot replace this measurement.
   - Protocol: `protocols/knallgas-stoichiometry.md`.
 
 ### MED impact
@@ -111,6 +119,26 @@ These are changes to the spreadsheet only.
   - The end-of-run pH and the media options (Summary rows 28 and 64–67) keep today's activity coefficients.
   - Solving each option at its own ionic strength would move those pH values by a few hundredths.
 - [!] Rename the `Reactor` / `Reactor_sel` / `reactor_sel` defined-name triplet. **Parked:** a high risk of breaking references for a naming nit.
+
+### Required before claiming growth/productivity optimisation
+
+These match Summary rows 204–210. All remain open; writing an acceptance criterion is not implementing it.
+
+- [ ] **Define the primary measured outcome and operating domain.** Specific growth rate and volumetric product formation can have different optima. State which is primary, the culture phase, calibrated range and uncertainty; do not substitute minimum CO₂ use or a DO target for productivity.
+- [ ] **Search duration and interval jointly.** Use executable settings and a response fitted to replicated measurements. Evaluate every rounded pair against all constraints. Report the best measured or predicted schedule within the tested/searched domain, search resolution and uncertainty; do not claim a global optimum from two pulse rules.
+- [ ] **Enforce the full constraint envelope.** pH minima/maxima through each pulse and the biomass range, minimum DO and peak impairment, carbon trough and H₂ supply, peroxide/chlorine, carryover, OD-read gap, and validated gas hazard limits in both phases. Return no feasible schedule when appropriate. Today several are diagnostics only; end-of-run pH and mean-pH checks alone do not cover pulse extremes.
+- [ ] **Couple uptake, transfer and growth over time.** Fit schedule- and biomass-dependent H₂ utilisation, biological O₂/CO₂ uptake, acidification and lag transition. The new scalar H₂ input fixes a missing measurement route but is not this dynamic model. Solve DIC and electrode reference states self-consistently at every search point.
+- [ ] **Propagate uncertainty and check search convergence.** Include calibration/response uncertainty and correlations, including pulse-volume intercept/slope. Agree reliability margins, refine the search and report an indistinguishable optimum region when justified. One-at-a-time sensitivity is not a confidence interval.
+- [ ] **Gate calibrations by matching conditions and acceptance evidence.** Confirm every accepted measurement actually replaces an operative parameter for the selected reactor, electrode, strain, medium, temperature, stirring and phase. A `Done` record does not wire a parameter into the model. Fit and validate the low-power current response before treating the extrapolated start-up power as measured.
+- [ ] **Validate the recommendation independently.** Predict the winner before collecting held-out runs; compare with neighbouring executable pairs and the existing schedule. Check outcome repeatability and every constraint. If differences cannot be resolved, report equivalent schedules or a plateau.
+
+### Additional experiments required for that objective
+
+These match Summary rows 213–215. Their blue status cells are manual evidence records, not automatic optimisation approval.
+
+- [ ] **Replicated duration × interval response experiment.** Randomise settings within a calibrated feasible domain, with matched controls and independent biological replicates. Record growth rate and productivity separately, all operating conditions, phase, biomass, sensor traces and uncertainty. Use pilot variability to determine replication sufficient to distinguish useful differences.
+- [ ] **Cycle-resolved DO, pH, DIC and H₂ at candidate schedules.** Test pulse minima, maxima and means through lag, growth and the target biomass range; account for sensor lag, sampling losses and DIC storage. Measure H₂ utilisation rather than assuming complete uptake.
+- [ ] **Independent comparison with neighbouring schedules.** Validate the predicted optimum against neighbouring executable pairs and the existing schedule using new replicated runs. Keep fitting and validation data separate; only claim a best-tested region when evidence supports it.
 
 ## Notes
 

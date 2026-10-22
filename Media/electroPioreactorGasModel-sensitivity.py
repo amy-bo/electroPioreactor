@@ -123,7 +123,7 @@ BASE = dict(
   f_HOOH=0.15, k_cat_cells=0.0041, M_H2O2=34.0147,
   FE_CER=0.5, km_Cl=0.00405, corr_I_frac=0.0,
   # --- biology ---
-  bio_H2=6, bio_O2=2, bio_CO2=1,
+  bio_H2=6, bio_O2=2, bio_CO2=1, H2_util=1.0,
   # --- O2 ceiling / Henry ---
   T_C=30, P_atm=101325, H_O2ref=1.2e-5, H_O2T=1500, T_ref=298.15, O2_ceil_atm=0.3,
   # --- CO2 dosing (ed04 calibrated: 3.33 mL/s = 199.8 mL/min) ---
@@ -358,8 +358,9 @@ def model(p):
     O2_ORR_lag = min(I_app / (n_ORR_eff * p['F']) * 3600, i_ORR / (n_ORR_eff * p['F']) * 3600 * p['DO_lag_ref'] / DO_design)   # D131
     O2_net_lag = rO2 - O2_ORR_lag + p['f_HOOH'] * O2_ORR_lag / 2 + r_an_g / 2   # D132 = MT D394 = MT D310
     rH2_lag = max(0.0, I_app - O2_ORR_lag / 3600 * n_ORR_eff * p['F']) / (p['z_e_H2'] * p['F']) * 3600   # D133 = MT D395
-    O2_cons = rH2 * p['bio_O2'] / p['bio_H2']
-    CO2_cons = rH2 * p['bio_CO2'] / p['bio_H2']
+    H2_cons = rH2 * p['H2_util']
+    O2_cons = H2_cons * p['bio_O2'] / p['bio_H2']
+    CO2_cons = H2_cons * p['bio_CO2'] / p['bio_H2']
     O2_excess = max(0.0, O2_net - O2_cons)                                         # Biology D16
 
     # --- surface transfer (MT D67-D73, D98) ---
@@ -405,7 +406,7 @@ def model(p):
     F_ex = p['P_atm'] * (Q_used / 1e6 / 60) / (R * T_K) * 3600           # D308, mol/h
     F_dil = F_ex + p['P_atm'] * (p['N2_sweep'] / 1e6 / 60) / (R * T_K) * 3600   # D425: air + N2 (N2 carries no O2/CO2)
     y_air = p['y_O2_air']
-    H2_cons = rH2                                                        # Biology D13 (no anodic HOR)
+    # H2_cons above includes the measured uptake fraction (Biology D130).
     phases = {'Growth': (O2_excess, max(0.0, rH2 - H2_cons), CO2_cons),  # D309/D313/D315
               'Lag': (O2_net_lag, rH2_lag, 0.0)}                         # D310/D314/D316 (lag-DO sources)
     O2_s, H2_s, fix_s = phases.get(p['O2_phase'], (NAN, NAN, NAN))       # D317-D319, sizing phase
@@ -802,6 +803,7 @@ SWEEP = [
  ('tau_NH2Cl', 1 / 60, 5.0, 'DATA-GAP'),    # chloramine lifetime: sets the free chloride share, hence the O2 surplus
  ('bio_O2', 1.6, 2.4, 'DATA-GAP'),
  ('bio_CO2', 0.8, 1.3, 'DATA-GAP'),
+ ('H2_util', 0.5, 1.0, 'DATA-GAP'),          # illustrative 50–100% uptake bracket, not a confidence interval
  ('pulse_floor', 0.2, 1.0, 'DATA-GAP'),
  ('pulse_V0_factor', 0.0, 2.0, 'DATA-GAP'),     # valve-opening intercept V0 of the pulse-volume fit; 0 = the old proportional model
  # ---- ESTIMATE ----
@@ -916,6 +918,7 @@ BASE['media'] = SELECTORS['media']
 BASE['electrode'] = SELECTORS['electrode']                               # Summary D3 drives the electrode tables
 BASE['z_e_ORR'] = ELECTRODE[SELECTORS['electrode']]['z_e_ORR']           # Echem D27
 INPUT_CELLS = [
+    ('H2_util',       'Biology', 'D130', BASE['H2_util']),
     ('Reactor_sel',   'Summary', 'D2', SELECTORS['reactor']),
     ('electrode_sel', 'Summary', 'D3', SELECTORS['electrode']),
     ('organism_sel',  'Summary', 'D4', SELECTORS['organism']),

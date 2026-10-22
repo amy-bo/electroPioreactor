@@ -112,6 +112,23 @@ Same uptake ratio from sealed serum bottles using only a gas chromatograph, a pr
 
 ## What the spreadsheet does with it
 
+The uptake **ratio** and the **fraction of available hydrogen consumed** are separate
+measurements. The Knallgas ratio table supplies the former. For a steady-growth
+off-gas balance, also calculate biological H₂ uptake divided by electrolytic H₂
+generation minus anodic H₂ re-oxidation, using consistent molar units and the same
+time window. Correct vent/sampling losses and changes in stored gas; do not infer
+this fraction from H₂:O₂:CO₂ ratios alone.
+
+Enter an accepted fraction greater than zero and no greater than one in
+`Biology!H2_util_meas` (D128), with run identity, matching operating conditions and
+uncertainty in F128. A value outside that range signals an invalid balance for the
+steady-growth model; zero uptake belongs to the lag/no-growth case. Leave the input
+blank until accepted: the workbook then explicitly retains its provisional 100%
+upper bound. This fraction now changes biological O₂/CO₂ demand and unconsumed H₂.
+It is specific to the measured conditions; clear or replace it when those conditions
+change. The workbook does not yet match this scalar input to conditions automatically.
+
+
 The Calibrations tab takes the three uptake values (H₂, O₂ and CO₂) you record for each run, forms the H₂ : O₂ : CO₂ ratio itself, and averages those ratios across the included runs for each organism, feeding that average as the gas requirement ratio used downstream. That single ratio sets the surplus oxygen the schedule must vent and the carbon demand it must meet, so both the oxygen budget and the carbon budget are driven by this measured number rather than by the cylinder feed composition.
 
 ## Principle & background
