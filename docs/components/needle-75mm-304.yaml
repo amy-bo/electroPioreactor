@@ -1,17 +1,13 @@
-id: needle-port
-name: "Stainless steel needle, 75 mm, SS304"
+id: needle-75mm-304
+name: "Stainless steel needle, 75 mm, SS304, 16G"
 kind: off-the-shelf
-design_version: 1.0.2
+design_version: 1.0.3
 master_format: none
 source_files: []
-parameters: {length_mm: 75, tip: "blunt", hub: "female luer-lock", grade: "304 (316 optional)"}
+parameters: {gauge: "16G", length_mm: 75, tip: "blunt", hub: "female luer-lock", grade: "304 (316 optional)"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 2.6 (Generic; AEP0.2). BoM qty 1 tops up the four that ship with each Pioreactor; Method step 7 uses four needle ports (Media In, Media Out, Gas Out, Gas Out - safety). 304 is standard; 316 is available for more acidic, basic or salty media."}
   - {version: 1.0.1, date: 2026-09-29, note: "Counted as part of the Pioreactor Vial Cap S that ships with each Pioreactor; the added needle is the 80 mm 316 one (needle-80mm-316) (Martin, 2026-09-29)."}
   - {version: 1.0.2, date: 2026-09-30, note: "Counted again: three for Media In and the two gas outlets; the Pioreactor ships four, the fourth a spare (Martin, Gerrit 2026-09-30)."}
-receipt:
-  per: unit
-  qty: 3
-  from: [labcrafter, pioreactor, diy]
-  note: "From the Pioreactor box, which holds four: the fourth is a spare."
+  - {version: 1.0.3, date: 2026-10-02, note: "Renamed from needle-port to match needle-80mm-316. Gauge added (16G, per pioreactor.com). The Pioreactor box holds three of these plus one 85 mm 316 15G needle, not four: the 85 mm one is the spare, and all three of these are used. Counted on the Pioreactor 40 ml v1.5 row (pioreactor-40ml) (Gerrit 2026-10-02)."}

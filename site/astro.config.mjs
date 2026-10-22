@@ -2,6 +2,25 @@
 import { defineConfig, passthroughImageService } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import docsandeye from 'starlight-docsandeye';
+import { globSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+// Docs&I reads docs/ once at startup, so `astro dev` restarts whenever one of its files
+// changes. Astro restarts only for files registered with addWatchFile, and only hears about
+// them from Vite's watcher, which covers site/ alone: hence both. A new file is picked up
+// after the next restart.
+const repoRoot = fileURLToPath(new URL('..', import.meta.url));
+const reloadOnDocs = {
+	name: 'reload-on-docs',
+	hooks: {
+		'astro:config:setup'({ addWatchFile, updateConfig, command }) {
+			if (command !== 'dev') return;
+			const files = ['docsandeye.config.yaml', ...globSync('docs/**/*.{yaml,yml,md,mdx}', { cwd: repoRoot })].map((f) => repoRoot + f);
+			for (const f of files) addWatchFile(f);
+			updateConfig({ vite: { plugins: [{ name: 'reload-on-docs', configureServer(server) { server.watcher.add(files); } }] } });
+		},
+	},
+};
 
 // docs.electroPioreactor.org. The guides come from this repository's docs/ folder
 // (docsandeye.config.yaml at the repository root); the AEP0.2 guide is served under
@@ -48,5 +67,6 @@ export default defineConfig({
 				{ label: 'Budget aseptic electroPioreactor (BAEP)', items: [{ label: 'Assembly', link: '/BAEP/' }] },
 			],
 		}),
+		reloadOnDocs,
 	],
 });

@@ -1,16 +1,16 @@
 id: stainless-steel-cathode
 name: "Stainless steel cathode, 100 mm long, 6 mm diameter"
 kind: off-the-shelf
-design_version: 1.0.0
+design_version: 1.0.1
 master_format: none
 source_files: []
 parameters: {length_mm: 100, diameter_mm: 6, grade: "316 stainless, marine grade", form: "round bar"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 2.2 (Critical; AEP0.2). 316 stainless round bar, marine grade. Must stay strictly cathodic: reversed, stainless corrodes quickly and leaches Cr, Ni and Fe into the culture."}
+  - {version: 1.0.1, date: 2026-10-07, note: "Not fitted in LabCrafter kits after all: it arrives loose, so every reader counts it (Gerrit 2026-10-07)."}
 receipt:
   per: unit
   qty: 1
   from: [labcrafter, diy]
-  fitted: [labcrafter]
-  note: "Arrives fitted in the vial cap in LabCrafter kits."
+  note: "Fitted into the vial cap in Set up electrolysis."

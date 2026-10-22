@@ -6,6 +6,7 @@ master_format: none
 source_files: []
 parameters: {gauge: "16G", length_mm: 80, tip: "blunt", hub: "female luer-lock", grade: "316"}
 derived_files: []
+supplier: {name: "LabCrafter", url: "https://labcrafter.co.uk/products/stainless-steel-port?variant=54754837758275"}
 changelog:
   - {version: 1.0.0, date: 2026-09-29, note: "Added from Martin's kit review of 2026-09-29."}
 receipt:
