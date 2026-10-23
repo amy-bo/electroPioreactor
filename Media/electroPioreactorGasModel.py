@@ -629,7 +629,14 @@ km_O2_default = 4.0e-3                                 # D165 (cm/s) Eisenberg-T
 km_exp       = 0.644                                   # D84 (-) k_m ~ D^(1-0.356); documents the km_Cl scaling
 n_e_fcn      = 1                                       # Calibrations D190 one-electron ferricyanide couple
 km_T_tol     = 1                                       # Calibrations D191 (degC) a k_m run counts within this of temp_C
-KM_CAL = []   # Calibrations rows 142-149: (reactor, electrode, rpm, T_C, I_lim_mA, A_cm2, C_mM, D_fcn_m2s, include); tab empty
+def _km_rows():
+    """Cal km log: (reactor, electrode, rpm, T_C, I_lim_mA, A_cm2, C_mM, D_fcn_m2s, include) per row."""
+    return [(r["Reactor"], r["Electrode"], r["Stir rate (rpm)"], r["Temp (°C)"], r["Limiting current (mA)"],
+             r["Electrode area (cm²)"], r["Ferricyanide (mM)"], r["D ferricyanide (m²/s)"], r["Include?"])
+            for r in table("CalKm")]
+
+
+KM_CAL = _km_rows()   # Calibrations electrode mass-transfer log (Cal km sheet)
 
 
 def km_ferricyanide(I_lim_mA, A_cm2, C_mM):
@@ -731,7 +738,14 @@ n_e_Cl   = 2                                           # D148 electrons per prod
 k_Cl_turn = km_Cl * A_anode / 1000 / VLc              # D271 (1/s) transport-limited chloride turnover, km.A/V
 tau_NH2Cl_default = 1                                  # Chemistry D314 (h) weak central estimate
 M_Cl2_mg  = 70906                                       # Chemistry D223 (mg/mol)
-TAU_CAL = []  # Calibrations rows 155-162: (reactor, medium, plateau mg/L as Cl2, k_Cl_turn 1/s, Cl pool mol/L, P_Cl_max mol/L/s, include); tab empty
+def _tau_rows():
+    """Cal chloramine log: (reactor, medium, plateau mg/L as Cl2, k_Cl_turn 1/s, Cl pool mol/L, P_Cl_max mol/L/s, include)."""
+    return [(r["Reactor"], r["Medium"], r["Combined chlorine plateau (mg/L as Cl₂)"], r["Chloride turnover k (1/s)"],
+             r["Chloride pool C (mol/L)"], r["Max production P (mol/L/s)"], r["Include?"])
+            for r in table("CalChloramine")]
+
+
+TAU_CAL = _tau_rows()  # monochloramine log (Cal chloramine sheet)
 
 
 def tau_from_dpd(C_Cl2_mgL, k_turn, Cl_pool, P_max):
@@ -2558,8 +2572,8 @@ OUTPUTS.extend([
     ("Summary res_I_max maximum current mA", I_max_mA),
     ("Summary res_j_anode_max maximum anode current density", j_anode_max),
     # Measured electrode k_m and monochloramine lifetime enter through the Calibrations tab
-    ("Calib D150 cal_km_O2 value in use", cal_km_O2 if isnum(cal_km_O2) else NO_CAL_TXT),
-    ("Calib D163 cal_tau_NH2Cl value in use", cal_tau_NH2Cl if isnum(cal_tau_NH2Cl) else NO_CAL_TXT),
+    ("Calib cal_km_O2 value in use", cal_km_O2 if isnum(cal_km_O2) else NO_CAL_TXT),
+    ("Calib cal_tau_NH2Cl value in use", cal_tau_NH2Cl if isnum(cal_tau_NH2Cl) else NO_CAL_TXT),
     ("Echem D83  km_O2 in use (cm/s)", km_O2),
     ("Chemistry D142 tau_NH2Cl in use (h)", tau_NH2Cl),
     ("Chemistry D315 P_Cl_max (mol/L/s)", P_Cl_max),

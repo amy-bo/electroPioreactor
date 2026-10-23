@@ -46,7 +46,7 @@ tags: [electropioreactor, protocol, electrochemistry, calibration]
 7. Move to the next setpoint and repeat steps 5 and 6, working through the full sweep listed in step 4.
 8. Repeat the whole sweep at least once more as an independent run, re-conditioning the electrodes beforehand (step 3). Keep each run's points separate; do not merge them by hand.
 9. Record the electrolyte temperature again at the end.
-10. Record each (intensity %, measured current mA) pair in the **Electrolysis current** section of the **Calibrations** tab - one row per point. Fill in Researcher, Date and Reactor; set Include to y only for accepted operating-band points; keep diagnostics separate and excluded. Leave the Computed, Type and value-in-use cells to the spreadsheet.
+10. Record each (intensity %, measured current mA) pair in the **Electrolysis current** log (its own sheet, linked from the **Calibrations** overview) - one row per point. Fill in Researcher, Date and Reactor; set Include to y only for accepted operating-band points; keep diagnostics separate and excluded. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## Budget protocol
 
@@ -70,7 +70,7 @@ tags: [electropioreactor, protocol, electrochemistry, calibration]
 7. Record that average voltage in millivolts for the setpoint. Do not convert to current by hand: you record the raw voltage and the one measured resistance, and the spreadsheet divides to get the current.
 8. Move to the next setpoint and repeat steps 6 and 7, working through the full sweep listed in step 5.
 9. Repeat the whole sweep on a separate day with a freshly prepared electrolyte batch, keeping the runs separate.
-10. Record each (intensity %, average voltage mV) pair in the **Electrolysis current** section of the **Calibrations** tab - one row per point - and record the single measured sense-resistance value once for the run; the spreadsheet divides voltage by resistance to get the current. (If that section only has intensity and current columns, record the computed current instead - current mA = average mV ÷ measured Ω - noting this is the one small division you do by hand.) Fill in Researcher, Date and Reactor; set Include to y only for accepted operating-band points; keep diagnostics separate and excluded. Leave the Computed, Type and value-in-use cells to the spreadsheet.
+10. Record each (intensity %, average voltage mV) pair in the **Electrolysis current** log (its own sheet, linked from the **Calibrations** overview) - one row per point - and record the single measured sense-resistance value once for the run; the spreadsheet divides voltage by resistance to get the current. (If that section only has intensity and current columns, record the computed current instead - current mA = average mV ÷ measured Ω - noting this is the one small division you do by hand.) Fill in Researcher, Date and Reactor; set Include to y only for accepted operating-band points; keep diagnostics separate and excluded. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## What the spreadsheet does with it
 

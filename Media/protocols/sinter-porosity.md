@@ -54,7 +54,7 @@ tags: [electropioreactor, protocol, sparger, sinter, mass-transfer]
 5. Raise the pressure in small steps, waiting 30 seconds after each step. Use steps of about 0.2 to 1 kPa, taking the smaller steps for finer frits.
 6. Watch the submerged face. Note the gauge pressure and immersion depth at the first continuous, steady bubble stream. Subtract the liquid head before applying the capillary equation: ΔP_cap = P_gauge − ρgh, in consistent units. Do not exceed any component rating.
 7. Close the gas supply, re-wet the frit fully and repeat twice more. The three readings should agree closely; if one is much lower than the others, suspect incomplete wetting and re-wet before trusting it.
-8. Record the liquid-head-corrected bubble-point pressure (kPa), keeping raw gauge pressure, depth, density, wetting liquid and temperature in notes, in the **Sinter porosity** section of the **Calibrations** tab. Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
+8. Record the liquid-head-corrected bubble-point pressure (kPa), keeping raw gauge pressure, depth, density, wetting liquid and temperature in notes, in the **Sinter porosity** log (its own sheet, linked from the **Calibrations** overview). Fill Researcher, Date and Reactor; set Include to y. Leave the Computed, Type and value-in-use cells to the spreadsheet.
 
 ## Budget protocol
 

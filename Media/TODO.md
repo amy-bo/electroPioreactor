@@ -24,11 +24,11 @@ Summary column D shows each experiment's status in the situation selected on the
 - **Not needed:** green, when the selection makes the experiment irrelevant.
 
 How the status is found:
-- An included run in the matching Calibrations section counts.
-- So does a row in the **experiment record** at the bottom of the Calibrations tab. In a record row, any condition left blank means the result holds for any value of it.
+- An included run in the matching calibration log counts.
+- So does a row in the **experiment record** on the Experiments sheet. In a record row, any condition left blank means the result holds for any value of it.
 - `Calibrations!xs_*` holds the logic for each experiment.
 
-Enter results in the matching Calibrations section where there is one. Leave Include blank until the protocol's acceptance, species-balance and transferability gates are met. The numbers quoted below are for the AM003 baseline: ed04, MMO tube, *Xanthobacter tagetidis*, 30 °C.
+Enter results in the matching calibration log where there is one. Leave Include blank until the protocol's acceptance, species-balance and transferability gates are met. The numbers quoted below are for the AM003 baseline: ed04, MMO tube, *Xanthobacter tagetidis*, 30 °C.
 
 ### HIGH impact
 

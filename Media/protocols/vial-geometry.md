@@ -49,7 +49,7 @@ tags: [electropioreactor, protocol, geometry, headspace, calibration]
 6. Empty and dry the vial, re-assemble and re-charge it as in steps 2 to 5, and take the headspace mass twice more, so you have three fills of the same vial. Record each fill as its own vial row. If one fill differs by more than about 0.3 mL from the others, re-wet, chase bubbles and re-run.
 7. Remove the inserts and the cap, empty and dry the vial, and weigh it empty. Fill the whole vial body with deionised water up to the rim, the top reference plane being the internal lip of the neck where the cap seats. Chase out any bubble as before and weigh again; the increase is the body mass.
 8. Note the water temperature.
-9. Record your results in the **Vial geometry** section of the **Calibrations** tab, one row per fill: headspace mass, body mass (on one row per vial is enough), temperature and working-fill mass; the column headers name what each cell wants. Set Include to y and leave the computed cells to the spreadsheet.
+9. Record your results in the **Vial geometry** log (its own sheet, linked from the **Calibrations** overview), one row per fill: headspace mass, body mass (on one row per vial is enough), temperature and working-fill mass; the column headers name what each cell wants. Set Include to y and leave the computed cells to the spreadsheet.
 
 ## What the spreadsheet does with it
 

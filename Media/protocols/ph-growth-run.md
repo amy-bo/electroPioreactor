@@ -46,7 +46,7 @@ Conditions:
 **Acceptance:**
 - The start-of-run pH should match Summary row 27 within 0.05. If it doesn't, check the medium and the schedule before reading anything else.
 - The end-of-run pH should match within 0.05.
-- If the measured fall is consistently larger or smaller than predicted, fit f_N to it. Record the fit in the Calibrations experiment record (Result Done, with the organism, medium and temperature filled).
+- If the measured fall is consistently larger or smaller than predicted, fit f_N to it. Record the fit in the experiment record (Experiments sheet) (Result Done, with the organism, medium and temperature filled).
 
 ## Cheapest protocol
 

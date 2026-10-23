@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Regression checks for medium selection and fail-closed sensitivity verification."""
 import contextlib
+import html
 import io
 import math
 from pathlib import Path
@@ -58,6 +59,25 @@ def cell_formula(sheet_xml, ref):
     c1, r1 = re.fullmatch(r'([A-Z]+)(\d+)', ref).groups()
     n = lambda c: sum((ord(ch) - 64) * 26 ** i for i, ch in enumerate(reversed(c)))
     return _shift(html.unescape(mm.group(3)), int(r1) - r0, n(c1) - n(c0))
+
+
+def book_sheet(tab):
+    """Decoded XML of the worksheet with this tab name (sheet parts are not in tab order)."""
+    with zipfile.ZipFile(BOOK) as z:
+        wb = z.read('xl/workbook.xml').decode()
+        rels = z.read('xl/_rels/workbook.xml.rels').decode()
+        rid = re.search(r'<sheet name="%s" sheetId="\d+" r:id="([^"]+)"' % re.escape(html.escape(tab)), wb).group(1)
+        target = re.search(r'Id="%s"[^>]*Target="([^"]+)"|Target="([^"]+)"[^>]*Id="%s"' % (rid, rid), rels)
+        target = target.group(1) or target.group(2)
+        return z.read('xl/' + target.lstrip('/').replace('xl/', '')).decode()
+
+
+def named_cell(name):
+    """(tab, cell) of a workbook-scoped defined name that points at one cell."""
+    with zipfile.ZipFile(BOOK) as z:
+        wb = z.read('xl/workbook.xml').decode()
+    m = re.search(r'<definedName name="%s">\'?([^<!\']+)\'?!\$([A-Z]+)\$(\d+)</definedName>' % re.escape(name), wb)
+    return m.group(1), m.group(2) + m.group(3)
 
 
 class GasModelChecks(unittest.TestCase):
@@ -190,15 +210,25 @@ class GasModelChecks(unittest.TestCase):
 
     def test_calibration_formulas_match_the_twin(self):
         """The calibration rows are hand-written XML; pin their formula text to the twin's algebra."""
-        with zipfile.ZipFile(BOOK) as z:
-            sh = z.read('xl/worksheets/sheet8.xml').decode()
-        f = lambda ref: cell_formula(sh, ref)
-        self.assertEqual(f('K142'), 'IF(OR(G142="",H142="",I142=""),"",IFERROR((G142/1000)/(n_e_fcn*F_const*(H142/10000)*I142)*100,""))')
-        self.assertEqual(f('L142'), 'IF(OR(K142="",J142=""),"",IFERROR(K142*(D_O2/J142)^km_exp,""))')
-        self.assertEqual(f('I155'), 'IF(OR(E155="",F155="",G155="",H155=""),"",IF(E155/M_Cl2>=G155,"not invertible: plateau at or above the chloride pool",IFERROR(MAX(E155/M_Cl2/(F155*(G155-E155/M_Cl2)),E155/M_Cl2/H155)/3600,"")))')
-        self.assertIn('AVERAGEIFS(L142:L149,C142:C149,Reactor_sel,D142:D149,electrode_sel,N142:N149,"y",E142:E149,stir_rpm_set,'
-                      'F142:F149,"&gt;="&amp;(temp_C-km_T_tol),F142:F149,"&lt;="&amp;(temp_C+km_T_tol))', sh)
-        self.assertIn('AVERAGEIFS(I155:I162,C155:C162,Reactor_sel,D155:D162,media_sel,K155:K162,"y")', sh.replace('&quot;', '"'))
+        km, ch, cal = book_sheet('Cal km'), book_sheet('Cal chloramine'), book_sheet('Calibrations')
+        row = lambda t, h: '%s[[#This Row],[%s]]' % (t, h)
+        k, c = (lambda h: row('CalKm', h)), (lambda h: row('CalChloramine', h))
+        self.assertIn(html.escape('IF(OR(%s="",%s="",%s=""),"",IFERROR((%s/1000)/(Calibrations!n_e_fcn*Calibrations!F_const*(%s/10000)*%s)*100,""))' % (
+            k('Limiting current (mA)'), k('Electrode area (cm²)'), k('Ferricyanide (mM)'), k('Limiting current (mA)'),
+            k('Electrode area (cm²)'), k('Ferricyanide (mM)')), quote=False), km)
+        self.assertIn(html.escape('IF(OR(%s="",%s=""),"",IFERROR(%s*(Calibrations!D_O2/%s)^Calibrations!km_exp,""))' % (
+            k('k_m ferricyanide (computed, cm/s)'), k('D ferricyanide (m²/s)'), k('k_m ferricyanide (computed, cm/s)'),
+            k('D ferricyanide (m²/s)')), quote=False), km)
+        P, kk, pool, Pm = (c('Combined chlorine plateau (mg/L as Cl₂)'), c('Chloride turnover k (1/s)'),
+                           c('Chloride pool C (mol/L)'), c('Max production P (mol/L/s)'))
+        self.assertIn(html.escape(('IF(OR({P}="",{k}="",{pool}="",{Pm}=""),"",IF({P}/Calibrations!M_Cl2>={pool},'
+                                   '"not invertible: plateau at or above the chloride pool",IFERROR(MAX({P}/Calibrations!M_Cl2/({k}*({pool}-{P}/Calibrations!M_Cl2)),'
+                                   '{P}/Calibrations!M_Cl2/{Pm})/3600,"")))').format(P=P, k=kk, pool=pool, Pm=Pm), quote=False), ch)
+        self.assertIn(html.escape('AVERAGEIFS(CalKm[k_m O₂ (computed, cm/s)],CalKm[Reactor],Reactor_sel,CalKm[Electrode],electrode_sel,'
+                                  'CalKm[Include?],"y",CalKm[Stir rate (rpm)],stir_rpm_set,CalKm[Temp (°C)],">="&(temp_C-km_T_tol),'
+                                  'CalKm[Temp (°C)],"<="&(temp_C+km_T_tol))', quote=False), cal)
+        self.assertIn(html.escape('AVERAGEIFS(CalChloramine[Lifetime (computed, h)],CalChloramine[Reactor],Reactor_sel,'
+                                  'CalChloramine[Medium],media_sel,CalChloramine[Include?],"y")', quote=False), cal)
 
     def test_added_alkalinity_is_coupled(self):
         base = self.twin()
@@ -371,10 +401,10 @@ class GasModelChecks(unittest.TestCase):
         self.assertTrue(math.isclose(x['grid_t_min'], math.floor(x['spg_dur'] / 60 / 0.01 + 1e-12) * 0.01 + 0.01, rel_tol=1e-12))
         self.assertGreater(x['grid_t_min'] * 60, x['spg_dur'])                      # executable
         # Knallgas ratios are averaged per run on an H2 basis (finding 3): pinned formula text.
-        with zipfile.ZipFile(BOOK) as z:
-            cal = z.read('xl/worksheets/sheet8.xml').decode().replace('&quot;', '"').replace('&gt;', '>')
-        self.assertIn('knall_H2_basis*AVERAGEIFS(I112:I119,C112:C119,organism_sel,G112:G119,"y")', cal)
-        self.assertIn('IFERROR(IF(D112>0,E112/D112,""),"")', cal)
+        cal = html.unescape(book_sheet('Calibrations'))
+        kn = html.unescape(book_sheet('Cal knallgas'))
+        self.assertIn('knall_H2_basis*AVERAGEIFS(CalKnallgas[O₂ per H₂ (computed)],CalKnallgas[Organism],organism_sel,CalKnallgas[Include?],"y")', cal)
+        self.assertIn('IFERROR(IF(CalKnallgas[[#This Row],[H2]]>0,CalKnallgas[[#This Row],[O2]]/CalKnallgas[[#This Row],[H2]],""),"")', kn)
         # Lag H2 time mean exists for time-weighted comparisons (finding 4) and lies between the flux mean and the top.
         self.assertTrue(self.twin()['y_H2_avg_l'] > 0)
 
@@ -388,10 +418,10 @@ class GasModelChecks(unittest.TestCase):
             m = self.sens['model'](dict(self.sens['BASE'], P_atm=patm))
             self.assertTrue(math.isclose(t['DO_target'], m['DO_target'], rel_tol=1e-6), (patm, t['DO_target'], m['DO_target']))
         # Sinter grades outside the listed classes are not invented (finding 4): formula text pinned.
-        with zipfile.ZipFile(BOOK) as z:
-            cal = z.read('xl/worksheets/sheet8.xml').decode().replace('&quot;', '"').replace('&gt;', '>').replace('&lt;', '<')
+        cal = html.unescape(book_sheet('Cal sinter'))
+        bp = 'CalSinter[[#This Row],[Bubble point (kPa)]]'
         self.assertIn('"between or below the listed grades – not used"', cal)
-        self.assertIn('AND((bp_const/D81)>=por_p5_lo,(bp_const/D81)<=por_p5_hi),5', cal)
+        self.assertIn('AND((Calibrations!bp_const/%s)>=Calibrations!por_p5_lo,(Calibrations!bp_const/%s)<=Calibrations!por_p5_hi),5' % (bp, bp), cal)
 
     def test_review4_fixes(self):
         # Peroxide: judged on the lag plateau, not the 1-hour level (finding 1).
@@ -413,11 +443,10 @@ class GasModelChecks(unittest.TestCase):
         self.assertLessEqual(t['DO_target'] * t['M_O2'], 2.0 + 1e-9)
         self.assertTrue(math.isclose(t['O2_ceil_org'] * t['M_O2'], 2.0, rel_tol=1e-12))
         # Sinter: graded once from the averaged bubble point, never a fractional grade (finding 3).
-        with zipfile.ZipFile(BOOK) as z:
-            cal = z.read('xl/worksheets/sheet8.xml').decode().replace('&quot;', '"').replace('&gt;', '>')
-        d89 = re.search(r'<c r="D89"[^>]*><f>([^<]*)</f>', cal).group(1)
+        tab, ref = named_cell('cal_sinter')
+        d89 = re.search(r'<c r="%s"[^>]*><f>([^<]*)</f>' % ref, book_sheet(tab)).group(1)
         self.assertIn('(bp_const/cal_bp)', d89)
-        self.assertNotIn('AVERAGEIFS(E81', d89)
+        self.assertNotIn('AVERAGEIFS(', d89)
 
     def test_review6_fixes(self):
         # The sensitivity model carries the organism toxic ceiling too (finding 1).

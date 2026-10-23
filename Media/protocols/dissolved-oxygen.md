@@ -55,7 +55,7 @@ tags: [electropioreactor, protocol, dissolved-oxygen, DO, biology]
 10. Re-read the air-saturation span point at the end of each run. Discard any run whose end reading has drifted beyond the probe's stated accuracy.
 11. Run each setpoint in at least duplicate vials.
 12. Validate the running dissolved oxygen in a separate balanced growth run at the recorded model operating inputs: fixed power, stirring and Summary D21/D22 schedule, with continuous DO logging. Do not hold DO at the organism optimum by feedback, because feedback changes the oxygen source being validated. Compare the measured steady or cycle-mean DO and uncertainty with the corresponding prediction for those inputs. If feedback is studied, explicitly model and compare its logged source instead. Complete flow, current, Faradaic, uptake and surface-kLa calibrations first. Agreement supports the balance within measurement uncertainty; it does not prove it.
-13. Record the organism's minimum, optimum, impairment and toxic dissolved-oxygen levels (mg/L) in the **DO thresholds** section of the **Calibrations** tab. Fill Researcher, Date and Organism; set Include to y. Leave the Computed and value-in-use cells to the spreadsheet.
+13. Record the organism's minimum, optimum, impairment and toxic dissolved-oxygen levels (mg/L) in the **DO thresholds** log (its own sheet, linked from the **Calibrations** overview). Fill Researcher, Date and Organism; set Include to y. Leave the Computed and value-in-use cells to the spreadsheet.
 
 ## Budget protocol
 
@@ -83,7 +83,7 @@ tags: [electropioreactor, protocol, dissolved-oxygen, DO, biology]
 
    Where the literature gives only a range, take the range or its midpoint and note that you did. Leave any level the literature does not support blank rather than inventing one.
 3. During a normal balanced growth run, take a few spot dissolved-oxygen readings with the probe rather than a continuous trace. Compare them against the steady-state dissolved oxygen the model predicts: readings clustered near the prediction support the oxygen balance within uncertainty, while a consistent large offset flags it.
-4. Record the organism's minimum, optimum, impairment and toxic dissolved-oxygen levels (mg/L) in the **DO thresholds** section of the **Calibrations** tab. Fill Researcher, Date and Organism; set Include to y. Leave the Computed and value-in-use cells to the spreadsheet.
+4. Record the organism's minimum, optimum, impairment and toxic dissolved-oxygen levels (mg/L) in the **DO thresholds** log (its own sheet, linked from the **Calibrations** overview). Fill Researcher, Date and Organism; set Include to y. Leave the Computed and value-in-use cells to the spreadsheet.
 
 ## What the spreadsheet does with it
 

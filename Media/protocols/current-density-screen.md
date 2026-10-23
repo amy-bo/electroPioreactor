@@ -53,7 +53,7 @@ Best accuracy. Use this route whenever the strain has no trustworthy published i
 5. Replicate and randomise. Before running, have the measurement owner approve equivalence margins, analysis and adequate replication for each current density and matched control (batch if necessary); use at least three independent replicates where the analysis requires n ≥ 3. Randomise the unit-to-current-density assignment across runs so a "hot" unit is not confounded with a current-density level. Re-condition or clean the electrodes between runs.
 6. Read out three numbers per current density: specific growth rate µ in exponential phase, final biomass or product titre, and relative viability against the decoupled control.
 7. Determine the optimum from the measured productivity curve and report uncertainty. A tolerated ceiling requires a pre-specified owner-approved equivalence margin, analysis and replication against appropriately gas-matched controls. p > 0.05 is not evidence of equivalence, and a control-CV rule is not equivalent to a t-test. Until those prerequisites are resolved, report effects and uncertainty without declaring tolerance or a test-based inhibition threshold.
-8. Only after the equivalence prerequisites are met, record the optimum and tolerated-ceiling current densities (mA/cm²) you determined for the strain in the **Current density** section of the **Calibrations** tab. Fill Researcher, Date and Organism; set Include to y. Leave the Computed and value-in-use cells to the spreadsheet.
+8. Only after the equivalence prerequisites are met, record the optimum and tolerated-ceiling current densities (mA/cm²) you determined for the strain in the **Current density** log (its own sheet, linked from the **Calibrations** overview). Fill Researcher, Date and Organism; set Include to y. Leave the Computed and value-in-use cells to the spreadsheet.
 9. Dispose of waste safely. Inactivate the culture and any plating agar before disposal, and keep any propidium-iodide stain waste segregated.
 
 ## Budget protocol
@@ -83,7 +83,7 @@ Accuracy note: boundary-layer stress is worst right at the electrode, so a strai
 
 ## What the spreadsheet does with it
 
-The Current density section of the Calibrations tab averages the included optimum and tolerated-ceiling values for each organism and feeds those averages to the current-density traffic lights on the Summary. The Summary flag compares the operating current density against the biological optimum and ceiling and, separately, against the electrode material's rated plating limit; the biological ceiling and the plating limit are independent checks, and the reported flag is the worse of the two. Setting Include to n on a row keeps it in the record but excludes it from the average.
+The Current density log on its own sheet (linked from the Calibrations overview) averages the included optimum and tolerated-ceiling values for each organism and feeds those averages to the current-density traffic lights on the Summary. The Summary flag compares the operating current density against the biological optimum and ceiling and, separately, against the electrode material's rated plating limit; the biological ceiling and the plating limit are independent checks, and the reported flag is the worse of the two. Setting Include to n on a row keeps it in the record but excludes it from the average.
 
 ## Principle & background
 
