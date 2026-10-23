@@ -123,9 +123,58 @@ def audit(path):
     return dict(counts), issues
 
 
+def audit_tables(path):
+    """Each Excel Table: header cells hold exactly its column names, ids and names unique, no future functions."""
+    issues = []
+    with zipfile.ZipFile(path) as z:
+        names = z.namelist()
+        wb = ET.fromstring(z.read('xl/workbook.xml'))
+        rels = {r.get('Id'): r.get('Target') for r in ET.fromstring(z.read('xl/_rels/workbook.xml.rels'))}
+        shared = [''.join(s.itertext()) for s in ET.fromstring(z.read('xl/sharedStrings.xml'))]
+        ids, tnames = set(), set()
+        for sheet in wb.find('m:sheets', NS):
+            part = 'xl/' + rels[sheet.get(RID)].lstrip('/').replace('xl/', '')
+            rel = part.replace('worksheets/', 'worksheets/_rels/') + '.rels'
+            if rel not in names:
+                continue
+            root = ET.fromstring(z.read(part))
+            cells = {}
+            for c in root.iter('{%s}c' % NS['m']):
+                v = c.find('m:v', NS)
+                if c.get('t') == 'inlineStr':
+                    cells[c.get('r')] = ''.join(c.find('m:is', NS).itertext())
+                elif c.get('t') == 's' and v is not None:
+                    cells[c.get('r')] = shared[int(v.text)]
+            for r in ET.fromstring(z.read(rel)):
+                if not r.get('Type', '').endswith('/table'):
+                    continue
+                t = ET.fromstring(z.read('xl/' + r.get('Target').replace('../', '')))
+                tn = t.get('name')
+                if t.get('id') in ids or tn in tnames:
+                    issues.append(f'Table {tn}: duplicate id or name')
+                ids.add(t.get('id')); tnames.add(tn)
+                m = re.fullmatch(r'([A-Z]+)(\d+):([A-Z]+)(\d+)', t.get('ref'))
+                c0 = sum((ord(ch) - 64) * 26 ** k for k, ch in enumerate(reversed(m.group(1))))
+                cols = [tc.get('name') for tc in t.find('m:tableColumns', NS)]
+                if int(t.find('m:tableColumns', NS).get('count')) != len(cols):
+                    issues.append(f'Table {tn}: tableColumns count mismatch')
+                for k, name in enumerate(cols):
+                    n, col = c0 + k, ''
+                    while n:
+                        n, rem = divmod(n - 1, 26)
+                        col = chr(65 + rem) + col
+                    if cells.get(f'{col}{m.group(2)}') != name:
+                        issues.append(f'Table {tn}: header {col}{m.group(2)} is not "{name}"')
+        for n in names:
+            if n.startswith('xl/') and n.endswith('.xml') and b'_xlfn.' in z.read(n):
+                issues.append(f'{n}: post-2019 function (_xlfn); the verification Excel crashes on these')
+    return issues
+
+
 if __name__ == '__main__':
     path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).with_name('electroPioreactorGasModel.xlsx')
     counts, issues = audit(path)
+    issues += audit_tables(path)
     print(counts)
     print('\n'.join(issues) if issues else 'PASS: workbook structure and cell-format Key checks')
     raise SystemExit(bool(issues))
