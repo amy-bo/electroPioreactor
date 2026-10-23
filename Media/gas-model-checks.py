@@ -645,8 +645,9 @@ class GasModelChecks(unittest.TestCase):
             sh = z.read('xl/worksheets/sheet1.xml').decode()
             st = z.read('xl/styles.xml').decode()
             parts = [z.read(n).decode() for n in z.namelist() if n.startswith('xl/worksheets/sheet')]
+        summary_id = re.findall(r'<sheet name="([^"]+)"', wb).index('Summary')    # local names are scoped by tab position
         names = {m.group(1): int(m.group(2)) for m in
-                 re.finditer(r'<definedName name="([^"]+)" localSheetId="0">Summary!\$D\$(\d+)</definedName>', wb)}
+                 re.finditer(r'<definedName name="([^"]+)" localSheetId="%d">Summary!\$D\$(\d+)</definedName>' % summary_id, wb)}
         checks_row = min(r for n, r in names.items() if n.startswith('chk_'))
         self.assertTrue(all(r >= checks_row for n, r in names.items() if n.startswith('chk_')))
         self.assertTrue(all(r < checks_row for n, r in names.items() if n.startswith('res_')))
