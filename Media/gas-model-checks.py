@@ -67,16 +67,14 @@ class GasModelChecks(unittest.TestCase):
             cls.sens = runpy.run_path(str(SENS))
 
     def test_all_media_against_independent_twin(self):
-        for medium in ('MC02', 'UdG phosphate', 'AMYBO03'):
+        for medium in ('AM001', 'AM002', 'UdG phosphate', 'AM003'):
             with self.subTest(medium=medium):
                 src = re.sub(r'^media_sel\s*=\s*"[^"]*"',
                              f'media_sel = "{medium}"', TWIN.read_text(), flags=re.M)
                 ns = {'__name__': 'test_twin', '__file__': str(TWIN)}
                 exec(compile(src, str(TWIN), 'exec'), ns)
                 got = self.sens['medium_chemistry'](dict(self.sens['BASE'], media=medium))
-                expected = [ns[k] for k in ('pH_SID', 'pH_PT', 'pH_NT', 'pH_Cl', 'I_ionic')]
-                expected.append(ns[{'MC02': 'kappa0_mc02', 'UdG phosphate': 'kappa0_udg',
-                                    'AMYBO03': 'kappa0_amy'}[medium]])
+                expected = [ns[k] for k in ('pH_SID', 'pH_PT', 'pH_NT', 'pH_Cl', 'I_ionic', 'med_kappa0_rec')]
                 for a, b in zip(got, expected):
                     self.assertTrue(math.isclose(a, b, rel_tol=1e-12, abs_tol=1e-14), (a, b))
 
@@ -186,7 +184,7 @@ class GasModelChecks(unittest.TestCase):
         self.assertTrue(math.isnan(u['tau_from_dpd'](pool * 70906, k, pool, P)))
         t = self.twin(media_sel='UdG phosphate',
                       TAU_CAL=[('ed04', 'UdG phosphate', B * 70906, k, pool, P, 'y'),
-                               ('ed04', 'MC02', 9.0, k, pool, P, 'y')])
+                               ('ed04', 'AM002', 9.0, k, pool, P, 'y')])
         self.assertTrue(math.isclose(t['tau_NH2Cl'], 40.0, rel_tol=1e-9))
         self.assertNotEqual(t['Cl_bound'], u['Cl_bound'])
 
@@ -227,14 +225,14 @@ class GasModelChecks(unittest.TestCase):
             ch = z.read('xl/worksheets/sheet4.xml').decode()
             wb = z.read('xl/workbook.xml').decode()
         f = lambda ref: cell_formula(ch, ref)
-        self.assertTrue(f('D332').endswith(')))+alk_add_M'))     # recipe SID; D44 adds the nitrogen-source swap
+        self.assertEqual(f('D332'), 'med_SID_rec+alk_add_M')    # recipe SID; D44 adds the nitrogen-source swap
         self.assertEqual(f('D44'), 'pH_SID_rec+IF(N_src_idx=1,0,pH_NT_rec)')
-        self.assertTrue(f('D185').endswith(')))+alk_add_M'))
+        self.assertEqual(f('D185'), 'med_I_rec+alk_add_M')
         self.assertIn('+alk_add_M*(lam_Na+lam_HCO3)/10)*kappa_fI', f('D180'))
         self.assertEqual(f('D317'), 'Summary!NaHCO3_add_gL')
         self.assertEqual(f('D318'), 'NaHCO3_add_gL/M_NaHCO3')
-        for name, sid, ref in (('NaHCO3_add_gL', 0, 'Summary!$D$13'), ('NaHCO3_add_gL', 3, 'Chemistry!$D$317'),
-                               ('alk_add_M', 3, 'Chemistry!$D$318')):
+        for name, sid, ref in (('NaHCO3_add_gL', 0, 'Summary!$D$13'), ('NaHCO3_add_gL', 4, 'Chemistry!$D$317'),
+                               ('alk_add_M', 4, 'Chemistry!$D$318')):
             self.assertIn('<definedName name="%s" localSheetId="%d">%s</definedName>' % (name, sid, ref), wb)
 
     def test_n2_sweep_dilutes_without_co2(self):
@@ -286,8 +284,8 @@ class GasModelChecks(unittest.TestCase):
         self.assertTrue(u['ph_unreach'])
         self.assertTrue(math.isnan(u['spg_int_opt']))
         self.assertTrue(u['opt_binding'].startswith('pH CEILING UNREACHABLE'))
-        # MC02 never reaches the ceiling: no bound, and the carbon bound stands with a sweep.
-        mc = self.twin(media_sel='MC02', N2_sweep_set=1.0)
+        # AM002 never reaches the ceiling: no bound, and the carbon bound stands with a sweep.
+        mc = self.twin(media_sel='AM002', N2_sweep_set=1.0)
         self.assertEqual(mc['spg_int_pH'], 'no pH bound')
         self.assertTrue(mc['opt_binding'].startswith('CARBON'))
         # The sensitivity model's independent bisection agrees with the workbook grid across states.

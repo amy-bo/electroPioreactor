@@ -24,7 +24,7 @@ tags: [electropioreactor, protocol, dissolved-oxygen, abiotic, lag-phase, vent]
 
 One run with no cells. It measures the dissolved-oxygen sawtooth the model predicts for the lag phase, when there is no oxygen uptake and no hydrogen uptake, so the electrolytic oxygen has only two ways out: the CO₂ pulse and the free surface (via the vent). The shape of the trace tells you which parts of the model are wrong.
 
-Conditions for the whole run: ed04 at the recorded working volume, chloride-free AMYBO03, no cells (abiotic counterpart of the *Xanthobacter tagetidis* baseline), MMO tube assembly, 30 °C, recorded operating power and stirring. Read and record Summary D21 (pulse duration, s; res_spg_dur_run) and D22 (interval, min; res_spg_int_run) with these selections; do not copy fixed commands.
+Conditions for the whole run: ed04 at the recorded working volume, chloride-free AM003, no cells (abiotic counterpart of the *Xanthobacter tagetidis* baseline), MMO tube assembly, 30 °C, recorded operating power and stirring. Read and record Summary D21 (pulse duration, s; res_spg_dur_run) and D22 (interval, min; res_spg_int_run) with these selections; do not copy fixed commands.
 
 ## Optimal protocol
 
@@ -42,7 +42,7 @@ Best accuracy: a continuous optical trace through the vial wall.
 
 ### Reagents
 
-- The medium in use (chloride-free AMYBO03), freshly made, no cells.
+- The medium in use (chloride-free AM003), freshly made, no cells.
 - For the zero point: a freshly made sodium sulphite (Na₂SO₃) solution, about 1 g per 100 mL of deionised water. Make it immediately before use because it re-oxygenates from air within hours. Cobalt(II) chloride is sometimes added to speed it up; it is a carcinogen, so leave it out unless you are an experienced user.
 - For the span point: air-saturated water at the same temperature (stir deionised water open to air for at least 30 minutes, or bubble air through it).
 - CO₂ from the line the reactor normally uses.

@@ -30,7 +30,7 @@ Do these once per unit before the first experiment, and check the electrolysis v
 ## Batch
 
 1. Check the electrodes are at the standard depth, red on the anode and black on the cathode.
-2. Fill the vial with 14 ml of nutrient solution ([MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media)) and screw the cap down.
+2. Fill the vial with 14 ml of nutrient solution ([AM002 (formerly MC02)](https://github.com/amy-bo/electroPioreactor/tree/main/Media)) and screw the cap down.
 3. Seat the vial in the Pioreactor.
 4. In the web interface, create an experiment (for example `ed04_batch_<date>`) and assign the unit to it.
 5. Run OD reading until the trace is stable, and save the OD blank for this experiment. OD reading will not start with OD calibrations enabled until a blank exists.

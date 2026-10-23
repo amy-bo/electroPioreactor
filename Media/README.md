@@ -1,5 +1,7 @@
 # Medium for HOB fermentation with in-culture electrolysis
 
+**Names.** AMYBO media are numbered AM001, AM002, AM003… (AMYBO Media, said "Amo 03"): the general AMYBO minimal medium line for HOB lab work and environmental enrichments. A medium formulated for a particular task or organism gets its own name. This document describes **AM002** (formerly MC02). AM001 (formerly MC01) acidified only the iron stock, and its mineral stock precipitated. **AM003**, Teo Reid's final medium, is the current recommendation. Every medium's full recipe and the chemistry calculated from it are side by side on the **Media** sheet of `electroPioreactorGasModel.xlsx`; add a medium there by typing a new column.
+
 ## Background
 
 This document details our proposed total nutrients for hydrogen-oxidising bacteria (HOB) fermentation.  

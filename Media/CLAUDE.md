@@ -34,6 +34,13 @@ These are agent-facing modelling rules. They used to sit in the spreadsheet's he
 - **Numbers:** formula results get about four significant figures (`#,##0` / `0.0` / `0.00` / `0.000` / `0.0000` / `0.00000` / `0.000E+00` by magnitude); plugin values on Summary rows 21–23 `0.00`; dates `yyyy-mm-dd`; inputs keep General so they show what was typed.
 - **Summary rows are found by name, never by number**: the twin, the sensitivity model and the tests read `Summary <name>` (or `F@name` for another column of a named row).
 
+## Lists that grow (media, calibrations, libraries)
+- A list people add to is an Excel Table (ListObject) or a column of one, never a fixed block with spare rows. Formulas, dropdowns and names read the Table (`OFFSET` from its header / `Table[#Data]`, `ROWS`/`COLUMNS` of it), so a new row or column is picked up with no other edit, and nothing past a cut-off is silently ignored.
+- A growing Table has nothing below it (rows) or to its right (columns) except blocks that move with it; give it its own sheet when that cannot be guaranteed.
+- Media: one column per medium on the **Media** sheet; never a new sheet per medium. Its calculations are spilled formulas below the table, so a new medium column is calculated automatically. Chemistry picks the chosen medium by `MATCH` on `MediaList`.
+- **No post-2019 functions** (anything stored with an `_xlfn.` prefix: XLOOKUP, FILTER, SEQUENCE, LET, DROP, the `#` spill operator / ANCHORARRAY…): Excel on the verification Mac crashes on them. Dynamic-array spills of classic functions (MMULT, TRANSPOSE, INDEX, OFFSET, IF) are fine; refer to a spill with `OFFSET(anchor,0,0,rows,cols)`.
+- In defined names, refer to another sheet-local name with its sheet prefix (`Media!med_n`), or Excel returns #NAME?. Refer to a whole Table as `Table[#Data]`, not the bare table name.
+
 ## Data gaps
 - Pink (DATA GAP) cells are to be measured, never invented. Do not replace a flagged gap with a guessed number to make the sheet look complete.
 

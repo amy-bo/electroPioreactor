@@ -76,6 +76,149 @@ import xml.etree.ElementTree as ET
 from decimal import Decimal, ROUND_HALF_UP
 from gas_model_verification import verify_definition
 
+WORKBOOK_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             "electroPioreactorGasModel.xlsx")
+
+_MAIN_NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+_REL_NS = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
+
+
+class NoCachedValue:
+    """Sentinel: the cell holds a formula but Excel stored no cached result."""
+
+    def __repr__(self):
+        return "<no cached value>"
+
+
+class CellAbsent:
+    """Sentinel: the workbook has no such cell (empty / never written)."""
+
+    def __repr__(self):
+        return "<cell absent>"
+
+
+NO_CACHE = NoCachedValue()
+ABSENT = CellAbsent()
+
+
+class WorkbookReader:
+    """Cached-value reader for an .xlsx, standard library only."""
+
+    def __init__(self, path):
+        self.path = path
+        with zipfile.ZipFile(path) as z:
+            self._parts = {n: z.read(n) for n in z.namelist()
+                           if (n.startswith("xl/worksheets/") and n.endswith(".xml"))
+                           or n in ("xl/workbook.xml", "xl/_rels/workbook.xml.rels",
+                                    "xl/sharedStrings.xml")}
+        rels = {}
+        rel_xml = self._parts.get("xl/_rels/workbook.xml.rels")
+        if rel_xml is not None:
+            for r in ET.fromstring(rel_xml):
+                rels[r.get("Id")] = r.get("Target")
+        # Sheet TAB NAME -> part name. Note sheetId is NOT the part number
+        # (Chemistry is sheetId=7 but lives in sheet4.xml), so the r:id -> rels
+        # indirection is mandatory, not decorative.
+        self._sheet_part = {}
+        for sh in ET.fromstring(self._parts["xl/workbook.xml"]).iter(_MAIN_NS + "sheet"):
+            target = rels.get(sh.get(_REL_NS + "id"), "")
+            if target:
+                self._sheet_part[sh.get("name")] = (target.lstrip("/") if target.startswith("/") else "xl/" + target)
+        sst_xml = self._parts.get("xl/sharedStrings.xml")
+        self._shared = []
+        if sst_xml is not None:
+            for si in ET.fromstring(sst_xml):
+                self._shared.append("".join(t.text or "" for t in si.iter(_MAIN_NS + "t")))
+        self._cells = {}   # sheet name -> {cell ref: value}
+        # Defined names -> (sheet, cell), sheet-local names first, so Summary rows are found by name
+        # wherever they sit (labels "Summary res_pH" or "Summary F@res_pH" in OUTPUTS).
+        self._names = {}
+        sheets = [sh.get("name") for sh in ET.fromstring(self._parts["xl/workbook.xml"]).iter(_MAIN_NS + "sheet")]
+        for dn in ET.fromstring(self._parts["xl/workbook.xml"]).iter(_MAIN_NS + "definedName"):
+            m = re.fullmatch(r"'?([^'!]+)'?!\$([A-Z]+)\$(\d+)", dn.text or "")
+            if not m:
+                continue
+            loc = dn.get("localSheetId")
+            scope = sheets[int(loc)] if loc is not None else None
+            self._names[(scope, dn.get("name"))] = (m.group(1), m.group(2) + m.group(3))
+
+    def sheet_names(self):
+        return list(self._sheet_part)
+
+    def _cell_value(self, c):
+        t = c.get("t")
+        if t == "inlineStr":
+            is_el = c.find(_MAIN_NS + "is")
+            if is_el is None:
+                return ABSENT
+            return "".join(x.text or "" for x in is_el.iter(_MAIN_NS + "t"))
+        v = c.find(_MAIN_NS + "v")
+        if v is None or v.text is None:
+            # A formula with no <v> means the cache was dropped; a bare empty
+            # cell (style only) means there is nothing there at all.
+            return NO_CACHE if c.find(_MAIN_NS + "f") is not None else ABSENT
+        raw = v.text
+        if t == "s":                       # index into sharedStrings
+            try:
+                return self._shared[int(raw)]
+            except (ValueError, IndexError):
+                return raw
+        if t == "str":                     # literal string result of a formula
+            return raw
+        if t == "e":                       # error cell: #N/A, #DIV/0!, ...
+            return NA if raw.strip() == "#N/A" else raw
+        if t == "b":
+            return raw not in ("0", "false", "FALSE")
+        try:                               # no t -> numeric
+            return float(raw)
+        except ValueError:
+            return raw
+
+    def _load(self, sheet_name):
+        part = self._sheet_part.get(sheet_name)
+        if part is None:
+            raise KeyError(f"no sheet named {sheet_name!r} in {self.path} "
+                           f"(have: {', '.join(self.sheet_names())})")
+        cells = {}
+        for c in ET.fromstring(self._parts[part]).iter(_MAIN_NS + "c"):
+            ref = c.get("r")
+            if ref:
+                cells[ref] = self._cell_value(c)
+        self._cells[sheet_name] = cells
+        return cells
+
+    def resolve(self, sheet_name, ref):
+        """'D12' stays; 'name' -> its cell; 'F@name' -> column F of the named cell's row."""
+        if re.fullmatch(r"[A-Z]{1,3}[0-9]{1,7}", ref):
+            return sheet_name, ref
+        col, _, name = ref.rpartition("@")
+        tgt = self._names.get((sheet_name, name)) or self._names.get((None, name))
+        if tgt is None:
+            raise KeyError(f"no defined name {name!r} on {sheet_name}")
+        sh, cell = tgt
+        return sh, (col + re.sub(r"[A-Z]+", "", cell)) if col else cell
+
+    def cached(self, sheet_name, cell_ref):
+        """Cached value of one cell: float, str, NA (#N/A), NO_CACHE or ABSENT."""
+        sheet_name, cell_ref = self.resolve(sheet_name, cell_ref)
+        cells = self._cells.get(sheet_name)
+        if cells is None:
+            cells = self._load(sheet_name)
+        return cells.get(cell_ref, ABSENT)
+
+
+_READER = None
+
+
+def cached(sheet_name, cell_ref):
+    """Module-level accessor; opens the workbook once, on first use."""
+    global _READER
+    if _READER is None:
+        _READER = WorkbookReader(WORKBOOK_PATH)
+    return _READER.cached(sheet_name, cell_ref)
+
+
+
 x_series = 1e-3   # MT D584 (-) below this the exponential helpers use their Taylor series (numerical)
 
 
@@ -97,7 +240,7 @@ def _psi(x):
 Reactor_sel    = "ed04"            # D2
 electrode_sel  = "MMO tube"        # D3
 organism_sel   = "Xanthobacter tagetidis"  # D4
-media_sel      = "AMYBO03"         # D5
+media_sel      = "AM003"           # D5
 led_intensity  = 3.0               # D6  (%)
 stir_rpm_set   = 1000.0            # D7  (rpm)
 temp_C         = 30.0              # D8  (degC)
@@ -319,65 +462,72 @@ bio_H2  = 6.0                                         # D10
 bio_O2  = 2.0                                         # D11
 bio_CO2 = 1.0                                         # D12
 
-# Media ionic composition (g/L) and molar masses
-MW = dict(KH2PO4=136.086, Na2HPO4=141.96, NaH2PO4_2H2O=156.01, NaHCO3=84.007,
-          K2SO4=174.26, CaSO4_2H2O=172.17, MgSO4_7H2O=246.48, NH42SO4=132.14,
-          CaCl2=110.98)
-mc = dict(Na2HPO4=2.895, NaH2PO4_2H2O=3.06, K2SO4=0.17, CaSO4_2H2O=0.097,
-          MgSO4_7H2O=0.8, NH42SO4=0.943)              # MC02 g/L
-udg = dict(KH2PO4=2.3, Na2HPO4=2.9, NaHCO3=1.05, MgSO4_7H2O=0.5,
-           NH42SO4=0.47, CaCl2=0.01)                  # UdG g/L
-amy = dict(Na2HPO4=4.26, NaH2PO4_2H2O=4.68, K2SO4=0.17, CaSO4_2H2O=0.097,
-           MgSO4_7H2O=0.8, NH42SO4=0.943, NaHCO3=3.36)  # AMYBO03 C6:C12 g/L (Teo Reid MRes, Table 2)
-amy_mM = {k: v / MW[k] * 1000 for k, v in amy.items()}  # AMYBO03 E6:E12 (mM)
-# stocks (AMYBO03 rows 21-31): final uM = stock mM x dose mL/L
-amy_dose_Fe, amy_dose_TM = 0.68, 0.05                  # AMYBO03 B15, B16 (mL/L)
-amy_Fe   = 15 / 278.01 * 1000 * amy_dose_Fe           # G21 FeSO4 (uM)
-amy_H2SO4 = 200 * amy_dose_Fe + 200 * amy_dose_TM     # G22 + G31 (uM)
-amy_TM = [c / mw * 1000 * amy_dose_TM for c, mw in
-          ((2.4, 287.54), (2.4, 169.02), (0.48, 249.68), (1.5, 262.85), (0.0402, 281.1))]  # G26:G30 Zn Mn Cu Ni Co sulfates (uM)
-amy_Mo = 1.8 / 241.95 * 1000 * amy_dose_TM            # G25 Na2MoO4 (uM)
+# Media (Media sheet): the recipe table is an input, read from the workbook like the Summary inputs,
+# so a medium added there is checked without editing this file. The arithmetic is re-derived here.
+def _media_table():
+    """Media sheet -> (ions [(header, z, sid, lam, P, N, Cl)], ingredients [(MW, {ion: count})], media {name: [g/L]})."""
+    cell = lambda ref: cached("Media", ref)
+    num = lambda v: v if isinstance(v, float) else 0.0
+    rows = range(1, 200)
+    hdr = next(r for r in rows if cell(f"A{r}") == "Ingredient")
+    cols = []
+    for k in range(1, 200):
+        col = ""
+        n = k
+        while n:
+            n, rem = divmod(n - 1, 26)
+            col = chr(65 + rem) + col
+        cols.append(col)
+    heads = [cell(f"{c}{hdr}") for c in cols]
+    c_mw, c_notes = heads.index("Molar mass (g/mol)"), heads.index("Notes")
+    ion_cols = cols[c_mw + 1:c_notes]
+    med_cols = []
+    for c, h in zip(cols[c_notes + 1:], heads[c_notes + 1:]):
+        if not isinstance(h, str) or not h:
+            break
+        med_cols.append((h, c))
+    prop = {cell(f"B{r}"): r for r in range(1, hdr) if isinstance(cell(f"B{r}"), str)}
+    out_rows = {cell(f"B{r}"): r for r in range(hdr, 200) if isinstance(cell(f"B{r}"), str)}
+    ions = [(cell(f"{c}{hdr}"),) + tuple(num(cell(f"{c}{prop[k]}")) for k in
+            ("ion_z", "ion_sid", "ion_lam", "ion_P", "ion_N", "ion_Cl")) for c in ion_cols]
+    ings, media = [], {h: [] for h, _ in med_cols}
+    r = hdr + 1
+    while isinstance(cell(f"A{r}"), str) and cell(f"A{r}"):
+        mw = cell(f"C{r}")
+        if isinstance(mw, float):                       # an ingredient row (the text rows have no molar mass)
+            ings.append((mw, {i[0]: num(cell(f"{c}{r}")) for i, c in zip(ions, ion_cols)}))
+            for h, c in med_cols:
+                media[h].append(num(cell(f"{c}{r}")))
+        r += 1
+    return ions, ings, media, dict(med_cols), out_rows
 
-def _by_media(mc02_val, udg_val, amy_val=NA):
-    if media_sel == "MC02":
-        return mc02_val
-    if media_sel == "UdG phosphate":
-        return udg_val
-    if media_sel == "AMYBO03":
-        return amy_val
-    return NA
+
+med_ions, med_ings, med_recipes, med_col, med_rows = _media_table()
+# Ion concentrations (Media rows 37-51, mM): sum over ingredients of count x g/L / molar mass
+med_ion_mM = {m: {ion[0]: sum(cnt.get(ion[0], 0.0) * g / mw for (mw, cnt), g in zip(med_ings, gl)) * 1000
+                  for ion in med_ions} for m, gl in med_recipes.items()}
 
 
-# --- ionic strength (Chemistry D183:D185), hoisted: the O2 salting-out factor below needs it ---
-I_mc02 = 0.5 * (2 * mc["Na2HPO4"] / MW["Na2HPO4"]
-                + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"]
-                + 2 * mc["K2SO4"] / MW["K2SO4"]
-                + 2 * mc["NH42SO4"] / MW["NH42SO4"]
-                + 4 * mc["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
-                + 4 * mc["CaSO4_2H2O"] / MW["CaSO4_2H2O"]
-                + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"]
-                + 4 * mc["Na2HPO4"] / MW["Na2HPO4"]
-                + 4 * (mc["K2SO4"] / MW["K2SO4"] + mc["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
-                       + mc["CaSO4_2H2O"] / MW["CaSO4_2H2O"]
-                       + mc["NH42SO4"] / MW["NH42SO4"]))                       # D183 (mol/L)
-I_udg = 0.5 * ((udg["NaHCO3"] / MW["NaHCO3"] + 2 * udg["Na2HPO4"] / MW["Na2HPO4"])
-               + udg["KH2PO4"] / MW["KH2PO4"]
-               + 2 * udg["NH42SO4"] / MW["NH42SO4"]
-               + 4 * udg["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
-               + 4 * udg["CaCl2"] / MW["CaCl2"]
-               + udg["KH2PO4"] / MW["KH2PO4"]
-               + 4 * udg["Na2HPO4"] / MW["Na2HPO4"]
-               + 4 * (udg["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
-                      + udg["NH42SO4"] / MW["NH42SO4"])
-               + udg["NaHCO3"] / MW["NaHCO3"]
-               + 2 * udg["CaCl2"] / MW["CaCl2"])                               # D184 (mol/L)
-_a = amy_mM
-I_amy = (3 * _a["Na2HPO4"] + _a["NaH2PO4_2H2O"] + 3 * _a["K2SO4"] + 4 * (_a["CaSO4_2H2O"] + _a["MgSO4_7H2O"])
-         + 3 * _a["NH42SO4"] + _a["NaHCO3"]) / 1000 \
-        + (4 * (amy_Fe + sum(amy_TM)) + 3 * amy_Mo + 3 * amy_H2SO4) / 1e6   # AMYBO03 D59 (mol/L)
+def _ion_sum(m, k, f=lambda w: w):
+    """sum of f(weight k of each ion) x its concentration (mM); k indexes (z, sid, lam, P, N, Cl) from 1."""
+    return sum(f(ion[k]) * med_ion_mM[m][ion[0]] for ion in med_ions)
+
+
+med_calc = {m: dict(PT=_ion_sum(m, 4), SID=_ion_sum(m, 2), NT=_ion_sum(m, 5), Cl=_ion_sum(m, 6),
+                    I=_ion_sum(m, 1, lambda z: z * z) / 2)
+            for m in med_recipes}                               # Media rows 54-58 (mM)
+
+
+def _by_media(key):
+    """The chosen medium's value (Chemistry D25-D33: MATCH on the Media table, #N/A if absent)."""
+    return med_calc[media_sel][key] if media_sel in med_calc else NA
+
+
+# --- ionic strength (Chemistry D32, D185), hoisted: the O2 salting-out factor below needs it ---
 M_NaHCO3 = 84.007                                     # Chemistry D307 (g/mol) IUPAC
 alk_add_M = NaHCO3_add_gL / M_NaHCO3                  # Chemistry D318 (mol/L) added Na+ (strong cation)
-I_ionic = _by_media(I_mc02, I_udg, I_amy) + alk_add_M  # D185 (mol/L) recipe + added Na+ and HCO3- (z = 1)
+med_I_rec = _by_media("I") / 1000                     # Chemistry D32 (mol/L)
+I_ionic = med_I_rec + alk_add_M                       # D185 (mol/L) recipe + added Na+ and HCO3- (z = 1)
 
 # --- Henry solubilities (van 't Hoff) ---
 H_O2ref  = 1.2e-5                                     # D21 (mol/m3/Pa)
@@ -529,49 +679,18 @@ Ka_HOCl = vant_hoff(2.8840315031266057e-8, 13.8)      # D20 hypochlorous Ka
 pKa_HOCl = -math.log10(Ka_HOCl)                       # D21
 
 
-PT_mc02  = mc["Na2HPO4"] / MW["Na2HPO4"] + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"]  # D35
-# BUGFIX (review 2026-06-26): the divalent strong cations Mg2+ and Ca2+ were
-# missing from the cation sum while their SO4(2-) was subtracted in the anion
-# bracket, so each wrongly contributed -2 to SID (~7.6 mM too low -> MC02 pH
-# ~0.34 too acidic). Mg/Ca are strong, pH-independent ions and belong in SID
-# (NH4+ is correctly excluded - it is handled dynamically via the pH_NT term).
-# The UdG SID below already had them and is unaffected.
-SID_mc02 = ((2 * mc["Na2HPO4"] / MW["Na2HPO4"] + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"]
-             + 2 * mc["K2SO4"] / MW["K2SO4"]
-             + 2 * mc["MgSO4_7H2O"] / MW["MgSO4_7H2O"] + 2 * mc["CaSO4_2H2O"] / MW["CaSO4_2H2O"])
-            - 2 * (mc["NH42SO4"] / MW["NH42SO4"] + mc["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
-                   + mc["K2SO4"] / MW["K2SO4"] + mc["CaSO4_2H2O"] / MW["CaSO4_2H2O"]))  # D36
-NT_mc02  = 2 * mc["NH42SO4"] / MW["NH42SO4"]                                            # D37
-Cl_mc02  = 0.0                                                                          # D38
+med_PT_rec  = _by_media("PT") / 1000                   # Chemistry D28 (mol/L)
+med_SID_rec = _by_media("SID") / 1000                  # Chemistry D29
+med_NT_rec  = _by_media("NT") / 1000                   # Chemistry D30
+med_Cl_rec  = _by_media("Cl") / 1000                   # Chemistry D31
 
-PT_udg  = udg["KH2PO4"] / MW["KH2PO4"] + udg["Na2HPO4"] / MW["Na2HPO4"]                 # D39
-SID_udg = ((udg["NaHCO3"] / MW["NaHCO3"] + 2 * udg["Na2HPO4"] / MW["Na2HPO4"]
-            + udg["KH2PO4"] / MW["KH2PO4"] + 2 * udg["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
-            + 2 * udg["CaCl2"] / MW["CaCl2"])
-           - (2 * (udg["NH42SO4"] / MW["NH42SO4"] + udg["MgSO4_7H2O"] / MW["MgSO4_7H2O"])
-              + 2 * udg["CaCl2"] / MW["CaCl2"]))                                        # D40
-NT_udg  = 2 * udg["NH42SO4"] / MW["NH42SO4"]                                            # D41
-Cl_udg  = 2 * udg["CaCl2"] / MW["CaCl2"]                                                # D42
-
-# AMYBO03 (AMYBO03 D54:D57): SID as MC02 - strong cations less all sulfate; sulfuric acid in the
-# stocks removes two equivalents per mole; trace metal sulfates and molybdate cancel.
-PT_amy  = (_a["Na2HPO4"] + _a["NaH2PO4_2H2O"]) / 1000                                    # D54
-SID_amy = ((2 * _a["Na2HPO4"] + _a["NaH2PO4_2H2O"] + _a["NaHCO3"] + 2 * _a["K2SO4"]
-            + 2 * _a["CaSO4_2H2O"] + 2 * _a["MgSO4_7H2O"]) / 1000
-           - 2 * (_a["K2SO4"] + _a["CaSO4_2H2O"] + _a["MgSO4_7H2O"] + _a["NH42SO4"]) / 1000
-           - 2 * amy_H2SO4 / 1e6)                                                       # D55
-NT_amy  = 2 * _a["NH42SO4"] / 1000                                                      # D56
-Cl_amy  = 0.0                                                                           # D57
-
-
-
-pH_SID_rec = _by_media(SID_mc02, SID_udg, SID_amy) + alk_add_M   # D332 recipe SID + added alkalinity
-pH_NT_rec  = _by_media(NT_mc02, NT_udg, NT_amy)                 # D333 recipe total ammonium
+pH_SID_rec = med_SID_rec + alk_add_M              # D332 recipe SID + added alkalinity
+pH_NT_rec  = med_NT_rec                           # D333 recipe total ammonium
 N_src_idx  = {"Ammonium (recipe)": 1, "Nitrate (KNO₃)": 2, "Urea": 3}.get(N_source_sel, NA)   # D331
 pH_SID = pH_SID_rec + (0.0 if N_src_idx == 1 else pH_NT_rec) if isnum(N_src_idx) else NA   # D44: K+ replaces NH4+
-pH_PT  = _by_media(PT_mc02, PT_udg, PT_amy)                   # D45
+pH_PT  = med_PT_rec                               # D45
 pH_NT  = (pH_NT_rec if N_src_idx == 1 else 0.0) if isnum(N_src_idx) else NA                # D46
-pH_Cl  = _by_media(Cl_mc02, Cl_udg, Cl_amy)                   # D47
+pH_Cl  = med_Cl_rec                               # D47
 
 # --- chlorine current: the binding limit of efficiency vs chloride arrival ---
 FE_CER   = 0.5                                         # D128 max CER efficiency (high-Cl plateau)
@@ -698,38 +817,15 @@ lam_Na, lam_K, lam_NH4 = 50.08, 73.48, 73.5           # D166, D167, D168 (S.cm2/
 lam_Mg, lam_Ca         = 106.0, 118.94                # D169, D170 (per mol, i.e. z^2-weighted already)
 lam_H2PO4, lam_HPO4    = 36.0, 114.0                  # D171, D172
 lam_SO4, lam_HCO3, lam_Cl = 160.0, 44.5, 76.31        # D173, D174, D175
-kappa0_mc02 = ((2 * mc["Na2HPO4"] / MW["Na2HPO4"] * lam_Na
-                + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"] * lam_Na
-                + 2 * mc["K2SO4"] / MW["K2SO4"] * lam_K
-                + 2 * mc["NH42SO4"] / MW["NH42SO4"] * lam_NH4
-                + mc["MgSO4_7H2O"] / MW["MgSO4_7H2O"] * lam_Mg
-                + mc["CaSO4_2H2O"] / MW["CaSO4_2H2O"] * lam_Ca
-                + mc["Na2HPO4"] / MW["Na2HPO4"] * lam_HPO4
-                + mc["NaH2PO4_2H2O"] / MW["NaH2PO4_2H2O"] * lam_H2PO4
-                + (mc["K2SO4"] / MW["K2SO4"] + mc["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
-                   + mc["CaSO4_2H2O"] / MW["CaSO4_2H2O"]
-                   + mc["NH42SO4"] / MW["NH42SO4"]) * lam_SO4) / 10)          # D176 (S/m)
-kappa0_udg = (((udg["NaHCO3"] / MW["NaHCO3"] + 2 * udg["Na2HPO4"] / MW["Na2HPO4"]) * lam_Na
-               + udg["KH2PO4"] / MW["KH2PO4"] * lam_K
-               + 2 * udg["NH42SO4"] / MW["NH42SO4"] * lam_NH4
-               + udg["MgSO4_7H2O"] / MW["MgSO4_7H2O"] * lam_Mg
-               + udg["CaCl2"] / MW["CaCl2"] * lam_Ca
-               + udg["Na2HPO4"] / MW["Na2HPO4"] * lam_HPO4
-               + udg["KH2PO4"] / MW["KH2PO4"] * lam_H2PO4
-               + (udg["MgSO4_7H2O"] / MW["MgSO4_7H2O"]
-                  + udg["NH42SO4"] / MW["NH42SO4"]) * lam_SO4
-               + udg["NaHCO3"] / MW["NaHCO3"] * lam_HCO3
-               + 2 * udg["CaCl2"] / MW["CaCl2"] * lam_Cl) / 10)               # D177 (S/m)
-kappa0_amy = (((2 * _a["Na2HPO4"] + _a["NaH2PO4_2H2O"] + _a["NaHCO3"]) * lam_Na
-               + 2 * _a["K2SO4"] * lam_K + 2 * _a["NH42SO4"] * lam_NH4
-               + _a["MgSO4_7H2O"] * lam_Mg + _a["CaSO4_2H2O"] * lam_Ca
-               + _a["Na2HPO4"] * lam_HPO4 + _a["NaH2PO4_2H2O"] * lam_H2PO4
-               + _a["NaHCO3"] * lam_HCO3
-               + (_a["K2SO4"] + _a["CaSO4_2H2O"] + _a["MgSO4_7H2O"] + _a["NH42SO4"]) * lam_SO4) / 1000
-              + (amy_Fe + amy_H2SO4 + sum(amy_TM)) / 1e6 * lam_SO4) / 10                # AMYBO03 D58 (S/m), trace sulfates included
+lam_NO3 = 71.42                                       # Media ion_lam (S.cm2/mol), CRC handbook
+_lam = {"Na⁺": lam_Na, "K⁺": lam_K, "NH₄⁺": lam_NH4, "Mg²⁺": lam_Mg, "Ca²⁺": lam_Ca, "H₂PO₄⁻": lam_H2PO4,
+        "HPO₄²⁻": lam_HPO4, "HCO₃⁻": lam_HCO3, "SO₄²⁻": lam_SO4, "Cl⁻": lam_Cl, "NO₃⁻": lam_NO3}  # trace ions and H+: 0
+for _m in med_calc:
+    med_calc[_m]["kappa0"] = sum(_lam.get(i[0], 0.0) * med_ion_mM[_m][i[0]] for i in med_ions) / 1000  # Media row 59 (mS/cm)
+med_kappa0_rec = _by_media("kappa0") / 10             # Chemistry D33 (S/m)
 kappa_fI  = 0.78                                      # D178 (-) Lambda/Lambda0 at I ~ 0.1 M
 kappa_TC  = 0.02                                      # D179 (1/K) +2 %/K, ISO 7888
-kappa_med = ((_by_media(kappa0_mc02, kappa0_udg, kappa0_amy) + alk_add_M * (lam_Na + lam_HCO3) / 10)
+kappa_med = ((med_kappa0_rec + alk_add_M * (lam_Na + lam_HCO3) / 10)
              * kappa_fI * (1 + kappa_TC * (TKc - 298.15)))  # D180, added NaHCO3 in the Kohlrausch sum
 
 # --- ionic strength & Davies activity coefficients (rows 182-197) ---
@@ -1901,8 +1997,9 @@ alk_resid_end = _residual_with(alk_pH_target_c, SID_end, NT_end)   # D355
 alk_end    = max(0.0, -alk_resid_end)                    # D356 (mol/L)
 alk_run_gL = max(alk_needed, alk_end) * M_NaHCO3         # D357 (g/L)
 pH_min_alk = alk_pH_target if alk_run_gL > 0 else pH_min   # D358
-NH42SO4_rec_gL = pH_NT_rec / 2 * MW["NH42SO4"]          # D359
-K2SO4_swap_gL  = pH_NT_rec / 2 * MW["K2SO4"]            # D360
+MW_NH42SO4, MW_K2SO4 = 132.14, 174.26                # Chemistry D35, D36 (g/mol)
+NH42SO4_rec_gL = pH_NT_rec / 2 * MW_NH42SO4             # D359
+K2SO4_swap_gL  = pH_NT_rec / 2 * MW_K2SO4               # D360
 KNO3_gL        = pH_NT_rec * 101.103                     # D362
 urea_gL        = pH_NT_rec / 2 * 60.056                  # D364
 S_D80 = alk_NaHCO3_gL                                  # D80 NaHCO3 for the target pH (g/L) <- Chemistry D308
@@ -1954,148 +2051,6 @@ else:
 #   sheet parts. Returns the value Excel CACHED for a cell, so the twin is
 #   compared against the live file rather than a transcribed literal.
 # ============================================================================
-WORKBOOK_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                             "electroPioreactorGasModel.xlsx")
-
-_MAIN_NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
-_REL_NS = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
-
-
-class NoCachedValue:
-    """Sentinel: the cell holds a formula but Excel stored no cached result."""
-
-    def __repr__(self):
-        return "<no cached value>"
-
-
-class CellAbsent:
-    """Sentinel: the workbook has no such cell (empty / never written)."""
-
-    def __repr__(self):
-        return "<cell absent>"
-
-
-NO_CACHE = NoCachedValue()
-ABSENT = CellAbsent()
-
-
-class WorkbookReader:
-    """Cached-value reader for an .xlsx, standard library only."""
-
-    def __init__(self, path):
-        self.path = path
-        with zipfile.ZipFile(path) as z:
-            self._parts = {n: z.read(n) for n in z.namelist()
-                           if (n.startswith("xl/worksheets/") and n.endswith(".xml"))
-                           or n in ("xl/workbook.xml", "xl/_rels/workbook.xml.rels",
-                                    "xl/sharedStrings.xml")}
-        rels = {}
-        rel_xml = self._parts.get("xl/_rels/workbook.xml.rels")
-        if rel_xml is not None:
-            for r in ET.fromstring(rel_xml):
-                rels[r.get("Id")] = r.get("Target")
-        # Sheet TAB NAME -> part name. Note sheetId is NOT the part number
-        # (Chemistry is sheetId=7 but lives in sheet4.xml), so the r:id -> rels
-        # indirection is mandatory, not decorative.
-        self._sheet_part = {}
-        for sh in ET.fromstring(self._parts["xl/workbook.xml"]).iter(_MAIN_NS + "sheet"):
-            target = rels.get(sh.get(_REL_NS + "id"), "")
-            if target:
-                self._sheet_part[sh.get("name")] = (target.lstrip("/") if target.startswith("/") else "xl/" + target)
-        sst_xml = self._parts.get("xl/sharedStrings.xml")
-        self._shared = []
-        if sst_xml is not None:
-            for si in ET.fromstring(sst_xml):
-                self._shared.append("".join(t.text or "" for t in si.iter(_MAIN_NS + "t")))
-        self._cells = {}   # sheet name -> {cell ref: value}
-        # Defined names -> (sheet, cell), sheet-local names first, so Summary rows are found by name
-        # wherever they sit (labels "Summary res_pH" or "Summary F@res_pH" in OUTPUTS).
-        self._names = {}
-        sheets = [sh.get("name") for sh in ET.fromstring(self._parts["xl/workbook.xml"]).iter(_MAIN_NS + "sheet")]
-        for dn in ET.fromstring(self._parts["xl/workbook.xml"]).iter(_MAIN_NS + "definedName"):
-            m = re.fullmatch(r"'?([^'!]+)'?!\$([A-Z]+)\$(\d+)", dn.text or "")
-            if not m:
-                continue
-            loc = dn.get("localSheetId")
-            scope = sheets[int(loc)] if loc is not None else None
-            self._names[(scope, dn.get("name"))] = (m.group(1), m.group(2) + m.group(3))
-
-    def sheet_names(self):
-        return list(self._sheet_part)
-
-    def _cell_value(self, c):
-        t = c.get("t")
-        if t == "inlineStr":
-            is_el = c.find(_MAIN_NS + "is")
-            if is_el is None:
-                return ABSENT
-            return "".join(x.text or "" for x in is_el.iter(_MAIN_NS + "t"))
-        v = c.find(_MAIN_NS + "v")
-        if v is None or v.text is None:
-            # A formula with no <v> means the cache was dropped; a bare empty
-            # cell (style only) means there is nothing there at all.
-            return NO_CACHE if c.find(_MAIN_NS + "f") is not None else ABSENT
-        raw = v.text
-        if t == "s":                       # index into sharedStrings
-            try:
-                return self._shared[int(raw)]
-            except (ValueError, IndexError):
-                return raw
-        if t == "str":                     # literal string result of a formula
-            return raw
-        if t == "e":                       # error cell: #N/A, #DIV/0!, ...
-            return NA if raw.strip() == "#N/A" else raw
-        if t == "b":
-            return raw not in ("0", "false", "FALSE")
-        try:                               # no t -> numeric
-            return float(raw)
-        except ValueError:
-            return raw
-
-    def _load(self, sheet_name):
-        part = self._sheet_part.get(sheet_name)
-        if part is None:
-            raise KeyError(f"no sheet named {sheet_name!r} in {self.path} "
-                           f"(have: {', '.join(self.sheet_names())})")
-        cells = {}
-        for c in ET.fromstring(self._parts[part]).iter(_MAIN_NS + "c"):
-            ref = c.get("r")
-            if ref:
-                cells[ref] = self._cell_value(c)
-        self._cells[sheet_name] = cells
-        return cells
-
-    def resolve(self, sheet_name, ref):
-        """'D12' stays; 'name' -> its cell; 'F@name' -> column F of the named cell's row."""
-        if re.fullmatch(r"[A-Z]{1,3}[0-9]{1,7}", ref):
-            return sheet_name, ref
-        col, _, name = ref.rpartition("@")
-        tgt = self._names.get((sheet_name, name)) or self._names.get((None, name))
-        if tgt is None:
-            raise KeyError(f"no defined name {name!r} on {sheet_name}")
-        sh, cell = tgt
-        return sh, (col + re.sub(r"[A-Z]+", "", cell)) if col else cell
-
-    def cached(self, sheet_name, cell_ref):
-        """Cached value of one cell: float, str, NA (#N/A), NO_CACHE or ABSENT."""
-        sheet_name, cell_ref = self.resolve(sheet_name, cell_ref)
-        cells = self._cells.get(sheet_name)
-        if cells is None:
-            cells = self._load(sheet_name)
-        return cells.get(cell_ref, ABSENT)
-
-
-_READER = None
-
-
-def cached(sheet_name, cell_ref):
-    """Module-level accessor; opens the workbook once, on first use."""
-    global _READER
-    if _READER is None:
-        _READER = WorkbookReader(WORKBOOK_PATH)
-    return _READER.cached(sheet_name, cell_ref)
-
-
 # Label prefix -> real workbook tab name.
 SHEET_OF_PREFIX = {
     "Summary": "Summary",
@@ -2105,7 +2060,7 @@ SHEET_OF_PREFIX = {
     "Chemistry": "Chemistry",
     "Biology": "Biology",
     "MassXfer": "Mass Transfer",
-    "AMYBO03": "AMYBO03",
+    "Media": "Media",
     "Calib": "Calibrations",
 }
 
@@ -2533,13 +2488,21 @@ OUTPUTS = [
     ("Summary res_alk_mM Extra alkalinity (mM)",             S_D81),
     ("Chemistry D304 alk_pH_target_c (pH)",            alk_pH_target_c),
     ("Chemistry D305 alk_resid_t (mol/L)",              alk_resid_t),
-    ("AMYBO03 D54 PT_AMYBO03 (mol/L)",                 PT_amy),
-    ("AMYBO03 D55 SID_AMYBO03 (mol/L)",                SID_amy),
-    ("AMYBO03 D56 NT_AMYBO03 (mol/L)",                 NT_amy),
-    ("AMYBO03 D58 kappa0_AMYBO03 (S/m)",               kappa0_amy),
-    ("AMYBO03 D59 I_AMYBO03 (mol/L)",                  I_amy),
+    ("Chemistry D28 med_PT_rec (mol/L)",                med_PT_rec),
+    ("Chemistry D29 med_SID_rec (mol/L)",               med_SID_rec),
+    ("Chemistry D30 med_NT_rec (mol/L)",                med_NT_rec),
+    ("Chemistry D31 med_Cl_rec (mol/L)",                med_Cl_rec),
+    ("Chemistry D32 med_I_rec (mol/L)",                 med_I_rec),
+    ("Chemistry D33 med_kappa0_rec (S/m)",              med_kappa0_rec),
     ("Summary res_CO2_uptake CO2 uptake ratio (x)",               S_D77),
     ("Summary chk_carry_usg Carryover velocity rule of thumb",   S_D51),
+] + [
+    # Media: every medium's ion concentrations (rows 37-51) and the calculated rows 54-59, one column each
+    (f"Media {med_col[m]}{med_rows['ion_mM'] + i} {m} {ion[0]} (mM)", med_ion_mM[m][ion[0]])
+    for m in med_recipes for i, ion in enumerate(med_ions)
+] + [
+    (f"Media {med_col[m]}{med_rows['med_' + k]} {m} med_{k}", med_calc[m][k])
+    for m in med_recipes for k in ("PT", "SID", "NT", "Cl", "I", "kappa0")
 ]
 
 

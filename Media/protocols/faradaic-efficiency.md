@@ -27,7 +27,7 @@ tags: [electropioreactor, protocol, electrochemistry, faradaic-efficiency, elect
 
 The apparatus this protocol needs does not yet exist and is a design task for the team.
 
-Measuring cathodic and anodic Faradaic efficiencies *separately* requires species-specific gas recovery from each electrode. The current baseline is ed04 with the MMO tube assembly, chloride-free AMYBO03, the Xanthobacter tagetidis model selection and 30 °C; record the actual assembly and operating inputs. The standard undivided vial mixes gases and does not itself provide separate collection. Geometry alone does not prove shrouds impossible: room, sealing, recovery and crossover must be assessed and validated.
+Measuring cathodic and anodic Faradaic efficiencies *separately* requires species-specific gas recovery from each electrode. The current baseline is ed04 with the MMO tube assembly, chloride-free AM003, the Xanthobacter tagetidis model selection and 30 °C; record the actual assembly and operating inputs. The standard undivided vial mixes gases and does not itself provide separate collection. Geometry alone does not prove shrouds impossible: room, sealing, recovery and crossover must be assessed and validated.
 
 To collect each electrode's gas on its own you need a purpose-built rig. This rig is NOT yet finalised. Three realistic options, to be chosen and validated by the team:
 

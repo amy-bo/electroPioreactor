@@ -42,7 +42,7 @@ Best accuracy: a fast optical dissolved-oxygen sensor in the real reactor geomet
 
 ### Reagents
 
-- The actual medium in use (for example [MC02](../README.md)), preferred, or de-ionised water. Medium is the more faithful choice because its salts shift oxygen solubility and coalescence slightly.
+- The actual medium in use (for example [AM002](../README.md)), preferred, or de-ionised water. Medium is the more faithful choice because its salts shift oxygen solubility and coalescence slightly.
 - Nitrogen, as the inert stripping gas.
 
 ### Method

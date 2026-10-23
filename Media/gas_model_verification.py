@@ -18,6 +18,24 @@ RID = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id'
 RECORD = 'electroPioreactorGasModel-verification.json'
 
 
+def _cells_in(ref):
+    """'T37:W51' -> {'T37', ..., 'W51'}"""
+    def split(a):
+        col = ''.join(ch for ch in a if ch.isalpha())
+        n = 0
+        for ch in col:
+            n = n * 26 + ord(ch) - 64
+        return n, int(a[len(col):])
+    def letters(n):
+        out = ''
+        while n:
+            n, r = divmod(n - 1, 26)
+            out = chr(65 + r) + out
+        return out
+    (c0, r0), (c1, r1) = (split(x.replace('$', '')) for x in ref.split(':'))
+    return {letters(c) + str(r) for c in range(c0, c1 + 1) for r in range(r0, r1 + 1)}
+
+
 def workbook_definition(path):
     """Stable scalar inputs plus formula/name definitions, excluding formula caches."""
     inputs, formulas = [], []
@@ -30,8 +48,16 @@ def workbook_definition(path):
         for sheet in wb.find('m:sheets', NS):
             target = rels[sheet.get(RID)]
             part = target.lstrip('/') if target.startswith('/') else posixpath.normpath('xl/' + target)
-            for cell in ET.fromstring(z.read(part)).findall('.//m:sheetData/m:row/m:c', NS):
+            cells = ET.fromstring(z.read(part)).findall('.//m:sheetData/m:row/m:c', NS)
+            spilled = set()        # cells a dynamic-array formula spills into hold results, not inputs
+            for cell in cells:
+                f = cell.find('m:f', NS)
+                if f is not None and f.get('t') == 'array' and ':' in f.get('ref', ''):
+                    spilled |= _cells_in(f.get('ref')) - {cell.get('r')}
+            for cell in cells:
                 key = [sheet.get('name'), cell.get('r')]
+                if cell.get('r') in spilled and cell.find('m:f', NS) is None:
+                    continue
                 f, v = cell.find('m:f', NS), cell.find('m:v', NS)
                 if f is not None:
                     # Shared-formula anchors and ranges are part of the definition.

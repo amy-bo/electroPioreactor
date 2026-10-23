@@ -47,8 +47,8 @@ Continuous mass balance on a growing culture: the three uptake rates are read di
 
 ### Reagents
 
-- The actual medium in use (for example [MC02](../README.md)).
-- *Xanthobacter tagetidis* inoculum for the current AMYBO03 baseline; record strain identity. The C. necator discussion below is a literature example, not a Xanthobacter threshold or uptake ratio.
+- The actual medium in use (for example [AM002](../README.md)).
+- *Xanthobacter tagetidis* inoculum for the current AM003 baseline; record strain identity. The C. necator discussion below is a literature example, not a Xanthobacter threshold or uptake ratio.
 - Cylinder hydrogen.
 - Cylinder oxygen.
 - Cylinder carbon dioxide.
@@ -88,8 +88,8 @@ Same uptake ratio from sealed serum bottles using only a gas chromatograph, a pr
 
 ### Reagents
 
-- The actual medium in use (for example [MC02](../README.md)).
-- *Xanthobacter tagetidis* inoculum for the current AMYBO03 baseline; record strain identity. The C. necator discussion below is a literature example, not a Xanthobacter threshold or uptake ratio.
+- The actual medium in use (for example [AM002](../README.md)).
+- *Xanthobacter tagetidis* inoculum for the current AM003 baseline; record strain identity. The C. necator discussion below is a literature example, not a Xanthobacter threshold or uptake ratio.
 - Cylinder hydrogen.
 - Cylinder oxygen.
 - Cylinder carbon dioxide.

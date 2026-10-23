@@ -18,7 +18,7 @@ This is the simplest experiment and the best for initial culture growth. The via
 
 1. **Prepare the vial.**
    1. Confirm electrodes at standard depth and connected with correct polarity (red→Pt anode, black→SS cathode).
-   2. Fill the vial with 14 ml of MC02 medium (the 1 ml of headroom accommodates the electrodes and sparging tube).
+   2. Fill the vial with 14 ml of AM002 (formerly MC02) medium (the 1 ml of headroom accommodates the electrodes and sparging tube).
    3. Screw the vial cap down. Attach the vent filters: one on the CO₂ entry luer, two on the exhaust luers.
 2. **Seat the vial** in the Pioreactor (pre-inoculation, for OD blanking).
 3. **Set up the experiment** in the web UI.

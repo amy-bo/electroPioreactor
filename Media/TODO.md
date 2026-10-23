@@ -28,7 +28,7 @@ How the status is found:
 - So does a row in the **experiment record** at the bottom of the Calibrations tab. In a record row, any condition left blank means the result holds for any value of it.
 - `Calibrations!xs_*` holds the logic for each experiment.
 
-Enter results in the matching Calibrations section where there is one. Leave Include blank until the protocol's acceptance, species-balance and transferability gates are met. The numbers quoted below are for the AMYBO03 baseline: ed04, MMO tube, *Xanthobacter tagetidis*, 30 °C.
+Enter results in the matching Calibrations section where there is one. Leave Include blank until the protocol's acceptance, species-balance and transferability gates are met. The numbers quoted below are for the AM003 baseline: ed04, MMO tube, *Xanthobacter tagetidis*, 30 °C.
 
 ### HIGH impact
 
@@ -51,7 +51,7 @@ Enter results in the matching Calibrations section where there is one. Leave Inc
 - [ ] **Electrochemist review of the calculated electrochemistry.** HIGH, low effort.
   - The weakest inputs are the anodic exchange-current density (four decades of spread in the literature) and the electrode mass-transfer coefficient.
 - [ ] **Cell voltage at a known setpoint.** HIGH, low effort.
-  - Approximate in UdG phosphate: about 3.4 V at 3 % in Exp 1, with the meter not recorded. Not done in AMYBO03.
+  - Approximate in UdG phosphate: about 3.4 V at 3 % in Exp 1, with the meter not recorded. Not done in AM003.
   - The budget predicts about 2.65 V of the 5 V rail.
 - [ ] **Headspace H₂/O₂ during lag, before any unattended run.** HIGH, med effort.
   - The model puts the lag headspace at about 9–10 % H₂ mean and 14 % before each pulse at the growth schedule, and 3 % before each pulse at the start-up schedule.
@@ -89,7 +89,7 @@ Enter results in the matching Calibrations section where there is one. Leave Inc
   - Measure with calipers, at the same time as the vial volume.
 - [ ] **Free and combined chlorine (DPD).** MED, low effort.
   - Protocol: `protocols/chlorine-species.md`.
-  - Not needed in chloride-free AMYBO03.
+  - Not needed in chloride-free AM003.
 - [ ] **Conductivity of the medium in use at the operating temperature.** MED, low effort.
 - [ ] **Electrode centre-to-centre gap.** MED, low effort.
   - Measure with calipers.
@@ -118,6 +118,9 @@ These are changes to the spreadsheet only.
 - [ ] **Ionic strength of each media option.**
   - The end-of-run pH and the media options (Summary rows 28 and 64–67) keep today's activity coefficients.
   - Solving each option at its own ionic strength would move those pH values by a few hundredths.
+- [ ] **Medium-specific O₂ salting-out.** Biology D121–D123 sum ion-specific Setschenow coefficients over the UdG ion set and apply them to every medium. The Media sheet now holds every medium's ion concentrations (rows 37–51), so the sum can be taken over the chosen medium.
+- [ ] **UdG trace elements.** The Media table has UdG's major salts only (Media V16). Enter the trace-element and iron stocks from Pous 2022/2023 if UdG is used again.
+- [ ] **AM001 iron-stock acid strength.** Assumed 0.2 M as in AM002 (Media T17, design-assumption fill); the first iron stock's acid strength was not recorded.
 - [!] Rename the `Reactor` / `Reactor_sel` / `reactor_sel` defined-name triplet. **Parked:** a high risk of breaking references for a naming nit.
 
 ### Required before claiming growth/productivity optimisation
@@ -143,7 +146,7 @@ These match Summary rows 213–215. Their blue status cells are manual evidence 
 ## Notes
 
 - The model shows that CO₂ alone cannot dilute electrolytic O₂ to the DO target and also hold pH in band (Summary row 95).
-- The owner's route is to fix the medium (T7). Summary rows 64–67 compare the options at today's schedule for the end-of-run biomass in row 17. On AMYBO03 with 1 g/L biomass:
+- The owner's route is to fix the medium (T7). Summary rows 64–67 compare the options at today's schedule for the end-of-run biomass in row 17. On AM003 with 1 g/L biomass:
   - Ammonium (no change): minimum pH 6.43.
   - Add 0.81 g/L NaHCO₃: holds the 6.50 floor for the whole run.
   - Nitrate or urea in place of (NH₄)₂SO₄: minimum 6.49, the start-of-run value.

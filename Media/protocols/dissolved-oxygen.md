@@ -37,7 +37,7 @@ tags: [electropioreactor, protocol, dissolved-oxygen, DO, biology]
 
 ### Reagents
 
-- The actual medium in use (for example [MC02](../README.md)).
+- The actual medium in use (for example [AM002](../README.md)).
 - A freshly made sodium sulphite (Na₂SO₃) solution for the zero point: about 1 g or more per litre of deionised water. A trace of cobalt(II) chloride speeds the reaction, but CoCl₂ is a carcinogen and skin sensitiser: if you use it, wear gloves and route the spent solution to heavy-metal waste. The sulphite zeroes the probe on its own without the catalyst, just more slowly, so dropping it is the safer default. Make the solution immediately before use, as it re-oxygenates from air within hours.
 - Air-saturated water, or a source of water-saturated air, for the span point.
 
@@ -49,7 +49,7 @@ tags: [electropioreactor, protocol, dissolved-oxygen, DO, biology]
 4. Position the sensor to read the well-mixed bulk: a wall patch below the liquid line and clear of the stir-bar sweep, or a needle microsensor tip in the bulk through the hypodermic-needle gap, in both cases clear of the stir bar and the surface, with no bubble trapped on the sensing face. Note its position so every run matches.
 5. Fill the vial with the working medium at the operating volume, hold it at 30 °C, and run the stirrer at the operating setpoint for the whole measurement.
 6. Choose a series of dissolved-oxygen setpoints spanning from near zero up towards the suspected toxic ceiling. A historical C. necator example spans 0.5, 1, 2, 2.5, 3, 4, 6, 9 and 11 mg/L; it supplies no Xanthobacter tagetidis thresholds. Owner selection of organism-specific setpoints and a method that controls or independently measures hydrogen availability is a prerequisite. Varying electrolysis changes H₂ as well as O₂; without matched or accounted-for H₂ supply, growth differences cannot be assigned to DO. Hold each level manually in closed loop off the probe: raise or lower electrolysis power only within 3–10 % (the model fit refuses outside this band and plugin runtime clamps at 10 %); stop if the target cannot be held within ±0.3 mg/L using that band, with the CO₂ sparge running throughout. The high setpoints (about 9 and 11 mg/L) sit above the air-saturation span, so their held values are extrapolated above the calibration point and carry more uncertainty than the in-range ones. Keep temperature and starting cell density matched and document the controlled or measured gas availability for each setpoint; a constant CO₂ schedule alone does not hold H₂ supply constant.
-7. **Safety (in-culture electrolysis):** H₂ and O₂ evolve together. Read Summary D51/D52 (lag O₂/H₂) for the recorded ed04/MMO tube/Xanthobacter tagetidis/AMYBO03/30 °C selections and the D21/D22 schedule; do not attribute historical gas fractions to this run. Treat the headspace as potentially flammable. Routine CO₂ pulses dilute gases but do not establish inerting. Keep the vent open, ventilate and exclude ignition sources. Resolve the [headspace hazard screen](headspace-gas-safety.md), applicable mixture limits and margins before accepting conditions; the Summary verdict is not certification.
+7. **Safety (in-culture electrolysis):** H₂ and O₂ evolve together. Read Summary D51/D52 (lag O₂/H₂) for the recorded ed04/MMO tube/Xanthobacter tagetidis/AM003/30 °C selections and the D21/D22 schedule; do not attribute historical gas fractions to this run. Treat the headspace as potentially flammable. Routine CO₂ pulses dilute gases but do not establish inerting. Keep the vent open, ventilate and exclude ignition sources. Resolve the [headspace hazard screen](headspace-gas-safety.md), applicable mixture limits and margins before accepting conditions; the Summary verdict is not certification.
 8. At each held setpoint, inoculate to the same starting cell density and let the culture grow while the reactor logs optical density over time. Grow through the full exponential phase into early stationary, typically 24 to 48 h, with enough logged points to fit the exponential slope cleanly (at least five or six points across the exponential phase). Read the specific growth rate µ for that setpoint from the slope of the reactor's optical-density log.
 9. Plot µ for each setpoint against the dissolved-oxygen level it was held at. Read four levels off the plotted curve. The optimum is the dissolved oxygen at the peak of the curve. The minimum is where the curve first rises off the flat baseline. The impairment level is the higher dissolved oxygen at which µ has fallen to about 80 per cent of its peak. The toxic level is the dissolved oxygen at which µ has fallen to 10 per cent or less of its peak.
 10. Re-read the air-saturation span point at the end of each run. Discard any run whose end reading has drifted beyond the probe's stated accuracy.
@@ -66,7 +66,7 @@ tags: [electropioreactor, protocol, dissolved-oxygen, DO, biology]
 
 ### Reagents
 
-- The actual medium in use (for example [MC02](../README.md)).
+- The actual medium in use (for example [AM002](../README.md)).
 - Air-saturated water, or water-saturated air, for the span point. The sodium sulphite zero is the part you can skip on a budget, accepting reduced accuracy at the low end.
 
 ### Method

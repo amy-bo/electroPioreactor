@@ -38,7 +38,7 @@ Measures the real gas mixture in the headspace while electrolysis runs with no c
 
 ## Before you start
 
-- The vial exactly as it will run: about 15 mL medium, the real vent fitted (the vent used in the vent protocol), cap leaks fixed, ed04, MMO tube assembly, chloride-free AMYBO03 at 30 °C, recorded operating power and the schedule read from Summary D21/D22. Record the *Xanthobacter tagetidis* selection even though there are no cells. No cells (lag source).
+- The vial exactly as it will run: about 15 mL medium, the real vent fitted (the vent used in the vent protocol), cap leaks fixed, ed04, MMO tube assembly, chloride-free AM003 at 30 °C, recorded operating power and the schedule read from Summary D21/D22. Record the *Xanthobacter tagetidis* selection even though there are no cells. No cells (lag source).
 - Prerequisite: validate sampling apparatus for mixture response, range, recovery, dead volume and disturbance. Demonstrate that withdrawals, syringe flushes and pump flow do not materially alter pressure, induce air ingress or shift composition; otherwise report vent readings only or use a separately validated arrangement.
 - Run the full schedule for at least 1 hour before sampling and establish a repeating cycle.
 - Know the model values before you start: Summary D52 (mean H2), Summary D51 (O2), Summary D50 (growth-phase O2).

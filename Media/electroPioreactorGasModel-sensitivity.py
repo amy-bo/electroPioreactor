@@ -17,7 +17,7 @@ WHAT THIS MODELS
 WHICH WORKBOOK VERSION IT MIRRORS
     electroPioreactorGasModel.xlsx (wave-4 logic, verified in Excel 2026-10-21), with the live
     selector state behind the values:
-        ed04 / MMO tube / Xanthobacter tagetidis / AMYBO03, LED 3 %, stir 1000 rpm, T 30 C.
+        ed04 / MMO tube / Xanthobacter tagetidis / AM003, LED 3 %, stir 1000 rpm, T 30 C.
     (Summary D3 is read from SELECTORS['electrode']; the electrode tables cover the others.)
     Formula logic is read directly out of the workbook part XML (Mass Transfer D178-D200,
     Electrochemistry D79-D122, Chemistry D166-D220). The workbook is the authority for
@@ -97,7 +97,7 @@ NAN = float('nan')
 # ---------------------------------------------------------------------------
 # BASELINE INPUTS
 # Source of truth: the WORKBOOK's live Summary selector state (Summary D2:D10) --
-# ed04 / MMO tube (SELECTORS['electrode']) / Xanthobacter tagetidis / AMYBO03, LED 3 %, stir 1000 rpm, T 30 C.
+# ed04 / MMO tube (SELECTORS['electrode']) / Xanthobacter tagetidis / AM003, LED 3 %, stir 1000 rpm, T 30 C.
 #
 # NOTE target_DO_frac = 0.2261 (DO_opt 2.6 / DO_toxic 11.5), NOT the 0.5 this script carried
 # before. Biology D60/D61
@@ -179,7 +179,9 @@ CO2_FIT_PTS = [
 
 MW = dict(KH2PO4=136.086, Na2HPO4=141.96, NaHCO3=84.007,
           MgSO4=246.48, NH42SO4=132.14, CaCl2=110.98,
-          NaH2PO4_2H2O=156.01, K2SO4=174.26, CaSO4_2H2O=172.17)
+          NaH2PO4_2H2O=156.01, K2SO4=174.26, CaSO4_2H2O=172.17,
+          FeSO4=278.01, Na2MoO4=241.95, ZnSO4=287.54, MnSO4=169.02, CuSO4=249.68,
+          NiSO4=262.85, CoSO4=281.10, H2SO4=98.079)              # Media sheet, molar masses as hydrated
 # CRC Handbook (Vanysek), limiting molar conductivities at 25 C, S cm2/mol, PER MOLE OF ION
 LAM = dict(Na=50.08, K=73.48, NH4=73.5, Mg=106.0, Ca=118.94,
            H2PO4=36.0, HPO4=114.0, SO4=160.0, HCO3=44.5, Cl=76.31)
@@ -209,52 +211,46 @@ ELECTRODE_GEOM = {  # anode/cathode shape + dia (mm), Echem D42/D44; plating lim
 POR_UM = [205, 130, 70, 28, 13, 1.3]   # MT D33:D38, sinter pore (um) by grade 0..5
 
 
-def _by_media(media, mc02_val, udg_val, amy_val):
-    """Exact selector branches, as in Chemistry D44:D47; reject unknown media."""
-    return {'MC02': mc02_val, 'UdG phosphate': udg_val,
-            'AMYBO03': amy_val}[media]
+# Stock-borne trace salts (g/L of finished medium) shared by the AMYBO media: mineral stock 0.05 mL/L.
+_TRACE = dict(Na2MoO4=9e-05, ZnSO4=1.2e-04, MnSO4=1.2e-04, CuSO4=2.4e-05, NiSO4=7.5e-05, CoSO4=2.01e-06)
+_SYDOW = dict(Na2HPO4=2.895, NaH2PO4_2H2O=3.06, K2SO4=0.17, CaSO4_2H2O=0.097, MgSO4=0.8, NH42SO4=0.943)
+# Ions per formula unit (Media sheet ion columns); M = the trace divalent metals, H = stock acid protons.
+_IONS = dict(KH2PO4=dict(K=1, H2PO4=1), Na2HPO4=dict(Na=2, HPO4=1), NaH2PO4_2H2O=dict(Na=1, H2PO4=1),
+             NaHCO3=dict(Na=1, HCO3=1), K2SO4=dict(K=2, SO4=1), CaSO4_2H2O=dict(Ca=1, SO4=1),
+             MgSO4=dict(Mg=1, SO4=1), NH42SO4=dict(NH4=2, SO4=1), CaCl2=dict(Ca=1, Cl=2),
+             FeSO4=dict(Fe=1, SO4=1), Na2MoO4=dict(Na=2, MoO4=1), ZnSO4=dict(M=1, SO4=1), MnSO4=dict(M=1, SO4=1),
+             CuSO4=dict(M=1, SO4=1), NiSO4=dict(M=1, SO4=1), CoSO4=dict(M=1, SO4=1), H2SO4=dict(H=2, SO4=1))
+_Z = dict(Na=1, K=1, NH4=1, Mg=2, Ca=2, Fe=2, M=2, H=1, H2PO4=-1, HPO4=-2, HCO3=-1, SO4=-2, Cl=-1, MoO4=-2)
+_SID_W = dict(Na=1, K=1, Mg=2, Ca=2, Fe=2, M=2, SO4=-2, Cl=-1, MoO4=-2)   # strong ions only
+
+
+def _recipe(p):
+    """The Media table column for the chosen medium (g/L); KeyError for a medium not in the table."""
+    udg = {salt: p['udg_' + salt] for salt in ('KH2PO4', 'Na2HPO4', 'NaHCO3', 'MgSO4', 'NH42SO4', 'CaCl2')}
+    return {'AM001': dict(_SYDOW, **_TRACE, FeSO4=0.051, H2SO4=0.06669372),
+            'AM002': dict(_SYDOW, **_TRACE, FeSO4=0.051, H2SO4=0.06767451),
+            'UdG phosphate': udg,
+            'AM003': dict(Na2HPO4=4.26, NaH2PO4_2H2O=4.68, K2SO4=0.17, CaSO4_2H2O=0.097, MgSO4=0.8,
+                          NH42SO4=0.943, NaHCO3=3.36, FeSO4=0.0102, H2SO4=0.014319534, **_TRACE)}[p['media']]
 
 
 def medium_chemistry(p):
-    """Derive analytical ions from each recipe, independently of the workbook caches.
+    """Derive analytical ions from the recipe, independently of the workbook caches.
 
-    Concentrations are mol/L. Sulfate salts cancel from strong-ion difference
-    except ammonium sulfate; ammonium is handled by the charge-balance solve.
-    AMYBO03 stock acid removes two equivalents per mole. Trace metal sulfates
-    cancel in SID but contribute to ionic strength and sulfate conductivity.
+    Concentrations are mol/L. Strong-ion difference counts only strong ions (sulfate
+    salts cancel except ammonium sulfate; stock acid removes two equivalents per mole);
+    ammonium is handled by the charge-balance solve. Trace metals, molybdate and the
+    stock-acid protons carry no conductivity (the protons are taken up by the buffer).
     """
-    mc = dict(Na2HPO4=2.895, NaH2PO4_2H2O=3.06, K2SO4=0.17,
-              CaSO4_2H2O=0.097, MgSO4=0.8, NH42SO4=0.943)
-    udg = {salt: p['udg_' + salt] for salt in
-           ('KH2PO4', 'Na2HPO4', 'NaHCO3', 'MgSO4', 'NH42SO4', 'CaCl2')}
-    amy = dict(Na2HPO4=4.26, NaH2PO4_2H2O=4.68, K2SO4=0.17,
-               CaSO4_2H2O=0.097, MgSO4=0.8, NH42SO4=0.943, NaHCO3=3.36)
-    recipe = _by_media(p['media'], mc, udg, amy)
-    n = {salt: mass / MW[salt] for salt, mass in recipe.items()}
-    q = lambda salt: n.get(salt, 0.0)
-    ions = dict(Na=2*q('Na2HPO4') + q('NaH2PO4_2H2O') + q('NaHCO3'),
-                K=q('KH2PO4') + 2*q('K2SO4'), NH4=2*q('NH42SO4'),
-                Mg=q('MgSO4'), Ca=q('CaSO4_2H2O') + q('CaCl2'),
-                H2PO4=q('KH2PO4') + q('NaH2PO4_2H2O'), HPO4=q('Na2HPO4'),
-                SO4=q('MgSO4') + q('CaSO4_2H2O') + q('NH42SO4') + q('K2SO4'),
-                HCO3=q('NaHCO3'), Cl=2*q('CaCl2'))
-    SID = ions['Na'] + ions['K'] + 2*(ions['Mg'] + ions['Ca']) - 2*ions['SO4'] - ions['Cl']
-    I_ion = sum(c * (4 if ion in ('Mg', 'Ca', 'HPO4', 'SO4') else 1)
-                for ion, c in ions.items()) / 2
-    kappa0 = sum(c * LAM[ion] for ion, c in ions.items()) / 10
-    if p['media'] == 'AMYBO03':
-        # AMYBO03 B15:B16 dose mL/L; stock g/L / molar mass * dose / 1000.
-        Fe = 15 / 278.01 * 0.68 / 1000
-        acid = 0.2 * (0.68 + 0.05) / 1000
-        trace = sum(c / mw * 0.05 / 1000 for c, mw in
-                    ((2.4, 287.54), (2.4, 169.02), (0.48, 249.68),
-                     (1.5, 262.85), (0.0402, 281.1)))
-        Mo = 1.8 / 241.95 * 0.05 / 1000
-        SID -= 2 * acid
-        I_ion += 4*(Fe + trace) + 3*Mo + 3*acid
-        # Same explicit trace approximation as AMYBO03 D58: sulfate only.
-        kappa0 += (Fe + trace + acid) * LAM['SO4'] / 10
-    return SID, ions['H2PO4'] + ions['HPO4'], ions['NH4'], ions['Cl'], I_ion, kappa0
+    ions = {}
+    for salt, mass in _recipe(p).items():
+        for ion, k in _IONS[salt].items():
+            ions[ion] = ions.get(ion, 0.0) + k * mass / MW[salt]
+    SID = sum(_SID_W.get(ion, 0) * c for ion, c in ions.items())
+    I_ion = sum(c * _Z[ion] ** 2 for ion, c in ions.items()) / 2
+    kappa0 = sum(c * LAM.get(ion, 0.0) for ion, c in ions.items()) / 10
+    g = ions.get
+    return SID, g('H2PO4', 0.0) + g('HPO4', 0.0), g('NH4', 0.0), g('Cl', 0.0), I_ion, kappa0
 
 
 
@@ -913,7 +909,7 @@ SELF_CHECK = [
 # (label, sheet, cell, value declared by this script). D9 / D10 are blank on Summary, so
 # the effective volume and pressure are checked on the cells that resolve them.
 SELECTORS = dict(reactor='ed04', electrode='MMO tube', organism='Xanthobacter tagetidis',
-                 media='AMYBO03')
+                 media='AM003')
 BASE['media'] = SELECTORS['media']
 BASE['electrode'] = SELECTORS['electrode']                               # Summary D3 drives the electrode tables
 BASE['z_e_ORR'] = ELECTRODE[SELECTORS['electrode']]['z_e_ORR']           # Echem D27
