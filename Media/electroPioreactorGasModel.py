@@ -917,48 +917,14 @@ V_IR        = I_app * R_cell                           # D118 (V)
 #   J=3.33 ml/s, I=0.25 s). Re-derived from that calibration record.
 # ============================================================================
 # (Reactor, date, min_sparge I, nominal_flow J) records where J is populated:
-CO2_CAL = [
-    ("ed04", 46190, 0.25, 3.33),
-]
-CO2_FIT = [  # (Reactor, volume mL = CO2 flows E, time s = CO2 flows F, excluded = CO2 flows N); rows with F blank/0 omitted
-    ("ed04", 50.0, 15.0, 0),  # CO2 flows row 5
-    ("ed04", 12.0, 4.0, 0),  # CO2 flows row 7
-    ("ed04", 14.0, 4.0, 0),  # CO2 flows row 8
-    ("ed04", 14.0, 4.0, 0),  # CO2 flows row 9
-    ("ed04", 6.0, 2.0, 0),  # CO2 flows row 11
-    ("ed04", 9.0, 2.0, 0),  # CO2 flows row 12
-    ("ed04", 6.0, 2.0, 0),  # CO2 flows row 13
-    ("ed04", 8.0, 2.0, 0),  # CO2 flows row 14
-    ("ed04", 6.0, 2.0, 0),  # CO2 flows row 15
-    ("ed04", 10.0, 2.0, 0),  # CO2 flows row 16
-    ("ed04", 4.0, 1.0, 0),  # CO2 flows row 18
-    ("ed04", 4.0, 1.0, 0),  # CO2 flows row 19
-    ("ed04", 3.0, 1.0, 0),  # CO2 flows row 20
-    ("ed04", 4.0, 1.0, 0),  # CO2 flows row 21
-    ("ed04", 4.0, 1.0, 0),  # CO2 flows row 22
-    ("ed04", 4.0, 1.0, 0),  # CO2 flows row 23
-    ("ed04", 2.0, 0.5, 0),  # CO2 flows row 25
-    ("ed04", 2.0, 0.5, 0),  # CO2 flows row 26
-    ("ed04", 2.0, 0.5, 0),  # CO2 flows row 27
-    ("ed04", 2.0, 0.5, 0),  # CO2 flows row 28
-    ("ed04", 2.0, 0.5, 0),  # CO2 flows row 29
-    ("ed04", 1.0, 0.25, 0),  # CO2 flows row 30
-    ("ed04", 1.0, 0.25, 0),  # CO2 flows row 31
-    ("ed04", 1.0, 0.25, 0),  # CO2 flows row 32
-    ("ed04", 1.0, 0.25, 0),  # CO2 flows row 33
-    ("ed04", 1.0, 0.25, 0),  # CO2 flows row 34
-    ("ed04", 0.4, 0.2, 1),  # CO2 flows row 36 (red outlier, column N = 1)
-    ("ed04", 0.8, 0.2, 0),  # CO2 flows row 37
-    ("ed04", 1.0, 0.2, 0),  # CO2 flows row 38
-    ("ed04", 0.8, 0.2, 0),  # CO2 flows row 39
-    ("ed04", 0.4, 0.1, 0),  # CO2 flows row 41
-    ("ed04", 0.4, 0.1, 0),  # CO2 flows row 42
-    ("ed04", 0.6, 0.1, 0),  # CO2 flows row 43
-    ("ed04", 0.6, 0.1, 0),  # CO2 flows row 44
-    ("ed04", 0.6, 0.1, 0),  # CO2 flows row 45
-    ("ed04", 0.2, 0.1, 1),  # CO2 flows row 46 (red outlier, column N = 1)
-]
-CO2_CARRY = []                                         # (Reactor, max flow without carryover mL/s) = CO2 flows column M; none entered (data gap)
+# CO2 flows: the CO2Flows Table (one row per measurement), read as an input like the libraries.
+_num = lambda v: v if isinstance(v, float) else 0.0
+_CO2 = table("CO2Flows")
+CO2_CAL = [(r["Reactor"], _num(r["Date"]), _num(r["Minimum sparge (s)"]), _num(r["Nominal flow rate (mL/s)"]))
+           for r in _CO2]                             # (Reactor, date, minimum sparge s, nominal flow mL/s), MT D116-D119
+CO2_FIT = [(r["Reactor"], _num(r["Volume (mL)"]), _num(r["Time (s)"]), _num(r["Excluded from pulse fit (1 = yes)"]))
+           for r in _CO2]                             # (Reactor, volume mL, time s, excluded), MT D401-D405
+CO2_CARRY = [(r["Reactor"], _num(r["Max flow without carryover (mL/s)"])) for r in _CO2]   # MT D412-D413
 _cal_rows = [r for r in CO2_CAL if r[0] == Reactor_sel and r[3] > 0]
 # Calibrations tab, CO2-flow section (R5-M1): flow (cal_flow, column F) and Min pulse (cal_pulse_floor,
 # column J) are "most recent included run for the active reactor". The tab is empty in the shipped
