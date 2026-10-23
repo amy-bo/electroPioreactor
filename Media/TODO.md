@@ -119,6 +119,7 @@ These are changes to the spreadsheet only.
   - The end-of-run pH and the media options (Summary rows 28 and 64–67) keep today's activity coefficients.
   - Solving each option at its own ionic strength would move those pH values by a few hundredths.
 - [ ] **Medium-specific O₂ salting-out.** Biology D121–D123 sum ion-specific Setschenow coefficients over the UdG ion set and apply them to every medium. The Media sheet now holds every medium's ion concentrations (rows 37–51), so the sum can be taken over the chosen medium.
+- [ ] **Stock-acid protons in the as-weighed ionic strength.** Media row 58 counts the H⁺ of the stock acid as a free z = 1 ion, while row 9 gives it no conductivity because the phosphate buffer takes it up. Converting the equivalent HPO₄²⁻ to H₂PO₄⁻ instead would lower AM002's ionic strength by about 2 % and its conductivity by about 1 % (AM003 much less).
 - [ ] **UdG trace elements.** The Media table has UdG's major salts only (Media V16). Enter the trace-element and iron stocks from Pous 2022/2023 if UdG is used again.
 - [ ] **AM001 iron-stock acid strength.** Assumed 0.2 M as in AM002 (Media T17, design-assumption fill); the first iron stock's acid strength was not recorded.
 - [!] Rename the `Reactor` / `Reactor_sel` / `reactor_sel` defined-name triplet. **Parked:** a high risk of breaking references for a naming nit.

@@ -396,7 +396,7 @@ V_inserts    = (rod_n * (math.pi / 4 * rod_d ** 2) * elec_ins
                 + (math.pi / 4 * spg_OD ** 2) * spg_len
                 + (math.pi / 4 * (eff_OD ** 2 - eff_ID ** 2)) * (D_int - h_actual)
                 + xtube_n * (math.pi / 4 * xtube_OD ** 2) * xtube_pro) / 1000   # D48 (mL)
-cal_hs, cal_hs_fill = None, None                   # Calibrations D76/D77 (no vial-geometry runs yet)
+cal_hs, cal_hs_fill = None, None                   # Calibrations cal_hs/cal_hs_fill (no vial-geometry runs yet)
 if cal_hs is not None and cal_hs_fill is not None:  # D49: measured headspace, shifted to V_charge
     headspace_V = cal_hs - (V_charge - cal_hs_fill)
 else:
@@ -627,8 +627,8 @@ ec_O2_ceil   = O2_ceil_C                               # D80 (mol/m3) <- Biology
 ec_V_L       = V_charge / 1000                         # D82 (L)      <- Biology D6 / 1000
 km_O2_default = 4.0e-3                                 # D165 (cm/s) Eisenberg-Tobias-Wilke, 6 mm rod in axial swirl
 km_exp       = 0.644                                   # D84 (-) k_m ~ D^(1-0.356); documents the km_Cl scaling
-n_e_fcn      = 1                                       # Calibrations D190 one-electron ferricyanide couple
-km_T_tol     = 1                                       # Calibrations D191 (degC) a k_m run counts within this of temp_C
+n_e_fcn      = 1                                       # Calibrations n_e_fcn one-electron ferricyanide couple
+km_T_tol     = 1                                       # Calibrations km_T_tol (degC) a k_m run counts within this of temp_C
 def _km_rows():
     """Cal km log: (reactor, electrode, rpm, T_C, I_lim_mA, A_cm2, C_mM, D_fcn_m2s, include) per row."""
     return [(r["Reactor"], r["Electrode"], r["Stir rate (rpm)"], r["Temp (°C)"], r["Limiting current (mA)"],
@@ -655,7 +655,7 @@ def _same(a, b):
 
 
 def cal_km_O2_of(rows, D_O2_T):
-    """Calibrations D150: mean O2-scaled k_m over included runs for this reactor and electrode at the
+    """Calibrations cal_km_O2: mean O2-scaled k_m over included runs for this reactor and electrode at the
     Summary rpm and T. Rows missing an input give "" in columns K/L, which AVERAGEIFS skips."""
     ks = [km_O2_from_ferricyanide(km_ferricyanide(I, A, C), Df, D_O2_T)
           for rx, el, rpm, T, I, A, C, Df, inc in rows
@@ -667,7 +667,7 @@ def cal_km_O2_of(rows, D_O2_T):
 
 NO_CAL_TXT = "no included runs — model uses its default"   # Calibrations value-in-use text when nothing is included
 HB_a, HB_b, HB_c = -4.41, 773.8, 506.4                # D171-D173 Han & Bartels (1996)
-cal_km_O2    = cal_km_O2_of(KM_CAL, 10 ** (HB_a + HB_b / T_K - (HB_c / T_K) ** 2) / 10000)   # Calibrations D150 (cm/s) <- Mass Transfer D32 D_O2; NA = no included run
+cal_km_O2    = cal_km_O2_of(KM_CAL, 10 ** (HB_a + HB_b / T_K - (HB_c / T_K) ** 2) / 10000)   # Calibrations cal_km_O2 (cm/s) <- Mass Transfer D32 D_O2; NA = no included run
 km_O2        = cal_km_O2 if isnum(cal_km_O2) else km_O2_default   # D83 (cm/s) measured if included, else the estimate
 M_O2 = 31.998                                          # MT D231 (g/mol) IUPAC 2 x 15.999
 O2_ceil_org   = (min(O2_ceil_C, DO_toxic / M_O2) if isnum(DO_toxic) else O2_ceil_C)   # MT D565 organism toxic DO, capped at the generic ceiling
@@ -680,7 +680,7 @@ i_ORR_design = n_ORR_eff * F_const * (km_O2 / 100) * ec_DO_design * (A_cath_wet 
 i_ORR_ceiling = n_ORR_eff * F_const * (km_O2 / 100) * ec_O2_ceil * (A_cath_wet / 10000)    # D87 (A)
 etaF_calc     = max(0.0, 1 - i_ORR_design / I_app)     # D88 (-)
 etaF_calc_min = max(0.0, 1 - i_ORR_ceiling / I_app)    # D89 (-) worst case at the ceiling DO
-cal_etaF     = NA                                      # empty calibration; assert against Calibrations D26
+cal_etaF     = NA                                      # empty calibration; assert against Calibrations cal_etaF
 etaF          = cal_etaF if isnum(cal_etaF) else etaF_calc                              # D18 = IFERROR(cal_etaF, etaF_calc)
 
 
@@ -759,7 +759,7 @@ def tau_from_dpd(C_Cl2_mgL, k_turn, Cl_pool, P_max):
 
 cal_tau_NH2Cl = (lambda ts: sum(ts) / len(ts) if ts else NA)(
     [t for t in (tau_from_dpd(C, k, pool, P) for rx, med, C, k, pool, P, inc in TAU_CAL
-                 if _same(rx, Reactor_sel) and _same(med, media_sel) and _same(inc, "y")) if isnum(t)])   # Calibrations D163 (h)
+                 if _same(rx, Reactor_sel) and _same(med, media_sel) and _same(inc, "y")) if isnum(t)])   # Calibrations cal_tau_NH2Cl (h)
 tau_NH2Cl = cal_tau_NH2Cl if isnum(cal_tau_NH2Cl) else tau_NH2Cl_default   # D142 (h) monochloramine residence
 P_Cl_max = I_Cl_FE / (n_e_Cl * Fcc * VLc)              # Chemistry D315 (mol/L/s) efficiency-limited production, tau-independent
 Cl_bound = min(pH_Cl * k_Cl_turn * tau_NH2Cl * 3600 / (1 + k_Cl_turn * tau_NH2Cl * 3600),
@@ -783,7 +783,7 @@ f_HOR_anode = NA                                       # D145 (-)  fraction of a
 f_Cl_anode  = ec_I_Cl / I_app                          # D103 (-)
 k_H2O2_anode  = (km_O2 / 100) * (A_anode_wet / 10000) / (ec_V_L / 1000)   # D151 (1/s) peroxide re-oxidised at the anode
 k_cat_cells   = 4.1e-3                                 # D94 (1/s) whole-culture catalase clearance, ~1e8 cells/mL
-cal_etaF_OER = NA                                      # Calibrations D32 (no included anodic runs)
+cal_etaF_OER = NA                                      # Calibrations cal_etaF_OER (no included anodic runs)
 # Peroxide oxidised at the anode (Electrochemistry D167-D172): H2O2 -> O2 + 2H+ + 2e- draws anodic current
 # and returns one O2; growth competes with catalase, the lag plateau oxidises all peroxide made.
 r_H2O2_an_g = (f_HOOH * I_app * (1 - etaF) / (n_ORR_eff * F_const) * 3600
@@ -944,7 +944,7 @@ _cal_rows = [r for r in CO2_CAL if r[0] == Reactor_sel and r[3] > 0]
 # column J) are "most recent included run for the active reactor". The tab is empty in the shipped
 # workbook, so both are None here; the precedence below is the workbook's.
 cal_flow        = None                                 # Calibrations cal_flow (mL/s) - no included run
-cal_pulse_floor = None                                 # Calibrations D61 cal_pulse_floor (s) - no included run
+cal_pulse_floor = None                                 # Calibrations cal_pulse_floor cal_pulse_floor (s) - no included run
 pulse_floor_default = 0.25                             # MT D396 (s) solenoid floor when no minimum pulse is recorded
 has_cal      = len(_cal_rows) + (1 if isnum(cal_flow) else 0)   # MT D119
 latest_date  = max((r[1] for r in _cal_rows), default=0)  # MT D116
@@ -1829,7 +1829,7 @@ else:
     buffer_flag = "OK — buffer holds the electrode surfaces at the bulk pH"   # D219
 
 # --- R1-14: the PCET credit is withdrawn once the anode current passes the buffer limit (Electrochemistry D161-D163) ---
-cal_gerrit_slope = NA                                  # Calibrations D16 (no included current runs)
+cal_gerrit_slope = NA                                  # Calibrations cal_gerrit_slope (no included current runs)
 gerrit_check_pct = power_max if isnum(cal_gerrit_slope) else gerrit_max   # Electrochemistry D166 (%) top of the validated band
 I_at_gerrit_max = (gerrit_slope * gerrit_check_pct + gerrit_int) / 1000  # Electrochemistry D142 (A)
 ec_jbuf_ratio    = j_buffer_ratio                      # Electrochemistry D161 <- Chemistry D218
