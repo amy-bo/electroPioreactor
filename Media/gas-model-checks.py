@@ -108,6 +108,54 @@ class GasModelChecks(unittest.TestCase):
         exec(compile(src, str(TWIN), 'exec'), ns)
         return ns
 
+    def test_a_medium_typed_into_a_new_column_is_read(self):
+        """The twin reads the Media Table, so a column added to it is a medium with no code change."""
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            with zipfile.ZipFile(BOOK) as z:
+                parts = {n: z.read(n) for n in z.namelist()}
+            wb = parts['xl/workbook.xml'].decode()
+            rels = parts['xl/_rels/workbook.xml.rels'].decode()
+            rid = re.search(r'<sheet name="Media" sheetId="\d+" r:id="([^"]+)"', wb).group(1)
+            part = 'xl/' + re.search(r'Id="%s"[^>]*Target="([^"]+)"' % rid, rels).group(1)
+            tpart = next(n for n in parts if n.startswith('xl/tables/') and b'name="Media"' in parts[n])
+            t = parts[tpart].decode()
+            ref = re.search(r'ref="A(\d+):([A-Z]+)(\d+)"', t)
+            hdr_row, last, end = int(ref.group(1)), ref.group(2), int(ref.group(3))
+            new = chr(ord(last) + 1)                     # the medium table ends before column Z
+            t = t.replace(ref.group(0), 'ref="A%d:%s%d"' % (hdr_row, new, end))
+            n = int(re.search(r'<tableColumns count="(\d+)"', t).group(1))
+            t = t.replace('</tableColumns>', '<tableColumn id="%d" name="AM999"/></tableColumns>' % (n + 1))
+            t = re.sub(r'<tableColumns count="\d+"', '<tableColumns count="%d"' % (n + 1), t)
+            parts[tpart] = t.encode()
+            x = parts[part].decode()
+            for r in range(hdr_row, end + 1):           # copy the last medium's column into the new one
+                m = re.search(r'<c r="%s%d"([^>]*?)(/>|>(.*?)</c>)' % (last, r), x, re.S)
+                if not m:
+                    continue
+                cell = m.group(0).replace('r="%s%d"' % (last, r), 'r="%s%d"' % (new, r), 1)
+                if r == hdr_row:
+                    cell = '<c r="%s%d" t="inlineStr"><is><t>AM999</t></is></c>' % (new, r)
+                x = x[:m.end()] + cell + x[m.end():]
+            parts[part] = x.encode()
+            book = tmp / 'electroPioreactorGasModel.xlsx'
+            with zipfile.ZipFile(book, 'w') as z:
+                for k, v in parts.items():
+                    z.writestr(k, v)
+            for f in ('electroPioreactorGasModel.py', 'gas_model_verification.py'):
+                shutil.copy(HERE / f, tmp / f)
+            subprocess.run([sys.executable, 'gas_model_verification.py', '--record'], cwd=tmp, check=True,
+                           capture_output=True)
+            src = (tmp / 'electroPioreactorGasModel.py').read_text()
+            ns = {'__name__': 'test_twin', '__file__': str(tmp / 'electroPioreactorGasModel.py')}
+            exec(compile(src, 'twin', 'exec'), ns)
+            self.assertIn('AM999', ns['med_calc'])
+            copied = list(ns['med_recipes'])[-2]          # the medium whose column was copied
+            for k, v in ns['med_calc'][copied].items():
+                self.assertTrue(math.isclose(ns['med_calc']['AM999'][k], v, rel_tol=1e-12, abs_tol=1e-12), k)
+        finally:
+            shutil.rmtree(tmp)
+
     def test_dry_headspace_co2_conservation(self):
         n = self.twin()
         # Vent loss F*C/Csat must equal pool decay coefficient times stored moles.
