@@ -145,6 +145,29 @@ class WorkbookReader:
     def sheet_names(self):
         return list(self._sheet_part)
 
+    def table(self, name):
+        """Rows of an Excel Table as dicts keyed by its header; '?' and blanks come back as given / ABSENT."""
+        with zipfile.ZipFile(self.path) as z:
+            for part in z.namelist():
+                if part.startswith("xl/tables/") and part.endswith(".xml"):
+                    t = ET.fromstring(z.read(part))
+                    if t.get("name") == name:
+                        break
+            else:
+                raise KeyError(f"no Excel Table named {name!r} in {self.path}")
+            sheet = next(sh for sh, pt in self._sheet_part.items()
+                         if any(posixpath_join(pt, r) == part for r in self._sheet_tables(z, pt)))
+        (c0, r0), (c1, r1) = (_split_ref(x) for x in t.get("ref").split(":"))
+        cols = [_col_letters(c) for c in range(c0, c1 + 1)]
+        heads = [self.cached(sheet, f"{c}{r0}") for c in cols]
+        return [{h: self.cached(sheet, f"{c}{r}") for h, c in zip(heads, cols)} for r in range(r0 + 1, r1 + 1)]
+
+    def _sheet_tables(self, z, part):
+        rel = part.replace("worksheets/", "worksheets/_rels/") + ".rels"
+        if rel not in z.namelist():
+            return []
+        return [r.get("Target") for r in ET.fromstring(z.read(rel)) if r.get("Type", "").endswith("/table")]
+
     def _cell_value(self, c):
         t = c.get("t")
         if t == "inlineStr":
@@ -216,6 +239,39 @@ def cached(sheet_name, cell_ref):
     if _READER is None:
         _READER = WorkbookReader(WORKBOOK_PATH)
     return _READER.cached(sheet_name, cell_ref)
+
+
+def _split_ref(ref):
+    m = re.fullmatch(r"\$?([A-Z]+)\$?(\d+)", ref)
+    n = 0
+    for ch in m.group(1):
+        n = n * 26 + ord(ch) - 64
+    return n, int(m.group(2))
+
+
+def _col_letters(n):
+    out = ""
+    while n:
+        n, r = divmod(n - 1, 26)
+        out = chr(65 + r) + out
+    return out
+
+
+def posixpath_join(part, target):
+    """Resolve a relationship target ('../tables/table1.xml') against its source part."""
+    base = part.rsplit("/", 1)[0].split("/")
+    for seg in target.split("/"):
+        if seg == "..":
+            base.pop()
+        elif seg != ".":
+            base.append(seg)
+    return "/".join(base)
+
+
+def table(name):
+    """Module-level accessor for an Excel Table's rows (see WorkbookReader.table)."""
+    cached("Summary", "A1")          # opens the workbook
+    return _READER.table(name)
 
 
 
@@ -294,25 +350,12 @@ def xltext(value, fmt):
 # ============================================================================
 # GEOMETRY TAB
 # ============================================================================
-# Reactor -> type lookup (Geometry A59:B80)
-REACTOR_TYPE = {
-    "imp01": "AEP0.1.1", "imp02": "AEP0.1.1", "imp03": "AEP0.1.1",
-    "imp04": "AEP0.1.1", "imp05": "AEP0.1.1", "imp06": "AEP0.1.1",
-    "ed01": "AEP0.1.1", "ed02": "AEP0.1.1", "ed03": "AEP0.1.1",
-    "ed04": "MEP0.3", "ed05": "MEP0.3",
-    "ed06": "AEP0.2", "ed07": "AEP0.2", "ed08": "AEP0.2",
-    "imp07": "AEP0.2", "imp08": "AEP0.2", "imp09": "AEP0.2",
-    "imp10": "AEP0.2", "imp11": "AEP0.2", "imp12": "AEP0.2",
-    "nm01": "AEP0.2a", "nm02": "AEP0.2",
-}
-# Reactor-type -> geometry lookup (Geometry A84:I87)
-#   cols: [vial mL, usable depth mm, max working mL, total vial mL, vial OD mm, stir bar L mm, stir bar dia mm]
-TYPE_GEOM = {
-    "AEP0.1.1": dict(vial=20, depth=55, vmax=16, vtot=20, od=27.48, stir_L=12, stir_dia=3),
-    "MEP0.3":   dict(vial=20, depth=55, vmax=16, vtot=20, od=27.48, stir_L=12, stir_dia=3),
-    "AEP0.2":   dict(vial=40, depth=95, vmax=30, vtot=42, od=27.48, stir_L=15, stir_dia=6),
-    "AEP0.2a":  dict(vial=40, depth=95, vmax=30, vtot=42, od=27.48, stir_L=15, stir_dia=6),
-}
+# Reactor -> type, and reactor type -> geometry: the Reactors and ReactorTypes Tables (Reactors sheet).
+#   Library data are inputs, read from the workbook so a reactor added there is checked too.
+REACTOR_TYPE = {r["Reactor"]: r["Type"] for r in table("Reactors")}
+TYPE_GEOM = {r["Type"]: dict(vial=r["vial (mL)"], depth=r["usable depth (mm)"], vmax=r["max working (mL)"],
+                             vtot=r["total vial (mL)"], od=r["vial OD (mm)"], stir_L=r["stir bar L (mm)"],
+                             stir_dia=r["stir bar dia (mm)"]) for r in table("ReactorTypes")}
 
 rx_ver       = REACTOR_TYPE[Reactor_sel]          # D51
 g            = TYPE_GEOM[rx_ver]
@@ -380,13 +423,9 @@ elec_sub_L_act = max(0.0, h_actual - elec_clear)    # D93 (mm) submerged length 
 # ELECTROCHEMISTRY TAB - part A: current, electrode geometry, current density
 #   (T_K, P_atm, R_gas come from Biology / Mass Transfer, defined below.)
 # ============================================================================
-# Electrode lookup (Electrochemistry A35:N38): sparger, sinter porosity, z_e_ORR
-ELECTRODE = {
-    "Pt/Ti rod": dict(sparger="Tube",     por="n/a", z_e_ORR=2),
-    "MMO rod":   dict(sparger="Tube",     por="n/a", z_e_ORR=2),
-    "MMO tube":  dict(sparger="Sintered", por=0,     z_e_ORR=2),
-    "Graphite rod": dict(sparger="Tube",  por="n/a", z_e_ORR=2),
-}
+# Electrode lookup (Electrodes Table): sparger, sinter porosity, z_e_ORR, geometry and plating limits
+_ELECTRODES = {r["Electrode"]: r for r in table("Electrodes")}
+ELECTRODE = {k: dict(sparger=r["sparger"], por=r["sinter porosity"], z_e_ORR=r["z_e_ORR"]) for k, r in _ELECTRODES.items()}
 gerrit_slope = 1.03          # D11 (mA/%)
 gerrit_int   = 2.6           # D12 (mA)
 gerrit_min   = 3.0           # D13 (%)
@@ -403,7 +442,7 @@ I_app        = (gerrit_slope * intensity + gerrit_int) / 1000   # D19 (A)
 I_valid      = "OK" if (gerrit_min <= intensity <= gerrit_max) else "OUT"  # D20
 e            = ELECTRODE[electrode_sel]
 sparger_e    = e["sparger"]                                     # D31
-por_grade_e  = e["por"] if isnum(e["por"]) else 0               # D32
+por_grade_e  = int(e["por"]) if isnum(e["por"]) else 0              # D32
 z_e_ORR      = e["z_e_ORR"]                                     # D27
 
 # --- current density, shape-aware wetted area & limits (Electrochemistry rows 40-76) ---
@@ -414,12 +453,9 @@ z_e_ORR      = e["z_e_ORR"]                                     # D27
 # these defaults, so this twin mirrors the empty-calibration (default) state exactly.
 # In wave-4 the etaF/etaF_OER defaults are no longer the constant 1: they are the
 # CALCULATED cells D88 / D104 below.
-ELECTRODE_GEOM = {  # anode/cathode shape+dia (mm); plating limits (mA/cm2); material
-    "Pt/Ti rod":    dict(a_shape="rod",  a_d=6.0, c_shape="rod", c_d=6.0, jc=100, jm=500, mat="Pt/Ti"),
-    "MMO rod":      dict(a_shape="rod",  a_d=6.0, c_shape="rod", c_d=6.0, jc=50,  jm=500, mat="MMO"),
-    "MMO tube":     dict(a_shape="tube", a_d=6.0, c_shape="rod", c_d=6.0, jc=10,  jm=60,  mat="MMO"),
-    "Graphite rod": dict(a_shape="rod",  a_d=6.0, c_shape="rod", c_d=6.0, jc=35,  jm=50,  mat="Graphite"),
-}
+ELECTRODE_GEOM = {k: dict(a_shape=r["anode shape"], a_d=r["anode dia (mm)"], c_shape=r["cathode shape"],
+                          c_d=r["cathode dia (mm)"], jc=r["anode j cont (mA/cm²)"], jm=r["anode j max (mA/cm²)"],
+                          mat=r["anode material"]) for k, r in _ELECTRODES.items()}
 eg = ELECTRODE_GEOM[electrode_sel]
 anode_dia   = eg["a_d"]                                         # D42 (mm)
 cathode_dia = eg["c_d"]                                         # D44 (mm)
@@ -436,11 +472,9 @@ j_anode     = I_app * 1000 / A_anode_wet                        # D48 (mA/cm^2)
 j_cathode   = I_app * 1000 / A_cath_wet                         # D49 (mA/cm^2)
 anode_j_cont, anode_j_max = eg["jc"], eg["jm"]                  # D50, D51
 cath_j_cont,  cath_j_max  = 80, 250                             # D52, D53 (SS HER norm)
-STRAIN_J = {  # per-organism (optimum, tolerated-ceiling) mA/cm^2; calibration-overridable
-    "Cupriavidus necator": (2, 4), "Xanthobacter autotrophicus": (2, 4),
-    "Xanthobacter flavus": (2, 4), "Xanthobacter tagetidis": (2, 4),
-    "Cupriavidus metallidurans": (2, 4), "UdG (mixed)": (2.14, 4.29),
-}
+_ORGANISMS = {r["Organism"]: r for r in table("Organisms")}   # Organisms Table (Organisms sheet)
+STRAIN_J = {k: (r["j optimum (mA/cm²)"], r["j ceiling (mA/cm²)"])   # per-organism (optimum, tolerated-ceiling) mA/cm^2
+            for k, r in _ORGANISMS.items()}
 j_opt_strain, j_ceiling_strain = STRAIN_J.get(organism_sel, (1, 2))   # D56, D57 (fallback 1/2)
 power_max   = 10.0                                              # D73 (%) AEP-Plugin electrolysis_power clamp
 I_max_mA    = gerrit_slope * power_max + gerrit_int             # D74 (mA) current at max power
@@ -559,15 +593,9 @@ H_H2T    = 500.0                                      # D39
 H_H2_T   = H_H2ref * math.exp(H_H2T * (1 / T_K - 1 / T_ref))    # D40
 C_H2_sat = H_H2_T * P_atm                             # D41 (mol/m3)
 
-# --- organism DO thresholds (HOB lookup A52:F57); '?' -> unmeasured (#N/A) ---
-HOB_DO = {  # organism: (min, opt, impair, toxic) - '?' means data gap
-    "Cupriavidus necator":       ("?", 2.6, 3.0, 11.5),
-    "Xanthobacter autotrophicus": ("?", "?", "?", 11.5),
-    "Xanthobacter flavus":       ("?", "?", "?", "?"),
-    "Xanthobacter tagetidis":    ("?", "?", "?", "?"),
-    "Cupriavidus metallidurans": ("?", "?", "?", "?"),
-    "UdG (mixed)":               ("?", "?", "?", "?"),
-}
+# --- organism DO thresholds (Organisms Table); '?' -> unmeasured (#N/A) ---
+HOB_DO = {k: (r["minimum DO (mg/L)"], r["optimum DO (mg/L)"], r["impairment DO (mg/L)"], r["toxic DO (mg/L)"])
+          for k, r in _ORGANISMS.items()}
 
 
 def _do(v):

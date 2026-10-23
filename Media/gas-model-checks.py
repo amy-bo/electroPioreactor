@@ -231,8 +231,10 @@ class GasModelChecks(unittest.TestCase):
         self.assertIn('+alk_add_M*(lam_Na+lam_HCO3)/10)*kappa_fI', f('D180'))
         self.assertEqual(f('D317'), 'Summary!NaHCO3_add_gL')
         self.assertEqual(f('D318'), 'NaHCO3_add_gL/M_NaHCO3')
-        for name, sid, ref in (('NaHCO3_add_gL', 0, 'Summary!$D$13'), ('NaHCO3_add_gL', 4, 'Chemistry!$D$317'),
-                               ('alk_add_M', 4, 'Chemistry!$D$318')):
+        tabs = re.findall(r'<sheet name="([^"]+)"', wb)          # local names are scoped by tab position
+        for name, sid, ref in (('NaHCO3_add_gL', tabs.index('Summary'), 'Summary!$D$13'),
+                               ('NaHCO3_add_gL', tabs.index('Chemistry'), 'Chemistry!$D$317'),
+                               ('alk_add_M', tabs.index('Chemistry'), 'Chemistry!$D$318')):
             self.assertIn('<definedName name="%s" localSheetId="%d">%s</definedName>' % (name, sid, ref), wb)
 
     def test_n2_sweep_dilutes_without_co2(self):
