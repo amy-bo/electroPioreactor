@@ -1,4 +1,4 @@
-// electropioreactor.org home: numbered 3D hotspots + "How it works" panel over the vial viewer.
+// electropioreactor.org home: 3D hotspots with hover labels over the vial viewer.
 // The viewer exposes window.__viewer = { THREE, scene, camera, renderer, controls, root, meshes,
 // goView, setTurn, liquid } and fires "viewer-ready"; functions in window.__viewerFrameHooks run
 // after each rendered frame. Anchors are computed here from the part meshes, in root-local
@@ -11,15 +11,11 @@ const COARSE = matchMedia('(pointer: coarse)').matches;
 const PHONE = matchMedia('(max-width: 720px)');
 let V = null;                 // window.__viewer, once ready
 const CALLOUTS = JSON.parse($('callouts-data').textContent);
-const byId = Object.fromEntries(CALLOUTS.map((c, i) => [c.id, { ...c, n: i + 1 }]));
+const byId = Object.fromEntries(CALLOUTS.map((c) => [c.id, c]));
 
 const layer = $('hsLayer');
 const label = $('hs-label');
-const panel = $('hiwPanel');
-const toggle = $('hiwToggle');
-const dotsBtn = $('dotsToggle');
 const dots = Object.fromEntries([...layer.querySelectorAll('.hs-dot')].map((b) => [b.dataset.id, b]));
-const items = Object.fromEntries([...panel.querySelectorAll('.hiw-item')].map((b) => [b.dataset.id, b]));
 
 // ---------------------------------------------------------------- header, bar height, hint
 const header = document.querySelector('.site-header.over-hero');
@@ -34,7 +30,7 @@ if (bar) {
   if ('ResizeObserver' in window) new ResizeObserver(setBar).observe(bar);
 }
 const hint = $('heroHint');
-if (hint && COARSE) hint.textContent = 'Drag sideways to turn the vial · pinch to zoom';
+if (hint && COARSE) hint.textContent = 'Drag sideways to turn the vial · tap the dots · pinch to zoom';
 
 // ---------------------------------------------------------------- wheel: scroll the page unless the model is engaged
 const stage = $('stage');
@@ -55,38 +51,14 @@ stage.addEventListener('pointerdown', () => { engaged = true; zoomHint.classList
 app.addEventListener('pointerleave', () => { engaged = false; });
 addEventListener('scroll', () => { if (scrollY > 60) engaged = false; }, { passive: true });
 
-// ---------------------------------------------------------------- panel + dots toggles
-function setPanel(open, { focus = false } = {}) {
-  panel.hidden = !open;
-  toggle.setAttribute('aria-expanded', String(open));
-  app.classList.toggle('hiw-open', open);
-  if (V) try { fit(false, true); } catch (e) {}
-  if (open && focus) (panel.querySelector('.hiw-item[aria-pressed="true"]') || panel.querySelector('.hiw-item')).focus({ preventScroll: true });
-}
-toggle.addEventListener('click', () => setPanel(panel.hidden, { focus: PHONE.matches }));
-$('hiwClose').addEventListener('click', () => { setPanel(false); toggle.focus(); });
-panel.addEventListener('keydown', (e) => { if (e.key === 'Escape') { setPanel(false); toggle.focus(); } });
-const wide = matchMedia('(min-width: 1180px) and (min-height: 640px)');
-setPanel(wide.matches);
-wide.addEventListener('change', (m) => setPanel(m.matches));
-PHONE.addEventListener('change', (m) => { if (m.matches) setPanel(false); });
-
-let dotsOn = true;
-dotsBtn.addEventListener('click', () => {
-  dotsOn = !dotsOn;
-  layer.classList.toggle('off', !dotsOn);
-  dotsBtn.setAttribute('aria-pressed', String(dotsOn));
-  if (!dotsOn) hideLabel();
-});
-
 // ---------------------------------------------------------------- highlight + active state
 let active = null, hover = null;
 const pos = {};               // id -> { x, y, behind, out }
 function showLabel(id, withBody) {
   const c = byId[id], p = pos[id];
-  if (!c || !p || p.out || !dotsOn) { hideLabel(); return; }
+  if (!c || !p || p.out) { hideLabel(); return; }
   label.innerHTML = '';
-  const b = document.createElement('b'); b.textContent = `${c.n}. ${c.head}`; label.appendChild(b);
+  const b = document.createElement('b'); b.textContent = c.head; label.appendChild(b);
   if (withBody) { const s = document.createElement('span'); s.textContent = c.body; label.appendChild(s); }
   label.hidden = false;
   label.dataset.for = id;
@@ -109,19 +81,19 @@ function placeLabel() {
 }
 function setHover(id) {
   if (hover === id) return;
-  if (hover) { dots[hover]?.classList.remove('hl'); items[hover]?.classList.remove('hl'); }
+  if (hover) dots[hover]?.classList.remove('hl');
   hover = id;
   if (id) {
-    dots[id]?.classList.add('hl'); items[id]?.classList.add('hl');
+    dots[id]?.classList.add('hl');
     showLabel(id, id === active);
   } else if (active) showLabel(active, true);
   else hideLabel();
 }
 function setActive(id, { turn = true } = {}) {
-  if (active) { dots[active]?.classList.remove('active'); items[active]?.setAttribute('aria-pressed', 'false'); }
+  if (active) dots[active]?.classList.remove('active');
   active = id;
   if (id) {
-    dots[id]?.classList.add('active'); items[id]?.setAttribute('aria-pressed', 'true');
+    dots[id]?.classList.add('active');
     if (turn) turnTo(id);
     showLabel(id, true);
   } else hideLabel();
@@ -134,21 +106,9 @@ for (const [id, d] of Object.entries(dots)) {
   d.addEventListener('click', () => {
     if (active === id) { setActive(null); return; }
     setActive(id);
-    if (!panel.hidden && !PHONE.matches) items[id]?.scrollIntoView({ block: 'nearest', behavior: REDUCED ? 'auto' : 'smooth' });
   });
 }
-for (const [id, it] of Object.entries(items)) {
-  it.addEventListener('pointerenter', () => setHover(id));
-  it.addEventListener('pointerleave', () => setHover(null));
-  it.addEventListener('focus', () => setHover(id));
-  it.addEventListener('blur', () => setHover(null));
-  it.addEventListener('click', () => {
-    if (active === id) { setActive(null); return; }
-    setActive(id);
-    if (PHONE.matches) { setPanel(false); dots[id]?.focus({ preventScroll: true }); }
-  });
-}
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && active && panel.hidden) setActive(null); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && active) setActive(null); });
 
 // ---------------------------------------------------------------- 3D: anchors, projection, turning
 let anchors = {}, axis = null, tween = null, lastHook = 0;
@@ -267,7 +227,7 @@ function stepTween() {
 
 
 // The free area of the hero, in px relative to #app: below the header (phones: below the title
-// block), above the controls bar, right of the title column and left of the open panel (desktop).
+// block), above the controls bar, right of the title column (desktop).
 function freeRect() {
   const W = app.clientWidth, H = app.clientHeight, r0 = app.getBoundingClientRect();
   const rel = (el) => { const r = el.getBoundingClientRect(); return { l: r.left - r0.left, r: r.right - r0.left, t: r.top - r0.top, b: r.bottom - r0.top }; };
@@ -276,12 +236,10 @@ function freeRect() {
   if (barEl) bottom = rel(barEl).t - 14;
   if (PHONE.matches || W < 900) {
     if (title) top = rel(title).b + 10;
-    const tools = $('hiwTools'); if (tools && PHONE.matches) bottom = Math.min(bottom, rel(tools).t - 8);
   }
   else {
     if (title) left = rel(title).r + 24;
-    if (!panel.hidden) right = rel(panel).l - 24;
-    else right = W - 24;
+    right = W - 24;
   }
   if (bottom - top < 200) top = Math.max(60, bottom - 200);
   if (right - left < 200) { left = 16; right = W - 16; }
@@ -345,7 +303,7 @@ function init(v) {
     if (anchors[id]) d.hidden = false;
     else { d.remove(); delete dots[id]; console.warn('hotspot without an anchor:', id); }
   }
-  // frame the model in the space the overlays leave free (title, header, panel, controls bar)
+  // frame the model in the space the overlays leave free (title, header, controls bar)
   try { fit(true); } catch (e) { console.warn('fit', e); }
   controls.addEventListener('start', () => { tween = null; });
   (window.__viewerFrameHooks = window.__viewerFrameHooks || []).push(onFrame);

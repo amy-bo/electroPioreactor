@@ -1,13 +1,13 @@
-// Home page pieces: the hero overlay that replaces the viewer's own title, the "How it works"
-// panel + hotspot layer over the 3D model, and the sections below the hero.
+// Home page pieces: the hero overlay that replaces the viewer's own title, the hotspot layer
+// over the 3D model, and the sections below the hero.
 import { esc, amyboTile } from './layout.mjs';
 import { SITE } from './site.mjs';
 import { card } from './page.mjs';
 
 const ext = '<span class="ext" aria-hidden="true">↗</span>';
 
-// Every claim here is checked against AsepticElectroPioreactor/README.md and README.md.
-export const INTRO = 'The Aseptic electroPioreactor (AEP) adapts a <a href="https://pioreactor.com">Pioreactor</a> into a sealed bioreactor for research on hydrogen-oxidising bacteria (HOB). Electrodes in the culture split water into hydrogen and oxygen only as they are needed, so the bacteria can turn CO₂ into biomass without stored hydrogen. The designs, bill of materials and assembly guide are open on GitHub.';
+// First sentence is Martin's, from the AEP0.2 explainer.
+export const INTRO = 'A sealed, open-source electro-bioreactor that uses renewable electricity to grow protein-rich bacteria from water and carbon dioxide. It\u2019s built on the <a href="https://pioreactor.com">Pioreactor</a>, and the designs, bill of materials and assembly guide are all on GitHub.';
 
 export function heroHeader({ base, learnHref }) {
   return `<header class="title landing">
@@ -20,34 +20,15 @@ export function heroHeader({ base, learnHref }) {
         <li><a href="${SITE.github}">GitHub ${ext}</a></li>
       </ul>
       <a class="by-amybo" href="${SITE.amybo}"><span class="by-k">Developed by</span>${amyboTile(base, 'sm')}<span class="by-n">AMYBO</span></a>
-      <p class="hint" id="heroHint">Drag to turn the vial · click it, then scroll to zoom</p>
+      <p class="hint" id="heroHint">Drag to turn · hover the dots · click, then scroll to zoom</p>
       <p class="built" id="built" hidden></p>
     </header>`;
 }
 
-// The numbered hotspots and the panel that lists them; home.js positions and wires them.
-export function hotspots({ callouts, learnHref }) {
-  const dots = callouts.map((c, i) => `<button class="hs-dot" type="button" data-id="${esc(c.id)}" data-n="${i + 1}" aria-describedby="hs-label" aria-label="${i + 1}. ${esc(c.head)}" hidden>${i + 1}</button>`).join('');
-  const items = callouts.map((c, i) => `<li><button class="hiw-item" type="button" data-id="${esc(c.id)}" aria-pressed="false">
-        <span class="hiw-n" aria-hidden="true">${i + 1}</span>
-        <span class="hiw-t"><b>${esc(c.head)}</b><span>${esc(c.body)}</span></span>
-      </button></li>`).join('');
-  return `<div class="hs-layer" id="hsLayer" aria-hidden="false">${dots}<div class="hs-label" id="hs-label" role="tooltip" hidden></div></div>
-  <div class="hiw-tools" id="hiwTools">
-    <button class="hiw-pill" id="hiwToggle" type="button" aria-expanded="false" aria-controls="hiwPanel">How it works <span class="hiw-count">${callouts.length}</span></button>
-    <button class="hiw-pill hiw-dots" id="dotsToggle" type="button" aria-pressed="true" title="Show or hide the numbers on the model"><span class="hiw-led" aria-hidden="true"></span>Numbers</button>
-  </div>
-  <section class="hiw-panel" id="hiwPanel" aria-labelledby="hiwTitle" hidden>
-    <div class="hiw-head">
-      <h2 id="hiwTitle">How it works</h2>
-      <button class="hiw-close" id="hiwClose" type="button" aria-label="Close the How it works panel">×</button>
-    </div>
-    <p class="hiw-intro">Pick a part to turn the model towards it. The numbers match the dots on the vial.</p>
-    <ol class="hiw-list" id="hiwList">
-      ${items}
-    </ol>
-    ${learnHref && learnHref.startsWith('/') ? `<p class="hiw-more"><a href="${learnHref}">Read the full guide: How it works →</a></p>` : ''}
-  </section>`;
+// The hotspots on the model, coloured by the explainer's key; home.js positions and wires them.
+export function hotspots({ callouts }) {
+  const dots = callouts.map((c) => `<button class="hs-dot k-${esc(c.kind || 'control')}" type="button" data-id="${esc(c.id)}" aria-describedby="hs-label" aria-label="${esc(c.head)}" hidden></button>`).join('');
+  return `<div class="hs-layer" id="hsLayer" aria-hidden="false">${dots}<div class="hs-label" id="hs-label" role="tooltip" hidden></div></div>`;
 }
 
 export function belowFold({ learn, build, base, aboutHref }) {
@@ -65,8 +46,8 @@ export function belowFold({ learn, build, base, aboutHref }) {
     <section class="home-intro-mobile" aria-label="Introduction">
       <p>${INTRO}</p>
     </section>
-    ${group('g-new', 'New to this?', 'Start with the basics', 'What hydrogen-oxidising bacteria are, why grow them with electricity, and how the vial on this page works. No background needed.', learn)}
-    ${group('g-pro', 'For researchers and builders', 'Specifications, models and research', 'Design details, the gas and electrolysis model, media, software and variants, with links into the repository and the assembly guide.', build, `<p class="group-more"><a class="btn btn-primary" href="${SITE.guide}">Open the Assembly Video Guide <span aria-hidden="true">→</span></a></p>`)}
+    ${group('g-new', 'Learn', 'The basics', 'What hydrogen-oxidising bacteria are, why we grow them with electricity, and how the vial works.', learn)}
+    ${group('g-pro', 'Build and research', 'The detail', 'Specs, the gas and electrolysis model, media, software and variants, linked to the repository and the assembly guide.', build, `<p class="group-more"><a class="btn btn-primary" href="${SITE.guide}">Open the Assembly Video Guide <span aria-hidden="true">→</span></a></p>`)}
     <section class="key-links" aria-labelledby="g-links">
       <h2 id="g-links" class="sr-only">Key links</h2>
       <ul>

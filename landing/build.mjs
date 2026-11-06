@@ -1,7 +1,7 @@
 // electropioreactor.org: static site generator.
 //
 //   Home (/)            the Vial Cap 3D viewer as a full-screen hero, with 14 numbered hotspots and a
-//                       "How it works" panel (wording from Components/Vial Cap/render/callouts.mjs),
+//                       hover labels (wording from Components/Vial Cap/render/callouts.mjs),
 //                       then cards routing newcomers and experts to the content pages.
 //   Content (/<slug>/)  every landing/content/<slug>.md (files starting with "_" are skipped).
 //   Sections            /learn/ /build/ /research/ /about/ list their pages (a content page whose slug
@@ -212,9 +212,9 @@ function checkLinks(files, pages) {
 }
 
 // ------------------------------------------------------------------ go
-const { CALLOUTS } = await import(pathToFileURL(calloutsPath).href);
-if (!Array.isArray(CALLOUTS) || !CALLOUTS.length) die(`no CALLOUTS in ${calloutsPath}`);
-const callouts = CALLOUTS.map(({ id, head: h, body }) => ({ id, head: h, body }));
+const { EXPLAINER } = await import(pathToFileURL(calloutsPath).href);
+if (!Array.isArray(EXPLAINER) || !EXPLAINER.length) die(`no EXPLAINER in ${calloutsPath}`);
+const callouts = EXPLAINER.map(({ id, kind, head: h, body }) => ({ id, kind, head: h, body }));
 
 const pages = loadContent();
 fs.rmSync(out, { recursive: true, force: true });

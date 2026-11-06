@@ -19,3 +19,20 @@ export const CALLOUTS = [
   { id: 'heater', side: 'R', head: 'Heater PCB', body: 'An aluminium-core heater under the vial holds the set temperature.' },
 ];
 export const FOOTER = 'In-culture electrolysis makes hydrogen and oxygen only as they are needed, so hydrogen-oxidising bacteria can turn CO₂ into biomass without stored hydrogen. The Pioreactor runs dosing, stirring, heating, optical density, electrolysis and CO₂ sparging automatically.';
+
+// Website hotspots: Martin's wording from "AEP0.2 explainer.pdf" (6 Nov 2026), in its process
+// order. `kind` is the explainer's colour key. The A4 page above keeps CALLOUTS.
+export const EXPLAINER = [
+  { id: 'port', kind: 'liquid', head: 'Injection port', body: 'A self-sealing silicone septum. Bacteria go in by syringe needle, and samples can be drawn mid-run - maintaining sterility.' },
+  { id: 'needles', kind: 'liquid', head: 'Feed in, culture out', body: 'The shorter stainless steel needle adds fresh nutrient liquid. The longer one draws culture out, which regulates the liquid level.' },
+  { id: 'screws', kind: 'power', head: 'Power connections', body: 'Knurled thumbscrews clamp the power leads to the electrodes: red to the anode, black to the cathode.' },
+  { id: 'cathode', kind: 'power', head: 'Hydrogen formation', body: 'Electricity splits water. Hydrogen forms on the stainless steel rod cathode and is consumed by the bacteria as their energy source.' },
+  { id: 'anode', kind: 'power', head: 'Oxygen formation', body: 'Oxygen evolves at the mixed-metal-oxide-coated tubular titanium anode and is used as the bacteria’s terminal electron acceptor.' },
+  { id: 'co2', kind: 'gas', head: 'Carbon dioxide in', body: 'CO₂ flows down the hollow MMO anode into the culture where it is the bacteria’s main carbon source. It also flushes out excess oxygen.' },
+  { id: 'flea', kind: 'control', head: 'Magnetic stirrer', body: 'Turned by a magnet underneath, it mixes the culture and helps dissolve gas into the liquid for the bacteria.' },
+  { id: 'medium', kind: 'liquid', head: 'Hydrogen-oxidising bacteria (HOB)', body: 'They turn hydrogen, oxygen and CO₂ into single-cell protein biomass intended for human consumption with minimal downstream processing.' },
+  { id: 'gas', kind: 'gas', head: 'Gas out', body: 'The two rear needles let unused gas escape, so pressure cannot build up in the sealed vial.' },
+  { id: 'temp', kind: 'control', head: 'Temperature module', body: 'A precision infrared temperature module reads the culture through the glass, without contact, so the heater PCB can hold the set temperature.' },
+  { id: 'led', kind: 'control', head: 'Optical density sensors', body: 'Infrared light (invisible, drawn red here) shines through the culture. Cloudier means more bacteria.' },
+  { id: 'heater', kind: 'control', head: 'Heater PCB', body: 'Aluminium-core heater under the vial holds the set temperature, using readings from the temperature module.' },
+];
