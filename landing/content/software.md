@@ -14,7 +14,7 @@ The electroPioreactor runs on the standard Pioreactor software, plus one plugin 
 
 | Item | Value |
 | --- | --- |
-| Package | `pioreactor-electropioreactor-plugin`, version 0.7.3 in the repository (see its changelog for the latest), MIT licence |
+| Package | `pioreactor-electropioreactor-plugin`, version 0.7.3, released 6 November 2026 as [`plugin-v0.7.3`](https://github.com/amy-bo/electroPioreactor/releases/tag/plugin-v0.7.3) with fresh card bundles (see its changelog for the latest), MIT licence |
 | Source | [`AEP-Plugin/`](repo:AEP-Plugin/), main code [`electropioreactor.py`](repo:AEP-Plugin/pioreactor_electropioreactor_plugin/electropioreactor.py), history in [`CHANGELOG.md`](repo:AEP-Plugin/CHANGELOG.md) |
 | Job name | `electropioreactor` (shown as **electroPioreactor** under Activities) |
 | Requires | Pioreactor software 26.5.0 or later |
@@ -46,9 +46,9 @@ Both are floored at 0. The "after" offsets may be negative: a negative offset re
 | −3 | 7 s | OD resumes 3 s before electrolysis ends |
 | −10 or less | 0 | OD never paused for electrolysis |
 
-> **Expert:** Continuous electrolysis (the default, `electrolysis_off_seconds = 0`) has no bubble-free gap to read in, so it does not pause OD: OD is read throughout, and paused only around each sparge plus its settle time. The electrolysis OD pause applies only when electrolysis cycles. OD then reads for `electrolysis_off_seconds` − `od_pause_after_electrolysis_seconds` in each cycle; if that is zero or less (for example ON 60 s, OFF 3 s, settle 5 s), OD never reads and the job logs a warning. Plugin versions 0.7.0 to 0.7.2 had a bug that kept OD paused for the whole run with the default settings; 0.7.3 fixes it. <!-- source: AEP-Plugin/CHANGELOG.md (v0.7.3); AEP-Plugin/README.md --> <!-- CHECK: v0.7.3 not yet hardware-tested or released as a card bundle; remove the Note below once it is -->
+> **Expert:** Continuous electrolysis (the default, `electrolysis_off_seconds = 0`) has no bubble-free gap to read in, so it does not pause OD: OD is read throughout, and paused only around each sparge plus its settle time. The electrolysis OD pause applies only when electrolysis cycles. OD then reads for `electrolysis_off_seconds` − `od_pause_after_electrolysis_seconds` in each cycle; if that is zero or less (for example ON 60 s, OFF 3 s, settle 5 s), OD never reads and the job logs a warning. Plugin versions 0.7.0 to 0.7.2 had a bug that kept OD paused for the whole run with the default settings; 0.7.3 fixes it. <!-- source: AEP-Plugin/CHANGELOG.md (v0.7.3); AEP-Plugin/README.md --> <!-- CHECK: v0.7.3 not yet hardware-tested; remove the Note below once it is -->
 
-> **Note:** The 0.7.3 fix is not yet tested on hardware, and the card bundles on the releases page may still carry an earlier 0.7 release. Until a new bundle is released, a unit running 0.7.0 to 0.7.2 with continuous electrolysis needs `od_pause_after_electrolysis_seconds` set to −`electrolysis_on_seconds` or lower to read OD.
+> **Note:** The 0.7.3 fix is not yet tested on hardware. The card bundles on the releases page carry 0.7.3. A unit still running 0.7.0 to 0.7.2 should be upgraded (see [Installing](#installing)); until then, with continuous electrolysis it needs `od_pause_after_electrolysis_seconds` set to −`electrolysis_on_seconds` or lower to read OD.
 
 ## Settings
 
