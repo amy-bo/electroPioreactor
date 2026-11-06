@@ -18,7 +18,7 @@ include <BOSL2/std.scad>
 include <BOSL2/threading.scad>
 
 // ---- options (choices listed inline) --------------------------------
-view       = "print";      // "exploded" | "assembled" | "section" | "print"
+view       = "print";      // "exploded" | "assembled" | "section" | "print" | "none" (draw nothing - for files that include this one, e.g. Vial Cap render.scad)
 part       = "all";        // "all" | "cap" | "column" | "gasket"
 port_style = "ports";      // "ports" | "open"
 seal       = "gasket";     // "gasket" | "oring"  - oring reproduces the original O-ring grooves
@@ -556,7 +556,8 @@ module assembly() {
   translate([0,0,explode*18]) rods();
 }
 
-if (part=="cap") cap();
+if (view=="none") {}                     // included by another file: it draws its own scene
+else if (part=="cap") cap();
 else if (part=="column") translate([0,0,-cap_height]) column();
 else if (part=="gasket") translate([0,0,-gasket_z]) gasket();
 else if (view=="section") difference(){ assembly(); translate([-200,0,-200]) cube([400,200,400]); }
