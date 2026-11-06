@@ -196,6 +196,13 @@ a:hover { color: var(--s-link-hover); text-decoration-thickness: 2px; }
 .prose a[href^="http"]:not(.btn)::after { content: "↗"; font-size: 0.72em; margin-left: 2px; vertical-align: 0.2em; opacity: 0.7; text-decoration: none; display: inline-block; }
 .toc-inline .toc .toc-3 { display: none; }
 .prose img { max-height: 60vh; width: auto; display: block; margin: 1.6em auto; border-radius: 12px; border: 1px solid var(--s-border); background: #fff; }
+.prose figure { margin: 1.8em 0; }
+.prose figure img { margin: 0 auto; }
+.prose figcaption { margin-top: .6em; font-size: .88em; color: var(--s-muted, #6b7480); text-align: center; line-height: 1.45; }
+.prose .photo-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin: 1.8em 0; }
+.prose .photo-row figure { margin: 0; }
+.prose .photo-row img { max-height: 260px; width: 100%; object-fit: cover; }
+.prose .photo-credit { font-size: .85em; color: var(--s-muted, #6b7480); }
 .prose code { font-family: var(--s-mono); font-size: 0.86em; background: var(--s-code); padding: 0.12em 0.36em; border-radius: 5px; }
 .prose pre { font-family: var(--s-mono); font-size: 14px; line-height: 1.55; background: var(--s-code); border: 1px solid var(--s-border); border-radius: 10px; padding: 14px 16px; overflow-x: auto; }
 .prose pre code { background: none; padding: 0; font-size: inherit; }
