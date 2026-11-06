@@ -20,7 +20,7 @@ from pioreactor.whoami import get_assigned_experiment_name
 from pioreactor.whoami import get_unit_name
 
 __plugin_summary__ = "Electrolysis and CO₂ sparging control for electroPioreactors"
-__plugin_version__ = "0.7.2"
+__plugin_version__ = "0.7.3"
 __plugin_name__ = "electroPioreactor"
 __plugin_author__ = "Martin Currie"
 __plugin_homepage__ = "https://github.com/amy-bo/electroPioreactor"
@@ -83,9 +83,13 @@ class ElectroPioreactor(BackgroundJob):
     user-defined duration every user-defined interval. Electrolysis is paused
     for the duration of each sparge and resumed immediately after.
 
-    OD reading is paused during each electrolysis ON phase plus a settle window
+    With an OFF phase (``electrolysis_off_seconds > 0``), OD reading is paused
+    during each electrolysis ON phase plus a settle window
     (``od_pause_after_electrolysis_seconds``, which may be negative — see
-    :func:`od_pause_window_seconds`) and, independently, during each CO₂ sparge.
+    :func:`od_pause_window_seconds`). Continuous electrolysis
+    (``electrolysis_off_seconds == 0``, the default) has no bubble-free window,
+    so OD is not paused for it (as in v0.6.x). Independently, OD is paused
+    during each CO₂ sparge.
     """
 
     job_name = "electropioreactor"
@@ -150,6 +154,7 @@ class ElectroPioreactor(BackgroundJob):
         self._electrolysis_on_timer: threading.Timer | None = None
         self._electrolysis_off_timer: threading.Timer | None = None
         self._electrolysis_od_resume_timer: threading.Timer | None = None
+        self._od_never_resumes_warned_for: tuple | None = None
         self.reset_to_defaults = False
 
         # Hardware binding: which LED channel the electrode pair is wired to.
@@ -329,15 +334,27 @@ class ElectroPioreactor(BackgroundJob):
     # ── electrolysis ON/OFF cycle ────────────────────────────────────────────
     # Electrolysis cycles ON for electrolysis_on_seconds then OFF for
     # electrolysis_off_seconds, repeating. electrolysis_off_seconds == 0 means
-    # "continuous" — we keep the LED on and never schedule an OFF phase (the
-    # v0.6.x behaviour, so default-config users see no change). The chain mirrors
-    # the sparge timer chain above. OD reading is paused for the ON phase plus an
-    # offset (od_pause_after_electrolysis_seconds, may be negative — see
+    # "continuous": the LED stays on, there is no OFF phase and therefore no
+    # bubble-free window to move OD readings into, so OD is NOT paused for
+    # electrolysis (the v0.6.x behaviour). A 60 s internal tick
+    # (_continue_continuous_electrolysis) keeps running only so that a later
+    # switch to cycling takes effect; it neither re-drives the LED nor touches
+    # the OD pause. In cycling mode OD reading is paused for each ON phase plus
+    # an offset (od_pause_after_electrolysis_seconds, may be negative — see
     # od_pause_window_seconds), independently of the sparge OD pause.
+    #
+    # v0.7.0–v0.7.2 re-entered the full ON phase on every continuous tick,
+    # re-arming a 65 s OD pause every 60 s: od_reading was paused at job start
+    # and never resumed.
 
     def _begin_electrolysis_on(self) -> None:
         if self.state != self.READY:
             return
+
+        # Only one ON/OFF chain may run: drop any pending phase timer before
+        # scheduling a new one (a spurious extra entry would otherwise start a
+        # second, parallel chain whose timers escape _cancel_timers).
+        self._cancel_electrolysis_phase_timers()
 
         self._electrolysis_on = True
         if not self._is_sparging:
@@ -350,11 +367,15 @@ class ElectroPioreactor(BackgroundJob):
             f"(power {self.electrolysis_power:.2f}%)"
         )
 
-        # Pause OD for the ON phase + the (possibly negative) settle offset.
+        # Pause OD for the ON phase + the (possibly negative) settle offset —
+        # cycling mode only. In continuous mode the ON phase never ends, so a
+        # pause "until electrolysis ends + settle" would never expire.
         window = od_pause_window_seconds(
             self.electrolysis_on_seconds, self.od_pause_after_electrolysis_seconds
         )
-        if window > 0:
+        if self.electrolysis_off_seconds > 0.0:
+            self._warn_if_od_window_never_opens(window)
+        if window > 0 and self.electrolysis_off_seconds > 0.0:
             self._pause_od_reading(_OD_PAUSE_ELECTROLYSIS)
             # Cancel any pending OD-resume from a prior ON phase before reassigning,
             # otherwise the orphaned timer fires _resume_od_reading() during the new
@@ -380,13 +401,14 @@ class ElectroPioreactor(BackgroundJob):
         if self.state != self.READY:
             return
 
-        self._electrolysis_on = False
         if self.electrolysis_off_seconds <= 0.0:
-            # Continuous mode: no OFF phase. Immediately re-enter the ON phase so
-            # the LED stays lit and the cycle keeps a single ON segment going.
-            self._begin_electrolysis_on()
+            # Continuous mode: no OFF phase. Electrolysis stays ON; just check
+            # again after another electrolysis_on_seconds.
+            self._continue_continuous_electrolysis()
             return
 
+        self._cancel_electrolysis_phase_timers()
+        self._electrolysis_on = False
         if not self._is_sparging:
             self._set_led(0.0)
         self.logger.debug(f"Electrolysis OFF for {self.electrolysis_off_seconds:.0f}s")
@@ -396,6 +418,55 @@ class ElectroPioreactor(BackgroundJob):
         )
         self._electrolysis_on_timer.daemon = True
         self._electrolysis_on_timer.start()
+
+    def _continue_continuous_electrolysis(self) -> None:
+        """Continuous-mode tick: electrolysis stays ON. Unlike a fresh ON phase
+        this does NOT re-drive the LED (v0.6.x lit it once; each led_intensity
+        call is a logged LED-change event) and does NOT pause OD. A pending
+        electrolysis OD-resume timer from an earlier cycling-mode ON phase is
+        left to fire, so switching cycling -> continuous releases OD within one
+        pause window."""
+        self._cancel_electrolysis_phase_timers()
+        self._electrolysis_on = True
+        self._electrolysis_off_timer = threading.Timer(
+            self.electrolysis_on_seconds, self._begin_electrolysis_off
+        )
+        self._electrolysis_off_timer.daemon = True
+        self._electrolysis_off_timer.start()
+
+    def _cancel_electrolysis_phase_timers(self) -> None:
+        for attr in ("_electrolysis_on_timer", "_electrolysis_off_timer"):
+            timer = getattr(self, attr, None)
+            if timer is not None:
+                # Cancelling the timer whose callback is running right now is a
+                # harmless no-op (threading.Timer has already left its wait).
+                timer.cancel()
+                setattr(self, attr, None)
+
+    def _warn_if_od_window_never_opens(self, window: float) -> None:
+        """Cycling mode: if the OD pause window covers the whole ON+OFF period,
+        each ON phase re-arms the pause before it expires and od_reading never
+        reads. That is what the settings literally ask for (the settle time does
+        not fit in the OFF phase), but it must not be silent. Warn once per
+        distinct (on, off, pause_after) combination."""
+        key = (
+            self.electrolysis_on_seconds,
+            self.electrolysis_off_seconds,
+            self.od_pause_after_electrolysis_seconds,
+        )
+        period = self.electrolysis_on_seconds + self.electrolysis_off_seconds
+        if window < period:
+            self._od_never_resumes_warned_for = None
+            return
+        if self._od_never_resumes_warned_for == key:
+            return
+        self._od_never_resumes_warned_for = key
+        self.logger.warning(
+            f"od_reading will never resume: the OD pause after electrolysis "
+            f"({self.od_pause_after_electrolysis_seconds:g}s) does not fit in the "
+            f"electrolysis OFF phase ({self.electrolysis_off_seconds:g}s). Lengthen "
+            f"electrolysis_off_seconds or shorten od_pause_after_electrolysis_seconds."
+        )
 
     @property
     def _od_paused(self) -> bool:
@@ -684,7 +755,8 @@ class ElectroPioreactor(BackgroundJob):
     show_default=True,
     help="Seconds after each electrolysis ON phase ends before OD reading "
          "resumes. Negative values resume OD during electrolysis; values "
-         "≤ −electrolysis_on_seconds disable this OD pause entirely.",
+         "≤ −electrolysis_on_seconds disable this OD pause entirely. Applies "
+         "only with an OFF phase (continuous electrolysis does not pause OD).",
 )
 @click.option(
     "--sparge-duration-seconds",

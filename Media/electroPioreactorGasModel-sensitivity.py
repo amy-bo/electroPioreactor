@@ -110,7 +110,7 @@ BASE = dict(
   vial_OD=27.48, vial_wall=1.1, D_int=55, V_max=16, V_vial_total=20,
   rod_d=6, rod_n=2, elec_clear=22, spg_OD=3.175, spg_ID=1.5875,
   eff_OD=3.175, eff_ID=1.5875, xtube_n=3, xtube_pro=5,
-  elec_gap=14.0,                          # Geometry D92, DATA GAP -- measure with calipers
+  elec_gap=9.6,                           # Geometry D92, defined by the printed Vial Cap (bores at +/-4.80 mm)
   # --- electrolysis ---
   intensity=3, gerrit_slope=1.03, gerrit_int=2.6, F=96485.33212,
   NaHCO3_add_gL=0.0,                      # Summary D13 NaHCO3 added on top of the recipe (blank = 0)
@@ -199,7 +199,7 @@ CL_PER_N = 5.06    # mg Cl2 per mg ammonium-N: 1:1 monochloramine formation (bre
 ELECTRODE = {
     'Pt/Ti rod': dict(sparger='Tube',     por=None, z_e_ORR=2),   # Echem D31 sparger, D32 sinter grade, D27 z_e_ORR
     'MMO rod':   dict(sparger='Tube',     por=None, z_e_ORR=2),
-    'MMO tube':  dict(sparger='Sintered', por=0,    z_e_ORR=2),
+    'MMO tube':  dict(sparger='Tube',     por=None, z_e_ORR=2),   # AEP0.2: open bore, no frit
     'Graphite rod': dict(sparger='Tube',  por=None, z_e_ORR=2),
 }
 ELECTRODE_GEOM = {  # anode/cathode shape + dia (mm), Echem D42/D44; plating limits jc/jm (mA/cm2) D50/D51
@@ -792,7 +792,6 @@ SWEEP = [
  ('kL_surf_factor', 0.25, 4.0, 'DATA-GAP'),     # surface kLa is a coarse proxy: ~375 %
  ('Q_vent', 0.1, 2.0, 'DATA-GAP'),              # 'Air exchange' total air ingress; inert under the default 'Open vent' (see the four-combination block)
  ('Q_backdraw', 0.005, 0.15, 'DATA-GAP'),       # 'Open vent' back-draw air; schedule-dependent, measure
- ('elec_gap', 10.0, 20.0, 'DATA-GAP'),          # measure with calipers
  ('j0_anode', 1e-11, 1e-9, 'DATA-GAP'),         # OER on Pt spans +/-1 decade about 1e-10
  ('corr_I_frac', 0.0, 0.10, 'DATA-GAP'),        # 0 is the floor, so base sits at lo
  ('k_cat_cells', 0.001, 0.01, 'DATA-GAP'),      # whole-culture catalase clearance
@@ -807,6 +806,7 @@ SWEEP = [
  ('f_HOOH', 0.10, 0.20, 'ESTIMATE'),            # Le Bozec 2001 peroxide selectivity band
  # z_e_ORR is not swept: Echem D27 fixes it at 2 (the peroxide branch); selectivity varies through f_HOOH above
  ('k_geom', 1.0, 3.0, 'ESTIMATE'),              # cell-constant correction
+ ('elec_gap', 8.94, 10.26, 'ESTIMATE'),        # 9.6 mm defined by the printed cap; 6 mm electrodes can sit 0.33 mm off-centre in the 6.66 mm bores
  ('kappa_fI', 0.66, 0.90, 'ESTIMATE'),          # Kohlrausch finite-strength factor +/-15 %
  ('pcet_credit', -0.20, -0.10, 'ESTIMATE'),     # phosphate PCET credit, 100-200 mV
  ('b_anode', 0.06, 0.12, 'ESTIMATE'),           # 60 mV/dec buffered .. 120 bare; base at hi

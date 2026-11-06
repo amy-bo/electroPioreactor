@@ -8,7 +8,7 @@ parts:
   - {component: raspberry-pi-zero-2w, qty: 1, cat: part}
   - {component: raspberry-pi-power-supply, qty: 1, cat: part}
   - {component: pioreactor-vial-20ml, qty: 1, cat: part}
-  - {component: stir-bar, qty: 1, cat: part}
+  - {component: stir-bar-20ml, qty: 1, cat: part}
   - {component: power-supply-12v, qty: 1, cat: part}
 tools:
   - {component: phillips-ph0-screwdriver, qty: 1}

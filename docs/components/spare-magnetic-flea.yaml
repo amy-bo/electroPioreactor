@@ -1,11 +1,12 @@
 id: spare-magnetic-flea
 name: "Spare magnetic stir bar"
 kind: off-the-shelf
-design_version: 1.0.1
+design_version: 1.1.0
 master_format: none
 source_files: []
-parameters: {coating: "PTFE", shape: "octagonal", length_mm: 10}
+parameters: {coating: "PTFE", length_mm: 15, diameter_mm: 6, sku: "Pioreactor 2046"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.12 (Generic; AEP0.2). BoM qty '1 per n units': shared spare; listed as a consumable in step-00's spares list."}
   - {version: 1.0.1, date: 2026-09-29, note: "Spares listed separately from the kit (How many spares should I buy?), not counted."}
+  - {version: 1.1.0, date: 2026-11-06, note: "Size corrected from 'octagonal, about 10 mm' to the 15 × 6 mm PTFE bar the Pioreactor 40 ml ships with (stir-bar; https://pioreactor.com/products/15x6mm-ptfe-stir-bar). The 10 mm bar was the older 20 ml one."}

@@ -1,5 +1,54 @@
 # electroPioreactor Plugin — Changelog
 
+## v0.7.3 (2026-11-06) — OD reading no longer stays paused with continuous electrolysis
+
+**Bug (v0.7.0–v0.7.2).** With the default settings (`electrolysis_on_seconds = 60`,
+`electrolysis_off_seconds = 0` i.e. continuous, `od_pause_after_electrolysis_seconds = 5`)
+`od_reading` was paused when the job started and was never resumed while the job ran.
+Continuous mode re-entered the full ON phase every 60 s (`_begin_electrolysis_off` →
+`_begin_electrolysis_on`), and each entry re-armed the 65 s electrolysis OD pause:
+
+| t (s) | event |
+|---|---|
+| 0 | ON phase: OD → SLEEPING, resume timer for t = 65, next tick at t = 60 |
+| 60 | tick → new ON phase: v0.7.1's fix cancels the t = 65 resume, arms one for t = 125 |
+| 120 | same: t = 125 resume cancelled, new one for t = 185 |
+| … | the resume is always 5 s away and never fires; only a sparge's own pause/resume and job stop touch OD |
+
+(v0.7.0, before the v0.7.1 orphan-timer fix, instead let OD read for 55 s of every 60 s
+*during* electrolysis, after a 65 s start-up pause.) The v0.7.0 notes' claim that the
+defaults were "identical to the v0.6.x behaviour" was therefore wrong for OD reading; the
+LED side was the same, apart from being re-sent every minute.
+
+**Fix.** Continuous electrolysis has no OFF phase, so there is no bubble-free window to
+move OD readings into: the electrolysis OD pause now applies only when
+`electrolysis_off_seconds > 0`. Continuous mode keeps a 60 s internal tick (so a later
+switch to cycling takes effect) that no longer re-drives the LED or touches OD. With the
+defaults the job now behaves as v0.6.x did: LED lit once, OD read throughout, OD paused
+only for each sparge (+5 s). Cycling mode is unchanged.
+
+Related, same class:
+
+- Cycling settings whose OD window covers the whole cycle (`od_pause_after_electrolysis_seconds
+  ≥ electrolysis_off_seconds`, e.g. ON 60 / OFF 3 / settle 5) also never resume OD. That is
+  what such settings ask for, so it is kept, but the job now logs a warning (once per
+  combination of settings) instead of staying silent.
+- Only one electrolysis ON/OFF timer chain can run: each phase cancels any pending phase
+  timer before arming the next, so a spurious extra ON entry cannot start a second, parallel
+  chain whose timers escape `_cancel_timers`.
+- Switching cycling → continuous mid-run (Settings or Reset to Defaults) releases OD within
+  one pause window; continuous → cycling starts dodging from the next ON phase.
+
+**Tests.** New `tests/test_od_cadence.py` (21 tests) drives the job on a deterministic fake
+clock in place of `threading.Timer`, models `od_reading` at Pioreactor's default 5 s cadence,
+and asserts where readings land: full cadence with defaults, pauses only around sparges,
+LED lit once, the 65–120 s reading window per 120 s cycle in cycling mode, negative settle,
+the never-opens warning, mode switches, Reset to Defaults, stop/sleep release and no
+leftover timers. Seven existing tests that assumed the electrolysis OD pause in continuous
+mode now set an OFF phase; one new unit test pins that continuous mode does not pause OD.
+133 tests pass; against the v0.7.2 code, 9 of them fail (all the default-settings cadence
+tests among them).
+
 ## v0.7.2 (2026-09-30) — v0.7.1 merged with the AEP0.2 install work
 
 The v0.7.x line (electrolysis cycling, OD pause around electrolysis, configurable LED channel, the v0.7.1 orphaned-timer fix) had never reached the AEP02 or main branches, which still shipped v0.6.7. This release merges it into AEP02 together with the September offline-install work: `scripts/patch-config-ini.py` keeps its `--force` option for a stock `[PWM] 4 = waste`, stays without the self-heal repair (removed in v0.6.7 after Gerrit's review), and now also writes the v0.7.x defaults (`led_channel`, `electrolysis_on_seconds`, `electrolysis_off_seconds`, `od_pause_after_electrolysis_seconds`).
@@ -51,7 +100,8 @@ during a sparge). It now **cycles**: ON for `electrolysis_on_seconds`
 (> 0, default `60`), then OFF for `electrolysis_off_seconds` (≥ 0, default
 `0`), repeating. `electrolysis_off_seconds = 0` means continuous (no OFF
 phase) — identical to the v0.6.x behaviour, so default-config users see no
-change. The cycle is a `threading.Timer` chain
+change. *(Corrected in v0.7.3: not true for OD reading — with the defaults
+v0.7.0–v0.7.2 kept `od_reading` paused; see v0.7.3.)* The cycle is a `threading.Timer` chain
 (`_begin_electrolysis_on` → `_begin_electrolysis_off` → …) mirroring the
 existing sparge chain. A mid-phase setting change applies to the next
 phase, not the in-flight one (same invariant as `sparge_duration_seconds`).
@@ -102,7 +152,7 @@ OD-pause-during-electrolysis scheduling, the new setters/validators
 rejection at init, and electrolysis-cycle persistence/reset. The
 `patch-config-ini` test asserts the new defaults. All pass off-device
 (mocked, no hardware). Backwards-compat: with defaults (`led_channel=D`,
-`electrolysis_off_seconds=0`) behaviour is identical to v0.6.x.
+`electrolysis_off_seconds=0`) behaviour is identical to v0.6.x (wrong for OD reading; corrected in v0.7.3).
 
 ### Compatibility note
 

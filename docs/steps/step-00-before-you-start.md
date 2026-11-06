@@ -65,7 +65,7 @@ An AEP0.2 kit includes the XR upgrade kit and the Precision Temperature Upgrade 
 <details>
 <summary>How many spares should I buy?</summary>
 
-Spares are not part of the per-unit kit. Buy spare [40 ml glass vials](https://pioreactor.com/products/40ml-glass-vial) and magnetic stir bars separately, at least one of each for a few units, and more if:
+Apart from one spare vent filter (six ship, five are fitted), spares are not part of the per-unit kit. Buy spare [40 ml glass vials](https://pioreactor.com/products/40ml-glass-vial) and [15 × 6 mm PTFE stir bars](https://pioreactor.com/products/15x6mm-ptfe-stir-bar) separately, at least one of each for a few units, and more if:
 
 - you or your students are prone to dropping things: vials are glass;
 - your lab floor is hard: a dropped vial rarely survives tiles or concrete;

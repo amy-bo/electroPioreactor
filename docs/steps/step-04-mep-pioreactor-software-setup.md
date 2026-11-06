@@ -61,10 +61,10 @@ The electroPioreactor plugin goes onto the card while you flash it, so the unit 
 
 One background job:
 
-- drives electrolysis on LED D, clamped to 10% power to protect the electrodes;
+- drives electrolysis on LED D, clamped to 10% power to protect the electrodes, continuously or cycling ON/OFF on a schedule you set;
 - sparges CO₂ on the PWM 4 relay;
 - pauses electrolysis during each sparge;
-- pauses OD reading for the sparge plus a settle window.
+- pauses OD reading for the sparge plus a settle window, and, when electrolysis cycles, for each ON phase plus a settle window.
 
 </details>
 

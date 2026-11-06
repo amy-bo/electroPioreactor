@@ -42,9 +42,9 @@ checks:
 
 Follow Pioreactor's [peristaltic pump setup guide](https://docs.pioreactor.com/user-guide/using-pumps), with these channels. Stop before calibrating: that is the next step, once this one's checks pass.
 
-1. On the unit's **Configuration** page, set `[PWM]` channel 3 to `waste`, leave 4 as `relay`, and click **Save**. <!-- from video: session-20 0:05:46 - "we've currently got relay in four ... three then needs to become waste" -->
+1. On the unit's **Configuration** page, under `[PWM]`, check channel 2 says `media` (Pioreactor's default), set channel 3 to `waste`, leave 4 as `relay`, and click **Save**: `2=media`, `3=waste`, `4=relay`. <!-- from video: session-20 0:05:46 - "we've currently got relay in four ... three then needs to become waste" -->
 2. Seat the pumps.
-3. Plug the media pump into PWM 2 and the product pump into PWM 3. <!-- from video: session-14 0:07:57 - the product pump is the one labelled "waste" -->
+3. Plug the media pump into PWM 2 and the product (`waste`) pump into PWM 3. <!-- from video: session-14 0:07:57 - the product pump is the one labelled "waste" -->
 4. Lead the cables out through the notches.
 5. Put the media and product bottles into their holders, with a 0.2 μm vent filter on each GL45 cap's vent port.
 6. Connect each bottle to its pump with the tubing and luer fittings. <!-- TODO: add a connector diagram (which luer goes where; male ends mark outlets) - the recording stalled on it (session-20 0:08:20-0:13:04) | assignee: @Martin -->

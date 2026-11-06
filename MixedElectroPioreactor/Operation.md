@@ -1,6 +1,6 @@
 # MEP Operation (Edinburgh MSc)
 
-You can run the pioreactor in three main operating modes: **fed-batch**, **chemostat**, and **turbidostat**. The first is strictly *fed-batch* — though no liquid medium is added or removed, the macronutrients (CO₂ from the sparge, H₂ and O₂ from in-culture electrolysis) are continuously fed. For brevity we'll call it **batch** in the rest of this doc. All three modes use the same hardware: stirring on PWM 1, product/waste on PWM 2, media on PWM 3, CO₂ relay on PWM 4, electrolysis on LED D at 2.5 %.
+You can run the pioreactor in three main operating modes: **fed-batch**, **chemostat**, and **turbidostat**. The first is strictly *fed-batch* — though no liquid medium is added or removed, the macronutrients (CO₂ from the sparge, H₂ and O₂ from in-culture electrolysis) are continuously fed. For brevity we'll call it **batch** in the rest of this doc. All three modes use the same hardware: stirring on PWM 1, product/waste on PWM 2, media on PWM 3, CO₂ relay on PWM 4, electrolysis on LED D at 2.5 % electrolysis power. Electrolysis and sparging are both run by the **electroPioreactor** job: never set LED channel D by hand, because only the job clamps electrolysis power to 10 % to protect the electrodes.
 
 This doc is read as a walkthrough first (the theory of what you're about to do), then executed as a procedure later in the day if time allows. Actual execution requires both units fully set up per [Calibration.md](Calibration.md): stirring, peristaltic pumps, **OD600** (per-unit standard curve, [Calibration § 3](Calibration.md#3-od-calibration)), vial level, CO₂ flow rate, and electrolysis V and I. The per-experiment **OD blank** is a separate step (see § 1 Batch step 4 below) and is not a substitute for the standard curve.
 
@@ -29,8 +29,7 @@ This is the simplest experiment and the best for initial culture growth. The via
 6. **Start jobs**, in this order:
    1. **Stirring.** Confirm the fan engages and the stir bar is moving in the vial.
    2. **OD reading.** Resume/restart; the saved blank is now applied to the trace.
-   3. **Electrolysis.** In electroPioreactor Advanced set LED D to 2.5 %. Watch for bubbles within 30 s.
-   4. **CO₂ sparging.** Set up electroPioreactor Advanced to open the relay every hour for 3 s. The electroPioreactor plugin handles pausing electrolysis during each sparge.
+   3. **Electrolysis and CO₂ sparging.** Start **electroPioreactor** from **Activities** on the unit's **Manage** screen. In the job's **Settings** panel set **Electrolysis Power** to 2.5 % (the `config.ini` default), **Sparging Interval** to 60 min and **Sparging Duration** to 3 s. Watch for bubbles within 30 s. The job pauses electrolysis during each sparge, and pauses OD reading around each sparge. Leave the other settings at their defaults: **Electrolysis ON Time** 60 s and **Electrolysis OFF Time** 0 s (continuous electrolysis; a non-zero OFF time cycles it, and OD is then also paused for each ON phase plus **OD Pause After Electrolysis**, 5 s), and **OD Pause After Sparge** 5 s. **Reset to Defaults** puts every setting back to the `config.ini` values.
 7. **Watch.** OD should rise; voltage and current should drift slightly as ionic strength changes; cathode bubbles should remain visibly more numerous than anode bubbles. Record voltage regularly.
 8. **End.** When OD plateaus or you reach your endpoint, stop electrolysis and the sparge profile (by stopping electroPioreactor), stop stirring. Sample the vial through an exhaust luer.
 9. **Strip down.** Drain the vial, rinse with distilled water then sterilise.
@@ -44,7 +43,7 @@ A chemostat continuously dilutes the culture at a fixed rate. Cells either grow 
    1. Mode: chemostat
    2. `exchange volume` (mL): e.g. 0.5
    3. `duration` (minutes): the interval between doses. Combined with `exchange volume`, this sets the dilution rate D (h⁻¹) = (`exchange volume` × 60 / `duration`) / 14, where 14 is the working volume in mL (see `efflux_tube_volume_ml`).
-3. Start stirring, OD, electrolysis at 2.5 %, sparge profile, and chemostat dosing.
+3. Start stirring, OD, **electroPioreactor** (electrolysis at 2.5 %, sparging as in batch), and chemostat dosing.
 4. Watch OD over many hours: it will move toward a steady state if D is below the maximum specific growth rate, otherwise wash out.
 5. End and strip down as for batch.
 
@@ -60,7 +59,7 @@ A turbidostat holds OD at a target by triggering media and product/waste pulses 
    2. `target biomass`: e.g. 0.5 (set as anticipated for the electrolysis/medium/strain combination)
    3. `biomass signal`: leave at `auto` unless you have reason to pick `normalized_od`, `od_fused`, or `od` explicitly.
    4. `exchange volume` (mL): 1.0–2.0 (Pioreactor's recommendation for fast-growing cultures); waste side is matched by the same dosing event.
-3. Start the standard job set (stirring, OD, electrolysis, sparge profile) and the turbidostat dosing automation.
+3. Start the standard job set (stirring, OD, **electroPioreactor** for electrolysis and sparging) and the turbidostat dosing automation.
 4. The unit pulses media + product/waste whenever OD crosses the target. OD trace becomes a sawtooth around the target.
 5. End and strip down as for batch.
 

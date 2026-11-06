@@ -44,10 +44,10 @@ The plugin installed itself from the card. Check it now: [Test electrolysis](ste
 
 This is the AEP's own plugin, not a Pioreactor one. It replaces the AEP0.1.1 combination of `pioreactor-relay-plugin` and a hand-written experiment profile. One background job:
 
-- drives electrolysis on LED D;
+- drives electrolysis on LED D, continuously or cycling ON/OFF on a schedule you set;
 - sparges CO₂ on the PWM 4 relay;
 - pauses electrolysis during each sparge;
-- pauses OD reading for the sparge plus a settle window.
+- pauses OD reading for the sparge plus a settle window, and, when electrolysis cycles, for each ON phase plus a settle window.
 
 </details>
 

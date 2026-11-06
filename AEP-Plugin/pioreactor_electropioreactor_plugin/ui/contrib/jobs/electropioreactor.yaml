@@ -47,7 +47,8 @@ published_settings:
       values resume OD reading before the ON phase ends (OD is measured during
       electrolysis). A value less than or equal to the negative of the
       electrolysis ON time disables this OD pause entirely (OD measured
-      throughout electrolysis).
+      throughout electrolysis). Applies only when Electrolysis OFF Time is
+      above 0: continuous electrolysis does not pause OD reading.
     type: numeric
     display: true
   - key: sparge_duration_seconds

@@ -26,8 +26,8 @@ def job():
         inst = ElectroPioreactor(unit="unit", experiment="exp")
         inst.on_init_to_ready()
         # on_init_to_ready starts the electrolysis cycle, which lights the LED
-        # and (with the default OD-pause window) pauses od_reading. Clear that
-        # init noise AND the resulting state so each test body starts clean.
+        # (and, in cycling mode only, pauses od_reading). Clear that init noise
+        # AND the resulting state so each test body starts clean.
         led_intensity.reset_mock()
         inst._pwm.reset_mock()
         mqtt_publish.reset_mock()
@@ -217,8 +217,9 @@ class TestSparging:
     def test_begin_electrolysis_on_cancels_prior_od_resume_timer(self, job):
         # Regression (symmetric to the sparge case): a new electrolysis ON phase
         # must cancel any pending OD-resume timer from the prior ON phase before
-        # reassigning _electrolysis_od_resume_timer. With a continuous-ish config
-        # (window = on + pause_after > period) a second _begin_electrolysis_on
+        # reassigning _electrolysis_od_resume_timer. With a cycling config whose
+        # window exceeds the period (on=60, off=3, pause_after=5: 65 > 63) a second
+        # _begin_electrolysis_on
         # fires while the previous window's timer is still pending; the orphan
         # otherwise fires _resume_od_reading() during the new ON phase, drops the
         # 'electrolysis' pause owner, republishes OD READY, and escapes
@@ -226,7 +227,8 @@ class TestSparging:
         job.state = job.READY
         job._is_sparging = False
         job.electrolysis_on_seconds = 60.0
-        job.od_pause_after_electrolysis_seconds = 5.0  # window 65 > period 60
+        job.electrolysis_off_seconds = 3.0
+        job.od_pause_after_electrolysis_seconds = 5.0  # window 65 > period 63
         stale = MagicMock()
         job._electrolysis_od_resume_timer = stale
         with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
@@ -530,8 +532,10 @@ class TestODPauseOwners:
         job.state = job.READY
         job._is_sparging = False
 
-        # 1. Electrolysis ON phase pauses OD.
+        # 1. Electrolysis ON phase pauses OD (cycling mode; continuous mode
+        #    never pauses OD for electrolysis).
         job.electrolysis_on_seconds = 60.0
+        job.electrolysis_off_seconds = 60.0
         job.od_pause_after_electrolysis_seconds = 5.0
         with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
             job._begin_electrolysis_on()
@@ -567,6 +571,7 @@ class TestODPauseOwners:
         job.state = job.READY
         job._is_sparging = False
         job.electrolysis_on_seconds = 10.0
+        job.electrolysis_off_seconds = 10.0
         job.od_pause_after_electrolysis_seconds = 5.0
         with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
             job._begin_electrolysis_on()
@@ -574,7 +579,8 @@ class TestODPauseOwners:
 
     def test_second_electrolysis_on_does_not_resume_od_early(self, job):
         """Cycle-level regression for the orphan-timer bug. With a window that
-        exceeds the electrolysis period (on=60, pause_after=5 -> window 65 > 60),
+        exceeds the electrolysis period (on=60, off=3, pause_after=5 -> window
+        65 > period 63),
         a second _begin_electrolysis_on fires while the prior window's OD-resume
         timer is still pending. The new ON phase must cancel that stale timer, so
         if the orphan WERE to fire it must not drop the 'electrolysis' owner and
@@ -583,7 +589,8 @@ class TestODPauseOwners:
         job.state = job.READY
         job._is_sparging = False
         job.electrolysis_on_seconds = 60.0
-        job.od_pause_after_electrolysis_seconds = 5.0  # window 65 > period 60
+        job.electrolysis_off_seconds = 3.0
+        job.od_pause_after_electrolysis_seconds = 5.0  # window 65 > period 63
 
         # 1. First ON phase: OD paused, electrolysis owner held, resume timer set.
         with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
@@ -757,23 +764,43 @@ class TestElectrolysisCycling:
         assert 20.0 in delays  # next ON scheduled at OFF duration
 
     def test_off_seconds_zero_means_continuous(self, job):
-        # OFF == 0 -> no OFF phase; _begin_electrolysis_off immediately re-enters
-        # the ON phase, keeping the LED lit (v0.6.x continuous behaviour).
+        # OFF == 0 -> no OFF phase; electrolysis stays ON. The internal tick
+        # neither turns the LED off nor re-drives it (v0.6.x lit it once), and
+        # does not pause OD.
+        job.state = job.READY
+        job._is_sparging = False
+        job._electrolysis_on = True
+        job.electrolysis_off_seconds = 0.0
+        job.electrolysis_power = 5.0
+        with patch("threading.Timer") as timer_cls:
+            timer_cls.side_effect = lambda *a, **kw: MagicMock()
+            job._begin_electrolysis_off()
+            delays = [c.args[0] for c in timer_cls.call_args_list]
+        assert job._electrolysis_on is True
+        led_intensity.assert_not_called()
+        assert _od_state_payloads() == []
+        assert delays == [job.electrolysis_on_seconds]  # next tick only
+
+    def test_continuous_on_phase_does_not_pause_od(self, job):
+        # The v0.7.0-v0.7.2 bug: with the defaults (off=0) every ON entry paused
+        # OD for on+pause_after = 65 s and the 60 s continuous tick re-armed it,
+        # so OD never resumed. Continuous mode must not pause OD at all.
         job.state = job.READY
         job._is_sparging = False
         job.electrolysis_off_seconds = 0.0
-        job.electrolysis_power = 5.0
+        job.electrolysis_on_seconds = 60.0
+        job.od_pause_after_electrolysis_seconds = 5.0
         with patch("threading.Timer", side_effect=lambda *a, **kw: MagicMock()):
-            job._begin_electrolysis_off()
-        assert job._electrolysis_on is True
-        # last LED call is the re-light, not the 0.0 off
-        led_intensity.assert_called_with({"D": 5.0}, unit="unit", experiment="exp", pubsub_client=job.pub_client)
+            job._begin_electrolysis_on()
+        assert _od_state_payloads() == []
+        assert job._od_paused is False
 
     def test_on_phase_pauses_od_for_window(self, job):
         job.state = job.READY
         job._is_sparging = False
         job._od_paused = False
         job.electrolysis_on_seconds = 10.0
+        job.electrolysis_off_seconds = 10.0
         job.od_pause_after_electrolysis_seconds = 5.0
         with patch("threading.Timer") as timer_cls:
             timer_cls.side_effect = lambda *a, **kw: MagicMock()
@@ -790,6 +817,7 @@ class TestElectrolysisCycling:
         job._is_sparging = False
         job._od_paused = False
         job.electrolysis_on_seconds = 10.0
+        job.electrolysis_off_seconds = 10.0
         job.od_pause_after_electrolysis_seconds = -3.0
         with patch("threading.Timer") as timer_cls:
             timer_cls.side_effect = lambda *a, **kw: MagicMock()
@@ -804,6 +832,7 @@ class TestElectrolysisCycling:
         job._is_sparging = False
         job._od_paused = False
         job.electrolysis_on_seconds = 10.0
+        job.electrolysis_off_seconds = 10.0  # cycling: the only mode that pauses OD
         job.od_pause_after_electrolysis_seconds = -10.0
         job._begin_electrolysis_on()
         assert _od_state_payloads() == []
@@ -814,6 +843,7 @@ class TestElectrolysisCycling:
         job._is_sparging = False
         job._od_paused = False
         job.electrolysis_on_seconds = 10.0
+        job.electrolysis_off_seconds = 10.0  # cycling: the only mode that pauses OD
         job.od_pause_after_electrolysis_seconds = -60.0
         job._begin_electrolysis_on()
         assert _od_state_payloads() == []

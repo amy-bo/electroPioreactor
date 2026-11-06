@@ -49,3 +49,6 @@ aep/
 
 # docsandeye render output (regenerated from the .scad sources; see docs/README.md)
 build/
+
+# Cloudflare wrangler local state
+.wrangler/

@@ -91,8 +91,6 @@ Enter results in the matching calibration log where there is one. Leave Include 
   - Protocol: `protocols/chlorine-species.md`.
   - Not needed in chloride-free AM003.
 - [ ] **Conductivity of the medium in use at the operating temperature.** MED, low effort.
-- [ ] **Electrode centre-to-centre gap.** MED, low effort.
-  - Measure with calipers.
 - [ ] **Anodic Faradaic efficiency.** MED, med effort.
 - [ ] **Knallgas uptake ratio.** MED, high effort.
 
@@ -106,9 +104,15 @@ Enter results in the matching calibration log where there is one. Leave Include 
 - [ ] **No-carryover maximum flow.** LOW, low effort.
   - Approximate: 3.33 mL/s set by inspection. CO2 flows column M is still blank.
 - [ ] **Sinter porosity.** LOW, low effort.
+  - Not needed while no electrode has a frit: the AEP0.2 MMO tube feeds CO₂ through its open bore (Summary shows Not needed). Returns with the AEP0.3 frit.
 - [ ] **Lab ambient pressure.** LOW, low effort.
 
 ## Potential model improvements
+
+- [ ] **Recalculate the 2026-11-06 electrode-geometry change in real Excel.** Blocking for the twin, sensitivity and tests.
+  - The XML patch (gap 9.6 mm; MMO tube sparger Tube, no sinter grade) left 18 twin-checked caches stale (cell voltage, bubble strip and regime) plus the Summary sparger and experiment-status cells. Recalculate on the MBA, inject Excel's values, rerun `python3 Media/gas_model_verification.py --record` and all checks.
+- [ ] **AEP0.2 bubble orifice.** Owner decision, diagnostics only.
+  - With the MMO tube on the Tube path the orifice is `spg_ID`, 1.5875 mm (the 1/16" Flexelene sparge tube), giving a 4.1 mm bubble. In AEP0.2 the gas leaves a 1 mm-ID silicone feed tube trimmed at the base of the 4 mm anode bore (`docs/steps/step-12-co2-gas-train.md`, `docs/components/anode-feed-tube.yaml`): 3.5 mm bubble from 1 mm, 5.6 mm from the 4 mm bore. It moves only the bubble-strip diagnostics, not the schedule.
 
 These are changes to the spreadsheet only.
 

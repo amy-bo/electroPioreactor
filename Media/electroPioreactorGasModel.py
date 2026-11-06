@@ -411,7 +411,7 @@ elif cal_hs is not None and cal_hs_fill is not None:
 else:
     geom_check = "VIAL GEOMETRY INCONSISTENT - measure the true headspace (protocols/vial-geometry.md)"
 # --- electrode geometry for the ohmic drop (wave-4, Geometry rows 91-93) ---
-elec_gap       = 14.0                               # D92 (mm) DATA GAP - centre-to-centre, measure with calipers
+elec_gap       = 9.6                                # D92 (mm) centre-to-centre, defined by the printed Vial Cap (bores at +/-4.80 mm in AEP2.0/Vessel Cap.stl)
 elec_sub_L_act = max(0.0, h_actual - elec_clear)    # D93 (mm) submerged length at the ACHIEVED level
 # NOTE: D93 replaces D35 as the wetted-area basis. The bare datum h_datum ignores
 # the insert displacement that actually raises the liquid, so it overstated the

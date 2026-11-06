@@ -43,10 +43,12 @@ rim_z          = gasket_z;                         // glass rim presses on the s
 base_z         = rim_z - vial_height;              // outside of the base
 floor_z        = base_z + vial_base;               // inside floor
 
-// ---- needles (14 G blunt, luer hubs) -------------------------------
+// ---- needles (16 G blunt, luer hubs) -------------------------------
+// 16 G per docs/components/needle-75mm-304.yaml and needle-80mm-316.yaml (pioreactor.com):
+// nominal OD 1.65 mm, regular-wall ID 1.19 mm.
 // [port index (1-based, Vial Cap.scad's guide order), length, tip z, bent?]
 // 1/2 straight Media Out (80 mm, sets the level) + Media In; 3/4 bent gas outlets; 5 spare
-needle_od = 2.1; needle_id = 1.6; bend_radius = 3;
+needle_od = 1.65; needle_id = 1.19; bend_radius = 3;
 bend_angle = 15;              // deg - bent gas needles lean radially OUTWARD by this much above the bend
 bend_above_top = 6;           // mm - the bend starts this far above the top-stop face
 needles = [
@@ -61,7 +63,11 @@ thumb_head_d = 12; thumb_head_h = 4.5; thumb_collar_d = 6; thumb_collar_h = 2;
 washer_od = 7; washer_id = 3.2; washer_t = 0.5;
 
 // ---- stir flea (rounded-end PTFE rod) -------------------------------
-flea_length = 15; flea_d = 5; flea_angle = 25;
+// 15 x 6 mm PTFE bar: the one the Pioreactor 40 ml (v1.0, v1.5) ships with
+// (docs/components/stir-bar.yaml; pioreactor.com SKU 2046,
+// https://pioreactor.com/products/15x6mm-ptfe-stir-bar). The supplier does not
+// state the shape: the rounded rod and pivot ring are a RENDER CHOICE.
+flea_length = 15; flea_d = 6; flea_angle = 25;
 flea_ring_r = flea_d/2 + 0.125;          // pivot ring outer radius: the flea rests on its ring
 flea_axis_z = floor_z + flea_ring_r + 0.05;   // flea axis height (ring 0.05 above the inner floor)
 flea_top_z  = flea_axis_z + flea_ring_r;

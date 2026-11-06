@@ -8,7 +8,7 @@ Provides a single background job, **electroPioreactor**, that:
 - **Cycles electrolysis ON/OFF** on a user-defined schedule (`electrolysis_on_seconds` ON, then `electrolysis_off_seconds` OFF, repeating). Set the OFF time to `0` for continuous electrolysis.
 - Sparges CO₂ by periodically opening a CO₂ solenoid (the configured PWM channel, default **4**) for a user-defined duration, at a user-defined interval in minutes.
 - Pauses electrolysis (LED → 0 %) for the duration of each sparge and resumes it immediately after.
-- Pauses the `od_reading` job around each electrolysis ON phase (plus a user-defined window) and, independently, around each CO₂ sparge, so OD samples aren't contaminated by electrolysis or bubbles.
+- When electrolysis cycles, pauses the `od_reading` job around each electrolysis ON phase (plus a user-defined window) and, independently, around each CO₂ sparge, so OD samples aren't contaminated by electrolysis or sparge bubbles. Continuous electrolysis (the default) has no gap to read in, so OD is paused only around sparges, as before v0.7.
 
 All electrolysis and sparging parameters are editable live from the Pioreactor web interface. The LED and PWM channels are set in `config.ini` (they're hardware bindings, not runtime settings — see **Hardware connections**).
 
@@ -21,7 +21,7 @@ A mid-cycle change applies to the **next** phase, not the in-flight one.
 
 ### OD pausing around electrolysis
 
-`od_pause_after_electrolysis_seconds` (default `5.0`) is the settle window **after each electrolysis ON phase ends** before OD reading resumes. The effective OD-suppression window, measured from the start of the ON phase, is:
+`od_pause_after_electrolysis_seconds` (default `5.0`) is the settle window **after each electrolysis ON phase ends** before OD reading resumes. It applies only when `electrolysis_off_seconds` is above `0`: continuous electrolysis never ends, so it does not pause OD (OD is read throughout, as before v0.7). To keep electrolysis bubbles out of OD readings, set an OFF time longer than this settle window. The effective OD-suppression window, measured from the start of the ON phase, is:
 
 ```
 od_pause_window = electrolysis_on_seconds + od_pause_after_electrolysis_seconds   (floored at 0)
@@ -36,6 +36,8 @@ This value is **allowed to go negative**, down to (and below) −`electrolysis_o
 | `−3` | `7`  | OD resumes at t = 7 s, **3 s before electrolysis ends** → OD measured during the tail of electrolysis. |
 | `−10` (= −on) | `0` | OD never paused → OD measured throughout electrolysis. |
 | `−99999` | `0` | clamped to 0; disables this OD pause entirely. |
+
+OD reads in the gap between the end of the window and the next ON phase: `electrolysis_off_seconds − od_pause_after_electrolysis_seconds` seconds per cycle. If that is zero or less (e.g. ON 60 s, OFF 3 s, settle 5 s), OD never reads; the job logs a warning when this happens.
 
 ### OD pausing around sparging
 

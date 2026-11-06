@@ -47,6 +47,12 @@ neck_clearance      = 0.6;     // radial clearance kept between the glass and an
 rod_length          = 60;      // rod length (L)
 rod_offset          = 4.8;     // offset from axis to each rod
 insertion_depth = 23;      // g: protrusion below the cap bottom into the vessel
+// rod_length and insertion_depth are NOT preview-only: column_height = rod_length - insertion_depth
+// - cap_height sets the printed top-stop height (24.7 mm; top face 37 mm above the cap bottom), and the
+// septum-opening cuts use top_face_z. The AEP0.2 cap as printed (AEP2.0/Vessel Cap.stl) was made with
+// these 60 / 23 values. AEP0.2's electrodes are 100 mm, so one flush with the top-stop face reaches
+// 63 mm below the cap bottom. Changing either value changes the printed STL: leave both until the
+// standard insertion depth is measured (AsepticElectroPioreactor/.../BoM.md, "Still to specify" 2.3).
 
 // ---- fits (point 8) -------------------------------------------------
 cap_rod_clearance      = 0.15;       // friction fit in the CAP (snug - holds rod by friction)

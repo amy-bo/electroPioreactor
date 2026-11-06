@@ -1,0 +1,10 @@
+id: stir-bar-20ml
+name: "Magnetic stir bar, 20 ml Pioreactor"
+kind: kitted
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {coating: "PTFE", length_mm: 12, height_mm: 3, sku: "Pioreactor 2003"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-11-06, note: "Kit sub-item of pioreactor-20ml, split from stir-bar (the 40 ml bar). pioreactor.com sells the 3 × 12 mm PTFE stir bar (SKU 2003, https://pioreactor.com/products/3-mm-ptfe-stir-bar) for the Pioreactor 20 ml v1.0 and v1.1; Pioreactor's FAQ gives the provided bar as 3 mm high. Earlier 20 ml units shipped a bar of about 10 mm (the AEP0.2 BoM's 'octagonal, about 10 mm'; Pioreactor forum, March 2024, 'the 10mm originally provided'), and some store listings still say 10 mm or 15 mm, so measure the bar in hand."}

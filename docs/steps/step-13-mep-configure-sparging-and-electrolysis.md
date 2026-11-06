@@ -31,10 +31,14 @@ checks:
    5=heating
 
    [electropioreactor.config]
-   electrolysis_power=2.5              ; LED D intensity (0-10 %, clamped at runtime)
-   sparge_duration_seconds=10.0        ; solenoid open time per cycle (s)
-   sparge_interval_minutes=60.0        ; cycle frequency (min)
-   od_pause_after_sparge_seconds=5.0   ; OD settle window after sparge ends (s)
+   led_channel=D                            ; LED channel for the electrode pair (A/B/C/D)
+   electrolysis_power=2.5                   ; LED intensity (0-10 %, clamped at runtime)
+   electrolysis_on_seconds=60.0             ; electrolysis ON time per cycle (s, > 0)
+   electrolysis_off_seconds=0.0             ; electrolysis OFF time per cycle (s, >= 0; 0 = continuous)
+   od_pause_after_electrolysis_seconds=5.0  ; OD settle window after electrolysis ON ends (s); negative allowed
+   sparge_duration_seconds=10.0             ; solenoid open time per cycle (s)
+   sparge_interval_minutes=60.0             ; cycle frequency (min)
+   od_pause_after_sparge_seconds=5.0        ; OD settle window after sparge ends (s); negative allowed
    ```
 
 2. Open **electroPioreactor** from **Activities** on the **Manage** screen.
@@ -46,7 +50,8 @@ checks:
 <details>
 <summary>Notes</summary>
 
-- All four parameters are editable live from **Settings**. `od_pause_after_sparge_seconds` applies from the next sparge.
+- The job's **Settings** panel has seven live settings: **Electrolysis Power** (%), **Electrolysis ON Time** (s), **Electrolysis OFF Time** (s, 0 = continuous), **OD Pause After Electrolysis** (s), **Sparging Duration** (s), **Sparging Interval** (min) and **OD Pause After Sparge** (s), plus a **Reset to Defaults** toggle that puts them all back to the `config.ini` values. A change applies from the next phase or sparge, not the one in progress.
+- `led_channel` is not a live setting: change it in `config.ini`, then restart the job.
 - Electrolysis power stays clamped to 10% at runtime to protect the electrodes.
 
 </details>

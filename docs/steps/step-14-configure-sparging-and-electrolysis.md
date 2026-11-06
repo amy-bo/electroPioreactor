@@ -22,8 +22,9 @@ checks:
   - id: settings-live
     question: "Which parameters can you change in the job's **Settings** panel?"
     options:
-      - {label: "All four, including the OD pause", correct: true}
-      - {label: "Three: an OD pause change seems ignored", fix: "It is not ignored: `od_pause_after_sparge_seconds` takes effect on the next sparge cycle, not the one in progress."}
+      - {label: "Seven numeric settings, the OD pauses included, plus Reset to Defaults", correct: true}
+      - {label: "The same, but an OD pause change seems ignored", fix: "It is not ignored: an OD pause change takes effect on the next sparge or electrolysis phase, not the one in progress."}
+      - {label: "Only electrolysis power and the sparge settings", fix: "That is a pre-v0.7 plugin. Install the current one over SSH (see **Check the plugin**), then hard-refresh the page."}
 ---
 
 1. On the **Configuration** page, check `config.ini` contains the following. The installer adds `4=relay` and the `[electropioreactor.config]` section; channel 3 was set to `waste` in [Nutrient solution](step-09-set-up-nutrient-solution-flow.md). <!-- from video: session-20 0:05:46 - media pump on PWM 2, waste on 3; the text had 2=waste, 3=media -->
@@ -39,10 +40,14 @@ checks:
    5=heating
 
    [electropioreactor.config]
-   electrolysis_power=2.5              ; LED D intensity (0-10 %, clamped at runtime)
-   sparge_duration_seconds=10.0        ; solenoid open time per cycle (s)
-   sparge_interval_minutes=60.0        ; cycle frequency (min)
-   od_pause_after_sparge_seconds=5.0   ; OD settle window after sparge ends (s)
+   led_channel=D                            ; LED channel for the electrode pair (A/B/C/D)
+   electrolysis_power=2.5                   ; LED intensity (0-10 %, clamped at runtime)
+   electrolysis_on_seconds=60.0             ; electrolysis ON time per cycle (s, > 0)
+   electrolysis_off_seconds=0.0             ; electrolysis OFF time per cycle (s, >= 0; 0 = continuous)
+   od_pause_after_electrolysis_seconds=5.0  ; OD settle window after electrolysis ON ends (s); negative allowed
+   sparge_duration_seconds=10.0             ; solenoid open time per cycle (s)
+   sparge_interval_minutes=60.0             ; cycle frequency (min)
+   od_pause_after_sparge_seconds=5.0        ; OD settle window after sparge ends (s); negative allowed
    ```
 
 2. Open **electroPioreactor** from **Activities** on the **Manage** screen.
@@ -57,7 +62,8 @@ checks:
 <details>
 <summary>Notes</summary>
 
-- All four parameters are editable live from **Settings**. `od_pause_after_sparge_seconds` applies from the next sparge.
+- The job's **Settings** panel has seven live settings: **Electrolysis Power** (%), **Electrolysis ON Time** (s), **Electrolysis OFF Time** (s, 0 = continuous), **OD Pause After Electrolysis** (s), **Sparging Duration** (s), **Sparging Interval** (min) and **OD Pause After Sparge** (s), plus a **Reset to Defaults** toggle that puts them all back to the `config.ini` values. A change applies from the next phase or sparge, not the one in progress.
+- `led_channel` is not a live setting: change it in `config.ini`, then restart the job.
 - Electrolysis power stays clamped to 10% at runtime to protect the electrodes.
 
 </details>

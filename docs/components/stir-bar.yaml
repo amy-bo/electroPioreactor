@@ -1,10 +1,11 @@
 id: stir-bar
-name: "Magnetic stir bar"
+name: "Magnetic stir bar, 15 × 6 mm"
 kind: kitted
-design_version: 1.0.0
+design_version: 1.1.0
 master_format: none
 source_files: []
-parameters: {coating: "PTFE", shape: "octagonal", length_mm: 10}
+parameters: {coating: "PTFE", length_mm: 15, diameter_mm: 6, sku: "Pioreactor 2046"}
 derived_files: []
 changelog:
   - {version: 1.0.0, date: 2026-09-04, note: "Kit sub-item of BoM.md item 1.1, named in Assembly/README.md the 'Ships with vial, stir bar and caps' specification (BoM 1.1) (AEP0.2). Fitted during the wetware assembly of Method step 2."}
+  - {version: 1.1.0, date: 2026-11-06, note: "Size corrected from 'octagonal, 10 mm' to 15 × 6 mm: the Pioreactor 40 ml (v1.0 and v1.5) ships the 15 × 6 mm PTFE stir bar (pioreactor.com 'Pioreactor 40ml' includes list; spare sold as SKU 2046, https://pioreactor.com/products/15x6mm-ptfe-stir-bar). The 10 mm bar is the older Pioreactor 20 ml one (stir-bar-20ml). Shape not stated by the supplier, so left out."}

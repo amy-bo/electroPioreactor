@@ -36,9 +36,11 @@ earlier in the session does NOT carry. Each actuation needs its own yes.
 Drives electrolysis on the configured LED channel (default D), cycling it ON/OFF on a
 user-defined schedule (`electrolysis_on_seconds` / `electrolysis_off_seconds`; off=0 =
 continuous), and periodically opens a CO₂ solenoid on the configured PWM channel (default 4).
-Electrolysis is paused during each sparge. OD reading is paused around each electrolysis ON
-phase (plus `od_pause_after_electrolysis_seconds`, which may be negative — see
-`od_pause_window_seconds`) and, independently, around each sparge. All numeric settings are
+Electrolysis is paused during each sparge. In cycling mode (off > 0) OD reading is paused
+around each electrolysis ON phase (plus `od_pause_after_electrolysis_seconds`, which may be
+negative — see `od_pause_window_seconds`); continuous electrolysis does not pause OD (v0.7.3
+fix: v0.7.0–v0.7.2 re-armed that pause every 60 s so it never expired). Independently, OD is
+paused around each sparge. All numeric settings are
 user-configurable at runtime via the Pioreactor Advanced modal; `led_channel` is a config-only
 hardware binding.
 
