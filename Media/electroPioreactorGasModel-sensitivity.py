@@ -195,12 +195,13 @@ M_O2 = 31.998      # g/mol, Mass Transfer D231 (2 x 15.999)
 D_HCO3 = 1.185e-9  # m2/s, Chemistry D251 (CRC)
 MW_N = 14007.0     # mg/mol
 CL_PER_N = 5.06    # mg Cl2 per mg ammonium-N: 1:1 monochloramine formation (breakpoint to N2 is ~7.6)
-# Electrode lookups keyed on Summary D3 (same tables as the twin): Electrochemistry A35:N38
+# Electrode lookups keyed on Summary D3 (same tables as the twin): the Electrodes Table
 ELECTRODE = {
-    'Pt/Ti rod': dict(sparger='Tube',     por=None, z_e_ORR=2),   # Echem D31 sparger, D32 sinter grade, D27 z_e_ORR
-    'MMO rod':   dict(sparger='Tube',     por=None, z_e_ORR=2),
-    'MMO tube':  dict(sparger='Tube',     por=None, z_e_ORR=2),   # AEP0.2: open bore, no frit
-    'Graphite rod': dict(sparger='Tube',  por=None, z_e_ORR=2),
+    # Echem D31 sparger, D32 sinter grade, D27 z_e_ORR, D33 sparge outlet ID (mm, or the separate sparge tube spg_ID)
+    'Pt/Ti rod': dict(sparger='Tube',     por=None, z_e_ORR=2, spg_out='sparge tube'),
+    'MMO rod':   dict(sparger='Tube',     por=None, z_e_ORR=2, spg_out='sparge tube'),
+    'MMO tube':  dict(sparger='Tube',     por=None, z_e_ORR=2, spg_out=1.0),   # AEP0.2: no frit; 1 mm feed tube trimmed at the anode base (step 12)
+    'Graphite rod': dict(sparger='Tube',  por=None, z_e_ORR=2, spg_out='sparge tube'),
 }
 ELECTRODE_GEOM = {  # anode/cathode shape + dia (mm), Echem D42/D44; plating limits jc/jm (mA/cm2) D50/D51
     'Pt/Ti rod':    dict(a_shape='rod',  a_d=6.0, c_shape='rod', c_d=6.0, jc=100, jm=500, mat='Pt/Ti'),
@@ -631,8 +632,10 @@ def model(p):
     t_lag = (O2_ceil_org * V_L / O2_net_lag * 60) if O2_net_lag > 1e-15 else INF   # D79 (lag source)
 
     # --- bubble / sparge strip; orifice from the electrode's sparger (MT D27:D41); sub-mm bubble -> strip 0 (D54) ---
-    d_or = (p['spg_ID'] / 1000 if ELECTRODE[p['electrode']]['sparger'] == 'Tube'
-            else POR_UM[ELECTRODE[p['electrode']]['por']] / 1e6)        # MT D41: tube bore or sinter pore (D39)
+    _out = ELECTRODE[p['electrode']]['spg_out']
+    spg_bore = _out if isinstance(_out, (int, float)) else p['spg_ID']  # Echem D36: own outlet, else the sparge tube
+    d_or = (spg_bore / 1000 if ELECTRODE[p['electrode']]['sparger'] == 'Tube'
+            else POR_UM[ELECTRODE[p['electrode']]['por']] / 1e6)        # MT D41: outlet bore or sinter pore (D39)
     d_b = (6 * d_or * sigma / (rho_L * p['g'])) ** (1 / 3)              # MT D42
     if d_b < 0.001:
         strip_avg = 0.0                                                  # MT D54/D55: sinter bubble excluded

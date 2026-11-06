@@ -122,9 +122,9 @@ The twin is a verifier, not a free calculator. Its inputs are declared at the to
 
 | Check | Result | When |
 | --- | --- | --- |
-| Twin against the workbook's cached values | 557 of 557 outputs within 0.5 %, inputs identical | Run for this page, 2026-11-06 |
+| Twin against the workbook's cached values | 559 of 559 outputs within 0.5 %, inputs identical, on a copy carrying the twin's values until Excel recalculates the 2026-11-06 changes | Run for this page, 2026-11-06 |
 | Regression tests | 37 pass | Run for this page, 2026-11-06 |
-| Structure and format audit | PASS (25 sheets, 3,701 formulas, 1,129 names) | Run for this page, 2026-11-06 |
+| Structure and format audit | PASS (25 sheets, 3,704 formulas, 1,133 names) | Run for this page, 2026-11-06 |
 | Recalculation in real Excel | All formula values identical after the last restructure | 2026-10-23, [`CHANGELOG.md`](repo:Media/CHANGELOG.md) |
 | Independent reviews | Successive review waves (wave 1, June 2026, to wave 5, October 2026), the last with the first full Excel recalculation | [Review record](repo:Media/electroPioreactorGasModel-GPT6Astra-Review.md) |
 
@@ -139,8 +139,8 @@ The reviewers' verdict: the model is **fit to guide the abiotic characterisation
 - **Surface O₂ transfer is estimated.** Feasibility rests on an unmeasured surface kLa ([`surface-kla.md`](repo:Media/protocols/surface-kla.md)).
 - **Data gaps stay gaps.** Unmeasured values (organism DO thresholds, anode corrosion and H₂ re-oxidisation fractions, current below 3 %) are flagged, not invented. The electrode gap is no longer one: it is taken from the printed cap, 9.6 mm centre to centre (3.6 mm between the 6 mm electrode surfaces), which lowers the baseline cell voltage from 2.65 to 2.59 V and leaves the schedule, pH and DO results unchanged. <!-- source: Media/CHANGELOG.md 2026-11-06 (Electrode gap from the printed Vial Cap); Components/Vial Cap/AEP2.0/Vessel Cap.stl -->
 - **Not yet an optimiser.** The pulse rules do not jointly optimise duration and interval for growth; replicated growth experiments and a validated response model are listed as open work in [`TODO.md`](repo:Media/TODO.md).
-- **Electrode library.** The "MMO tube" anode is modelled as AEP0.2 builds it: CO₂ goes down the open tube with no sintered sparger (a frit is deferred to AEP0.3). <!-- source: Media/CHANGELOG.md 2026-11-06; docs/components/mmo-anode.yaml -->
-- **Awaiting an Excel recalculation.** The 2026-11-06 geometry change was patched into the workbook and checked against the Python twin; some cached values in the workbook update only when it is next recalculated in Excel. <!-- source: Media/CHANGELOG.md 2026-11-06 -->
+- **Electrode library.** The "MMO tube" anode is modelled as AEP0.2 builds it: CO₂ leaves through the 1 mm-bore silicone feed tube threaded through the anode and trimmed at its base, with no sintered sparger (a frit is deferred to AEP0.3). Each electrode now carries its own sparge outlet bore; from the 1 mm outlet the model gives a 3.5 mm bubble, which affects only the small bubble O₂ strip, not the schedule, pH or DO. <!-- source: Media/CHANGELOG.md 2026-11-06 (AEP0.2 MMO tube: the CO₂ leaves its 1 mm feed tube); docs/steps/step-12-co2-gas-train.md; docs/components/anode-feed-tube.yaml -->
+- **Awaiting an Excel recalculation.** The 2026-11-06 electrode-gap and sparge-outlet changes were patched into the workbook and checked against the Python twin; some cached values in the workbook update only when it is next recalculated in Excel. <!-- source: Media/CHANGELOG.md 2026-11-06 -->
 
 > **Safety:** The review found the lag phase, just after inoculation, the dangerous one: the headspace can become flammable, DO approaches inhibitory levels and peroxide passes its threshold within minutes. Do not run unattended from inoculation without a nitrogen sweep or hydrogen monitoring, and vent to a fume hood. See [`headspace-gas-safety.md`](repo:Media/protocols/headspace-gas-safety.md).
 

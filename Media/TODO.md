@@ -109,10 +109,8 @@ Enter results in the matching calibration log where there is one. Leave Include 
 
 ## Potential model improvements
 
-- [ ] **Recalculate the 2026-11-06 electrode-geometry change in real Excel.** Blocking for the twin, sensitivity and tests.
-  - The XML patch (gap 9.6 mm; MMO tube sparger Tube, no sinter grade) left 18 twin-checked caches stale (cell voltage, bubble strip and regime) plus the Summary sparger and experiment-status cells. Recalculate on the MBA, inject Excel's values, rerun `python3 Media/gas_model_verification.py --record` and all checks.
-- [ ] **AEP0.2 bubble orifice.** Owner decision, diagnostics only.
-  - With the MMO tube on the Tube path the orifice is `spg_ID`, 1.5875 mm (the 1/16" Flexelene sparge tube), giving a 4.1 mm bubble. In AEP0.2 the gas leaves a 1 mm-ID silicone feed tube trimmed at the base of the 4 mm anode bore (`docs/steps/step-12-co2-gas-train.md`, `docs/components/anode-feed-tube.yaml`): 3.5 mm bubble from 1 mm, 5.6 mm from the 4 mm bore. It moves only the bubble-strip diagnostics, not the schedule.
+- [ ] **Recalculate the 2026-11-06 electrode-geometry and sparge-outlet changes in real Excel.** Blocking for the twin, sensitivity and tests.
+  - Two XML patches (gap 9.6 mm; MMO tube sparger Tube with no sinter grade; the new Electrodes column "sparge outlet ID (mm)", 1 mm for the MMO tube) left 18 twin-checked caches stale (cell voltage, bubble strip and regime) plus one uncalculated (Electrochemistry D36), the Summary sparger and experiment-status cells and the new lookup cells. A dry run with the twin's values injected passes everything. Recalculate on the MBA (the `claude` account must be logged in), inject Excel's values, rerun `python3 Media/gas_model_verification.py --record` and all checks.
 
 These are changes to the spreadsheet only.
 

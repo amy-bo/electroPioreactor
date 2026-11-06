@@ -443,6 +443,14 @@ I_valid      = "OK" if (gerrit_min <= intensity <= gerrit_max) else "OUT"  # D20
 e            = ELECTRODE[electrode_sel]
 sparger_e    = e["sparger"]                                     # D31
 por_grade_e  = int(e["por"]) if isnum(e["por"]) else 0              # D32
+spg_out_e    = _ELECTRODES[electrode_sel]["sparge outlet ID (mm)"]  # D33 the electrode's own outlet (mm) or "sparge tube"
+spg_out_sep  = "sparge tube"                                    # D35
+if isnum(spg_out_e):                                            # D36 (mm) outlet bore in use; AEP0.2 MMO tube: 1 mm feed tube (step 12)
+    spg_bore_e = spg_out_e
+elif spg_out_e == spg_out_sep:
+    spg_bore_e = spg_ID
+else:
+    spg_bore_e = NA
 z_e_ORR      = e["z_e_ORR"]                                     # D27
 
 # --- current density, shape-aware wetted area & limits (Electrochemistry rows 40-76) ---
@@ -978,7 +986,7 @@ R_gas     = R_gas_mt                                  # D101 (J/mol/K)
 POR_UM = [205, 130, 70, 28, 13, 1.3]                  # grades 0..5 (D33:D38)
 por_pore = POR_UM[por_grade_e] / 1e6                  # D39 (m)
 spg_name_1, spg_name_2 = "Tube", "Sintered"           # D27, D28
-tube_d_m = spg_ID / 1000                              # D40 (m)
+tube_d_m = spg_bore_e / 1000                          # D40 (m) sparge outlet bore (Echem D36, imported as MT D18 spg_bore)
 if sparger_e == spg_name_1:
     d_orifice = tube_d_m
 elif sparger_e == spg_name_2:
@@ -2101,6 +2109,7 @@ OUTPUTS = [
     ("Geometry D93  elec_sub_L_act (mm)",              elec_sub_L_act),
 
     # --- Electrochemistry current density (rows 40-76) ---
+    ("Echem D36  spg_bore_e sparge outlet bore (mm)",  spg_bore_e),
     ("Echem D46  anode wetted area (cm2)",             A_anode_wet),
     ("Echem D47  cathode wetted area (cm2)",           A_cath_wet),
     ("Echem D48  anode current density (mA/cm2)",      j_anode),
@@ -2308,6 +2317,7 @@ OUTPUTS = [
     ("MassXfer D56  strip_ratio (x)",                  strip_ratio),
     ("MassXfer D57  kLa_req (1/s)",                    kLa_req),
     ("MassXfer D59  carry_flag",                       carry_flag),
+    ("MassXfer D43  d_bubble_mm (mm)",                 d_bubble_mm),
     ("MassXfer D64  bubble_regime",                    bubble_regime),
     ("MassXfer D65  t_O2_ceiling (min)",               t_O2_ceiling),
     ("MassXfer D66  t_O2_ceiling_strip (min)",         t_O2_ceiling_strip),
