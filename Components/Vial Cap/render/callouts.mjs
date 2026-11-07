@@ -36,3 +36,12 @@ export const EXPLAINER = [
   { id: 'led', kind: 'control', head: 'Optical density sensors', body: 'Infrared light (invisible, drawn red here) shines through the culture. Cloudier means more bacteria.' },
   { id: 'heater', kind: 'control', head: 'Heater PCB', body: 'Aluminium-core heater under the vial holds the set temperature, using readings from the temperature module.' },
 ];
+
+// Also from the explainer: its heading, opening line and "In a nutshell" strip (website tour).
+export const EXPLAINER_TITLE = 'How the electroPioreactor works';
+export const EXPLAINER_LEAD = 'A sealed, open-source electro-bioreactor that uses renewable electricity to grow protein-rich bacteria from water and carbon dioxide.';
+export const NUTSHELL = [
+  { k: 'Inputs', v: 'Electricity, water, carbon dioxide, urea and trace mineral nutrients plus a little inoculum found in nature.' },
+  { k: 'Single-cell protein grows', v: 'using hydrogen for energy and CO₂ for carbon' },
+  { k: 'Outputs', v: 'Single-cell protein, plus unused gas (vented). Designed for virtually no liquid or solid waste in full-scale operation.' },
+];

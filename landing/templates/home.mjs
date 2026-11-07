@@ -1,4 +1,4 @@
-// Home page pieces: the hero overlay that replaces the viewer's own title, the hotspot layer
+// Home page pieces: the hero overlay that replaces the viewer's own title, the tour card
 // over the 3D model, and the sections below the hero.
 import { esc, amyboTile } from './layout.mjs';
 import { SITE } from './site.mjs';
@@ -20,15 +20,23 @@ export function heroHeader({ base, learnHref }) {
         <li><a href="${SITE.github}">GitHub ${ext}</a></li>
       </ul>
       <a class="by-amybo" href="${SITE.amybo}"><span class="by-k">Developed by</span>${amyboTile(base, 'sm')}<span class="by-n">AMYBO</span></a>
-      <p class="hint" id="heroHint">Drag to turn · hover the dots · click, then scroll to zoom</p>
+      <p class="hint" id="heroHint">Drag to turn · hover a part · click, then scroll to zoom</p>
       <p class="built" id="built" hidden></p>
     </header>`;
 }
 
-// The hotspots on the model, coloured by the explainer's key; home.js positions and wires them.
-export function hotspots({ callouts }) {
-  const dots = callouts.map((c) => `<button class="hs-dot k-${esc(c.kind || 'control')}" type="button" data-id="${esc(c.id)}" aria-describedby="hs-label" aria-label="${esc(c.head)}" hidden></button>`).join('');
-  return `<div class="hs-layer" id="hsLayer" aria-hidden="false">${dots}<div class="hs-label" id="hs-label" role="tooltip" hidden></div></div>`;
+// The tour card; home.js fills it from the callouts data and drives the camera.
+export function tourMarkup() {
+  return `<section class="tour" id="tour" aria-labelledby="tourTitle" hidden>
+    <p class="tour-n" id="tourN"></p>
+    <h2 id="tourTitle"></h2>
+    <div class="tour-body" id="tourBody" aria-live="polite"></div>
+    <div class="tour-nav">
+      <button type="button" id="tourPrev" aria-label="Previous">←</button>
+      <button type="button" id="tourNext" class="tour-next">Next →</button>
+      <button type="button" id="tourClose" class="tour-close" aria-label="End the tour">×</button>
+    </div>
+  </section>`;
 }
 
 export function belowFold({ learn, build, base, aboutHref }) {

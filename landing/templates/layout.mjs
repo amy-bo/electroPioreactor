@@ -23,6 +23,11 @@ export function head({ title, description, urlPath, base, extra = '' }) {
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${canonical}">
 <meta name="color-scheme" content="light dark">
+<script>/* theme before first paint: dark | light | auto (default), as on amybo.org */
+(() => { let t = 'auto'; try { t = localStorage.getItem('theme') || 'auto'; } catch (e) {}
+  const d = document.documentElement, light = t === 'light' || (t === 'auto' && matchMedia('(prefers-color-scheme: light)').matches);
+  if (t !== 'auto') d.dataset.theme = t;
+  if (light && d.classList.contains('home')) d.classList.add('white'); })();</script>
 <meta name="theme-color" content="#0c121c" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#fbfbf9" media="(prefers-color-scheme: light)">
 <meta property="og:type" content="website">
@@ -67,6 +72,15 @@ export function siteHeader({ base, current = '', overHero = false }) {
         <li class="nav-ext"><a href="${SITE.github}">GitHub ${ext}</a></li>
       </ul>
     </nav>
+    <label class="theme-sel" title="Colour theme">
+      <span class="sr-only">Colour theme</span>
+      <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.8a6.2 6.2 0 0 1 0 12.4z" fill="currentColor"/></svg>
+      <select id="themeSel">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+        <option value="auto" selected>Auto</option>
+      </select>
+    </label>
   </div>
 </header>`;
 }

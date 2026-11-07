@@ -7,7 +7,7 @@ order: 20
 ---
 The electroPioreactor is a small glass vial of liquid culture sitting on a Pioreactor base. Two electrodes split a little of the culture's water into hydrogen and oxygen for the bacteria to use, and a timed puff of carbon dioxide (CO₂) gives them carbon. The Pioreactor stirs, heats, measures growth and pumps fresh medium in, all on its own.
 
-This page follows the Aseptic electroPioreactor, version AEP0.2. The [3D model on the home page](/) labels each part described here: turn it round and match the numbers to the sections below.
+This page follows the Aseptic electroPioreactor, version AEP0.2. The [3D model on the home page](/) names each part when you hover over it, and its Tour walks through them in order.
 
 ![The AEP0.2 vial with its one-piece cap, needles, electrodes, sensors and heater](/img/vial-cap-a4-white.png)
 

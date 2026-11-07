@@ -67,6 +67,22 @@ body {
   color: var(--faint); margin-right: 2px;
 }
 .sep { width: 1px; align-self: stretch; background: var(--panel-border); }
+.view-wrap { position: relative; }
+.view-btn { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; }
+.view-btn .caret { width: 0; height: 0; border: 5px solid transparent; border-bottom-color: currentColor; border-top: 0; transition: transform 0.15s; }
+.view-btn[aria-expanded="true"] .caret { transform: rotate(180deg); }
+.view-menu {
+  position: absolute; bottom: calc(100% + 14px); left: 50%; translate: -50% 0; z-index: 6;
+  width: max-content; max-width: calc(100vw - 32px); padding: 12px 14px 14px; border-radius: 14px;
+  background: var(--panel-solid); border: 1px solid var(--panel-border); box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+  text-align: left;
+}
+.view-menu[hidden] { display: none; }
+.view-menu .label { margin: 0 0 6px; }
+.view-menu .label + .group { margin-bottom: 12px; }
+.menu-col { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.menu-col .toggle { justify-content: flex-start; }
+.menu-col .note { margin-left: auto; padding-left: 10px; }
 
 button {
   font: inherit; color: var(--text); background: transparent; cursor: pointer;
@@ -139,20 +155,24 @@ button[aria-pressed="true"] { background: rgba(150, 175, 210, 0.18); border-colo
     </header>
 
     <nav class="bar" aria-label="Viewer controls">
-      <div class="group">
-        <button class="toggle" id="beamBtn" aria-pressed="true"><span class="dot"></span>Light path</button>
-        <span class="note">IR shown in red</span>
-        <button class="toggle" id="liquidBtn" aria-pressed="true"><span class="dot"></span>Liquid &amp; gas</button>
-        <button class="toggle turn" id="turnBtn" aria-pressed="true"><span class="dot"></span>Turntable</button>
-        <button class="toggle turn" id="whiteBtn" aria-pressed="false"><span class="dot"></span>White background</button>
-      </div>
-      <div class="sep"></div>
-      <div class="group" role="group" aria-label="View">
-        <span class="label">View</span>
-        <button data-view="assembly" aria-pressed="true">Assembly</button>
-        <button data-view="cap" aria-pressed="false">Cap</button>
-        <button data-view="optics" aria-pressed="false">Optics</button>
-        <button data-view="base" aria-pressed="false">Base</button>
+      <div class="view-wrap">
+        <button class="view-btn" id="viewBtn" type="button" aria-expanded="false" aria-controls="viewMenu">View <span class="caret" aria-hidden="true"></span></button>
+        <div class="view-menu" id="viewMenu" hidden>
+          <p class="label">Camera</p>
+          <div class="group" role="group" aria-label="Camera">
+            <button data-view="assembly" aria-pressed="true">Assembly</button>
+            <button data-view="cap" aria-pressed="false">Cap</button>
+            <button data-view="optics" aria-pressed="false">Optics</button>
+            <button data-view="base" aria-pressed="false">Base</button>
+          </div>
+          <p class="label">Show</p>
+          <div class="menu-col">
+            <button class="toggle" id="beamBtn" aria-pressed="true"><span class="dot"></span>Light path <span class="note">IR, drawn red</span></button>
+            <button class="toggle" id="liquidBtn" aria-pressed="true"><span class="dot"></span>Liquid &amp; gas</button>
+            <button class="toggle turn" id="turnBtn" aria-pressed="true"><span class="dot"></span>Turntable</button>
+            <button class="toggle turn" id="whiteBtn" aria-pressed="false"><span class="dot"></span>White background</button>
+          </div>
+        </div>
       </div>
     </nav>
   </div>
@@ -196,7 +216,7 @@ const META = {"built":"2026-11-06T16:30:55.577Z","parts":["anode","anode_ti","be
 const $ = (id) => document.getElementById(id);
 const app = $('app');
 const STILL = /(^|[#&])still\b/.test(location.hash);
-const WHITE0 = /(^|[#&])white\b/.test(location.hash);
+const WHITE0 = /(^|[#&])white\b/.test(location.hash) || document.documentElement.classList.contains('white');   // a host page can pre-set .white
 const HASH_VIEW = (location.hash.match(/[#&](assembly|cap|optics|base)\b/) || [])[1];
 const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (STILL) app.classList.add('still');
@@ -587,7 +607,7 @@ function setWhite(on) {               // white page for print/PDF: flat white, n
   renderer.toneMappingExposure = on ? 0.95 : 1.05;
   if (floor) floor.material.opacity = on ? 0.22 : 0.42;
   document.documentElement.classList.toggle('white', on);
-  $('whiteBtn').setAttribute('aria-pressed', String(on));
+  $('whiteBtn')?.setAttribute('aria-pressed', String(on));
 }
 let beamOn = true;
 function setBeam(on) {
@@ -606,7 +626,16 @@ function setTurn(on) {
 $('beamBtn').addEventListener('click', () => setBeam(!beamOn));
 $('liquidBtn').addEventListener('click', () => LIQUID.setVisible(!LIQUID.on));
 $('turnBtn').addEventListener('click', () => setTurn(!controls.autoRotate));
-$('whiteBtn').addEventListener('click', () => setWhite(!whiteOn));
+$('whiteBtn')?.addEventListener('click', () => setWhite(!whiteOn));
+// View pop-up: camera presets and display toggles
+{
+  const btn = $('viewBtn'), menu = $('viewMenu');
+  const setMenu = (open) => { menu.hidden = !open; btn.setAttribute('aria-expanded', String(open)); };
+  btn.addEventListener('click', (e) => { e.stopPropagation(); setMenu(menu.hidden); });
+  menu.addEventListener('click', (e) => { e.stopPropagation(); if (e.target.closest('[data-view]')) setMenu(false); });
+  document.addEventListener('click', () => setMenu(false));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { setMenu(false); btn.focus(); } });
+}
 
 // camera tween
 let tween = null, resumeTurn = false;
@@ -639,14 +668,24 @@ function pick(clientX, clientY) {
   const hits = ray.intersectObjects(Object.values(meshes).filter((m) => m.visible), false);
   if (!hits.length) return null;
   const solid = hits.find((h) => h.object.userData.part !== 'glass');
-  return (solid || hits[0]).object.userData.part;
+  const h = solid || hits[0];
+  // part name, the hit point in root-local (OpenSCAD mm) coordinates, and whether only glass was hit
+  return { part: h.object.userData.part, point: root.worldToLocal(h.point.clone()), glassOnly: !solid };
 }
-function showTip(part, x, y) {
-  if (!part || !INFO[part]) { tip.classList.remove('show'); return; }
-  const [title, ...rest] = INFO[part].split(' · ');
-  tip.querySelector('b').textContent = title;
+// A page embedding the viewer can supply its own wording: window.__viewerTip(hit) -> { title, body } | null
+function tipText(hit) {
+  if (!hit) return null;
+  if (typeof window.__viewerTip === 'function') { try { return window.__viewerTip(hit); } catch (e) { console.error('tip', e); return null; } }
+  if (!INFO[hit.part]) return null;
+  const [title, ...rest] = INFO[hit.part].split(' · ');
+  return { title, body: rest.join(' · ') };
+}
+function showTip(hit, x, y) {
+  const t = tipText(hit);
+  if (!t) { tip.classList.remove('show'); return; }
+  tip.querySelector('b').textContent = t.title;
   const s = tip.querySelector('span');
-  s.textContent = rest.join(' · '); s.style.display = rest.length ? '' : 'none';
+  s.textContent = t.body || ''; s.style.display = t.body ? '' : 'none';
   tip.classList.add('show');
   const w = tip.offsetWidth, h = tip.offsetHeight, pad = 12;
   let left = x + 16, top = y + 18;
@@ -1081,7 +1120,7 @@ const LIQUID = (() => {
   setWhite(WHITE0);
   setTurn(!STILL && !REDUCED);
   goView(HASH_VIEW || 'assembly', true);
-  window.__viewer = { THREE, scene, camera, renderer, controls, root, meshes, goView, setTurn, liquid: LIQUID };
+  window.__viewer = { THREE, scene, camera, renderer, controls, root, meshes, goView, setTurn, setWhite, hideTip: () => tip.classList.remove('show'), liquid: LIQUID };
   window.dispatchEvent(new Event('viewer-ready'));
   frame();
   $('status').classList.add('gone');

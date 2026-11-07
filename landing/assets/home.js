@@ -1,4 +1,5 @@
-// electropioreactor.org home: 3D hotspots with hover labels over the vial viewer.
+// electropioreactor.org home: hover labels on the vial's parts and a guided tour, both in the
+// wording of Martin's AEP0.2 explainer.
 // The viewer exposes window.__viewer = { THREE, scene, camera, renderer, controls, root, meshes,
 // goView, setTurn, liquid } and fires "viewer-ready"; functions in window.__viewerFrameHooks run
 // after each rendered frame. Anchors are computed here from the part meshes, in root-local
@@ -10,12 +11,9 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const COARSE = matchMedia('(pointer: coarse)').matches;
 const PHONE = matchMedia('(max-width: 720px)');
 let V = null;                 // window.__viewer, once ready
-const CALLOUTS = JSON.parse($('callouts-data').textContent);
-const byId = Object.fromEntries(CALLOUTS.map((c) => [c.id, c]));
-
-const layer = $('hsLayer');
-const label = $('hs-label');
-const dots = Object.fromEntries([...layer.querySelectorAll('.hs-dot')].map((b) => [b.dataset.id, b]));
+const DATA = JSON.parse($('callouts-data').textContent);
+const byId = Object.fromEntries(DATA.parts.map((c) => [c.id, c]));
+const STEPS = DATA.tour;
 
 // ---------------------------------------------------------------- header, bar height, hint
 const header = document.querySelector('.site-header.over-hero');
@@ -30,7 +28,7 @@ if (bar) {
   if ('ResizeObserver' in window) new ResizeObserver(setBar).observe(bar);
 }
 const hint = $('heroHint');
-if (hint && COARSE) hint.textContent = 'Drag sideways to turn the vial · tap the dots · pinch to zoom';
+if (hint && COARSE) hint.textContent = 'Drag sideways to turn · tap a part · pinch to zoom';
 
 // ---------------------------------------------------------------- wheel: scroll the page unless the model is engaged
 const stage = $('stage');
@@ -51,68 +49,8 @@ stage.addEventListener('pointerdown', () => { engaged = true; zoomHint.classList
 app.addEventListener('pointerleave', () => { engaged = false; });
 addEventListener('scroll', () => { if (scrollY > 60) engaged = false; }, { passive: true });
 
-// ---------------------------------------------------------------- highlight + active state
-let active = null, hover = null;
-const pos = {};               // id -> { x, y, behind, out }
-function showLabel(id, withBody) {
-  const c = byId[id], p = pos[id];
-  if (!c || !p || p.out) { hideLabel(); return; }
-  label.innerHTML = '';
-  const b = document.createElement('b'); b.textContent = c.head; label.appendChild(b);
-  if (withBody) { const s = document.createElement('span'); s.textContent = c.body; label.appendChild(s); }
-  label.hidden = false;
-  label.dataset.for = id;
-  label.dataset.body = withBody ? '1' : '';
-  placeLabel();
-}
-function hideLabel() { label.hidden = true; label.dataset.for = ''; }
-function placeLabel() {
-  const id = label.dataset.for;
-  if (!id || label.hidden) return;
-  const p = pos[id];
-  if (!p || p.out) { label.style.visibility = 'hidden'; return; }
-  label.style.visibility = '';
-  const W = app.clientWidth, w = label.offsetWidth, h = label.offsetHeight, pad = 12;
-  let x = p.x + 22, y = p.y - h / 2;
-  if (x + w > W - pad) x = p.x - 22 - w;
-  if (x < pad) { x = Math.min(Math.max(pad, p.x - w / 2), W - pad - w); y = p.y + 24; }
-  y = Math.max(app.querySelector('.overlay') ? 70 : pad, Math.min(y, app.clientHeight - h - pad));
-  label.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
-}
-function setHover(id) {
-  if (hover === id) return;
-  if (hover) dots[hover]?.classList.remove('hl');
-  hover = id;
-  if (id) {
-    dots[id]?.classList.add('hl');
-    showLabel(id, id === active);
-  } else if (active) showLabel(active, true);
-  else hideLabel();
-}
-function setActive(id, { turn = true } = {}) {
-  if (active) dots[active]?.classList.remove('active');
-  active = id;
-  if (id) {
-    dots[id]?.classList.add('active');
-    if (turn) turnTo(id);
-    showLabel(id, true);
-  } else hideLabel();
-}
-for (const [id, d] of Object.entries(dots)) {
-  d.addEventListener('pointerenter', () => setHover(id));
-  d.addEventListener('pointerleave', () => setHover(null));
-  d.addEventListener('focus', () => setHover(id));
-  d.addEventListener('blur', () => setHover(null));
-  d.addEventListener('click', () => {
-    if (active === id) { setActive(null); return; }
-    setActive(id);
-  });
-}
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && active) setActive(null); });
-
-// ---------------------------------------------------------------- 3D: anchors, projection, turning
-let anchors = {}, axis = null, tween = null, lastHook = 0;
-let tmp, tmpA, tmpC;
+// ---------------------------------------------------------------- 3D state
+let anchors = {}, axis = null, level = 0, lastHook = 0, home = null, anodeBox = null;
 
 function anchorPoints() {
   const { THREE, meshes } = V;
@@ -139,7 +77,7 @@ function anchorPoints() {
   const glass = box('glass'), cap = box('cap'), needles = box('needles');
   const ax = glass ? mid(glass) : v3(0, 0, 0);
   const R = glass ? (glass.max.x - glass.min.x) / 2 : 14;
-  const level = needles ? needles.min.z : (glass ? glass.max.z - 32 : -23);   // the Media Out tip sets the level
+  const level_ = needles ? needles.min.z : (glass ? glass.max.z - 32 : -23);   // the Media Out tip sets the level
   const out = (p, mm) => {                                                   // push radially out from the vial axis
     const d = v3(p.x - ax.x, p.y - ax.y, 0); if (d.lengthSq() < 1e-6) return p;
     return p.clone().add(d.normalize().multiplyScalar(mm));
@@ -148,10 +86,10 @@ function anchorPoints() {
   const sept = box('septum');
   if (needles && cap) A.needles = v3(ax.x, needles.max.y - 1, cap.max.z + 9);
   if (sept) A.port = v3(ax.x, ax.y + (sept.max.y - ax.y) * 0.45, sept.max.z + 0.5);
-  if (glass) A.medium = v3(ax.x + R * 0.5, ax.y + R * 0.62, level - (level - glass.min.z) * 0.5);
+  if (glass) A.medium = v3(ax.x + R * 0.5, ax.y + R * 0.62, level_ - (level_ - glass.min.z) * 0.5);
   const tm = box('temp_module'); if (tm) A.temp = mid(tm);
   const ca = box('cathode');
-  if (ca) A.cathode = v3((ca.min.x + ca.max.x) / 2, (ca.min.y + ca.max.y) / 2, level - (level - ca.min.z) * 0.4);
+  if (ca) A.cathode = v3((ca.min.x + ca.max.x) / 2, (ca.min.y + ca.max.y) / 2, level_ - (level_ - ca.min.z) * 0.4);
   const pd = nearest('pd_die', v3(ax.x - 40, ax.y, -70)) || (box('pd_board') && mid(box('pd_board')));
   if (pd) A.pd = out(pd, 1.5);
   const fl = box('flea'); if (fl) A.flea = mid(fl);
@@ -162,69 +100,145 @@ function anchorPoints() {
   const an = box('anode');
   if (an) {
     const x = (an.min.x + an.max.x) / 2, y = (an.min.y + an.max.y) / 2;
-    A.anode = v3(x, y, level - 8);
+    A.anode = v3(x, y, level_ - 8);
     A.co2 = v3(x, y, an.min.z - 4);
   }
   const led = box('led_die') || box('led'); if (led) A.led = out(mid(led), 3);
   const pcb = box('pcb');
   if (pcb) { const r = (pcb.max.x - pcb.min.x) / 2; A.heater = v3(ax.x + r * 0.68, ax.y + r * 0.68, (pcb.min.z + pcb.max.z) / 2); }
-  axis = ax;
+  axis = ax; level = level_; anodeBox = an;
   return A;
 }
 
-function update() {
-  if (!V) return;
-  const { camera, root, renderer } = V;
-  const W = renderer.domElement.clientWidth || app.clientWidth, H = renderer.domElement.clientHeight || app.clientHeight;
-  root.updateMatrixWorld();
-  const camPos = camera.position;
-  for (const [id, P] of Object.entries(anchors)) {
-    const d = dots[id]; if (!d) continue;
-    tmp.copy(P); root.localToWorld(tmp);
-    tmpA.set(axis.x, axis.y, P.z); root.localToWorld(tmpA);
-    const radial = tmpC.copy(tmp).sub(tmpA);
-    const behind = radial.lengthSq() > 4 && radial.dot(tmpA.clone().sub(camPos).negate()) < 0;
-    tmp.project(camera);
-    const x = (tmp.x + 1) / 2 * W, y = (1 - tmp.y) / 2 * H;
-    const out = tmp.z > 1 || x < -20 || y < -20 || x > W + 20 || y > H + 20;
-    const p = pos[id] || (pos[id] = {});
-    if (p.behind !== behind) d.classList.toggle('behind', behind);
-    if (p.out !== out) d.classList.toggle('out', out);
-    p.x = x; p.y = y; p.behind = behind; p.out = out;
-    d.style.translate = `${x.toFixed(1)}px ${y.toFixed(1)}px`;
-    d.style.zIndex = behind ? '0' : '1';
+// ---------------------------------------------------------------- hover labels
+// The viewer raycasts and hands us { part, point (root-local mm), glassOnly }; we name the area.
+const PART_TO = {
+  septum: 'port', screws: 'screws', washers: 'screws', cathode: 'cathode', flea: 'flea',
+  anode_ti: 'co2', pcb: 'heater', pcb_copper: 'heater', pcb_parts: 'heater', thermal_pad: 'heater',
+  led: 'led', led_die: 'led', led_legs: 'led', pd: 'led', pd_die: 'led', pd_board: 'led', beam: 'led',
+  temp_module: 'temp', temp_module_parts: 'temp', temp_fov: 'temp', temp_probe: 'temp',
+};
+function areaFor(hit) {
+  const { part, point: P } = hit;
+  if (part === 'needles' || part === 'hubs') return axis && P.y < axis.y ? 'gas' : 'needles';   // rear pair vent gas
+  if (part === 'anode') return anodeBox && P.z < anodeBox.min.z + 10 ? 'co2' : 'anode';
+  if (part === 'glass') return hit.glassOnly && P.z < level ? 'medium' : null;
+  return PART_TO[part] || null;
+}
+function installTips() {
+  window.__viewerTip = (hit) => {
+    const c = byId[areaFor(hit)];
+    return c ? { title: c.head, body: c.body } : null;
+  };
+}
+
+// ---------------------------------------------------------------- tour
+const tourEl = $('tour'), tourBtn = $('tourBtn');
+const HL_PARTS = {
+  port: ['septum'], screws: ['screws', 'washers'], cathode: ['cathode'], anode: ['anode'],
+  co2: ['anode_ti', 'anode'], flea: ['flea'], temp: ['temp_module', 'temp_module_parts', 'temp_probe'],
+  led: ['led', 'pd_board', 'pd'], heater: ['pcb', 'thermal_pad'],
+};
+const KIND_COL = { power: 0xd0661f, gas: 0x3a6cf0, liquid: 0x22a35a, control: 0x8a4ee0 };
+let step = -1, cam = null, wasTurning = false, lit = [], glowT = 0;
+
+function light(id, kind) {
+  for (const { m, mat } of lit) { m.material.dispose(); m.material = mat; }
+  lit = [];
+  for (const n of HL_PARTS[id] || []) {
+    const m = V.meshes[n]; if (!m || !m.material || !('emissive' in m.material)) continue;
+    const mat = m.material, c = mat.clone();
+    c.emissive = new V.THREE.Color(KIND_COL[kind] || 0xff5a6e);
+    m.material = c; lit.push({ m, mat });
   }
-  placeLabel();
 }
-
-function turnTo(id) {
-  if (!V || !anchors[id]) return;
-  const { THREE, camera, controls, root } = V;
+function glow(dt) {
+  if (!lit.length) return;
+  glowT += dt || 0.016;
+  const k = 0.06 + 0.06 * Math.sin(glowT * 3.5);   // a gentle pulse, not a repaint
+  for (const { m } of lit) m.material.emissiveIntensity = k;
+}
+// camera to a part: look at it from outside the vial, a little above and off-square, close in
+function shotFor(id) {
+  const { THREE, root } = V;
+  if (id === 'overview' || id === 'nutshell' || !anchors[id]) return home;
   const P = anchors[id];
-  const pw = root.localToWorld(P.clone());
+  const tw = root.localToWorld(P.clone());
   const aw = root.localToWorld(new THREE.Vector3(axis.x, axis.y, P.z));
-  const d = pw.sub(aw);
-  if (d.lengthSq() < 4) return;                       // on the axis: visible from every side
-  V.setTurn && V.setTurn(false);
-  const sph = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
-  let delta = Math.atan2(d.x, d.z) - sph.theta - 0.25;   // a little off-square, so it reads as 3D
-  delta = Math.atan2(Math.sin(delta), Math.cos(delta));
-  tween = { t0: performance.now(), th0: sph.theta, delta, dur: REDUCED ? 0 : 900 };
-  if (REDUCED) stepTween();
+  let d = tw.clone().sub(aw); d.y = 0;
+  if (d.lengthSq() < 4) d = V.camera.position.clone().sub(V.controls.target).setY(0);   // on the axis: keep the side we're on
+  d.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), -0.35).add(new THREE.Vector3(0, 0.3, 0)).normalize();
+  const D = home.pos.distanceTo(home.target);          // sizes relative to the opening framing
+  const near = D * ({ port: 0.34, needles: 0.5, gas: 0.5, screws: 0.42, co2: 0.42, medium: 0.6, heater: 0.45 }[id] || 0.45);
+  const target = tw.clone().lerp(aw, 0.4);              // keep a little of the vial in frame
+  return { pos: target.clone().add(d.multiplyScalar(near)), target };
 }
-function stepTween() {
-  if (!tween) return;
-  const { THREE, camera, controls } = V;
-  const k = tween.dur ? Math.min(1, (performance.now() - tween.t0) / tween.dur) : 1;
+function fly(shot) {
+  if (!shot) return;
+  const { camera, controls } = V;
+  cam = { t0: performance.now(), dur: REDUCED ? 0 : 1400, p0: camera.position.clone(), q0: controls.target.clone(), p1: shot.pos.clone(), q1: shot.target.clone() };
+  stepCam();
+}
+function stepCam() {
+  if (!cam) return;
+  const { camera, controls } = V;
+  const k = cam.dur ? Math.min(1, (performance.now() - cam.t0) / cam.dur) : 1;
   const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-  const off = camera.position.clone().sub(controls.target);
-  const sph = new THREE.Spherical().setFromVector3(off);
-  sph.theta = tween.th0 + tween.delta * e;
-  camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(sph));
+  camera.position.lerpVectors(cam.p0, cam.p1, e);
+  controls.target.lerpVectors(cam.q0, cam.q1, e);
   camera.lookAt(controls.target);
-  if (k >= 1) tween = null;
+  if (k >= 1) { cam = null; tourEl.dataset.settled = step >= 0 ? '1' : ''; }
 }
-
+function render(i) {
+  const s = STEPS[i];
+  $('tourN').textContent = `${i + 1} / ${STEPS.length}`;
+  $('tourTitle').textContent = s.head;
+  const b = $('tourBody'); b.innerHTML = '';
+  if (s.rows) for (const r of s.rows) {
+    const p = document.createElement('p'); const k = document.createElement('b');
+    k.textContent = r.k; p.append(k, ' ', r.v); b.appendChild(p);
+  } else { const p = document.createElement('p'); p.textContent = s.body; b.appendChild(p); }
+  tourEl.dataset.kind = s.kind || '';
+  $('tourPrev').disabled = i === 0;
+  $('tourNext').textContent = i === STEPS.length - 1 ? 'Finish' : 'Next →';
+}
+function go(i) {
+  if (!V || i < 0) return;
+  if (i >= STEPS.length) { endTour(); return; }
+  step = i;
+  tourEl.dataset.settled = '';
+  render(i);
+  V.hideTip && V.hideTip();
+  light(STEPS[i].id, STEPS[i].kind);
+  fly(shotFor(STEPS[i].id));
+}
+function startTour() {
+  if (!V) return;
+  if (scrollY > 10) scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
+  wasTurning = V.controls.autoRotate;
+  V.setTurn(false);
+  tourEl.hidden = false; app.classList.add('touring');
+  go(0);
+  $('tourNext').focus({ preventScroll: true });
+}
+function endTour() {
+  if (step < 0) return;
+  step = -1; light(null);
+  tourEl.hidden = true; app.classList.remove('touring');
+  fly(home);
+  if (wasTurning) setTimeout(() => { if (step < 0) V.setTurn(true); }, REDUCED ? 0 : 1400);
+  tourBtn && tourBtn.focus({ preventScroll: true });
+}
+tourBtn && tourBtn.addEventListener('click', startTour);
+$('tourNext').addEventListener('click', () => go(step + 1));
+$('tourPrev').addEventListener('click', () => go(step - 1));
+$('tourClose').addEventListener('click', endTour);
+document.addEventListener('keydown', (e) => {
+  if (step < 0) return;
+  if (e.key === 'Escape') endTour();
+  else if (e.key === 'ArrowRight') go(step + 1);
+  else if (e.key === 'ArrowLeft' && step > 0) go(step - 1);
+});
 
 // The free area of the hero, in px relative to #app: below the header (phones: below the title
 // block), above the controls bar, right of the title column (desktop).
@@ -291,33 +305,41 @@ function stepShift() {
   if (k >= 1) shift = null;
 }
 
-function onFrame() { lastHook = performance.now(); stepTween(); stepShift(); update(); }
+let lastT = performance.now();
+function onFrame() {
+  const t = performance.now(), dt = (t - lastT) / 1000; lastT = t;
+  lastHook = t; stepCam(); stepShift(); glow(dt);
+}
 
 function init(v) {
   if (V || !v) return;
   V = v;
   const { THREE, controls } = V;
-  tmp = new THREE.Vector3(); tmpA = new THREE.Vector3(); tmpC = new THREE.Vector3();
-  try { anchors = anchorPoints(); } catch (e) { console.error('hotspots', e); return; }
-  for (const [id, d] of Object.entries(dots)) {
-    if (anchors[id]) d.hidden = false;
-    else { d.remove(); delete dots[id]; console.warn('hotspot without an anchor:', id); }
-  }
+  try { anchors = anchorPoints(); } catch (e) { console.error('anchors', e); }
+  installTips();
+  // site theme: light mode shows the model on the viewer's white stage
+  const isLight = () => (typeof window.__themeLight === 'function' ? window.__themeLight() : document.documentElement.classList.contains('white'));
+  if (V.setWhite) { V.setWhite(isLight()); addEventListener('themechange', (e) => V.setWhite(e.detail.light)); }
   // frame the model in the space the overlays leave free (title, header, controls bar)
   try { fit(true); } catch (e) { console.warn('fit', e); }
-  controls.addEventListener('start', () => { tween = null; });
+  home = { pos: V.camera.position.clone(), target: controls.target.clone() };
+  controls.addEventListener('start', () => { cam = null; });
   (window.__viewerFrameHooks = window.__viewerFrameHooks || []).push(onFrame);
   // fallback when the viewer does not call frame hooks (or is paused)
-  const tick = () => { if (performance.now() - lastHook > 150) { stepTween(); stepShift(); update(); } requestAnimationFrame(tick); };
+  const tick = () => { if (performance.now() - lastHook > 150) { stepCam(); stepShift(); } requestAnimationFrame(tick); };
   requestAnimationFrame(tick);
-  addEventListener('resize', () => requestAnimationFrame(() => { try { fit(false); } catch (e) {} update(); }));
+  addEventListener('resize', () => requestAnimationFrame(() => { try { fit(false); } catch (e) {} }));
   // stop rendering while the hero is scrolled out of view
   if (typeof V.animate === 'function' && 'IntersectionObserver' in window) {
     new IntersectionObserver(([e]) => V.animate(e.isIntersecting), { threshold: 0 }).observe(app);
   }
-  update();
-  layer.dataset.ready = '1';
+  if (tourBtn) tourBtn.disabled = false;
+  app.dataset.ready = '1';
+  // #tour opens the tour; #tour-5 opens it at stop 5 (links into the tour)
+  const m = location.hash.match(/^#tour(?:-(\d+))?$/);
+  if (m) setTimeout(() => { startTour(); if (m[1]) go(Math.min(STEPS.length, +m[1]) - 1); }, 300);
 }
+if (tourBtn) tourBtn.disabled = true;
 if (window.__viewer) init(window.__viewer);
 else {
   addEventListener('viewer-ready', () => init(window.__viewer), { once: true });

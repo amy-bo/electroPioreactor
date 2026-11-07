@@ -1,5 +1,22 @@
-// electropioreactor.org: shared behaviour (mobile menu, table-of-contents highlight).
+// electropioreactor.org: shared behaviour (theme switch, mobile menu, table-of-contents highlight).
 (() => {
+  // theme: dark | light | auto, stored per browser; the <head> script applies it before first paint
+  const sel = document.getElementById('themeSel');
+  const OS_LIGHT = matchMedia('(prefers-color-scheme: light)');
+  const read = () => { try { return localStorage.getItem('theme') || 'auto'; } catch (e) { return 'auto'; } };
+  const apply = (t) => {
+    const d = document.documentElement;
+    if (t === 'auto') delete d.dataset.theme; else d.dataset.theme = t;
+    const light = t === 'light' || (t === 'auto' && OS_LIGHT.matches);
+    window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: t, light } }));
+  };
+  if (sel) {
+    sel.value = read();
+    sel.addEventListener('change', () => { try { localStorage.setItem('theme', sel.value); } catch (e) {} apply(sel.value); });
+  }
+  OS_LIGHT.addEventListener('change', () => { if (read() === 'auto') apply('auto'); });
+  window.__themeLight = () => { const t = read(); return t === 'light' || (t === 'auto' && OS_LIGHT.matches); };
+
   const btn = document.querySelector('.menu-btn');
   const nav = document.getElementById('site-nav');
   if (btn && nav) {

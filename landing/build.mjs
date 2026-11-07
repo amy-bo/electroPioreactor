@@ -1,8 +1,8 @@
 // electropioreactor.org: static site generator.
 //
-//   Home (/)            the Vial Cap 3D viewer as a full-screen hero, with 14 numbered hotspots and a
-//                       hover labels (wording from Components/Vial Cap/render/callouts.mjs),
-//                       then cards routing newcomers and experts to the content pages.
+//   Home (/)            the Vial Cap 3D viewer as a full-screen hero, with hover labels on the parts
+//                       and a guided tour (wording from Components/Vial Cap/render/callouts.mjs),
+//                       then cards to the content pages.
 //   Content (/<slug>/)  every landing/content/<slug>.md (files starting with "_" are skipped).
 //   Sections            /learn/ /build/ /research/ /about/ list their pages (a content page whose slug
 //                       is the section name replaces the generated index and gets the list appended).
@@ -28,7 +28,7 @@ import { Marked } from 'marked';
 import { SITE, SECTIONS, AUDIENCE, BRANCH } from './templates/site.mjs';
 import { esc, head, siteHeader, siteFooter, SITE_JS } from './templates/layout.mjs';
 import { contentPage, sectionPage, notFoundPage } from './templates/page.mjs';
-import { heroHeader, hotspots, belowFold } from './templates/home.mjs';
+import { heroHeader, tourMarkup, belowFold } from './templates/home.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.dirname(here);
@@ -176,7 +176,10 @@ function homePage({ pages, callouts }) {
   const learnHref = has('how-it-works') ? '/how-it-works/' : '#explore';
   let body = viewer.body
     .replace(/<header class="title">[\s\S]*?<\/header>/, () => heroHeader({ base, learnHref }))
-    .replace(/<div id="tip"/, () => `${hotspots({ callouts, learnHref })}\n  <a class="scroll-cue" href="#explore" aria-label="Scroll to explore the project"><span>Explore</span><i aria-hidden="true"></i></a>\n\n  <div id="tip"`);
+    // the site's Dark / Light / Auto switch replaces the viewer's own white-background toggle
+    .replace(/\s*<button[^>]*id="whiteBtn"[^>]*>[\s\S]*?<\/button>/, '')
+    .replace(/<div class="view-wrap">/, () => `<button class="tour-btn" id="tourBtn" type="button"><span aria-hidden="true">▶</span> Tour</button>\n      <div class="view-wrap">`)
+    .replace(/<div id="tip"/, () => `${tourMarkup()}\n  <a class="scroll-cue" href="#explore" aria-label="Scroll to explore the project"><span>Explore</span><i aria-hidden="true"></i></a>\n\n  <div id="tip"`);
   const learn = pages.filter((p) => p.section === 'learn');
   const build = pages.filter((p) => p.section === 'build' || p.section === 'research');
   const description = 'The Aseptic electroPioreactor (AEP0.2): open hardware that grows hydrogen-oxidising bacteria on CO₂ with in-culture electrolysis. Interactive 3D model, how it works, and the assembly video guide.';
@@ -212,9 +215,17 @@ function checkLinks(files, pages) {
 }
 
 // ------------------------------------------------------------------ go
-const { EXPLAINER } = await import(pathToFileURL(calloutsPath).href);
+const { EXPLAINER, EXPLAINER_TITLE, EXPLAINER_LEAD, NUTSHELL } = await import(pathToFileURL(calloutsPath).href);
 if (!Array.isArray(EXPLAINER) || !EXPLAINER.length) die(`no EXPLAINER in ${calloutsPath}`);
-const callouts = EXPLAINER.map(({ id, kind, head: h, body }) => ({ id, kind, head: h, body }));
+// hover labels + tour, all in Martin's explainer wording: an overview, the 12 parts in process order, the nutshell
+const callouts = {
+  parts: EXPLAINER.map(({ id, kind, head: h, body }) => ({ id, kind, head: h, body })),
+  tour: [
+    { id: 'overview', head: EXPLAINER_TITLE, body: EXPLAINER_LEAD },
+    ...EXPLAINER.map(({ id, kind, head: h, body }) => ({ id, kind, head: h, body })),
+    { id: 'nutshell', head: 'In a nutshell', rows: NUTSHELL },
+  ],
+};
 
 const pages = loadContent();
 fs.rmSync(out, { recursive: true, force: true });
