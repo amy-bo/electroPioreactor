@@ -102,7 +102,7 @@ Follow the [AEP guide](https://docs.electropioreactor.org/AEP/) in order. In out
 8. [Configure sparging and electrolysis](https://docs.electropioreactor.org/AEP/step-14-configure-sparging-and-electrolysis/), then [set up](https://docs.electropioreactor.org/AEP/step-15-set-up-co2-flow-test/) and [calibrate the CO₂ flow](https://docs.electropioreactor.org/AEP/step-16-calibrate-co2-flow/)
 9. [Sterilise](https://docs.electropioreactor.org/AEP/step-17-sterilise/)
 
-The Pioreactor's own setup is covered by [Pioreactor's documentation](https://docs.pioreactor.com); the guide tells you where the electroPioreactor differs. If your build site has no network at all, the plugin can be installed from the microSD card: see [AEP-Plugin/README.md](repo:AEP-Plugin/README.md) and [Software](/software/).
+The Pioreactor's own setup is covered by [Pioreactor's documentation](https://docs.pioreactor.com); the guide tells you where the electroPioreactor differs. If your build site has no network at all, the plugin can be installed from the microSD card: see [the plugin README](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/blob/main/README.md) and [Software](/software/).
 
 ## 6. Sterilise
 
