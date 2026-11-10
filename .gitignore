@@ -23,3 +23,7 @@ MixedElectroPioreactor/Review.md
 build/
 AEP-Plugin/build/
 private-notes/
+landing/dist/
+landing/node_modules/
+site/dist/
+site/node_modules/
