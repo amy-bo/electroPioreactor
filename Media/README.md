@@ -51,7 +51,9 @@ With trace elements given in 'Trace elements in the final medium' below.
 
 Teo's medium is, to date, the only one to have given autotrophic growth on CO₂ in the electroPioreactor (*Xanthobacter*, through a heterotrophic-to-autotrophic transition, with an iridium oxide anode and a steel cathode; the transition was not achieved with a platinum-plated titanium anode).
 
-**Watch the anode for scale.** Calcium and magnesium carbonate scale has been found on the anode (SEM/EDX) even in the carbon-free medium, and bicarbonate may add to it. Track the electrolysis overpotential and look at the anode; a citric acid wash removes scale if it builds up.
+**Watch both electrodes for scale.** SEM/EDX of a discoloured Pt/Ti anode from the earlier, carbon-free medium (University of Edinburgh, via Chris French, personal communication, April 2026) found calcium, carbon and oxygen, suggesting a carbonate. Phosphorus cannot be told apart from platinum by EDX, as the P Kα (2.013 keV) and Pt Mα (2.048 keV) peaks overlap; the Pt peak showed no shoulder, so there was probably not much, but calcium phosphate is not ruled out, and WDS could separate the two. Bingqiao Zhao also found an adherent white deposit, and separately a black coating, on the stainless steel cathodes after heterotrophic runs with electrolysis ([forum, 2 April 2026](https://forum.amybo.org/t/trial-experiment-on-heterotrophic-electrolysis/163)).
+
+So with this medium, watch for two things. Hydrogen evolution raises the pH at the cathode, which favours carbonate (and phosphate) precipitation there, while the pH falls at the anode, where a carbonate would tend to dissolve; why carbonate appeared on the anode is unexplained. And at 60 mM, the stronger phosphate buffer may matter as much as the bicarbonate, since calcium phosphate is even less soluble than the carbonate. Track the electrolysis overpotential and inspect both electrodes; a citric acid wash removes either deposit.
 
 ## Micronutrients / Trace Element Solution
 
@@ -59,7 +61,7 @@ Our two-bottle trace element solution, [modified](MediaFormulation.md) from [Syd
 
 #### Iron dose
 
-0.68 mL of Iron Solution per litre gives 36.7 µM of iron, a fifth of the ~183 µM that 3.40 mL (Sydow's level) gives. We follow Teo's thesis here because it is the formulation that has worked. The KIT/Holtmann protocol (Lisa van der Sande) goes lower still, at about 19 µM; Lisa has said that figure is a historical error with no scientific rationale, and Bingqiao's replication of it gave no growth of *C. metallidurans* CH34. Our dose sits between the two, and is worth revisiting as evidence comes in.
+0.68 mL of Iron Solution per litre gives 36.7 µM of iron, a fifth of the ~183 µM that 3.40 mL (Sydow's level) gives. We follow Teo's thesis here because it is the formulation that has worked. The KIT/Holtmann minimal medium protocol (*Ablauf BES*, sent to us by Lisa van der Sande on 20 March 2026) goes lower still, with 5.25 mg/L of FeSO₄·7H₂O, about 19 µM. We understand this may have been a long-standing error carried forward in the protocol (L. van der Sande, KIT, personal communication, April 2026). Our dose sits between the two, and is worth revisiting as evidence comes in.
 
 ### Mineral Solution
 
@@ -80,7 +82,7 @@ Our two-bottle trace element solution, [modified](MediaFormulation.md) from [Syd
 
 ### Preparing the medium
 
-Make each solution separately and filter-sterilise it; autoclaving was found to change the colour of some of them. Then combine, adding 0.68 mL of Iron Solution and 0.050 mL of Mineral Solution to 1.000 L of mesonutrient solution.
+Make each solution separately and filter-sterilise it; autoclaving was found to change the colour of some of them. The mesonutrient solution is made up in water, but the Mineral and Iron Solutions are made up in 0.2 M H₂SO₄ (11 mL of concentrated sulfuric acid per litre), which keeps the iron and trace metals in solution. Then combine, adding 0.68 mL of Iron Solution and 0.050 mL of Mineral Solution to 1.000 L of mesonutrient solution.
 
 For growth on a carbon source, add 50 mL of 10% w/v sodium gluconate solution (100 g/L, 0.46 M) per litre of mesonutrient solution, giving 0.5% w/v (23 mM) in the final medium.
 
