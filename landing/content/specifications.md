@@ -113,8 +113,8 @@ A one-piece cap, printed in PC-CF, that screws onto the vial, holds both electro
 | Parameter | Value | Source |
 | --- | --- | --- |
 | Output | Pioreactor HAT LED channel D, catch upwards (the plugin's `led_channel` can move it to A, B or C) | [Step 8](https://docs.electropioreactor.org/AEP/step-08-test-electrolysis/), [plugin](/software/) |
-| Control | `electrolysis_power`, 0 to 10 % of the channel's full output; values above 10 % are clamped | [`electropioreactor.py`](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/blob/main/pioreactor_electropioreactor_plugin/electropioreactor.py) |
-| Default setting | 2.5 % | [`additional_config.ini`](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/blob/main/pioreactor_electropioreactor_plugin/additional_config.ini) |
+| Control | `electrolysis_power`, 0 to 10 % of the channel's full output; values above 10 % are clamped | [`electropioreactor.py`](repo:AEP-Plugin/pioreactor_electropioreactor_plugin/electropioreactor.py) |
+| Default setting | 2.5 % | [`additional_config.ini`](repo:AEP-Plugin/pioreactor_electropioreactor_plugin/additional_config.ini) |
 | First-test setting | About 3.5 %, raised until bubbles form | [Step 8](https://docs.electropioreactor.org/AEP/step-08-test-electrolysis/) |
 | Cell voltage at 3.5 % | About 2.8 to 3.05 V across the electrodes (2.82 V recorded on the first AEP0.2 build) | [Step 8](https://docs.electropioreactor.org/AEP/step-08-test-electrolysis/) |
 | Current | Not measured on AEP0.2 yet. The gas model's default fit is I ≈ 1.03 mA per % + 2.6 mA, valid 3 to 10 %: about 6.2 mA at 3.5 % and 12.9 mA at the 10 % clamp | [Gas model](/gas-model/), [`gerrit-current.md`](repo:Media/protocols/gerrit-current.md) |
@@ -144,11 +144,11 @@ From the cylinder to the vial, in order. Built in [Step 12](https://docs.electro
 
 | Parameter | Value | Source |
 | --- | --- | --- |
-| Solenoid drive | PWM channel 4, labelled `relay` in `config.ini`; opened at 100 % duty, 16 Hz PWM | [plugin source](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/blob/main/pioreactor_electropioreactor_plugin/electropioreactor.py) |
+| Solenoid drive | PWM channel 4, labelled `relay` in `config.ini`; opened at 100 % duty, 16 Hz PWM | [plugin source](repo:AEP-Plugin/pioreactor_electropioreactor_plugin/electropioreactor.py) |
 | Solenoid wiring | Two-core, 12 V DC rated, 60 cm; red (positive) on the left terminal | [solenoid-wiring](repo:docs/components/solenoid-wiring.yaml) |
 | Sealing | O-rings where a joint has a seat; Loctite 577 anaerobic thread sealant on the second thread elsewhere; no PTFE tape | [Step 12](https://docs.electropioreactor.org/AEP/step-12-co2-gas-train/) |
 | Loctite 577 cure | Fixtures in 10 to 60 minutes at 22 °C; full pressure rating after 24 hours | [Step 12](https://docs.electropioreactor.org/AEP/step-12-co2-gas-train/) |
-| Plugin default schedule | 10 s open every 60 min; set your own in the job's Settings | [`additional_config.ini`](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/blob/main/pioreactor_electropioreactor_plugin/additional_config.ini) |
+| Plugin default schedule | 10 s open every 60 min; set your own in the job's Settings | [`additional_config.ini`](repo:AEP-Plugin/pioreactor_electropioreactor_plugin/additional_config.ini) |
 | Flow calibration | Timed displacement into a water-filled measuring cylinder at 1 bar, adjusted with the needle valve | [Steps 15](https://docs.electropioreactor.org/AEP/step-15-set-up-co2-flow-test/) and [16](https://docs.electropioreactor.org/AEP/step-16-calibrate-co2-flow/) |
 | Open items | Solenoid orifice, maximum pressure, coil power and duty rating; regulator pressure range and inlet thread; BSPP or NPT against the solenoid port | [`BoM.md`](repo:AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/BoM.md) |
 

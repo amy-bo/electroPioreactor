@@ -28,7 +28,7 @@ The plugin installed itself from the card. Check it now: [Test electrolysis](ste
 
 1. Open the unit's web interface and hard-refresh (Ctrl/Cmd+Shift+R).
 2. Check **electroPioreactor** is listed under **Pioreactors → your unit → Manage → Activities**.
-3. If it is missing, put the card back in your computer and read the log in `pioreactor/plugins/failed/` on the bootfs drive. Then install over SSH, as in [the plugin README](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin#over-ssh).
+3. If it is missing, put the card back in your computer and read the log in `pioreactor/plugins/failed/` on the bootfs drive. Then install over SSH, as in [AEP-Plugin/README.md](../../AEP-Plugin/README.md#over-ssh).
 4. If the unit has no internet, set its clock from the computer, replacing `<hostname>` with the unit's hostname:
 
    ```bash

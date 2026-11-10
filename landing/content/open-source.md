@@ -21,8 +21,8 @@ The repository is synchronised in two places: <!-- source: README.md (GitHub & R
 | [AsepticElectroPioreactor/](repo:AsepticElectroPioreactor/) | The Aseptic electroPioreactor (AEP): CARMA Hub Pump Priming work, open bill of materials (BoM) items, archived AEP0.1 and AEP0.1.1 assembly instructions, meeting index and results, including the AEP0.1 training write-up |
 | [MixedElectroPioreactor/](repo:MixedElectroPioreactor/) | The Mixed-culture electroPioreactor (MEP): assembly, calibration, operation and pre-transport checks |
 | [Components/](repo:Components/) | Parametric OpenSCAD designs and STL files for the printed parts (Vial Cap, ElectrodeTopStop, GL45 bottle holder, PinchSlider), notes on the CO₂ gas train, and the original MEP parts list |
-| [plugin repository](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin) | The electroPioreactor Pioreactor plugin (Python), its tests and install scripts, including the offline install from the microSD card |
-| [card-bundle/](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/tree/main/card-bundle) (in the plugin repository) | The script that builds the AEP and MEP card bundles: files copied onto a freshly flashed Pioreactor card so it boots with the right plugins |
+| [AEP-Plugin/](repo:AEP-Plugin/) | The electroPioreactor Pioreactor plugin (Python), its tests and install scripts, including the offline install from the microSD card |
+| [card-bundle/](repo:card-bundle/) | The script that builds the AEP and MEP card bundles: files copied onto a freshly flashed Pioreactor card so it boots with the right plugins |
 | [Media/](repo:Media/) | Culture media formulations and the electroPioreactor gas model (Python and Excel), with its checks and calibration protocols |
 | [Literature/](repo:Literature/) | The bibliography on hydrogen-oxidising bacteria (HOB) fermentation by in-culture electrolysis (BibTeX and JSON) |
 | [Methodologies/](repo:Methodologies/) | Enrichment protocols for HOB from environmental samples |
@@ -35,13 +35,13 @@ The repository is synchronised in two places: <!-- source: README.md (GitHub & R
 <!-- source: top-level folders on branch AEP02; docs/README.md; card-bundle/make-card-bundles.sh -->
 <!-- CHECK: docs/, site/, landing/, CHANGELOG.md and docsandeye.config.yaml exist on branch AEP02 but not yet on main; repo: links to them only resolve once AEP02 is merged into main (or if the generator points repo: links at AEP02) -->
 
-Where to start: builders go to the [build guide](https://docs.electropioreactor.org/AEP/); people adapting the hardware go to [Components/](repo:Components/) and [Specifications](/specifications/); software users go to [the plugin README](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/blob/main/README.md) and [Software](/software/); researchers go to [Research](/research/).
+Where to start: builders go to the [build guide](https://docs.electropioreactor.org/AEP/); people adapting the hardware go to [Components/](repo:Components/) and [Specifications](/specifications/); software users go to [AEP-Plugin/README.md](repo:AEP-Plugin/README.md) and [Software](/software/); researchers go to [Research](/research/).
 
 ## Licence
 
 The licence position is not yet complete, so check before you reuse anything:
 
-- **The electroPioreactor plugin** ([plugin repository](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin)) is released under the **MIT License**, "Copyright (c) 2026 Martin Currie / Amybo". The full text is in [LICENSE.txt](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/blob/main/LICENSE.txt). <!-- source: AEP-Plugin/LICENSE.txt; AEP-Plugin/setup.py (license="MIT") -->
+- **The electroPioreactor plugin** ([AEP-Plugin/](repo:AEP-Plugin/)) is released under the **MIT License**, "Copyright (c) 2026 Martin Currie / Amybo". The full text is in [AEP-Plugin/LICENSE.txt](repo:AEP-Plugin/LICENSE.txt). <!-- source: AEP-Plugin/LICENSE.txt; AEP-Plugin/setup.py (license="MIT") -->
 - **Everything else** in the repository (hardware designs, parts lists, guides, media, data and write-ups) has no licence file yet. Until one is published, ask before reusing it: email [hello@amybo.org](mailto:hello@amybo.org) or ask on the [forum](https://forum.amybo.org).
 
 <!-- CHECK: a repository-wide LICENSE (CC BY-SA 4.0 for 3D models and images, CERN-OHL-S-2.0 for other hardware, AGPL-3.0-or-later for software, CC BY 4.0 for text and data) is drafted in brain2 (AMYBO/electroPioreactor-LICENSE-draft.md, state authored) but not in the repo; update this section when it lands -->

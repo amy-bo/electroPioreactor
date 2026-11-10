@@ -14,7 +14,7 @@ A current focus is development and testing of an Aseptic electroPioreactor to fa
 
 ## Software
 
-The [electroPioreactor plugin](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin) adds a single Pioreactor background job that drives electrolysis on LED channel D and sparges CO2 through a solenoid on PWM channel 4. Install instructions are in [its README](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin#installation), including a [card route](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin#from-the-card) that puts the plugin on the microSD card's boot partition before it is ejected, so it installs on first boot with no network, for build sites where the Pioreactor cannot reach one at all.
+The [electroPioreactor plugin](AEP-Plugin) adds a single Pioreactor background job that drives electrolysis on LED channel D and sparges CO2 through a solenoid on PWM channel 4. Install instructions are in [AEP-Plugin/README.md](AEP-Plugin/README.md), including a [card route](AEP-Plugin/README.md#from-the-card) that puts the plugin on the microSD card's boot partition before it is ejected, so it installs on first boot with no network, for build sites where the Pioreactor cannot reach one at all.
 
 ## GitHub & Radicle
 

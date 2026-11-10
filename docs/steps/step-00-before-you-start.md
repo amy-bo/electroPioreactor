@@ -88,7 +88,7 @@ A spare [silicone septum](../components/) is worth having too: each needle track
 | Ports | Flexelene 135C tubing | Stainless steel needles |
 | Gas sealing | PTFE tape on every threaded joint | O-rings where possible, Loctite 577 anaerobic thread sealant elsewhere |
 | CO₂ inlet | Regulator tightened onto the cylinder against escaping gas | KegLand KL15578 pin-adjustment adapter: tighten first, then open the pin |
-| Sparging control | `pioreactor-relay-plugin` + experiment profile YAML | [electroPioreactor plugin](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin) (electrolysis, sparging and OD pausing in one job) |
+| Sparging control | `pioreactor-relay-plugin` + experiment profile YAML | [electroPioreactor plugin](../../AEP-Plugin) (electrolysis, sparging and OD pausing in one job) |
 | Dropped | Bubble counter, pinch slider inoculation port, jubilee clips | Inoculation is now by syringe through the septum |
 
 </details>
