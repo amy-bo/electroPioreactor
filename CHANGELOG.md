@@ -2,6 +2,10 @@
 
 Done-work log for the electroPioreactor repository, newest first. Open work stays in the "Still to specify" list of the AEP0.2 [BoM](AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/BoM.md) and in the `<!-- TODO -->` comments of the step files under `docs/steps/`.
 
+## 2026-11-10
+
+- [x] **Plugin moved to its own repository** — `AEP-Plugin/` and `card-bundle/` now live in [amy-bo/pioreactor-electroPioreactor-plugin](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin), merged there with full history (the July install-flow fixes made in that repo are carried forward), and released as [`v0.7.4`](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/releases/tag/v0.7.4). Here `AEP-Plugin/README.md` points there; the READMEs, guide steps 00/04/05/06, electropioreactor.org pages and the docs site link there, and the card-bundle downloads use its `releases/latest/download`. `plugin-v0.7.3` stays as this repo's last plugin release. Tests (136) pass off-device; not yet tested on hardware.
+
 ## 2026-11-06
 
 - [x] **electropioreactor.org: a site for newcomers and experts** — `landing/` builds a static site (`node landing/build.mjs`, deployed by hand as Cloudflare Pages project `electropioreactor-home`, Direct Upload). The home page is the Vial Cap 3D viewer with an introduction, "Developed by AMYBO", the Assembly Video Guide button and 14 numbered 3D hotspots whose wording comes from `Components/Vial Cap/render/callouts.mjs` (shared with the A4 page); below it, cards route newcomers (what HOB are, how it works, FAQ, glossary) and experts (specifications, gas model, medium, software, variants, getting one, research, open source, about). Pages are Markdown in `landing/content/` with `repo:` links rewritten to GitHub; the build fails on broken internal links. `/guide` and `/AEP` redirect to the docs site.
