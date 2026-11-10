@@ -15,7 +15,7 @@ The electroPioreactor runs on the standard Pioreactor software, plus one plugin 
 | Item | Value |
 | --- | --- |
 | Package | `pioreactor-electropioreactor-plugin`, version 0.7.3, released 6 November 2026 as [`plugin-v0.7.3`](https://github.com/amy-bo/electroPioreactor/releases/tag/plugin-v0.7.3) with fresh card bundles (see its changelog for the latest), MIT licence |
-| Source | [`AEP-Plugin/`](repo:AEP-Plugin/), main code [`electropioreactor.py`](repo:AEP-Plugin/pioreactor_electropioreactor_plugin/electropioreactor.py), history in [`CHANGELOG.md`](repo:AEP-Plugin/CHANGELOG.md) |
+| Source | [`pioreactor-electroPioreactor-plugin`](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin), main code [`electropioreactor.py`](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/blob/main/pioreactor_electropioreactor_plugin/electropioreactor.py), history in [`CHANGELOG.md`](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/blob/main/CHANGELOG.md) |
 | Job name | `electropioreactor` (shown as **electroPioreactor** under Activities) |
 | Requires | Pioreactor software 26.5.0 or later |
 | Hardware it drives | Electrode pair on an LED channel (default D); CO₂ solenoid on the PWM channel labelled `relay` (default 4) |
@@ -99,7 +99,7 @@ Neither channel is hard-coded, so the plugin does not assume a fixed channel is 
 This route needs no internet on the unit, which suits university networks. It relies on Pioreactor OS support for installing plugins from the card's boot partition; the AEP plugin's README notes this was [proposed upstream](https://github.com/Pioreactor/CustoPiZer/pull/21) and accepted by Pioreactor; Pioreactor's founder, Cam Davidson-Pilon, welcomed it on 24 September 2026. Until a Pioreactor OS release ships it, use the SSH route below. <!-- CHECK: AEP-Plugin/README.md says "until it ships, use the SSH route", while the AEP guide step 5 treats the card route as the main one; confirm the Pioreactor OS release that ships boot-partition plugin support -->
 
 1. Follow Pioreactor's [software set-up guide](https://docs.pioreactor.com/user-guide/software-set-up) up to **Write**, with **Eject media when finished** switched off in Raspberry Pi Imager's App Options.
-2. Download and unzip the [AEP card bundle](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-AEP-card-bundle.zip) (MEP: the [MEP card bundle](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-MEP-card-bundle.zip)).
+2. Download and unzip the [AEP card bundle](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/releases/latest/download/electroPioreactor-AEP-card-bundle.zip) (MEP: the [MEP card bundle](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/releases/latest/download/electroPioreactor-MEP-card-bundle.zip)).
 3. When the write finishes, drag the bundle's `pioreactor` folder onto the card's `bootfs` drive. For a leader that makes its own Wi-Fi network, also copy `local_access_point`, with `GB` changed to your two-letter country code.
 4. Boot. The plugin installs itself; the AEP bundle also installs the precision temperature plugin and sets the unit's model.
 
@@ -108,7 +108,7 @@ This route needs no internet on the unit, which suits university networks. It re
 <figcaption>The one change to make in Raspberry Pi Imager for the card install: switch off "Eject media when finished", so the card stays mounted and the plugin can be dropped onto it.</figcaption>
 </figure>
 
-If **electroPioreactor** does not appear under Activities, put the card back in your computer: `pioreactor/plugins/failed/` on `bootfs` holds the wheel and a log of what went wrong. Full steps: [AEP guide, step 5](https://docs.electropioreactor.org/AEP/step-05-pioreactor-software-setup/) and the plugin [README](repo:AEP-Plugin/README.md#from-the-card).
+If **electroPioreactor** does not appear under Activities, put the card back in your computer: `pioreactor/plugins/failed/` on `bootfs` holds the wheel and a log of what went wrong. Full steps: [AEP guide, step 5](https://docs.electropioreactor.org/AEP/step-05-pioreactor-software-setup/) and the plugin [README](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/blob/main/README.md#from-the-card).
 
 ### Over SSH (a running unit)
 
@@ -123,7 +123,7 @@ Then refresh the web interface. On an older unit, run `pio update` first (26.5.0
 
 ### What the installer changes
 
-It adds `[PWM] 4 = relay` and an `[electropioreactor.config]` section with the defaults above to `config.ini`, keeping any values already there. If PWM 4 is already labelled something else it refuses rather than overwrite it. The stock Pioreactor default `4 = waste` is the common case: move any real waste pump to another channel, set PWM 4 to `relay` on the **Configuration** page, and install again. Source: [`patch-config-ini.py`](repo:AEP-Plugin/scripts/patch-config-ini.py).
+It adds `[PWM] 4 = relay` and an `[electropioreactor.config]` section with the defaults above to `config.ini`, keeping any values already there. If PWM 4 is already labelled something else it refuses rather than overwrite it. The stock Pioreactor default `4 = waste` is the common case: move any real waste pump to another channel, set PWM 4 to `relay` on the **Configuration** page, and install again. Source: [`patch-config-ini.py`](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/blob/main/scripts/patch-config-ini.py).
 
 ## After installing
 
@@ -197,10 +197,10 @@ Repeat the electrolysis voltage and current checks before and after each experim
 ## For developers
 
 ```bash
-git clone https://github.com/amy-bo/electroPioreactor.git
-cd electroPioreactor/AEP-Plugin
+git clone https://github.com/amy-bo/pioreactor-electroPioreactor-plugin.git
+cd pioreactor-electroPioreactor-plugin
 pip install -e ".[dev]"
 pytest tests/        # off-device: the tests stub the pioreactor package
 ```
 
-The design notes for electrolysis cycling are in [`DESIGN-electrolysis-cycling.md`](repo:AEP-Plugin/DESIGN-electrolysis-cycling.md). Issues and pull requests are welcome on [GitHub](https://github.com/amy-bo/electroPioreactor), and the plugin has [its own issue label](https://github.com/amy-bo/electroPioreactor/issues?q=label%3Aplugin); questions on the [forum](https://forum.amybo.org). Our fixes to Pioreactor's own software go upstream through our [amy-bo/pioreactor](https://github.com/amy-bo/pioreactor) and [amy-bo/CustoPiZer](https://github.com/amy-bo/CustoPiZer) forks. Common questions: [FAQ](/faq/).
+The design notes for electrolysis cycling are in [`DESIGN-electrolysis-cycling.md`](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/blob/main/DESIGN-electrolysis-cycling.md). Issues and pull requests are welcome on [the plugin repository](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/issues); questions on the [forum](https://forum.amybo.org). Our fixes to Pioreactor's own software go upstream through our [amy-bo/pioreactor](https://github.com/amy-bo/pioreactor) and [amy-bo/CustoPiZer](https://github.com/amy-bo/CustoPiZer) forks. Common questions: [FAQ](/faq/).

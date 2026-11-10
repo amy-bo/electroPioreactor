@@ -24,7 +24,7 @@ How it differs from the AEP, part by part, is in the side-by-side table on [Whic
 
 - **Guide:** the [MEP guide](https://docs.electropioreactor.org/MEP/) at docs.electropioreactor.org, with a video and drawings for each step. It shares the steps the MEP has in common with the [AEP guide](https://docs.electropioreactor.org/AEP/).
 - **Running it:** the [MEP protocol](https://docs.electropioreactor.org/MEP/protocol/), covering calibration and operation.
-- **Plugin:** the [MEP card bundle](https://github.com/amy-bo/electroPioreactor/releases/latest/download/electroPioreactor-MEP-card-bundle.zip) installs the electroPioreactor plugin from the SD card. See [Software](/software/#installing).
+- **Plugin:** the [MEP card bundle](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/releases/latest/download/electroPioreactor-MEP-card-bundle.zip) installs the electroPioreactor plugin from the SD card. See [Software](/software/#installing).
 
 The documents written for the Edinburgh students are in [MixedElectroPioreactor/](repo:MixedElectroPioreactor/). They assume you have never seen a Pioreactor before:
 
