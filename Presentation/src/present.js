@@ -529,6 +529,40 @@ function showPhoto(k) {
   if (morph) showPhoto.t = setTimeout(() => card.classList.add('go'), 1600);   // Zero 2 W grows into the Pi 5
 }
 
+// ---------------------------------------------------------------- live Saturday poll (public aggregate feed from amybo.org)
+// Events&I poll-results feed (aggregates only; organiser makes it public per poll). POLL_ID is set once eventsandeye names it.
+const POLL_ID = 'saturday';
+const POLL_URL = `https://amybo.org/api/rsvp/poll-results?event=2026-11-13-london&poll=${POLL_ID}`;
+function showPoll(on) {
+  const el = $('poll'); clearInterval(showPoll.t);
+  el.classList.toggle('on', !!on);
+  if (!on) return;
+  const load = async () => {
+    try {
+      const r = await fetch(POLL_URL, { cache: 'no-store' });
+      if (!r.ok) throw new Error(r.status);
+      renderPoll(await r.json());
+    } catch (e) { el.querySelector('.state').textContent = 'Live results unavailable · amy.bo/event/saturday14'; }
+  };
+  load(); showPoll.t = setInterval(load, 10000);
+}
+function renderPoll(d) {
+  // same order as the admin page: who would come, then ranked score, then label
+  const el = $('poll'), opts = (d.options || []).slice().sort((a, b) => (b.willing - a.willing) || (b.score - a.score) || String(a.label).localeCompare(b.label));
+  const max = Math.max(1, d.voters || 0, ...opts.map((o) => o.willing));
+  const list = el.querySelector('.bars'); list.textContent = '';
+  for (const o of opts) {
+    const row = document.createElement('div'); row.className = 'bar';
+    const lab = document.createElement('span'); lab.className = 'lab'; lab.textContent = o.label;
+    const tr = document.createElement('span'); tr.className = 'track';
+    const fill = document.createElement('i'); fill.style.width = (100 * o.willing / max) + '%'; tr.append(fill);
+    const sc = document.createElement('b'); sc.textContent = o.willing; sc.title = `score ${o.score} · ${o.firstChoices} first choices`;
+    row.append(lab, tr, sc); list.append(row);
+  }
+  el.querySelector('.home').textContent = d.stayingHome ? `${d.stayingHome} would stay at home whatever` : '';
+  el.querySelector('.state').textContent = `${d.voters || 0} voted · live from amy.bo/event`;
+}
+
 // ---------------------------------------------------------------- the story (page: PageUp/PageDown jump points)
 const STEPS = [];
 const S = (id, f, page = false) => STEPS.push({ id, f, page });
@@ -614,8 +648,10 @@ if (PHOTOS.pi5 && PHOTOS['pi-zero2w']) S('a02-pi', (s) => { hide(s, 'syringe'); 
 if (PHOTOS.plugin) S('a02-plugin', (s) => { hide(s, 'syringe'); s.photo = 'plugin'; });
 if (PHOTOS['plugins-offline']) S('a02-plugins-offline', (s) => { hide(s, 'syringe'); s.photo = 'plugins-offline'; });
 S('a02-run', (s) => { hide(s, 'syringe'); s.pulse = true; s.focus = 'vial40'; }, true);
+// --- Saturday social: live ranked-poll results from amybo.org (aggregates only)
+S('saturday', (s) => { s.poll = true; s.focus = 'vial40'; }, true);
 
-function stateAt(i) { const s = base(); for (let k = 0; k <= i; k++) { s.focus = null; s.focus2 = null; s.flyMs = 0; s.photo = null; s.snap = new Set(); STEPS[k].f(s); } return s; }
+function stateAt(i) { const s = base(); for (let k = 0; k <= i; k++) { s.focus = null; s.focus2 = null; s.flyMs = 0; s.photo = null; s.poll = false; s.snap = new Set(); STEPS[k].f(s); } return s; }
 
 // ---------------------------------------------------------------- camera
 const CAM_KEY = 'aep-pres-cams-v3';
@@ -725,6 +761,7 @@ function apply(i, instant = false) {
   busyUntil = end + 300;
   controls.autoRotate = false; resumeTurn = false;
   showPhoto(s.photo);
+  showPoll(s.poll);
   if (s.web === null && (!s.photo || instant)) flyTo(nextShot || shot(i), instant ? 0 : (s.flyMs || 1900));
   manualTurn = null;
   pendingShot = s.web === null && s.focus2 && !CAMS[STEPS[i].id + ':2'] ? (() => { const { box, margin, dir } = focusBox(s.focus2); return viewFrom(box, dir, margin * 0.95); })() : (CAMS[STEPS[i].id + ':2'] ? { pos: V3(...CAMS[STEPS[i].id + ':2'].p), target: V3(...CAMS[STEPS[i].id + ':2'].t) } : null);

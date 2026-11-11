@@ -101,3 +101,14 @@ body.idle #menu { cursor: none; }
 #photo .card.morph.go .a { width: 92%; opacity: 0; }
 #photo .card.morph.go .b { width: 92%; opacity: 1; }
 #photo .credit { font: 12px var(--sl-font); color: rgba(223,230,238,.55); min-height: 1em; }
+#poll { position: fixed; inset: 0; z-index: 19; display: flex; flex-direction: column; justify-content: center; padding: 6vh 8vw; background: rgba(9,13,21,.82); color: #fff; font-family: var(--sl-font); opacity: 0; pointer-events: none; transition: opacity .6s ease; }
+#poll.on { opacity: 1; }
+#poll h2 { margin: 0 0 4vh; font-size: 3.4vw; color: var(--green); }
+#poll .bars { display: grid; gap: 1.6vh; }
+#poll .bar { display: grid; grid-template-columns: minmax(0, 30vw) 1fr 6vw; align-items: center; gap: 1.5vw; font-size: 2vw; }
+#poll .track { height: 3.4vh; background: rgba(255,255,255,.08); border-radius: .4em; overflow: hidden; }
+#poll .track i { display: block; height: 100%; background: var(--blue); border-radius: .4em; transition: width 1.2s ease; }
+#poll .bar:first-child .track i { background: var(--green); }
+#poll .bar b { text-align: right; font-variant-numeric: tabular-nums; }
+#poll .home { margin: 4vh 0 0; font-size: 2vw; color: #dfe6ee; }
+#poll .state { margin: 1vh 0 0; font-size: 1.2vw; color: #9aa3b0; }
