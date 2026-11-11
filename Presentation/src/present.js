@@ -558,6 +558,7 @@ function renderPoll(d) {
     const sc = document.createElement('b'); sc.textContent = o.willing; sc.title = `score ${o.score} · ${o.firstChoices} first choices`;
     row.append(lab, tr, sc); list.append(row);
   }
+  if (d.question) el.querySelector('h2').textContent = d.question;
   el.querySelector('.home').textContent = d.stayingHome ? `${d.stayingHome} would stay at home whatever` : '';
   el.querySelector('.state').textContent = `${d.voters || 0} voted · live from amy.bo/event`;
 }
