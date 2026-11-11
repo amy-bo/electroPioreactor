@@ -60,9 +60,13 @@ function tube(pts, r = 1.5, m = silicone) {
   const c = new THREE.CatmullRomCurve3(pts.map((p) => V3(...p)), false, 'centripetal');
   return { o: mesh(new THREE.TubeGeometry(c, 140, r, 16, false), m), c };
 }
-function ringGeo(ri, ro, z0, z1, segs = 64) {      // a turned ring (tube wall) about Z
-  const pr = [[ri, z0], [ro, z0], [ro, z1], [ri, z1], [ri, z0]].map(([r, z]) => new THREE.Vector2(Math.max(0.001, r), z));
-  const g = new THREE.LatheGeometry(pr, segs); g.rotateX(PI / 2); return g;
+function lathe(pts, segs = 64) {      // a turned part about Z from an (r, z) profile, with sharp edges and flat ends
+  const g = new THREE.LatheGeometry(pts.map(([r, z]) => new THREE.Vector2(r, z)), segs); g.rotateX(PI / 2);
+  return toCreasedNormals(g, PI / 6);
+}
+function ringGeo(ri, ro, z0, z1, segs = 64) {      // a tube (or, with ri ~ 0, a solid rod): flat ends, no centre artefact
+  if (ri < 0.05) return lathe([[0, z0], [ro, z0], [ro, z1], [0, z1]], segs);
+  return lathe([[ri, z0], [ro, z0], [ro, z1], [ri, z1], [ri, z0]], segs);
 }
 function exapureAt(p, t, inlet = false) {        // Exapure 25 mm 0.2 µm PTFE syringe filter: orange-red housing, white centre and luers
   const g = new THREE.Group();
@@ -386,16 +390,18 @@ async function buildScene() {
     const g = new THREE.Group(); g.add(lower, upper);
     anodeParts = { lower, upper, ar, z0: b.min.z, zm, zt, cur: 0 };
     reg('ano02', g, { parent: ride, off: [0, 0, 110], enterMs: 1800 });
-    const sil = mesh(ringGeo(0.5, 1.9, b.min.z + 0.2, zt, 96), silicone); sil.position.set(ax, ay, 0);
+    const sil = mesh(ringGeo(0.5, 2.0, b.min.z + 0.2, zt, 96), silicone);   // 4 mm OD fills the bore: one flat end, 1 mm hole sil.position.set(ax, ay, 0);
     reg('sil02', sil, { parent: ride, off: [0, 0, 105], enterMs: 2600 });
     {
       const f = new THREE.Group();
       const barb = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.95, 6, 24), exaWhite); barb.rotation.x = PI / 2; barb.position.z = zt - 3;
       const ridge = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 1.05, 1.2, 24), exaWhite); ridge.rotation.x = PI / 2; ridge.position.z = zt - 4.5;
       const hex = new THREE.Mesh(new THREE.CylinderGeometry(3.3, 3.3, 1.6, 6), exaWhite); hex.rotation.x = PI / 2; hex.position.z = zt + 0.8;
-      const body = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 2.9, 9, 32), exaWhite); body.rotation.x = PI / 2; body.position.z = zt + 6.1;
-      const lugs = new THREE.Mesh(new THREE.BoxGeometry(8.4, 1.6, 1.4), exaWhite); lugs.position.z = zt + 10;
-      for (const m of [barb, ridge, hex, body, lugs]) { m.castShadow = true; m.receiveShadow = true; f.add(m); }
+      // female luer socket: open on top (tapered bore for the male luer), a small gas hole through the floor, two lock ears on the rim
+      const b0 = zt + 1.6, b1 = zt + 10.6;
+      const body = new THREE.Mesh(lathe([[0.45, b0], [2.9, b0], [3.4, b1], [2.15, b1], [1.95, b0 + 1.2], [0.45, b0 + 1.2], [0.45, b0]], 48), exaWhite);
+      const ears = [-1, 1].map((sd) => { const e = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2.4, 1.4), exaWhite); e.position.set(sd * 4.05, 0, b1 - 0.7); return e; });
+      for (const m of [barb, ridge, hex, body, ...ears]) { m.castShadow = true; m.receiveShadow = true; f.add(m); }
       f.position.set(ax, ay, 0);
       reg('barb02', f, { parent: ride, off: [0, 0, 40], enterMs: 1800 });
     }
