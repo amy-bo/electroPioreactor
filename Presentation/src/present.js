@@ -512,11 +512,19 @@ function liqCfg(name) {
   return { level: L20, men: [] };
 }
 
+// ---------------------------------------------------------------- photo overlay (images embedded by build.mjs)
+const PHOTOS = JSON.parse(document.getElementById('photos-data')?.textContent || '{}');
+function showPhoto(k) {
+  const el = $('photo'), img = el.querySelector('img');
+  if (k && PHOTOS[k]) { if (img.dataset.k !== k) { img.src = PHOTOS[k]; img.dataset.k = k; } el.classList.add('on'); }
+  else el.classList.remove('on');
+}
+
 // ---------------------------------------------------------------- the story (page: PageUp/PageDown jump points)
 const STEPS = [];
 const S = (id, f, page = false) => STEPS.push({ id, f, page });
 const base = () => ({ web: 'home', show: new Set(), dz: DZ20, fill: 'empty', liq: 'old', gate: { H: false, O: false, CO2: false }, pulse: false,
-  beam: false, tag: '', focus: null, turn: false, drip: [], par: { lift: 0, ports: 0, hole: 0, drop: 0, syr: 0, pinch: 0, bung: 0, pccf: 0 }, snap: new Set() });
+  beam: false, photo: null, tag: '', focus: null, turn: false, drip: [], par: { lift: 0, ports: 0, hole: 0, drop: 0, syr: 0, pinch: 0, bung: 0, pccf: 0 }, snap: new Set() });
 const show = (s, ...n) => n.forEach((x) => s.show.add(x));
 const hide = (s, ...n) => n.forEach((x) => s.show.delete(x));
 const power = (s, on) => { s.gate.H = on; s.gate.O = on; };
@@ -583,6 +591,8 @@ S('a02-bore', (s) => { s.par.hole = 1; s.focus = 'anodeTop'; });
 S('a02-co2-line', (s) => { show(s, 'sil02'); s.focus = 'anodeTop'; });
 S('a02-barb', (s) => { show(s, 'barb02'); s.focus = 'anodeTop'; });
 S('a02-co2', (s) => { s.gate.CO2 = true; s.focus = 'anodeBase'; });
+// photos over the paused scene: the CO2 train upgrades that are not in the 3D model
+for (const k of ['cylinder-valve', 'blanking-plug', 'thread-sealant']) if (PHOTOS[k]) S('a02-' + k, (s) => { s.photo = k; });
 S('a02-gas1', (s) => { show(s, 'gasL02'); s.focus = 'top40wide'; });
 S('a02-gas2', (s) => { show(s, 'gasR02'); s.focus = 'top40wide'; });
 S('a02-media-in', (s) => { show(s, 'mediaIn02'); s.drip = ['mediaIn02']; s.focus = 'drip02'; });
@@ -591,9 +601,10 @@ S('a02-lower', (s) => { s.par.drop = 5; });
 S('a02-raise', (s) => { s.par.drop = 0; });
 S('a02-syringe-in', (s) => { show(s, 'syringe'); s.par.syr = 1; s.focus = 'septumPort'; });
 S('a02-syringe-out', (s) => { show(s, 'syringe'); s.par.syr = 0; });
+if (PHOTOS.plugin) S('a02-plugin', (s) => { hide(s, 'syringe'); s.photo = 'plugin'; });
 S('a02-run', (s) => { hide(s, 'syringe'); s.pulse = true; s.focus = 'vial40'; }, true);
 
-function stateAt(i) { const s = base(); for (let k = 0; k <= i; k++) { s.focus = null; s.focus2 = null; s.flyMs = 0; s.snap = new Set(); STEPS[k].f(s); } return s; }
+function stateAt(i) { const s = base(); for (let k = 0; k <= i; k++) { s.focus = null; s.focus2 = null; s.flyMs = 0; s.photo = null; s.snap = new Set(); STEPS[k].f(s); } return s; }
 
 // ---------------------------------------------------------------- camera
 const CAM_KEY = 'aep-pres-cams-v3';
@@ -702,7 +713,8 @@ function apply(i, instant = false) {
   else if (!cur || s.beam !== cur.beam) setBeam(s.beam);
   busyUntil = end + 300;
   controls.autoRotate = false; resumeTurn = false;
-  if (s.web === null) flyTo(nextShot || shot(i), instant ? 0 : (s.flyMs || 1900));
+  showPhoto(s.photo);
+  if (s.web === null && (!s.photo || instant)) flyTo(nextShot || shot(i), instant ? 0 : (s.flyMs || 1900));
   manualTurn = null;
   pendingShot = s.web === null && s.focus2 && !CAMS[STEPS[i].id + ':2'] ? (() => { const { box, margin, dir } = focusBox(s.focus2); return viewFrom(box, dir, margin * 0.95); })() : (CAMS[STEPS[i].id + ':2'] ? { pos: V3(...CAMS[STEPS[i].id + ':2'].p), target: V3(...CAMS[STEPS[i].id + ':2'].t) } : null);
   if (instant && pendingShot) { flyTo(pendingShot, 0); pendingShot = null; }

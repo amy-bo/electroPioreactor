@@ -49,6 +49,11 @@ const b64 = (f, type) => `data:${type};base64,${fs.readFileSync(f).toString('bas
 const web = fs.readFileSync(path.join(here, 'src/web.html'), 'utf8')
   .replace('__LOGO__', b64(path.join(AMY, 'assets/amybo_dark.svg'), 'image/svg+xml'))
   .replace('__FOREST__', b64(path.join(AMY, 'assets/free-forest.jpg'), 'image/jpeg'));
+// photo steps: assets/photos/<key>.(jpg|png); a key with no file simply has no step
+const PHOTO_DIR = path.join(AMY, 'assets/photos'), PHOTOS = {};
+for (const f of fs.existsSync(PHOTO_DIR) ? fs.readdirSync(PHOTO_DIR) : []) {
+  const m = f.match(/^(.+)\.(jpe?g|png)$/i); if (m) PHOTOS[m[1]] = b64(path.join(PHOTO_DIR, f), m[2].toLowerCase() === 'png' ? 'image/png' : 'image/jpeg');
+}
 const cams = fs.existsSync(path.join(here, 'cams.json')) ? fs.readFileSync(path.join(here, 'cams.json'), 'utf8') : '{}';
 
 let html = tpl
@@ -58,6 +63,7 @@ let html = tpl
     `<script type="application/json" id="parts-data">${PARTS}</script>\n` +
     `<script type="application/json" id="extra-data">${JSON.stringify(EXTRA)}</script>\n` +
     `<script type="application/json" id="cams-data">${cams}</script>\n` +
+    `<script type="application/json" id="photos-data">${JSON.stringify(PHOTOS)}</script>\n` +
     `<script type="module">${js}</script>`)
   .replace(/<div id="tip"/, () => web + '\n<div id="tip"');
 fs.writeFileSync(out, html);

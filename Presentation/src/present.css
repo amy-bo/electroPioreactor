@@ -87,3 +87,7 @@ body.idle, body.idle * { cursor: none !important; }
 #menu button.end { flex: 0; color: #9aa3b0; font-size: .9rem; white-space: nowrap; }
 #menu button:hover { background: rgba(135,189,37,.18); color: #fff; }
 body.idle #menu { cursor: none; }
+#photo { position: fixed; inset: 0; z-index: 18; display: grid; place-items: center; background: rgba(9,13,21,.55); opacity: 0; pointer-events: none; transition: opacity .6s ease; }
+#photo.on { opacity: 1; }
+#photo img { max-width: 72vw; max-height: 78vh; border-radius: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,.55); background: #fff; transform: scale(.96); transition: transform .6s ease; }
+#photo.on img { transform: none; }

@@ -9,3 +9,7 @@ One offline HTML file, `AEP0.2 presentation.html`: the amybo.org opening pages, 
 **Build:** `npm ci && node build.mjs`. It reads the AEP0.2 parts from `../Components/Vial Cap/render/renders/Vial Cap viewer.html` and the template next to it, the earlier-version parts from `stl/`, and the logo and forest image from `assets/`.
 
 `shot.sh <step> [WxH]` screenshots one step with vibe-shot (test mode: no shadows or bloom).
+
+## Photo steps
+
+Images in `assets/photos/` are shown full screen over the paused 3D scene. `cylinder-valve`, `blanking-plug` and `thread-sealant` (from the AMYBO Pitch 033 deck) follow the AEP0.2 CO₂ step. A file named `plugin.png` (or `.jpg`) adds a plugin-screenshot step before the final run; with no file there is no step.
