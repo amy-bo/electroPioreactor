@@ -87,7 +87,17 @@ body.idle, body.idle * { cursor: none !important; }
 #menu button.end { flex: 0; color: #9aa3b0; font-size: .9rem; white-space: nowrap; }
 #menu button:hover { background: rgba(135,189,37,.18); color: #fff; }
 body.idle #menu { cursor: none; }
-#photo { position: fixed; inset: 0; z-index: 18; display: grid; place-items: center; background: rgba(9,13,21,.55); opacity: 0; pointer-events: none; transition: opacity .6s ease; }
+#photo { position: fixed; inset: 0; z-index: 18; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .8rem; background: rgba(9,13,21,.55); opacity: 0; pointer-events: none; transition: opacity .6s ease; }
 #photo.on { opacity: 1; }
-#photo img { max-width: 72vw; max-height: 78vh; border-radius: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,.55); background: #fff; transform: scale(.96); transition: transform .6s ease; }
-#photo.on img { transform: none; }
+#photo .card { position: relative; border-radius: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,.55); background: #fff; overflow: hidden; transform: scale(.96); transition: transform .6s ease; }
+#photo.on .card { transform: none; }
+#photo .card .a { display: block; max-width: 72vw; max-height: 78vh; }
+#photo .card .b { display: none; }
+/* Pi morph: a box at the Pi 5's proportions; the Zero 2 W starts at true relative size (65 of 87.5 mm), top-left aligned, and grows into the Pi 5 */
+#photo .card.morph { width: min(72vw, 78vh * 1.527); aspect-ratio: 1.527; padding: 0; }
+#photo .card.morph img { position: absolute; left: 4%; top: 5%; display: block; max-width: none; max-height: none; transition: width 2.4s ease-in-out, opacity 2.4s ease-in-out; }
+#photo .card.morph .a { width: 68.5%; opacity: 1; }
+#photo .card.morph .b { width: 68.5%; opacity: 0; }
+#photo .card.morph.go .a { width: 92%; opacity: 0; }
+#photo .card.morph.go .b { width: 92%; opacity: 1; }
+#photo .credit { font: 12px var(--sl-font); color: rgba(223,230,238,.55); min-height: 1em; }

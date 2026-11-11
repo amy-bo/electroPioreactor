@@ -514,10 +514,19 @@ function liqCfg(name) {
 
 // ---------------------------------------------------------------- photo overlay (images embedded by build.mjs)
 const PHOTOS = JSON.parse(document.getElementById('photos-data')?.textContent || '{}');
+const CREDIT = {
+  pi: 'Raspberry Pi Zero 2 W: Anil Öztas · Raspberry Pi 5: Simon Waldherr · Wikimedia Commons, CC BY 4.0',
+};
 function showPhoto(k) {
-  const el = $('photo'), img = el.querySelector('img');
-  if (k && PHOTOS[k]) { if (img.dataset.k !== k) { img.src = PHOTOS[k]; img.dataset.k = k; } el.classList.add('on'); }
-  else el.classList.remove('on');
+  const el = $('photo'), card = el.querySelector('.card'), a = card.querySelector('.a'), b = card.querySelector('.b');
+  clearTimeout(showPhoto.t);
+  if (!k || (k !== 'pi-morph' && !PHOTOS[k])) { el.classList.remove('on'); return; }
+  const morph = k === 'pi-morph';
+  card.classList.toggle('morph', morph); card.classList.remove('go');
+  a.src = morph ? PHOTOS['pi-zero2w'] : PHOTOS[k]; b.src = morph ? PHOTOS.pi5 : '';
+  el.querySelector('.credit').textContent = morph ? CREDIT.pi : '';
+  el.classList.add('on');
+  if (morph) showPhoto.t = setTimeout(() => card.classList.add('go'), 1600);   // Zero 2 W grows into the Pi 5
 }
 
 // ---------------------------------------------------------------- the story (page: PageUp/PageDown jump points)
@@ -601,7 +610,9 @@ S('a02-lower', (s) => { s.par.drop = 5; });
 S('a02-raise', (s) => { s.par.drop = 0; });
 S('a02-syringe-in', (s) => { show(s, 'syringe'); s.par.syr = 1; s.focus = 'septumPort'; });
 S('a02-syringe-out', (s) => { show(s, 'syringe'); s.par.syr = 0; });
+if (PHOTOS.pi5 && PHOTOS['pi-zero2w']) S('a02-pi', (s) => { hide(s, 'syringe'); s.photo = 'pi-morph'; });
 if (PHOTOS.plugin) S('a02-plugin', (s) => { hide(s, 'syringe'); s.photo = 'plugin'; });
+if (PHOTOS['plugins-offline']) S('a02-plugins-offline', (s) => { hide(s, 'syringe'); s.photo = 'plugins-offline'; });
 S('a02-run', (s) => { hide(s, 'syringe'); s.pulse = true; s.focus = 'vial40'; }, true);
 
 function stateAt(i) { const s = base(); for (let k = 0; k <= i; k++) { s.focus = null; s.focus2 = null; s.flyMs = 0; s.photo = null; s.snap = new Set(); STEPS[k].f(s); } return s; }

@@ -12,4 +12,10 @@ One offline HTML file, `AEP0.2 presentation.html`: the amybo.org opening pages, 
 
 ## Photo steps
 
-Images in `assets/photos/` are shown full screen over the paused 3D scene. `cylinder-valve`, `blanking-plug` and `thread-sealant` (from the AMYBO Pitch 033 deck) follow the AEP0.2 CO₂ step. A file named `plugin.png` (or `.jpg`) adds a plugin-screenshot step before the final run; with no file there is no step.
+Images in `assets/photos/` are shown full screen over the paused 3D scene.
+
+- After the AEP0.2 CO₂ step: `cylinder-valve`, `blanking-plug` and `thread-sealant` (from the AMYBO Pitch 033 deck).
+- Before the final run: `pi-zero2w` grows into `pi5` at true relative size (65 mm to 87.5 mm wide, top-left aligned), then `plugin` (the electroPioreactor job settings) and `plugins-offline` (the plugins installed from the card bundle on a unit without internet).
+- A key with no file has no step.
+
+Pi photos from Wikimedia Commons, CC BY 4.0, credited on the slide: [Raspberry Pi Zero 2 W](https://commons.wikimedia.org/wiki/File:Raspberry_Pi_Zero_2_W_--_2024_--_0008.jpg) by Anil Öztas, [Raspberry Pi 5](https://commons.wikimedia.org/wiki/File:Raspberry_Pi_5.jpg) by Simon Waldherr. Both are cropped to the board.
