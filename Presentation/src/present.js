@@ -530,9 +530,8 @@ function showPhoto(k) {
 }
 
 // ---------------------------------------------------------------- live Saturday poll (public aggregate feed from amybo.org)
-// Events&I poll-results feed (aggregates only; organiser makes it public per poll). POLL_ID is set once eventsandeye names it.
-const POLL_ID = 'saturday';
-const POLL_URL = `https://amybo.org/api/rsvp/poll-results?event=2026-11-13-london&poll=${POLL_ID}`;
+// Events&I poll-results feed: aggregates only, returns the event's poll whose results the organiser made public (404 if none)
+const POLL_URL = 'https://amybo.org/api/rsvp/poll-results?event=2026-11-13-london';
 function showPoll(on) {
   const el = $('poll'); clearInterval(showPoll.t);
   el.classList.toggle('on', !!on);
