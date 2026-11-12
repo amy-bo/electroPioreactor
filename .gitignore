@@ -17,3 +17,13 @@ scratchpad/
 scratch_co2/
 MixedElectroPioreactor/CHANGELOG.md
 MixedElectroPioreactor/Review.md
+
+# local build output and private scratch (not for commit)
+.wrangler/
+build/
+AEP-Plugin/build/
+private-notes/
+landing/dist/
+landing/node_modules/
+site/dist/
+site/node_modules/
