@@ -571,6 +571,75 @@ function renderPoll(d) {
 }
 
 // ---------------------------------------------------------------- the story (page: PageUp/PageDown jump points)
+
+// ---------------------------------------------------------------- dinner roll call
+// The Hawk's Nest, Fri 13 Nov 17:30, 10 seats booked. Tap a name to switch ✓/✗; anyone beyond the seats booked shows "?" until
+// the venue confirms more tables (press + on seats). State lives in this browser only (localStorage), so ticks survive a reload.
+const DINNER_KEY = 'aep-dinner-v1';
+const DINNER_DEFAULT = { seats: 10, people: [
+  ...['Martin', 'Amir', 'Nelly', 'Gerrit', 'Noah', 'Teo', 'Jed', 'Immi', 'Sonja'].map((name) => ({ name, going: true })),
+  ...['Maria Victoria', 'James', 'Dina', 'Angelo', 'Cam', 'Chris', 'Fiona', 'Bingqiao', 'Laura'].map((name) => ({ name, going: false })),
+] };
+let DIN = (() => { try { const d = JSON.parse(localStorage.getItem(DINNER_KEY)); if (d && Array.isArray(d.people)) return d; } catch (e) { /* private window */ } return JSON.parse(JSON.stringify(DINNER_DEFAULT)); })();
+let dinRemoving = false, dinSlot = false;
+const dinSave = () => { try { localStorage.setItem(DINNER_KEY, JSON.stringify(DIN)); } catch (e) { /* ignore */ } };
+function showDinner(on) { $('dinner').classList.toggle('on', !!on); if (on) renderDinner(); }
+function renderDinner() {
+  const el = $('dinner'), going = DIN.people.filter((p) => p.going), seats = DIN.seats;
+  const confirmed = Math.min(going.length, seats), waiting = going.length - confirmed;
+  el.querySelector('.n-going').textContent = confirmed;
+  el.querySelector('.n-seats').textContent = seats;
+  el.querySelector('.n-free').textContent = waiting > 0 ? waiting : seats - going.length;
+  el.querySelector('.l-free').textContent = waiting > 0 ? 'waiting on tables (?)' : 'seats free';
+  el.querySelector('.c-free').classList.toggle('wait', waiting > 0);
+  const list = el.querySelector('.names'); list.textContent = '';
+  const order = [...DIN.people.filter((p) => p.going), ...DIN.people.filter((p) => !p.going)];
+  let n = 0;
+  for (const p of order) {
+    const st = !p.going ? 'no' : (++n > seats ? 'wait' : 'go');
+    const b = document.createElement('button'); b.className = 'who ' + st + (dinRemoving ? ' rm' : '');
+    const m = document.createElement('span'); m.className = 'mk'; m.textContent = dinRemoving ? '−' : st === 'go' ? '✓' : st === 'wait' ? '?' : '✗';
+    const t = document.createElement('span'); t.textContent = p.name;
+    b.append(m, t);
+    b.addEventListener('click', (e) => { e.stopPropagation(); b.blur();
+      if (dinRemoving) DIN.people.splice(DIN.people.indexOf(p), 1); else p.going = !p.going;
+      dinSave(); renderDinner(); });
+    list.append(b);
+  }
+  const add = el.querySelector('.add'); add.textContent = '';
+  if (!dinSlot) {
+    const s = document.createElement('button'); s.className = 'slot'; s.textContent = '+ add a name';
+    s.addEventListener('click', (e) => { e.stopPropagation(); dinSlot = true; renderDinner(); });
+    add.append(s);
+  } else {
+    const i = document.createElement('input'); i.className = 'slotin'; i.placeholder = 'Name, then Enter'; i.autocomplete = 'off';
+    i.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { dinSlot = false; renderDinner(); return; }
+      if (e.key !== 'Enter') return;
+      const name = i.value.trim(); if (!name) return;
+      DIN.people.push({ name, going: true }); dinSave(); renderDinner();
+    });
+    i.addEventListener('blur', () => setTimeout(() => { if (dinSlot && !i.value.trim() && document.activeElement !== i) { dinSlot = false; renderDinner(); } }, 150));
+    add.append(i); i.focus();
+  }
+  el.querySelector('.rm-btn').textContent = dinRemoving ? 'Done' : 'Remove names';
+  el.querySelector('.laura').textContent =
+`Hi Laura
+Could you please change our dinner booking at The Hawk's Nest (reference RX5END5TGMR, Friday 13 November, 17:30) from ${seats} to ${Math.max(going.length, 1)} guests? You can use the "manage reservation" link in the SevenRooms confirmation email, or call them on 020 3780 5193.
+Thanks
+Martin`;
+}
+{ const el = $('dinner');
+  el.addEventListener('click', (e) => e.stopPropagation());
+  const btn = (sel, fn) => el.querySelector(sel).addEventListener('click', (e) => { e.stopPropagation(); e.currentTarget.blur(); fn(); renderDinner(); });
+  btn('.up', () => { DIN.seats++; dinSave(); });
+  btn('.down', () => { if (DIN.seats > 0) DIN.seats--; dinSave(); });
+  btn('.rm-btn', () => { dinRemoving = !dinRemoving; });
+  btn('.reset', () => { if (confirm('Put the list back to the original bookings?')) { DIN = JSON.parse(JSON.stringify(DINNER_DEFAULT)); dinRemoving = false; dinSave(); } });
+  btn('.copy', () => { const txt = el.querySelector('.laura').textContent;
+    navigator.clipboard?.writeText(txt).then(() => flash('Copied the note for Laura'), () => prompt('Copy this:', txt)); });
+}
+
 const STEPS = [];
 const S = (id, f, page = false) => STEPS.push({ id, f, page });
 const base = () => ({ web: 'home', show: new Set(), dz: DZ20, fill: 'empty', liq: 'old', gate: { H: false, O: false, CO2: false }, pulse: false,
@@ -579,6 +648,8 @@ const show = (s, ...n) => n.forEach((x) => s.show.add(x));
 const hide = (s, ...n) => n.forEach((x) => s.show.delete(x));
 const power = (s, on) => { s.gate.H = on; s.gate.O = on; };
 
+// --- Friday dinner roll call (opens the talk; kept on this laptop only)
+S('dinner', (s) => { s.web = 'home'; s.dinner = true; }, true);
 S('home', (s) => { s.web = 'home'; }, true);
 S('strap', (s) => { s.web = 'strap'; }, true);
 for (const w of ['strap-sp', 'strap-sp1', 'strap-sp2', 'strap-all', 'strap-all1']) S(w, (s) => { s.web = w; });
@@ -658,7 +729,7 @@ S('a02-run', (s) => { hide(s, 'syringe'); s.pulse = true; s.focus = 'vial40'; },
 // --- Saturday social: live ranked-poll results from amybo.org (aggregates only)
 S('saturday', (s) => { s.poll = true; s.focus = 'vial40'; }, true);
 
-function stateAt(i) { const s = base(); for (let k = 0; k <= i; k++) { s.focus = null; s.focus2 = null; s.flyMs = 0; s.photo = null; s.poll = false; s.snap = new Set(); STEPS[k].f(s); } return s; }
+function stateAt(i) { const s = base(); for (let k = 0; k <= i; k++) { s.focus = null; s.focus2 = null; s.flyMs = 0; s.photo = null; s.poll = false; s.dinner = false; s.snap = new Set(); STEPS[k].f(s); } return s; }
 
 // ---------------------------------------------------------------- camera
 const CAM_KEY = 'aep-pres-cams-v3';
@@ -769,6 +840,7 @@ function apply(i, instant = false) {
   controls.autoRotate = false; resumeTurn = false;
   showPhoto(s.photo);
   showPoll(s.poll);
+  showDinner(s.dinner);
   if (s.web === null && (!s.photo || instant)) flyTo(nextShot || shot(i), instant ? 0 : (s.flyMs || 1900));
   manualTurn = null;
   pendingShot = s.web === null && s.focus2 && !CAMS[STEPS[i].id + ':2'] ? (() => { const { box, margin, dir } = focusBox(s.focus2); return viewFrom(box, dir, margin * 0.95); })() : (CAMS[STEPS[i].id + ':2'] ? { pos: V3(...CAMS[STEPS[i].id + ':2'].p), target: V3(...CAMS[STEPS[i].id + ':2'].t) } : null);
@@ -862,6 +934,7 @@ function nextPage() { let i = idx + 1; while (i < STEPS.length && !STEPS[i].page
 function prevPage() { let i = idx - 1; while (i > 0 && !STEPS[i].page) i--; if (i >= 0 && i < idx) jump(i); }
 addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target && e.target.closest && e.target.closest('input, textarea')) return;
   const k = e.key;
   if (['ArrowRight', 'ArrowDown', ' ', 'Enter', 'n'].includes(k)) { e.preventDefault(); next(); }
   else if (['ArrowLeft', 'ArrowUp', 'Backspace', 'p'].includes(k)) { e.preventDefault(); prev(); }
@@ -893,11 +966,12 @@ const MENU = $('menu');
 function toggleMenu(on = !MENU.classList.contains('open')) { MENU.classList.toggle('open', on); }
 { const at = (id) => STEPS.findIndex((s) => s.id === id);
   const startOf = (i) => () => { if (i > 0) apply(i - 1, true); apply(i); };
-  const rows = [['Front page', at('home')], ['Sustainable Protein for All', at('strap')], ['Mission statement', at('mission')], ['electroPioreactor.org', at('epo')]];
+  const rows = [['Dinner roll call', at('dinner')], ['Front page', at('home')], ['Sustainable Protein for All', at('strap')], ['Mission statement', at('mission')], ['electroPioreactor.org', at('epo')]];
   const vers = [['MEP', 'mep-vial', 'mep-co2'], ['AEP0.1', 'a01-off', 'a01-gas-out'], ['AEP0.1.1', 'a011-bolts', 'a011-pulse'], ['AEP0.2', 'a02-off', 'a02-run']];
   const add = (label, fn, cls = '') => { const b = document.createElement('button'); b.textContent = label; b.className = cls; b.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(false); fn(); }); return b; };
   for (const [t, i] of rows) { const r = document.createElement('div'); r.className = 'row'; r.append(add(t, () => apply(i, true))); MENU.append(r); }
   for (const [t, a, b] of vers) { const r = document.createElement('div'); r.className = 'row'; r.append(add(t, startOf(at(a))), add('finished', () => jump(at(b)), 'end')); MENU.append(r); }
+  { const r = document.createElement('div'); r.className = 'row'; r.append(add('Saturday: what shall we do?', () => jump(at('saturday')))); MENU.append(r); }
   $('logo').addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
   MENU.addEventListener('click', (e) => e.stopPropagation());
   addEventListener('click', (e) => { if (MENU.classList.contains('open') && !e.target.closest('#menu, #logo')) toggleMenu(false); }, true);
@@ -906,7 +980,7 @@ function toggleMenu(on = !MENU.classList.contains('open')) { MENU.classList.togg
 { let d = null;
   addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') d = { x: e.clientX, y: e.clientY, t: performance.now() }; }, true);
   addEventListener('pointerup', (e) => {
-    if (e.pointerType === 'mouse' || !d || e.target.closest('#vtag, #logo, #menu')) { d = null; return; }
+    if (e.pointerType === 'mouse' || !d || e.target.closest('#vtag, #logo, #menu, #dinner')) { d = null; return; }
     if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 10 && performance.now() - d.t < 400) (e.clientX > innerWidth * 0.35 ? next : prev)();
     d = null;
   }, true); }
