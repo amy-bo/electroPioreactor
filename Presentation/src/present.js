@@ -390,7 +390,8 @@ async function buildScene() {
     const g = new THREE.Group(); g.add(lower, upper);
     anodeParts = { lower, upper, ar, z0: b.min.z, zm, zt, cur: 0 };
     reg('ano02', g, { parent: ride, off: [0, 0, 110], enterMs: 1800 });
-    const sil = mesh(ringGeo(0.5, 2.0, b.min.z + 0.2, zt, 96), silicone);   // 4 mm OD fills the bore: one flat end, 1 mm hole sil.position.set(ax, ay, 0);
+    const sil = mesh(ringGeo(0.5, 2.0, b.min.z + 0.2, zt, 96), silicone);   // 4 mm OD fills the bore: one flat end, 1 mm hole
+    sil.position.set(ax, ay, 0);
     reg('sil02', sil, { parent: ride, off: [0, 0, 105], enterMs: 2600 });
     {
       const f = new THREE.Group();
