@@ -553,21 +553,22 @@ function showPoll(on) {
   load(); showPoll.t = setInterval(load, 10000);
 }
 function renderPoll(d) {
-  // same order as the admin page: who would come, then ranked score, then label
-  const el = $('poll'), opts = (d.options || []).slice().sort((a, b) => (b.willing - a.willing) || (b.score - a.score) || String(a.label).localeCompare(b.label));
-  const max = Math.max(1, d.voters || 0, ...opts.map((o) => o.willing));
+  // ranked by score (Martin: the score and who'd stay at home, not how many would come)
+  const el = $('poll'), opts = (d.options || []).slice().sort((a, b) => (b.score - a.score) || String(a.label).localeCompare(b.label));
+  const max = Math.max(1, ...opts.map((o) => o.score));
   const list = el.querySelector('.bars'); list.textContent = '';
   for (const o of opts) {
     const row = document.createElement('div'); row.className = 'bar';
     const lab = document.createElement('span'); lab.className = 'lab'; lab.textContent = o.label;
     const tr = document.createElement('span'); tr.className = 'track';
-    const fill = document.createElement('i'); fill.style.width = (100 * o.willing / max) + '%'; tr.append(fill);
-    const sc = document.createElement('b'); sc.textContent = o.willing; sc.title = `score ${o.score} · ${o.firstChoices} first choices`;
+    const fill = document.createElement('i'); fill.style.width = (100 * Math.max(0, o.score) / max) + '%'; tr.append(fill);
+    const sc = document.createElement('b'); sc.textContent = o.score;
     row.append(lab, tr, sc); list.append(row);
   }
   if (d.question) el.querySelector('h2').textContent = d.question;
-  el.querySelector('.home').textContent = d.stayingHome ? `${d.stayingHome} would stay at home whatever` : '';
-  el.querySelector('.state').textContent = `${d.voters || 0} voted · live from amy.bo/event`;
+  const h = d.stayingHome || 0;
+  el.querySelector('.stay').textContent = `${h} would stay at home whatever`;
+  el.querySelector('.state').textContent = `score · ${d.voters || 0} voted · live from amy.bo/event`;
 }
 
 // ---------------------------------------------------------------- the story (page: PageUp/PageDown jump points)
@@ -648,7 +649,9 @@ const show = (s, ...n) => n.forEach((x) => s.show.add(x));
 const hide = (s, ...n) => n.forEach((x) => s.show.delete(x));
 const power = (s, on) => { s.gate.H = on; s.gate.O = on; };
 
-// --- Friday dinner roll call (opens the talk; kept on this laptop only)
+// --- Welcome: the amybo.org event header video, looping
+S('welcome', (s) => { s.web = 'home'; s.welcome = true; }, true);
+// --- Friday dinner roll call (kept on this laptop only)
 S('dinner', (s) => { s.web = 'home'; s.dinner = true; }, true);
 S('home', (s) => { s.web = 'home'; }, true);
 S('strap', (s) => { s.web = 'strap'; }, true);
@@ -711,7 +714,7 @@ S('a02-power', (s) => { power(s, true); s.focus = 'bubbles40'; });
 S('a02-bore', (s) => { s.par.hole = 1; s.focus = 'anodeTop'; });
 S('a02-co2-line', (s) => { show(s, 'sil02'); s.focus = 'anodeTop'; });
 S('a02-barb', (s) => { show(s, 'barb02'); s.focus = 'anodeTop'; });
-S('a02-co2', (s) => { s.gate.CO2 = true; s.focus = 'anodeBase'; });
+S('a02-co2', (s) => { s.gate.CO2 = true; s.focus = 'vial40'; s.focus2 = 'anodeBase'; });   // pull out first, then in through the glass (not through the cap)
 // photos over the paused scene: the CO2 train upgrades that are not in the 3D model
 for (const k of ['cylinder-valve', 'blanking-plug', 'thread-sealant']) if (PHOTOS[k]) S('a02-' + k, (s) => { s.photo = k; });
 S('a02-gas1', (s) => { show(s, 'gasL02'); s.focus = 'top40wide'; });
@@ -729,7 +732,7 @@ S('a02-run', (s) => { hide(s, 'syringe'); s.pulse = true; s.focus = 'vial40'; },
 // --- Saturday social: live ranked-poll results from amybo.org (aggregates only)
 S('saturday', (s) => { s.poll = true; s.focus = 'vial40'; }, true);
 
-function stateAt(i) { const s = base(); for (let k = 0; k <= i; k++) { s.focus = null; s.focus2 = null; s.flyMs = 0; s.photo = null; s.poll = false; s.dinner = false; s.snap = new Set(); STEPS[k].f(s); } return s; }
+function stateAt(i) { const s = base(); for (let k = 0; k <= i; k++) { s.focus = null; s.focus2 = null; s.flyMs = 0; s.photo = null; s.poll = false; s.dinner = false; s.welcome = false; s.snap = new Set(); STEPS[k].f(s); } return s; }
 
 // ---------------------------------------------------------------- camera
 const CAM_KEY = 'aep-pres-cams-v3';
@@ -802,7 +805,8 @@ function apply(i, instant = false) {
   let inDelay = out.some((o) => !s.snap.has(o.name)) ? 800 : 0;
   const nextShot = s.web === null && !instant ? shot(i) : null;
   if (nextShot && cur && cur.web === null && (nextShot.pos.distanceTo(camera.position) > 8 || nextShot.target.distanceTo(controls.target) > 4)) inDelay = Math.max(inDelay, 1500);
-  for (const o of inn) { o.t0 = t + inDelay; o.dur = s.snap.has(o.name) ? 0 : o.enterMs; o.from = o.v; end = Math.max(end, o.t0 + o.dur); }
+  // a snapped swap (cap5 -> cap6) must not leave a gap while the camera moves
+  for (const o of inn) { o.t0 = s.snap.has(o.name) ? t : t + inDelay; o.dur = s.snap.has(o.name) ? 0 : o.enterMs; o.from = o.v; end = Math.max(end, o.t0 + o.dur); }
   for (const [k, v] of Object.entries(s.par)) {
     const p = PAR[k] || (PAR[k] = { v, from: v, to: v, t0: 0, dur: 0 });
     if (instant) { p.v = p.from = p.to = v; p.dur = 0; }
@@ -841,6 +845,7 @@ function apply(i, instant = false) {
   showPhoto(s.photo);
   showPoll(s.poll);
   showDinner(s.dinner);
+  { const w = $('welcome'), v = w.querySelector('video'); w.classList.toggle('on', !!s.welcome); if (s.welcome) v.play().catch(() => {}); else v.pause(); }
   if (s.web === null && (!s.photo || instant)) flyTo(nextShot || shot(i), instant ? 0 : (s.flyMs || 1900));
   manualTurn = null;
   pendingShot = s.web === null && s.focus2 && !CAMS[STEPS[i].id + ':2'] ? (() => { const { box, margin, dir } = focusBox(s.focus2); return viewFrom(box, dir, margin * 0.95); })() : (CAMS[STEPS[i].id + ':2'] ? { pos: V3(...CAMS[STEPS[i].id + ':2'].p), target: V3(...CAMS[STEPS[i].id + ':2'].t) } : null);
@@ -966,7 +971,7 @@ const MENU = $('menu');
 function toggleMenu(on = !MENU.classList.contains('open')) { MENU.classList.toggle('open', on); }
 { const at = (id) => STEPS.findIndex((s) => s.id === id);
   const startOf = (i) => () => { if (i > 0) apply(i - 1, true); apply(i); };
-  const rows = [['Dinner roll call', at('dinner')], ['Front page', at('home')], ['Sustainable Protein for All', at('strap')], ['Mission statement', at('mission')], ['electroPioreactor.org', at('epo')]];
+  const rows = [['Welcome', at('welcome')], ['Dinner roll call', at('dinner')], ['Front page', at('home')], ['Sustainable Protein for All', at('strap')], ['Mission statement', at('mission')], ['electroPioreactor.org', at('epo')]];
   const vers = [['MEP', 'mep-vial', 'mep-co2'], ['AEP0.1', 'a01-off', 'a01-gas-out'], ['AEP0.1.1', 'a011-bolts', 'a011-pulse'], ['AEP0.2', 'a02-off', 'a02-run']];
   const add = (label, fn, cls = '') => { const b = document.createElement('button'); b.textContent = label; b.className = cls; b.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(false); fn(); }); return b; };
   for (const [t, i] of rows) { const r = document.createElement('div'); r.className = 'row'; r.append(add(t, () => apply(i, true))); MENU.append(r); }

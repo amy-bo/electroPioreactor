@@ -48,7 +48,10 @@ const js = bundle.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
 const b64 = (f, type) => `data:${type};base64,${fs.readFileSync(f).toString('base64')}`;
 const web = fs.readFileSync(path.join(here, 'src/web.html'), 'utf8')
   .replace('__LOGO__', b64(path.join(AMY, 'assets/amybo_dark.svg'), 'image/svg+xml'))
-  .replace('__FOREST__', b64(path.join(AMY, 'assets/free-forest.jpg'), 'image/jpeg'));
+  .replace('__FOREST__', b64(path.join(AMY, 'assets/free-forest.jpg'), 'image/jpeg'))
+  .replace('__EVENTWEBM__', b64(path.join(AMY, 'assets/video/event-header.webm'), 'video/webm'))
+  .replace('__EVENTVIDEO__', b64(path.join(AMY, 'assets/video/event-header.mp4'), 'video/mp4'))
+  .replace('__EVENTPOSTER__', b64(path.join(AMY, 'assets/video/event-header-poster.jpg'), 'image/jpeg'));   // amybo.org/events/2026-11-13-london header
 // photo steps: assets/photos/<key>.(jpg|png); a key with no file simply has no step
 const PHOTO_DIR = path.join(AMY, 'assets/photos'), PHOTOS = {};
 for (const f of fs.existsSync(PHOTO_DIR) ? fs.readdirSync(PHOTO_DIR) : []) {
