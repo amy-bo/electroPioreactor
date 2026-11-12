@@ -641,6 +641,15 @@ Martin`;
     navigator.clipboard?.writeText(txt).then(() => flash('Copied the note for Laura'), () => prompt('Copy this:', txt)); });
 }
 
+// agenda: highlight the item under way now (UK time) and dim the ones that are over
+function markAgenda() {
+  const now = new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', hour12: false });
+  const rows = [...document.querySelectorAll('.agenda tr')];
+  let cur = -1; rows.forEach((r, i) => { if (r.dataset.t <= now) cur = i; });
+  rows.forEach((r, i) => { r.classList.toggle('past', i < cur); r.classList.toggle('now', i === cur); });
+}
+setInterval(() => { if (document.querySelector('.panel.on[data-panel="agenda"]')) markAgenda(); }, 30000);
+
 const STEPS = [];
 const S = (id, f, page = false) => STEPS.push({ id, f, page });
 const base = () => ({ web: 'home', show: new Set(), dz: DZ20, fill: 'empty', liq: 'old', gate: { H: false, O: false, CO2: false }, pulse: false,
@@ -651,6 +660,8 @@ const power = (s, on) => { s.gate.H = on; s.gate.O = on; };
 
 // --- Welcome: the amybo.org event header video, looping
 S('welcome', (s) => { s.web = 'home'; s.welcome = true; }, true);
+S('alarm', (s) => { s.web = 'home'; s.panel = 'alarm'; }, true);     // fire alarm: Martin talks to it (Sonja corrects)
+S('agenda', (s) => { s.web = 'home'; s.panel = 'agenda'; }, true);   // timings as on amy.bo/event
 // --- Friday dinner roll call (kept on this laptop only)
 S('dinner', (s) => { s.web = 'home'; s.dinner = true; }, true);
 S('home', (s) => { s.web = 'home'; }, true);
@@ -732,7 +743,7 @@ S('a02-run', (s) => { hide(s, 'syringe'); s.pulse = true; s.focus = 'vial40'; },
 // --- Saturday social: live ranked-poll results from amybo.org (aggregates only)
 S('saturday', (s) => { s.poll = true; s.focus = 'vial40'; }, true);
 
-function stateAt(i) { const s = base(); for (let k = 0; k <= i; k++) { s.focus = null; s.focus2 = null; s.flyMs = 0; s.photo = null; s.poll = false; s.dinner = false; s.welcome = false; s.snap = new Set(); STEPS[k].f(s); } return s; }
+function stateAt(i) { const s = base(); for (let k = 0; k <= i; k++) { s.focus = null; s.focus2 = null; s.flyMs = 0; s.photo = null; s.poll = false; s.dinner = false; s.welcome = false; s.panel = null; s.snap = new Set(); STEPS[k].f(s); } return s; }
 
 // ---------------------------------------------------------------- camera
 const CAM_KEY = 'aep-pres-cams-v3';
@@ -845,6 +856,8 @@ function apply(i, instant = false) {
   showPhoto(s.photo);
   showPoll(s.poll);
   showDinner(s.dinner);
+  for (const el of document.querySelectorAll('.panel')) el.classList.toggle('on', el.dataset.panel === s.panel);
+  if (s.panel === 'agenda') markAgenda();
   { const w = $('welcome'), v = w.querySelector('video'); w.classList.toggle('on', !!s.welcome); if (s.welcome) v.play().catch(() => {}); else v.pause(); }
   if (s.web === null && (!s.photo || instant)) flyTo(nextShot || shot(i), instant ? 0 : (s.flyMs || 1900));
   manualTurn = null;
@@ -971,7 +984,7 @@ const MENU = $('menu');
 function toggleMenu(on = !MENU.classList.contains('open')) { MENU.classList.toggle('open', on); }
 { const at = (id) => STEPS.findIndex((s) => s.id === id);
   const startOf = (i) => () => { if (i > 0) apply(i - 1, true); apply(i); };
-  const rows = [['Welcome', at('welcome')], ['Dinner roll call', at('dinner')], ['Front page', at('home')], ['Sustainable Protein for All', at('strap')], ['Mission statement', at('mission')], ['electroPioreactor.org', at('epo')]];
+  const rows = [['Welcome', at('welcome')], ['Fire alarm', at('alarm')], ['Agenda', at('agenda')], ['Dinner roll call', at('dinner')], ['Front page', at('home')], ['Sustainable Protein for All', at('strap')], ['Mission statement', at('mission')], ['electroPioreactor.org', at('epo')]];
   const vers = [['MEP', 'mep-vial', 'mep-co2'], ['AEP0.1', 'a01-off', 'a01-gas-out'], ['AEP0.1.1', 'a011-bolts', 'a011-pulse'], ['AEP0.2', 'a02-off', 'a02-run']];
   const add = (label, fn, cls = '') => { const b = document.createElement('button'); b.textContent = label; b.className = cls; b.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(false); fn(); }); return b; };
   for (const [t, i] of rows) { const r = document.createElement('div'); r.className = 'row'; r.append(add(t, () => apply(i, true))); MENU.append(r); }
