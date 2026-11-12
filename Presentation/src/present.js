@@ -994,14 +994,18 @@ function toggleMenu(on = !MENU.classList.contains('open')) { MENU.classList.togg
   MENU.addEventListener('click', (e) => e.stopPropagation());
   addEventListener('click', (e) => { if (MENU.classList.contains('open') && !e.target.closest('#menu, #logo')) toggleMenu(false); }, true);
 }
-// touch (phone/tablet): tap the right of the screen for next, the left for back; drag still turns the model
+// touch (phone/tablet): swipe left for next, right for back (a quick, mostly sideways flick); tap the right of the screen for
+// next, the left for back. A slow drag still turns the model. Touch events, not pointer events: iOS cancels pointers on gestures.
 { let d = null;
-  addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') d = { x: e.clientX, y: e.clientY, t: performance.now() }; }, true);
-  addEventListener('pointerup', (e) => {
-    if (e.pointerType === 'mouse' || !d || e.target.closest('#vtag, #logo, #menu, #dinner')) { d = null; return; }
-    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 10 && performance.now() - d.t < 400) (e.clientX > innerWidth * 0.35 ? next : prev)();
+  addEventListener('touchstart', (e) => { d = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: performance.now() } : null; }, { capture: true, passive: true });
+  addEventListener('touchend', (e) => {
+    const t = e.changedTouches[0]; if (!d || !t) { d = null; return; }
+    const dx = t.clientX - d.x, dy = t.clientY - d.y, dt = performance.now() - d.t, el = e.target;
     d = null;
-  }, true); }
+    if (el.closest && el.closest('#logo, #menu, input, textarea')) return;
+    if (Math.abs(dx) > Math.max(50, innerWidth * 0.12) && Math.abs(dx) > 1.5 * Math.abs(dy) && dt < 600) { (dx < 0 ? next : prev)(); return; }
+    if (Math.hypot(dx, dy) < 10 && dt < 400 && !(el.closest && el.closest('#vtag, #dinner'))) (t.clientX > innerWidth * 0.35 ? next : prev)();
+  }, { capture: true, passive: true }); }
 // the cursor hides while the presentation runs and comes back when the mouse moves
 { let ct = 0; const wake = () => { document.body.classList.remove('idle'); clearTimeout(ct); ct = setTimeout(() => document.body.classList.add('idle'), 1500); };
   addEventListener('mousemove', wake); addEventListener('mousedown', wake); wake(); }
