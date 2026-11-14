@@ -2,15 +2,16 @@
 //
 //   Home (/)            the Vial Cap 3D viewer as a full-screen hero, with hover labels on the parts
 //                       and a guided tour (wording from Components/Vial Cap/render/callouts.mjs),
-//                       then cards to the content pages.
-//   Content (/<slug>/)  every landing/content/<slug>.md (files starting with "_" are skipped).
-//   Sections            /learn/ /build/ /research/ /about/ list their pages (a content page whose slug
-//                       is the section name replaces the generated index and gets the list appended).
+//                       then cards to the content pages. Its wording is landing/content/home.md.
+//   Content (/<slug>/)  every other landing/content/<slug>.md (files starting with "_" are skipped),
+//                       in the menu in `order`.
 //   Also                404.html, sitemap.xml, robots.txt, _redirects, _headers, og.jpg, favicon.
 //
 // usage (from the repo root):
 //   cd landing && npm install          # once: marked + gray-matter
-//   node landing/build.mjs [--viewer path/to/viewer.html] [--no-strict] [--examples]
+//   node landing/build.mjs [--watch] [--viewer path/to/viewer.html] [--no-strict] [--examples]
+//     --watch       rebuild when a file changes and serve the site at http://localhost:4321,
+//                   reloading the browser after each rebuild (see watch.mjs)
 //     --viewer      defaults to "Components/Vial Cap/render/renders/Vial Cap viewer.html"
 //                   (made by Components/Vial Cap/render/build-viewer.mjs)
 //     --no-strict   report broken internal links / missing repo: paths as warnings, not errors
@@ -25,9 +26,9 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import matter from 'gray-matter';
 import { Marked } from 'marked';
-import { SITE, SECTIONS, AUDIENCE, BRANCH } from './templates/site.mjs';
+import { SITE, BRANCH } from './templates/site.mjs';
 import { esc, head, siteHeader, siteFooter, SITE_JS } from './templates/layout.mjs';
-import { contentPage, sectionPage, notFoundPage } from './templates/page.mjs';
+import { contentPage, notFoundPage } from './templates/page.mjs';
 import { heroHeader, tourMarkup, belowFold } from './templates/home.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -35,6 +36,7 @@ const repo = path.dirname(here);
 const args = process.argv.slice(2);
 const flag = (f) => args.includes(f);
 const opt = (f) => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : undefined; };
+if (flag('--watch')) { const { watch } = await import('./watch.mjs'); await watch(args.filter((a) => a !== '--watch')); }
 const STRICT = !flag('--no-strict');
 const EXAMPLES = flag('--examples');
 const viewerPath = opt('--viewer') || (args[0] && !args[0].startsWith('--') ? args[0] : null)
@@ -50,6 +52,7 @@ const die = (msg) => { console.error('error: ' + msg); process.exit(1); };
 
 // ------------------------------------------------------------------ content
 const RESERVED = new Set(['assets', 'img', '404', 'index', 'favicon.svg', 'og.jpg']);
+let home = null;   // from content/home.md
 const slugify = (s) => String(s).toLowerCase().replace(/<[^>]+>/g, '').replace(/&[a-z0-9#]+;/g, '')
   .replace(/[^\p{L}\p{N}\s-]/gu, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-') || 'section';
 const plain = (html) => html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
@@ -118,20 +121,25 @@ function loadContent() {
     if (RESERVED.has(slug)) die(`content slug "${slug}" is reserved`);
     const { data, content } = matter(fs.readFileSync(path.join(contentDir, f), 'utf8'));
     if (!data.title) die(`${f}: front matter needs a title`);
-    const section = String(data.section || '').trim();
-    if (!SECTIONS[section]) die(`${f}: section must be one of ${Object.keys(SECTIONS).join(', ')} (got "${section}")`);
-    const audience = String(data.audience || 'everyone').trim();
-    if (!AUDIENCE[audience]) die(`${f}: audience must be one of ${Object.keys(AUDIENCE).join(', ')} (got "${audience}")`);
     if (!data.description) problem(`${f}: front matter has no description (used for cards and <meta>)`);
+    if (slug === 'home') {
+      // first paragraph: the intro beside the 3D model; anything after it: shown below the page cards
+      const [first, ...rest] = content.trim().split(/\n\s*\n/);
+      const inline = renderMarkdown(first, slug).html.trim().replace(/^<p>|<\/p>$/g, '');
+      const more = renderMarkdown(rest.join('\n\n'), slug).html
+        .replace(/<h2 id="[^"]*"><a class="anchor"[^>]*>#<\/a>/g, '<h2 class="kicker">');
+      home = { title: String(data.title), strapline: String(data.strapline || ''), button: String(data.button || 'Assembly Video Guide'),
+        description: String(data.description || ''), pagesHeading: String(data.pages_heading || 'Find out more'), intro: inline, more };
+      continue;
+    }
     const { html, headings } = renderMarkdown(content, slug);
     pages.push({
       slug, file: f, title: String(data.title), description: String(data.description || ''),
-      section, audience, order: Number.isFinite(+data.order) ? +data.order : 100, html, headings,
+      order: Number.isFinite(+data.order) ? +data.order : 100, html, headings,
     });
   }
-  const bySec = (a, b) => Object.keys(SECTIONS).indexOf(a.section) - Object.keys(SECTIONS).indexOf(b.section)
-    || a.order - b.order || a.title.localeCompare(b.title);
-  return pages.sort(bySec);
+  if (!home) die('landing/content/home.md is missing (the home page wording)');
+  return pages.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
 }
 
 // ------------------------------------------------------------------ viewer (home hero)
@@ -172,23 +180,20 @@ function loadViewer() {
 function homePage({ pages, callouts }) {
   const base = '';
   const viewer = loadViewer();
-  const has = (s) => pages.some((p) => p.slug === s);
-  const learnHref = has('how-it-works') ? '/how-it-works/' : '#explore';
+  const learnHref = pages.length ? `/${pages[0].slug}/` : '#explore';
   let body = viewer.body
-    .replace(/<header class="title">[\s\S]*?<\/header>/, () => heroHeader({ base, learnHref }))
+    .replace(/<header class="title">[\s\S]*?<\/header>/, () => heroHeader({ base, learnHref, home }))
     // the site's Dark / Light / Auto switch replaces the viewer's own white-background toggle
     .replace(/\s*<button[^>]*id="whiteBtn"[^>]*>[\s\S]*?<\/button>/, '')
     .replace(/<div class="view-wrap">/, () => `<button class="tour-btn" id="tourBtn" type="button"><span aria-hidden="true">▶</span> Tour</button>\n      <div class="view-wrap">`)
     .replace(/<div id="tip"/, () => `${tourMarkup()}\n  <a class="scroll-cue" href="#explore" aria-label="Scroll to explore the project"><span>Explore</span><i aria-hidden="true"></i></a>\n\n  <div id="tip"`);
-  const learn = pages.filter((p) => p.section === 'learn');
-  const build = pages.filter((p) => p.section === 'build' || p.section === 'research');
-  const description = 'The Aseptic electroPioreactor (AEP0.2): open hardware that grows hydrogen-oxidising bacteria on CO₂ with in-culture electrolysis. Interactive 3D model, how it works, and the assembly video guide.';
+  const description = home.description;
   return `${head({ title: '', description, urlPath: '/', base, extra: `${viewer.style}\n<link rel="stylesheet" href="assets/home.css">` })}
 <body class="home-body">
 <a class="skip" href="#explore">Skip the 3D model</a>
 ${siteHeader({ base, overHero: true })}
 ${body}
-${belowFold({ learn, build, base, aboutHref: has('about') ? '/about/' : null })}
+${belowFold({ pages, home })}
 ${siteFooter({ base, built })}
 <script type="application/json" id="callouts-data">${JSON.stringify(callouts).replace(/</g, '\\u003c')}</script>
 <script src="assets/home.js" defer></script>
@@ -202,7 +207,6 @@ ${SITE_JS(base)}
 function checkLinks(files, pages) {
   const ok = new Set(['/', '/404.html', '/sitemap.xml', '/robots.txt', '/og.jpg', '/favicon.svg']);
   for (const p of pages) ok.add(`/${p.slug}/`);
-  for (const s of Object.keys(SECTIONS)) ok.add(`/${s}/`);
   for (const [file, html] of files) {
     for (const m of html.matchAll(/(?:href|src)="(\/[^"#?]*)/g)) {
       const u = m[1];
@@ -228,6 +232,7 @@ const callouts = {
 };
 
 const pages = loadContent();
+SITE.nav = pages.map((p) => ({ slug: p.slug, href: `/${p.slug}/`, label: p.title }));
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 // copy by read/write (not cpSync): on some mounted file systems cpSync carries odd modes (e.g. --w-------)
@@ -255,20 +260,11 @@ const write = (rel, html) => { files.set(rel, html); };
 // rewrite site-root image paths in content to page-relative ones so dist/ also works from disk
 const relImgs = (html, base) => html.replace(/src="\/(img\/[^"]+)"/g, `src="${base}$1"`);
 
-const secPages = (id) => pages.filter((p) => p.section === id);
-for (const p of pages) {
-  const sib = secPages(p.section).filter((q) => q.slug !== p.section);
-  const i = sib.indexOf(p);
-  const children = p.slug === p.section ? sib : [];
-  const html = contentPage({ page: p, prev: i > 0 ? sib[i - 1] : null, next: i >= 0 && i < sib.length - 1 ? sib[i + 1] : null, built, children });
-  files.set(`${p.slug}/index.html`, html);
-}
-for (const id of Object.keys(SECTIONS)) {
-  if (pages.some((p) => p.slug === id)) continue;
-  files.set(`${id}/index.html`, sectionPage({ id, pages: secPages(id), built }));
-}
+pages.forEach((p, i) => {
+  files.set(`${p.slug}/index.html`, contentPage({ page: p, prev: pages[i - 1] || null, next: pages[i + 1] || null, built }));
+});
 files.set('index.html', homePage({ pages, callouts }));
-files.set('404.html', notFoundPage({ built, pages: pages.filter((p) => p.audience !== 'expert').slice(0, 6) }));
+files.set('404.html', notFoundPage({ built, pages }));
 
 // image references must exist (checked against the copied files, before rewriting)
 for (const [file, html] of files) {
@@ -285,14 +281,23 @@ for (const [rel, html] of files) {
 }
 
 // sitemap, robots, Cloudflare Pages config
-const urls = ['/', ...Object.keys(SECTIONS).filter((s) => !pages.some((p) => p.slug === s)).map((s) => `/${s}/`), ...pages.map((p) => `/${p.slug}/`)];
+const urls = ['/', ...pages.map((p) => `/${p.slug}/`)];
 fs.writeFileSync(path.join(out, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map((u) => `  <url><loc>${SITE.origin}${u}</loc><lastmod>${built}</lastmod></url>`).join('\n')}
 </urlset>
 `);
 fs.writeFileSync(path.join(out, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE.origin}/sitemap.xml\n`);
-fs.writeFileSync(path.join(out, '_redirects'), `/guide ${SITE.guide} 302\n/AEP ${SITE.guide} 301\n/AEP/* https://docs.electropioreactor.org/AEP/:splat 301\n`);
+// addresses of the pages this site had before it was shortened (November 2026)
+const MOVED = {
+  'what-it-is': ['learn', 'what-is-hob', 'how-it-works', 'lessons', 'faq', 'glossary'],
+  'get-one': ['build', 'variants', 'aep', 'mep', 'specifications', 'software'],
+  research: ['media', 'gas-model'],
+  about: ['history', 'open-source'],
+};
+const moved = Object.entries(MOVED).filter(([to]) => pages.some((p) => p.slug === to))
+  .flatMap(([to, from]) => from.filter((f) => !pages.some((p) => p.slug === f)).map((f) => `/${f} /${to}/ 301\n/${f}/ /${to}/ 301\n`)).join('');
+fs.writeFileSync(path.join(out, '_redirects'), `/guide ${SITE.guide} 302\n/AEP ${SITE.guide} 301\n/AEP/* https://docs.electropioreactor.org/AEP/:splat 301\n${moved}`);
 fs.writeFileSync(path.join(out, '_headers'), `/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

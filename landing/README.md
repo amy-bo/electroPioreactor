@@ -36,24 +36,34 @@ npx wrangler pages deploy landing/dist --project-name electropioreactor-home --b
 
 ## Content pages
 
-Each `landing/content/<slug>.md` becomes `/<slug>/`. Files starting with `_` are skipped.
+All the wording is Markdown in `landing/content/`. There are five files, one per page:
+
+| File | Page |
+|---|---|
+| `home.md` | `/`: the title, strapline, button and intro beside the 3D model, and the text below the page cards |
+| `what-it-is.md` | `/what-it-is/` |
+| `get-one.md` | `/get-one/` |
+| `research.md` | `/research/` |
+| `about.md` | `/about/` |
+
+To edit with a live preview, run `node landing/build.mjs --watch` from the repo root and open
+<http://localhost:4321>. Save a file and the page reloads.
 
 ```markdown
 ---
-title: Short page title
-description: One sentence, used for <meta description> and the cards on the home page.
-section: learn | build | research | about
-audience: newcomer | expert | everyone
+title: Short page title (also its name in the menu)
+description: One sentence, used under the title, for <meta description> and on the home page card.
 order: 10
 ---
 Markdown body (GitHub-flavoured). Start at `##`; the title is the page's only h1.
 ```
 
-- **Sections.** `/learn/`, `/build/`, `/research/` and `/about/` list their pages by `order`.
-  A content page whose slug is a section name (`research.md`, `about.md`) is that section's page,
-  and gets the list of the section's other pages added at the end.
-- **Home page cards.** `learn` pages appear under "New to this?"; `build` and `research` pages under
-  "For researchers and builders".
+- **Menu.** Every page except `home.md` is in the menu, sorted by `order`. A new `<slug>.md` becomes
+  `/<slug>/` and appears there. Files starting with `_` are skipped.
+- **Home.** `home.md` also takes `strapline`, `button` and `pages_heading`. Its first paragraph is the
+  intro beside the 3D model; anything after it is shown below the page cards.
+- **Old addresses.** The site had 17 pages until November 2026. Their addresses redirect to the page
+  that replaced them (`MOVED` in `build.mjs`).
 - **Links.** Other pages: `/slug/` (the build fails on a link to a page that does not exist).
   Repository files: `repo:Media/MediaFormulation.md` or `repo:Components/Vial%20Cap/`, rewritten to
   GitHub on the branch set in `templates/site.mjs` (`BRANCH`); the build fails if the path does not
@@ -63,17 +73,17 @@ Markdown body (GitHub-flavoured). Start at `##`; the title is the page's only h1
 - **Images.** Put them in `landing/content/img/` and write `![Alt text](/img/name.png)`. Keep each
   under about 300 KB.
 - **Notes for editors.** HTML comments (`<!-- source: ... -->`) are removed from the output.
-- Pages with three or more `##` headings get a table of contents; every page gets previous/next
-  links within its section.
+- Every page gets previous/next links to its neighbours in the menu.
 
 ## Files
 
 | Path | What |
 |---|---|
 | `build.mjs` | the generator |
-| `templates/site.mjs` | site constants: URLs, branch, sections, audiences |
+| `watch.mjs` | `--watch`: rebuild on save, local preview server, browser reload |
+| `templates/site.mjs` | site constants: URLs, branch |
 | `templates/layout.mjs` | `<head>`, header, footer |
-| `templates/page.mjs` | content, section and 404 pages |
+| `templates/page.mjs` | content and 404 pages |
 | `templates/home.mjs` | home hero overlay, hotspots panel, sections below the hero |
 | `assets/` | CSS, JS and the AMYBO logo, copied to `dist/assets/` |
 | `static/` | copied to the site root as is (`og.jpg`, the share image) |

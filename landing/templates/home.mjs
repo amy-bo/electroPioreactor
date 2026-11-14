@@ -6,15 +6,13 @@ import { card } from './page.mjs';
 
 const ext = '<span class="ext" aria-hidden="true">↗</span>';
 
-// First sentence is Martin's, from the AEP0.2 explainer.
-export const INTRO = 'A sealed, open-source electro-bioreactor that uses renewable electricity to grow protein-rich bacteria from water and carbon dioxide. It\u2019s built on the <a href="https://pioreactor.com">Pioreactor</a>, and the designs, bill of materials and assembly guide are all on GitHub.';
-
-export function heroHeader({ base, learnHref }) {
+// All wording comes from landing/content/home.md (`home`: title, strapline, button, intro, more).
+export function heroHeader({ base, learnHref, home }) {
   return `<header class="title landing">
-      <h1>Aseptic electroPioreactor</h1>
-      <p class="sub">AEP0.2 · open hardware for hydrogen-oxidising bacteria</p>
-      <p class="hero-intro">${INTRO}</p>
-      <a class="cta" href="${SITE.guide}">Assembly Video Guide <span aria-hidden="true">→</span></a>
+      <h1>${esc(home.title)}</h1>
+      <p class="sub">${esc(home.strapline)}</p>
+      <p class="hero-intro">${home.intro}</p>
+      <a class="cta" href="${SITE.guide}">${esc(home.button)} <span aria-hidden="true">→</span></a>
       <ul class="hero-links">
         <li><a href="${learnHref}">Learn how it works</a></li>
         <li><a href="${SITE.github}">GitHub ${ext}</a></li>
@@ -39,23 +37,19 @@ export function tourMarkup() {
   </section>`;
 }
 
-export function belowFold({ learn, build, base, aboutHref }) {
-  const group = (id, kicker, title, blurb, pages, more) => `<section class="home-group" aria-labelledby="${id}">
-      <div class="home-group-head">
-        <p class="kicker">${kicker}</p>
-        <h2 id="${id}">${title}</h2>
-        <p>${blurb}</p>
-      </div>
-      ${pages.length ? `<ul class="cards">${pages.map(card).join('')}</ul>` : '<p class="muted">Pages coming soon.</p>'}
-      ${more || ''}
-    </section>`;
+export function belowFold({ pages, home }) {
   return `<main id="explore" class="home-main">
   <div class="home-in">
     <section class="home-intro-mobile" aria-label="Introduction">
-      <p>${INTRO}</p>
+      <p>${home.intro}</p>
     </section>
-    ${group('g-new', 'Learn', 'The basics', 'What hydrogen-oxidising bacteria are, why we grow them with electricity, and how the vial works.', learn)}
-    ${group('g-pro', 'Build and research', 'The detail', 'Specs, the gas and electrolysis model, media, software and variants, linked to the repository and the assembly guide.', build, `<p class="group-more"><a class="btn btn-primary" href="${SITE.guide}">Open the Assembly Video Guide <span aria-hidden="true">→</span></a></p>`)}
+    <section class="home-group" aria-labelledby="g-pages">
+      <div class="home-group-head">
+        <h2 id="g-pages">${esc(home.pagesHeading)}</h2>
+      </div>
+      <ul class="cards">${pages.map(card).join('')}</ul>
+      <p class="group-more"><a class="btn btn-primary" href="${SITE.guide}">${esc(home.button)} <span aria-hidden="true">→</span></a></p>
+    </section>
     <section class="key-links" aria-labelledby="g-links">
       <h2 id="g-links" class="sr-only">Key links</h2>
       <ul>
@@ -66,10 +60,7 @@ export function belowFold({ learn, build, base, aboutHref }) {
         <li><a href="${SITE.bibliography}"><b>Bibliography</b><span>HOB fermentation by in-culture electrolysis</span></a></li>
       </ul>
     </section>
-    <section class="partners" aria-labelledby="g-partners">
-      <h2 id="g-partners" class="kicker">Funding and partners</h2>
-      <p>The Aseptic electroPioreactor is funded by <a href="${SITE.carma}">CARMA Hub Pump Priming</a>, led by <a href="${SITE.imperial}">Dr Sonja Billerbeck</a> (Imperial College London) and <a href="${SITE.edinburgh}">Prof. Chris French</a> (University of Edinburgh), with <a href="${SITE.amybo}">AMYBO</a> as designer and trainer and <a href="${SITE.labcrafter}">LabCrafter</a> as the UK vendor.${aboutHref ? ` <a href="${aboutHref}">More about the project</a>.` : ''}</p>
-    </section>
+    ${home.more ? `<section class="partners prose-lite">${home.more}</section>` : ''}
   </div>
 </main>`;
 }

@@ -1,5 +1,5 @@
 // Site-wide constants. Change the branch here when the default branch moves (repo: links follow it).
-export const BRANCH = 'AEP02';
+export const BRANCH = 'main';
 export const SITE = {
   name: 'electroPioreactor',
   longName: 'Aseptic electroPioreactor AEP0.2',
@@ -19,17 +19,6 @@ export const SITE = {
   edinburgh: 'https://biology.ed.ac.uk/chris-french-laboratory',
   labcrafter: 'https://labcrafter.co.uk',
   pioreactor: 'https://pioreactor.com',
-  // filled in by build.mjs (a section index, or a content page whose slug is the section name)
-  sectionHref: { learn: '/learn/', build: '/build/', research: '/research/', about: '/about/' },
-};
-export const SECTIONS = {
-  learn: { title: 'Learn', blurb: 'What the electroPioreactor is, why hydrogen-oxidising bacteria matter, and how the parts work together.' },
-  build: { title: 'Build', blurb: 'Specifications, variants, software, media and how to get or build one. Links into the assembly video guide.' },
-  research: { title: 'Research', blurb: 'The gas and electrolysis model, results, past projects and the literature behind the design.' },
-  about: { title: 'About', blurb: 'Who makes the electroPioreactor, who funds it, and how the project is shared.' },
-};
-export const AUDIENCE = {
-  newcomer: { label: 'Basics', long: 'The basics' },
-  expert: { label: 'In depth', long: 'In depth' },
-  everyone: { label: 'For everyone', long: 'For everyone' },
+  // filled in by build.mjs from landing/content/*.md, in `order`: [{ slug, href, label }]
+  nav: [],
 };
