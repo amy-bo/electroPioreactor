@@ -1,0 +1,9 @@
+id: led-cap
+name: "LED cap"
+kind: kitted
+design_version: 1.0.0
+master_format: none
+source_files: []
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Kit sub-item of BoM.md item 1.1, named in Assembly/README.md Method step 2.4 ('1 LED cap') (AEP0.2)."}

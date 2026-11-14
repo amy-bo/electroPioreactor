@@ -1,0 +1,16 @@
+id: gl45-cap
+name: "GL45 caps"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {material: "polypropylene", ports_for_tubing_od_in: "1/8", autoclavable: true}
+derived_files: []
+supplier: {name: "LabCrafter", url: "https://labcrafter.co.uk/products/gl45-media-bottle-cap-with-luer-lock-connectors"}
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 1.10 (Critical; AEP0.2). Port count and bore must match the tubing runs. Supplier as linked in Components/README.md (GL45 cap with luer lock connectors)."}
+receipt:
+  per: unit
+  qty: 2
+  from: [labcrafter, pioreactor, diy]
+  note: "Multi-port GL45 cap with luer connectors, one per bottle. DRAFT: in a Pioreactor-direct order only if ordered as an accessory."

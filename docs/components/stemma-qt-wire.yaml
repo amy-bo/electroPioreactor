@@ -1,0 +1,10 @@
+id: stemma-qt-wire
+name: "50 mm STEMMA-QT wire"
+kind: kitted
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {length_mm: 50}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Kit sub-item of BoM.md item 1.1, named in Assembly/README.md Method step 2.4 (AEP0.2)."}

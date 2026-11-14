@@ -1,0 +1,10 @@
+id: stainless-steel-cathode-60mm
+name: "Stainless steel cathode, 60 mm long, 6 mm diameter"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {length_mm: 60, diameter_mm: 6, form: "round bar"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-25, note: "MEP cathode (Components/README.md: 6 mm diameter, 60 mm total length). Black lead."}

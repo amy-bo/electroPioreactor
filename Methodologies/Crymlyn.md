@@ -6,11 +6,11 @@ A home-lab protocol for enriching hydrogen-oxidising bacteria (HOB) from environ
 
 ## Medium
 
-Two formulation options are presented. Option A is [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media), the medium used in the CARMA Hub project by Imperial College and University of Edinburgh, adapted only where necessary for home accessibility. Option B is a potential literature synthesis that is more accessible to home users who cannot source NaH₂PO₄·2H₂O, but departs more from [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media) and results will not be directly comparable with CARMA Hub experiments. For results directly comparable with CARMA Hub experiments, use Option A.
+Two formulation options are presented. Option A is [AM002 (formerly MC02)](https://github.com/amy-bo/electroPioreactor/tree/main/Media), the medium used in the CARMA Hub project by Imperial College and University of Edinburgh, adapted only where necessary for home accessibility. Option B is a potential literature synthesis that is more accessible to home users who cannot source NaH₂PO₄·2H₂O, but departs more from [AM002](https://github.com/amy-bo/electroPioreactor/tree/main/Media) and results will not be directly comparable with CARMA Hub experiments. For results directly comparable with CARMA Hub experiments, use Option A.
 
 ---
 
-### Option A – [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media) (recommended for CARMA Hub compatibility)
+### Option A – [AM002](https://github.com/amy-bo/electroPioreactor/tree/main/Media) (recommended for CARMA Hub compatibility)
 
 #### Mesonutrients (per litre final medium)
 
@@ -23,7 +23,7 @@ Two formulation options are presented. Option A is [MC02](https://github.com/amy
 | Magnesium sulphate heptahydrate | MgSO₄·7H₂O | 0.800 g |
 | Ammonium sulphate | (NH₄)₂SO₄ | 0.943 g |
 
-This gives a phosphate buffer molarity of ~40 mM and a conductivity of ~6.1 mS/cm, consistent with Sydow et al. (2017) optimal medium. MgSO₄ at 0.800 g/L follows Sydow et al. (2017) and [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media); Givirovskiy et al. (2019) use 0.5 g/L. Either is defensible; 0.800 g/L is used here for [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media) consistency.
+This gives a phosphate buffer molarity of ~40 mM and a conductivity of ~6.1 mS/cm, consistent with Sydow et al. (2017) optimal medium. MgSO₄ at 0.800 g/L follows Sydow et al. (2017) and [AM002](https://github.com/amy-bo/electroPioreactor/tree/main/Media); Givirovskiy et al. (2019) use 0.5 g/L. Either is defensible; 0.800 g/L is used here for [AM002](https://github.com/amy-bo/electroPioreactor/tree/main/Media) consistency.
 
 > **CaSO₄ preparation note:** CaSO₄·2H₂O (gypsum) has very low solubility (~2.4 g/L at 25°C). At 0.097 g/L the working concentration is well within this limit, but a concentrated stock is not feasible. Add CaSO₄·2H₂O directly to the final medium volume rather than preparing a stock solution. Home source: homebrew/winemaking supplier (food-grade gypsum).
 
@@ -36,7 +36,7 @@ This gives a phosphate buffer molarity of ~40 mM and a conductivity of ~6.1 mS/c
 | Iron(II) sulphate heptahydrate | FeSO₄·7H₂O | 1.50 g |
 | Hydrochloric acid (0.1 M) | HCl | to 100 mL |
 
-H₂SO₄ at 0.2 M was chosen as the for MC02 as it has no chloride, no carbon source, lower vapour pressure than HCl, and longer shelf life. But H₂SO₄ is much less accessible domestically and more hazardous than the HCl used by Sydow et al. It should be avoided for home use.
+H₂SO₄ at 0.2 M was chosen as the for AM002 as it has no chloride, no carbon source, lower vapour pressure than HCl, and longer shelf life. But H₂SO₄ is much less accessible domestically and more hazardous than the HCl used by Sydow et al. It should be avoided for home use.
 
 HCl (sold as brick acid/patio cleaner at B&Q, typically 30–36%) may be more appropriate. It introduces a small chloride contribution, but at this dilution (~1.4 mg/L final concentration) it is negligible. HCl is Sydow et al.'s original acidulant, used by the Holtmann lab to this day. 
 
@@ -76,11 +76,11 @@ Givirovskiy et al. (2019) add 5.45 g/L Na₂SO₄ to increase medium conductivit
 
 ### Option B – Potential literature synthesis
 
-This option is more accessible to home users who cannot source NaH₂PO₄·2H₂O, but departs more from [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media) and results will not be directly comparable with CARMA Hub experiments.
+This option is more accessible to home users who cannot source NaH₂PO₄·2H₂O, but departs more from [AM002](https://github.com/amy-bo/electroPioreactor/tree/main/Media) and results will not be directly comparable with CARMA Hub experiments.
 
 #### Key differences from Option A
 
-| Parameter | Option A ([MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media)) | Option B | Trade-off |
+| Parameter | Option A ([AM002](https://github.com/amy-bo/electroPioreactor/tree/main/Media)) | Option B | Trade-off |
 |---|---|---|---|
 | Phosphate buffer | Na-based (NaH₂PO₄·2H₂O + Na₂HPO₄) | K/Na mixed (KH₂PO₄ + Na₂HPO₄) | Option B raises K⁺ from ~2 mM to ~20 mM. Dinges et al. (2024) show that neither all-K⁺ nor all-Na⁺ buffer performs as well as a mixed buffer for *C. necator*; 20 mM K⁺ is a meaningful departure from Sydow's optimum, though a second-order concern for an enrichment culture of unknown composition |
 | Potassium source | K₂SO₄ (0.17 g/L, separate) | Via KH₂PO₄ (excess) | Option A gives tighter control of K⁺ |
@@ -160,9 +160,9 @@ Fill the AEP0.1 to working volume (~14–15 mL with electrodes present). Before 
 
 Inoculate with ~0.7 mL (~5% v/v) of fen water with a small amount of interface sediment suspended within it.
 
-**Begin electrolysis immediately.** In the AEP0.1, electrolysis is driven by LED D – the fourth LED channel on the Pioreactor HAT, repurposed to drive electrolysis current rather than its default illumination function. Set LED D power to 2.5%, or the lowest level that produces consistent visible bubble formation on both electrodes – whichever is higher. Record the resulting voltage and current using the multimeter. LED D power percentage is not transferable between different electrode configurations; voltage and current are the transferable reference values for anyone replicating this protocol with different hardware.
+**Begin electrolysis immediately.** In the AEP0.1, electrolysis is driven by LED D – the fourth LED channel on the Pioreactor HAT, repurposed to drive electrolysis current rather than its default illumination function. Run it with the **electroPioreactor** job, never by setting LED D by hand: only the job clamps electrolysis power to 10 % to protect the electrodes. Start **electroPioreactor** from **Activities** on the unit's **Manage** screen and, in the job's **Settings** panel, set **Electrolysis Power** to 2.5 % (the `config.ini` default), or the lowest level that produces consistent visible bubble formation on both electrodes – whichever is higher. Leave **Electrolysis OFF Time** at 0 s (continuous electrolysis). Record the resulting voltage and current using the multimeter. The Electrolysis Power percentage is not transferable between different electrode configurations; voltage and current are the transferable reference values for anyone replicating this protocol with different hardware.
 
-**Begin CO₂ sparging immediately.** CO₂ sparging serves two simultaneous purposes: supplying inorganic carbon for autotrophic growth, and purging excess O₂ from the headspace. Water electrolysis produces H₂ and O₂ at a 2:1 ratio but HOB consume them at approximately 4:1, so O₂ will accumulate in excess without active management. However, over-sparging will strip dissolved H₂ and CO₂ from the medium, directly limiting HOB growth. Use Pous et al. (2022) as the reference point: **twice-weekly 10-minute CO₂ flushes**. At higher electrolysis currents, O₂ may accumulate faster than this regime can clear in the AEP0.1's small working volume; if OD stalls or declines unexpectedly, increase to daily sparging as the first diagnostic step.
+**Begin CO₂ sparging immediately.** CO₂ sparging serves two simultaneous purposes: supplying inorganic carbon for autotrophic growth, and purging excess O₂ from the headspace. Water electrolysis produces H₂ and O₂ at a 2:1 ratio but HOB consume them at approximately 4:1, so O₂ will accumulate in excess without active management. However, over-sparging will strip dissolved H₂ and CO₂ from the medium, directly limiting HOB growth. Use Pous et al. (2022) as the reference point: **twice-weekly 10-minute CO₂ flushes**. At higher electrolysis currents, O₂ may accumulate faster than this regime can clear in the AEP0.1's small working volume; if OD stalls or declines unexpectedly, increase to daily sparging as the first diagnostic step. Set the sparging in the electroPioreactor job's **Settings** panel: **Sparging Interval** 5040 min (twice weekly; 1440 min for daily) and **Sparging Duration** 600 s. The job pauses electrolysis during each sparge.
 
 Set stir rate to **500 rpm** initially. Note the rate used – if results are unexpected, stir rate is a variable to revisit.
 

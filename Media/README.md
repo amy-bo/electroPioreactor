@@ -1,5 +1,7 @@
 # Medium for HOB fermentation with in-culture electrolysis
 
+**Names.** AMYBO media are numbered AM001, AM002, AM003… (AMYBO Media, said "Amo 03"): the general AMYBO minimal medium line for HOB lab work and environmental enrichments. A medium formulated for a particular task or organism gets its own name. This document describes **AM003**, Teo Reid's final medium and the current recommendation. AM002 (formerly MC02) is the earlier formulation; AM001 (formerly MC01) acidified only the iron stock, and its mineral stock precipitated. Every medium's full recipe and the chemistry calculated from it are side by side on the **Media** sheet of `electroPioreactorGasModel.xlsx`; add a medium there by typing a new column.
+
 ## Background
 
 This document details our proposed total nutrients for hydrogen-oxidising bacteria (HOB) fermentation.  
@@ -27,7 +29,7 @@ Hydrogen should be the limiting nutrient, so its production will be maximised wi
 
 Oxygen is produced to excess at a rate that will cause accumulation that limits electrolysis unless purged by carbon dioxide.
 
-The carbon dioxide purge rate will be set with this, and hydrogen combustion risk reduction, in mind.  [See calculations](https://docs.google.com/spreadsheets/d/1Aeqz_CXZz-brBo-cXe8sFfjbX8h42vEcrhPH9bGLhIA/edit?gid=0#gid=0).
+The carbon dioxide purge rate is set with this, and hydrogen combustion risk reduction, in mind. The rate is derived in `electroPioreactorGasModel.xlsx`, which ships alongside this document; it is set per reactor from the measured oxygen-evolution rate and the sparge schedule rather than fixed here.
 
 ## Mesonutrients
 

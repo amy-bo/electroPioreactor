@@ -1,6 +1,6 @@
 # MEP Calibration (Edinburgh MSc)
 
-Six things to set up per unit before any experiment: stirring (PWM↔RPM), peristaltic pumps, OD600 (cell-density curve vs photodiode signal), vial level, CO₂ flow rate, and electrolysis (Voltage across electrodes and Pioreactor Controlled Current through electrodes at 2.5 % LED D). Run on ed04 and ed05 in turn.
+Six things to set up per unit before any experiment: stirring (PWM↔RPM), peristaltic pumps, OD600 (cell-density curve vs photodiode signal), vial level, CO₂ flow rate, and electrolysis (Voltage across electrodes and Pioreactor Controlled Current through electrodes at 2.5 % electrolysis power, driven by the electroPioreactor job). Run on ed04 and ed05 in turn.
 
 Pre-requisite: both units assembled per [Assembly](Assembly-EdMSc26.md), and reachable on the network.
 
@@ -58,12 +58,14 @@ The FZone regulator has a fixed, non-adjustable outlet pressure. The only variab
 
 If you cannot get to the target flow within sensible needle-valve travel, the problem is one of: (a) needle-valve creep, (b) a kinked line, (c) a leak at one of the Loctite-577 joints. If you suspect (c) try pipetting washing-up liquid in water at the joints and watching for bubbles.
 
-## 6. Electrolysis (V and I at 2.5 % LED D)
+## 6. Electrolysis (V and I at 2.5 % electrolysis power)
 
-1. With the bicarbonate-filled vial seated in the Pioreactor, set LED channel D to **2.5 %** in the web UI.
+Drive the electrodes from the electroPioreactor job, never by setting LED channel D by hand: only the job clamps electrolysis power to 10 % to protect the electrodes.
+
+1. With the bicarbonate-filled vial seated in the Pioreactor and the electrodes on LED channel D (catch upwards), start **electroPioreactor** from **Activities** on the unit's **Manage** screen. In the job's **Settings** panel check **Electrolysis Power** is **2.5 %** (the `config.ini` default), and set **Sparging Interval** long (e.g. 600 min) so no sparge interrupts the measurement.
 2. Within 30 s you should see bubbles on both electrodes. The cathode (stainless steel, black lead) should bubble at roughly twice the rate of the anode (Pt-plated Ti, red lead). This is the H₂:O₂ molar 2:1 ratio you would expect.
 3. Measure voltage across the electrodes with a multimeter on the DC volts range, probes on the two ring-crimp terminals. Record V on the calibration sheet.
 4. Measure current through the electrodes by breaking one electrode lead, putting the multimeter inline on the DC current range (mA), and reconnecting. Record I on the calibration sheet.
-5. Set LED D back to 0 % at the end of the check.
+5. Stop **electroPioreactor** at the end of the check (this turns LED channel D off). If you changed any setting, toggle **Reset to Defaults** in its **Settings** panel first, so the next run starts from the `config.ini` values.
 
 Once steps 1–6 are signed off for both ed04 and ed05, the units are ready to run [Operation.md](Operation.md) for real.  However it is recommended that you return and validate that values haven’t changed before and after each experiment.  If you notice significant change you will need to recalibrate.

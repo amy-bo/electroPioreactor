@@ -1,0 +1,10 @@
+id: pioreactor-vial-20ml
+name: "Pioreactor 20 ml glass vial"
+kind: kitted
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {volume_ml: 20, working_volume_ml: 14}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-25, note: "Kit sub-item of pioreactor-20ml. 14 ml working volume from MixedElectroPioreactor/Operation.md (14 ml fill, 1 ml headroom for the electrodes and the sparge line)."}

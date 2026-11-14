@@ -1,0 +1,9 @@
+id: optics-cover
+name: "Optics cover"
+kind: kitted
+design_version: 1.0.0
+master_format: none
+source_files: []
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Kit sub-item of BoM.md item 1.1, named in Assembly/README.md Method step 2.4 ('3 optics covers') (AEP0.2)."}

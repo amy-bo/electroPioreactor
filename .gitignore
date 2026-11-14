@@ -2,6 +2,8 @@
 __pycache__/
 *.pyc
 *.pyo
+# setuptools build residue - the offline staging route's `pip wheel` regenerates it
+*.egg-info/
 .pytest_cache/
 *.mov
 *.mp4
@@ -18,11 +20,41 @@ scratch_co2/
 MixedElectroPioreactor/CHANGELOG.md
 MixedElectroPioreactor/Review.md
 
-# local build output and private scratch (not for commit)
-.wrangler/
-build/
-AEP-Plugin/build/
+# Confidential / private working folders - never commit
+Martin/
 private-notes/
+
+# Local per-machine state and nested clones
+.vibe-repos
+aep/
+# the docs site keeps its AEP pages under site/src/content/docs/AEP (the aep/ rule above is for the plugin build dir)
+!site/src/content/docs/aep-protocol.md
+
+# Office (Excel/Word) owner/lock temp files
+~$*
+.vibe-signals/
+.claude/settings.local.json
+
+# >>> vibe-managed runtime exclusions (auto-added; do not edit body) >>>
+# Files vibe writes to /workspace at runtime. Committing them
+# leaks per-machine state into the repo (PR-review-noise risk).
+# Opt out: set VIBE_AUTO_GITIGNORE=0 before container start, or
+# delete this entire block (won't be re-added once removed).
+.claude/settings.local.json
+.vibe/
+.vibe-signals/
+.vibe-allow-ssh
+.vibe-allow-op
+# <<< vibe-managed <<<
+
+# docsandeye render output (regenerated from the .scad sources; see docs/README.md)
+build/
+
+# Cloudflare wrangler local state
+.wrangler/
+
+# local build output (landing/ and site/)
+AEP-Plugin/build/
 landing/dist/
 landing/node_modules/
 site/dist/

@@ -1,0 +1,20 @@
+id: vial-cap
+name: "Vial cap and electrode holder"
+kind: printed
+design_version: 2.0.2
+master_format: scad
+source_files: ["Components/Vial Cap/Vial Cap.scad"]
+parameters: {rods: 2, rod_diameter: 6.2, num_ports: 5, port_diameter: 2.2, openings: 1, seal: "gasket", pieces: 1, rod_length: 60, insertion_depth: 23, layer_height: 0.2}
+derived_files: ["Components/Vial Cap/AEP2.0/Vessel Cap.stl"]
+depends_on: ["bosl2"]
+supersedes: electrode-top-stop@1.0.0
+changelog:
+  - {version: 1.0.0, date: 2025-10-16, note: "AEP0.1 o-ring generation: GPI 24-400 threaded cap with a cap o-ring and two electrode o-rings, used with the separate ElectrodeTopStop (electrode-top-stop). Still reproducible from the same source with seal = \"oring\", pieces = 2."}
+  - {version: 2.0.0, date: 2026-07-15, note: "Imported from BoM.md item 2.3 (Critical and custom; AEP0.2). Septum + top-stop one-piece generation (Components/Vial Cap/Vial Cap.scad, PR #25): one-piece PC-CF cap and electrode top-stop sealing on a full-width silicone septum, no cap or electrode o-rings, GPI 24-400 internal thread, Pioreactor-1.5 poka-yoke flange; electrode length and desired protrusion set the column height. Parameter check 2026-09-04 against the .scad defaults for the cap in use (2 electrode ports of 6 mm, 5 small ports, 1 large septum opening), named here as the .scad names them since the 2026-08-19 rename (#28; older names in brackets): rods = 2 (electrodes; default 2, match), num_ports = 5 (n_ports; default 5, match), openings = 1 (default 1, match), rod_diameter = 6.2 (el_d; default 6.2: the modelled bore for the 6 mm OD electrodes of BoM 2.1 and 2.2, kept), port_diameter = 2.2 (port_d; default 2.2: the OD of the 75 mm needle ports of BoM 2.6, kept), seal = \"gasket\" and pieces = 1 (defaults, set explicitly because they define this generation; \"gasket\" is the .scad's value for the full-width silicone septum seal, its only other value being \"oring\"). rod_length = 60 (el_len) and insertion_depth = 23 are the file defaults and are what the printed cap (AEP2.0/Vessel Cap.stl) was made with: they set the top-stop column height (24.7 mm, 37 mm overall), so they change the printed part. The BoM electrodes are 100 mm, so one flush with the top-stop face reaches 63 mm below the cap; the standard insertion depth is still to be measured (BoM.md, Still to specify 2.3)."}
+  - {version: 2.0.1, date: 2026-09-08, note: "Gerrit's BoM answers of 2026-09-04 (commit 05ef02f): print settings - 100% infill, default PC-CF profile, 0.16 mm slicer layer height. Geometry unchanged: the .scad's own layer_height (default 0.2 mm, which sizes the 3-layer closed top at 0.6 mm and the septum window) stays 0.2 mm in the printed STL. Standard electrode insertion depth still pending the first measured build."}
+  - {version: 2.0.2, date: 2026-11-06, note: "Source-only change, printed geometry identical (cap export byte-identical): Vial Cap.scad gains view = \"none\" (draw nothing, for files that include it, such as Vial Cap render.scad) and a comment explaining that rod_length and insertion_depth set the printed top-stop height. Media pinned to 2.0.1 re-pinned to 2.0.2 because nothing visible changed."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]
+  note: "3D printed in PC-CF. LabCrafter kits ship it with the septum seated and the electrode cables attached; the electrodes go in during Set up electrolysis."

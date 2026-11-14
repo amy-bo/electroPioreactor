@@ -1,0 +1,17 @@
+id: silicone-septum
+name: "Silicone septum, 2 mm thick, 60 Shore A"
+kind: off-the-shelf
+design_version: 1.0.1
+master_format: none
+source_files: []
+parameters: {thickness_mm: 2, shore_a: 60, material: "silicone sheet", process: "laser cut", fits: "vial-cap seal = gasket (the .scad value for this septum seal)"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Imported from BoM.md item 2.4 (Critical and custom; AEP0.2). Full-width sheet sized to the cap's seal = \"septum\" mode: it seals the vial mouth, each electrode and every port, and self-heals sampling-needle tracks. Not a stock size."}
+  - {version: 1.0.1, date: 2026-09-08, note: "Gerrit's BoM answers of 2026-09-04 (commit 05ef02f): cut from 2 mm silicone sheet, 60 Shore, on a laser cutter. The cut outline is not yet published (BoM 'Still to specify')."}
+receipt:
+  per: unit
+  qty: 1
+  from: [labcrafter, diy]
+  fitted: [labcrafter]
+  note: "Arrives seated in the vial cap in LabCrafter kits."

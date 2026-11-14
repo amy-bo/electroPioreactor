@@ -1,0 +1,19 @@
+{
+  "name": "electropioreactor-home",
+  "private": true,
+  "version": "0.2.0",
+  "description": "Static site generator for electropioreactor.org (home page with the 3D vial viewer + content pages)",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "preview": "npx --yes serve dist",
+    "deploy": "cd .. && npx wrangler pages deploy landing/dist --project-name electropioreactor-home --branch main --commit-dirty=true"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "marked": "^18.1.3"
+  }
+}

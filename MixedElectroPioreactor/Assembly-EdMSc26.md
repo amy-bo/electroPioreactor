@@ -20,7 +20,7 @@ ed04 is the unit that gets a bagged Pt-plated Ti anode and stainless steel catho
 
 ## Vial and PWM connections (both units)
 
-1. Add 2M bicarbonate solution (or [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media) medium) to the vial.
+1. Add 2M bicarbonate solution (or [AM002 (formerly MC02)](https://github.com/amy-bo/electroPioreactor/tree/main/Media) medium) to the vial.
 2. Screw the Vial Cap fully onto the vial.
 3. Seat the vial in the Pioreactor.
 
@@ -33,7 +33,7 @@ Once both units are assembled, vials seated, and reachable on the network, move 
 
 ## Electrodes (ed04 only – fresh anode)
 
-ed05 has its Platinum Plated Ti anode and Stainless Steel cathode already installed; ed04 has some low grade graphite electrodes installed, these should be used for testing purposes only - sodium bicarbonate is recommended instead of [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media) for these graphite electrodes, as [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media) corroded them more rapidly.
+ed05 has its Platinum Plated Ti anode and Stainless Steel cathode already installed; ed04 has some low grade graphite electrodes installed, these should be used for testing purposes only - sodium bicarbonate is recommended instead of [AM002](https://github.com/amy-bo/electroPioreactor/tree/main/Media) for these graphite electrodes, as [AM002](https://github.com/amy-bo/electroPioreactor/tree/main/Media) corroded them more rapidly.
 
 Once you are confident in operation and ready to install ed04's Platinum Plated Ti anode and Stainless Steel cathode
 

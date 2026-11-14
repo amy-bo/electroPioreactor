@@ -1,0 +1,9 @@
+id: xr-o-ring
+name: "XR O-ring"
+kind: kitted
+design_version: 1.0.0
+master_format: none
+source_files: []
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Kit sub-item of BoM.md item 1.2, named in Assembly/README.md Method step 2.4 ('the O-ring') (AEP0.2)."}
