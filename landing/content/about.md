@@ -11,7 +11,7 @@ The electroPioreactor is made by AMYBO, which works on sustainable protein from 
 
 [AMYBO](https://amybo.org) created the electroPioreactor to make it possible to produce HOB affordably, safely and locally, as a sustainable alternative protein. <!-- source: README.md; AsepticElectroPioreactor/README.md (Origins) -->
 
-AMYBO's strapline is "Sustainable Protein for All". It was founded in 2023 by Dr Martin Currie and is, for now, a not-for-profit trading name of his company, andeye Ltd. <!-- CHECK: strapline from brain2 AMYBO/AMYBO.md (Branding); founding year, founder and andeye Ltd trading-name status from brain2 AMYBO/amybo_org-story-draft.md (state authored, provisional). Not stated in any repo README; confirm before publishing. Martin Currie's name is public in AsepticElectroPioreactor/CARMA_PumpPriming/Results/AEP0.1 Training/README.md and AEP-Plugin/LICENSE.txt -->
+The electroPioreactor was initially developed by AMYBO volunteers, principally Martin Currie and Gerrit Niezen, co-founder of [LabCrafter](https://labcrafter.co.uk), UK distributors of [Pioreactor](https://pioreactor.com), the open-source bioreactor on which it is based. <!-- Martin's wording, 2026-11-11 -->
 
 AMYBO publishes its designs openly: see [Open source](/open-source/). It runs a community [forum](https://forum.amybo.org), including a [Journal Club](https://forum.amybo.org/c/journal-club) on the research literature. <!-- source: Literature/README.md -->
 
