@@ -4,13 +4,17 @@ The electroPioreactor is a [Pioreactor](https://pioreactor.com) adapted to incor
 
 Our parametric [Vial Cap](Components/Vial%20Cap/) design and bill of materials are detailed in [Components](Components).
 
-This repo also contains summary outputs of past research projects including [Harvey Mudd](Past%20research/HMC%20Final%20Outputs)'s anode and valve optimisation work and Brown's [CO2 sparger backflow solution](Past%20research/1.%20CO2%20backflow%20diagnosis%20-%20Eli%20Silver.md).
+This repo also contains summary outputs of past research projects including [Harvey Mudd](PastResearch/HMC-Clinic)'s anode and valve optimisation work and Brown's [CO2 sparger backflow solution](PastResearch/Brown-HarrisLab/1.CO2backflowDiagnosis-EliSilver.md).
 
 [![View HOB fermentation by in-culture electrolysis bibliography](https://img.shields.io/static/v1?label=HOB%20fermentation%20by%20in%E2%80%91culture%20electrolysis&message=Bibliography&color=blue)](https://bibbase.org/show?bib=https://raw.githubusercontent.com/amy-bo/electroPioreactor/main/Literature/HOB%20ferm.%20in-culture%20electrolysis.bib)
 
 ## Aseptic electroPioreactor
 
 A current focus is development and testing of an Aseptic electroPioreactor to facilitate research on monocultures. [Imperial College](https://profiles.imperial.ac.uk/s.billerbeck/grants) and [Edinburgh University](https://biology.ed.ac.uk/chris-french-laboratory) are leading this work under [CARMA Hub Pump Priming](https://carmahub.co.uk/about-us/pump-priming-projects/#:~:text=Affordable%20Aseptic%20Electro-Bioreactor%20for%20Reproducible%20Hydrogen%20Oxidising%20Bacteria%20(HOB)%20Research) funding.
+
+## Software
+
+The [electroPioreactor plugin](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin) adds a single Pioreactor background job that drives electrolysis on LED channel D and sparges CO2 through a solenoid on PWM channel 4. Install instructions are in [its README](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin#installation), including a [card route](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin#from-the-card) that puts the plugin on the microSD card's boot partition before it is ejected, so it installs on first boot with no network, for build sites where the Pioreactor cannot reach one at all.
 
 ## GitHub & Radicle
 

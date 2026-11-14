@@ -1,0 +1,10 @@
+id: right-angle-cylinder-adapter
+name: "Right-angle cylinder adapter"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {type: "pin screw", inlet: "W21.8-14 male", outlet: "TR21-4 female"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-25, note: "MEP cylinder adapter: 'the right angle pin screw adapter on top' of the SodaStream (Assembly-EdMSc26.md Layout item 3); W21.8-14 to TR21-4 (Components/README.md)."}

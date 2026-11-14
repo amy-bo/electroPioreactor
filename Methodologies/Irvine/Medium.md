@@ -4,9 +4,9 @@ Medium for HOB enrichment using the [AEP0.1](https://github.com/amy-bo/electroPi
 
 ---
 
-## MC02 medium (provided by Edinburgh)
+## AM002 (formerly MC02) medium (provided by Edinburgh)
 
-The medium is [MC02](https://github.com/amy-bo/electroPioreactor/tree/main/Media), prepared and provided by Bingqiao of Edinburgh University's Chris French Lab. It arrives as three bottles:
+The medium is [AM002](https://github.com/amy-bo/electroPioreactor/tree/main/Media), prepared and provided by Bingqiao of Edinburgh University's Chris French Lab. It arrives as three bottles:
 
 | Bottle | Contents | Dose per litre final medium |
 |---|---|---|

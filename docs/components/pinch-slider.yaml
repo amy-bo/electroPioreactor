@@ -1,0 +1,10 @@
+id: pinch-slider
+name: "PinchSlider"
+kind: printed
+design_version: 1.0.0
+master_format: scad
+source_files: ["Components/PinchSlider/PinchSlider.scad"]
+parameters: {TubingOD: 3, TubingPinched: 1.5, TubingUnits: "mm"}
+derived_files: ["Components/PinchSlider/PinchSlider.stl"]
+changelog:
+  - {version: 1.0.0, date: 2025-12-03, note: "AEP0.1 inoculation-port pinch slider (Components/PinchSlider; tolerances changed for PC-CF 2026-01-10). Dropped in AEP0.2: inoculation is now by syringe through the septum ('What changed from AEP0.1.1', Assembly/README.md)."}

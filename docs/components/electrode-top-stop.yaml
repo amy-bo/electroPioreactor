@@ -1,0 +1,10 @@
+id: electrode-top-stop
+name: "ElectrodeTopStop"
+kind: printed
+design_version: 1.0.0
+master_format: scad
+source_files: ["Components/ElectrodeTopStop/ElectrodeTopStop.scad"]
+parameters: {electrode_od: 6.0, electrode_offset: 4.8, stop_height: 12}
+derived_files: ["Components/ElectrodeTopStop/ElectrodeTopStop.stl", "Components/ElectrodeTopStop/ElectrodeTopStop.3mf"]
+changelog:
+  - {version: 1.0.0, date: 2025-11-17, note: "AEP0.1.1 separate electrode top stop (Components/ElectrodeTopStop): racetrack cover keeping the two electrodes parallel and seated, wires fixed by M3 bolts through captive nuts (2025-12-30). Superseded in AEP0.2 by the one-piece vial-cap 2.0.0 ('What changed from AEP0.1.1', Assembly/README.md)."}

@@ -2,7 +2,7 @@
 
 `Vial Cap.scad` is a parametric vial cap, septum and electrode top-stop in one OpenSCAD file. It supersedes the original O-ring cap and the separate ElectrodeTopStop, and can still reproduce the old O-ring cap via `seal = "oring"`.
 
-`Vial Cap.stl` is a render of the default configuration (the one-piece holder).
+`AEP2.0/Vessel Cap.stl` is the AEP0.2 cap as printed: a render of the `Vial Cap.scad` defaults (the one-piece holder). `Vial Cap.stl` is the earlier July 2026 render (PR #25), from before the August 2026 revision of the `.scad`; it is kept for reference and is not the printed part.
 
 ## Requires
 
@@ -12,7 +12,7 @@ For fast rendering: use the nightly OpenSCAD and set Preferences -> Advanced -> 
 
 ## What it does
 
-- Seals with a full-width silicone septum instead of O-rings. One sheet seals the vial mouth, around each electrode, every port, and self-heals sampling-needle tracks. Set `seal = "oring"` to bring back the original cap O-ring groove and the electrode O-ring grooves instead.
+- Seals with a full-width silicone septum instead of O-rings. One sheet seals the vial mouth, around each electrode, every port, and self-heals sampling-needle tracks. That is `seal = "gasket"`, the default; set `seal = "oring"` to bring back the original cap O-ring groove and the electrode O-ring grooves instead.
 - Holds the electrodes with no play: a long journal bore plus an M3 wire clamp, referenced back to the cap.
 - Parametric insertion depth: enter the electrode length and the protrusion you want into the vial, and the column height follows.
 - Pioreactor-1.5 poka-yoke flange (rotatable via `flange_angle`), grip ribs (optional), GPI 24-400 thread.
@@ -24,10 +24,11 @@ For fast rendering: use the nightly OpenSCAD and set Preferences -> Advanced -> 
 All options are at the top of the file and commented inline. The main ones:
 
 - Display / build: `view`, `part`, `pieces`
-- Cap: `seal` (septum / oring), `port_style`, `ribs`, `flange_angle`
-- Counts and sizes (as the original cap): `electrodes`, `el_d`, `n_ports`, `port_d`
+- Cap: `seal` (`"gasket"` = the full-width silicone septum, or `"oring"`), `port_style`, `ribs`, `flange_angle`
+- Counts and sizes (as the original cap): `rods`, `rod_diameter`, `num_ports`, `port_diameter`
+- Column height: `rod_length` and `insertion_depth` (these change the printed top stop; the printed AEP0.2 cap uses the defaults, 60 and 23)
 - Septum access: `openings`, `opening_tilt`
-- Needle guides: `guides`, `guide_h`, `guidexmin_wall`
-- Print settings: `layer_h`, `min_wall`
+- Needle guides: `guides`, `guide_height`, `guide_wall_multiple`
+- Print settings: `layer_height`, `min_wall`
 
-In `oring` mode the seal sizes are `cap_o_ring_cs`, `electrode_o_ring_cs` and `electrode_cutout`; the closed-top thickness grows automatically so there is enough material to seat the cap O-ring (the electrodes used 5 mm ID / 9 mm OD / 2 mm CS O-rings).
+In `oring` mode the seal sizes are `cap_oring_thickness`, `rod_oring_thickness` and `rod_port_relief`; the closed-top thickness grows automatically so there is enough material to seat the cap O-ring (the electrodes used 5 mm ID / 9 mm OD / 2 mm CS O-rings).

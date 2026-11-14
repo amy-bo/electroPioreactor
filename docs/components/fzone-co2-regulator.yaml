@@ -1,0 +1,10 @@
+id: fzone-co2-regulator
+name: "FZone CO₂ regulator"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {outlet_pressure: "fixed, not adjustable", gauges: "cylinder (left) and outlet (right)"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-25, note: "MEP regulator (Assembly-EdMSc26.md Layout item 3; Calibration.md section 5: fixed, non-adjustable outlet pressure). The budget '2 in 1 mini CO2 regulator' in Components/CO2 transfer/README.md."}

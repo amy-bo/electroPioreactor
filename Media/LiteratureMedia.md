@@ -20,7 +20,7 @@ The following papers have been [found](../Literature/README.md) which give media
 
 1. [Feng et al. (2023)](https://doi.org/10.3389/fmicb.2023.1254451) modified the Liu et al. (2016) formulation by increasing phosphate buffer / ionic strength (e.g. 108 mM up to 180 mM KPi) to enrich halotolerant HOB for in‑culture electrolysis, and explicitly benchmarked their reactor and electrolyte against Liu et al. (2016).
 
-### Modifications to [Matassa et al. (2016)](https://doi.org/10.1111/1751-7915.12369)
+### Modifications to [Matassa et al. (2016)](https://doi.org/10.1016/j.watres.2016.05.077)
 
 1. Pous et al. ([2022](http://doi.org/10.1016/j.biteb.2022.101010) and [2023](http://doi.org/10.1016/j.jece.2023.111550)) reduced ammonium content but retained chloride.
 

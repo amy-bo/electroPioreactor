@@ -1,0 +1,9 @@
+id: stock-vial-cap
+name: "Stock vial caps"
+kind: kitted
+design_version: 1.0.0
+master_format: none
+source_files: []
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Kit sub-item of BoM.md item 1.1, named in Assembly/README.md the 'Ships with vial, stir bar and caps' specification (BoM 1.1) (AEP0.2). Not used in AEP0.2: the one-piece Vial Cap (vial-cap) replaces them."}

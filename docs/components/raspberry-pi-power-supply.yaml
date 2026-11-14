@@ -1,0 +1,10 @@
+id: raspberry-pi-power-supply
+name: "Raspberry Pi power supply"
+kind: off-the-shelf
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {voltage_v: 5.1, connector: "micro-USB (Zero 2 W) or USB-C (4B)"}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-25, note: "MEP Pi supply (Assembly-EdMSc26.md Layout item 4: the white 5 V supply to the Pi's micro-USB socket); separate from the 12 V HAT supply."}

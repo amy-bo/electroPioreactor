@@ -1,0 +1,10 @@
+id: screw-8mm
+name: "8 mm screw"
+kind: kitted
+design_version: 1.0.0
+master_format: none
+source_files: []
+parameters: {length_mm: 8}
+derived_files: []
+changelog:
+  - {version: 1.0.0, date: 2026-09-04, note: "Kit sub-item of BoM.md item 1.1, named in Assembly/README.md Method step 2.4 ('12x 8 mm screws') (AEP0.2)."}
