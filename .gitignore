@@ -52,3 +52,10 @@ build/
 
 # Cloudflare wrangler local state
 .wrangler/
+
+# local build output (landing/ and site/)
+AEP-Plugin/build/
+landing/dist/
+landing/node_modules/
+site/dist/
+site/node_modules/
