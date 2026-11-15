@@ -13,7 +13,9 @@ Our [bibliography](https://bibbase.org/show?bib=https://raw.githubusercontent.co
 
 The culture medium both feeds the bacteria and carries the current between the electrodes. Chloride would be turned into bleach at the anode, so ours has none. It is based on the medium of [Sydow et al. (2017)](https://doi.org/10.1002/elsc.201600252).
 
-The current recipe, AM003, is Teo Reid's (MRes thesis, Imperial College London, 2026). It has a stronger phosphate buffer than Sydow's, added bicarbonate and a fifth of the iron. To date it is the only medium to have given growth on CO₂ in the electroPioreactor, with *Xanthobacter*, an iridium oxide anode and a steel cathode. The recipe and the reasons for it are in [Media/](repo:Media/README.md).
+The current recipe, AM003, is Teo Reid's (MRes thesis, Imperial College London, 2026). It has a stronger phosphate buffer than Sydow's, added bicarbonate and a fifth of the iron. To date it is the only medium to have given growth on CO₂ in the electroPioreactor, with *Xanthobacter tagetidis*, a mixed metal oxide anode and a stainless steel cathode. The recipe and the reasons for it are in [Media/](repo:Media/README.md).
+
+Bingqiao Zhao has also grown *Cupriavidus necator* autotrophically on formate.
 
 ## The gas model
 
