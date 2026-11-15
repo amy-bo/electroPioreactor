@@ -2,6 +2,11 @@
 
 Done-work log for the electroPioreactor repository, newest first. Open work stays in the "Still to specify" list of the AEP0.2 [BoM](AsepticElectroPioreactor/CARMA_PumpPriming/Assembly/BoM.md) and in the `<!-- TODO -->` comments of the step files under `docs/steps/`.
 
+## 2026-11-15
+
+- [x] **electropioreactor.org: five short pages** — the seventeen pages (about 26,000 words) are replaced by five Markdown files in `landing/content/` (`home.md`, `what-it-is.md`, `get-one.md`, `research.md`, `about.md`), reworded by Martin. The home page wording moved out of the templates into `home.md`, the menu is built from the pages, old addresses redirect to the page that replaced them, and `node landing/build.mjs --watch` serves a live preview at `http://localhost:4321`.
+- [x] **Viewer: the presentation's corrections on the online model** — the 3D viewer gains the fittings the CAD export lacks (the silicone CO₂ line in the anode bore with its barb and female luer socket; a male-to-male luer adapter and a 25 mm filter on each gas outlet, the two bent needles splayed apart), a colourless medium with a water-like surface, more CO₂ bubbles, an LED body that stays visible through the glass with no red specks, soft round glints and slight dispersion on the glass, softer shadows that fade across the floor with a contact shadow under the base, and camera moves that arc round the model. All in `Components/Vial Cap/render/viewer.template.html`; the A4 page has not been re-rendered.
+
 ## 2026-11-10
 
 - [x] **Plugin moved to its own repository** — `AEP-Plugin/` and `card-bundle/` now live in [amy-bo/pioreactor-electroPioreactor-plugin](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin), merged there with full history (the July install-flow fixes made in that repo are carried forward), and released as [`v0.7.4`](https://github.com/amy-bo/pioreactor-electroPioreactor-plugin/releases/tag/v0.7.4). Here `AEP-Plugin/README.md` points there; the READMEs, guide steps 00/04/05/06, electropioreactor.org pages and the docs site link there, and the card-bundle downloads use its `releases/latest/download`. `plugin-v0.7.3` stays as this repo's last plugin release. Tests (136) pass off-device; not yet tested on hardware.
