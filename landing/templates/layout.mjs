@@ -47,12 +47,9 @@ ${extra}
 </head>`;
 }
 
-// `current` is the active section id (learn/build/research/about) for aria-current.
+// `current` is the slug of the page being shown, for aria-current.
 export function siteHeader({ base, current = '', overHero = false }) {
-  const link = (id, label) => {
-    const href = SITE.sectionHref[id];
-    return `<li><a href="${href}"${current === id ? ' aria-current="page"' : ''}>${label}</a></li>`;
-  };
+  const links = SITE.nav.map((n) => `<li><a href="${n.href}"${current === n.slug ? ' aria-current="page"' : ''}>${esc(n.label)}</a></li>`).join('\n        ');
   return `<header class="site-header${overHero ? ' over-hero' : ''}">
   <div class="site-header-in">
     <a class="brand" href="/" aria-label="${esc(SITE.name)} home">
@@ -64,10 +61,7 @@ export function siteHeader({ base, current = '', overHero = false }) {
     </button>
     <nav id="site-nav" class="site-nav" aria-label="Main">
       <ul>
-        ${link('learn', 'Learn')}
-        ${link('build', 'Build')}
-        ${link('research', 'Research')}
-        ${link('about', 'About')}
+        ${links}
         <li class="nav-ext"><a href="${SITE.guide}">Assembly guide ${ext}</a></li>
         <li class="nav-ext"><a href="${SITE.github}">GitHub ${ext}</a></li>
       </ul>
@@ -104,10 +98,7 @@ export function siteFooter({ base, built }) {
       <div>
         <h2>Project</h2>
         <ul>
-          <li><a href="${SITE.sectionHref.learn}">Learn</a></li>
-          <li><a href="${SITE.sectionHref.build}">Build</a></li>
-          <li><a href="${SITE.sectionHref.research}">Research</a></li>
-          <li><a href="${SITE.sectionHref.about}">About</a></li>
+          ${SITE.nav.map((n) => `<li><a href="${n.href}">${esc(n.label)}</a></li>`).join('')}
         </ul>
       </div>
       <div>

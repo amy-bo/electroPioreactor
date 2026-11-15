@@ -204,3 +204,4 @@ html.home .site-header-in { max-width: none; padding-left: max(16px, env(safe-ar
   .scroll-cue i::after { animation: none; }
 }
 :root.white .title.landing h1, :root.white .title.landing .sub { text-shadow: none; }
+.home-group .cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }

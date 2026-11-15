@@ -169,6 +169,7 @@ button[aria-pressed="true"] { background: rgba(150, 175, 210, 0.18); border-colo
           <div class="menu-col">
             <button class="toggle" id="beamBtn" aria-pressed="true"><span class="dot"></span>Light path <span class="note">IR, drawn red</span></button>
             <button class="toggle" id="liquidBtn" aria-pressed="true"><span class="dot"></span>Liquid &amp; gas</button>
+            <button class="toggle" id="explodeBtn" aria-pressed="false"><span class="dot"></span>Exploded view</button>
             <button class="toggle turn" id="turnBtn" aria-pressed="true"><span class="dot"></span>Turntable</button>
             <button class="toggle turn" id="whiteBtn" aria-pressed="false"><span class="dot"></span>White background</button>
           </div>
@@ -290,12 +291,17 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.PCFShadowMap;   // with keyLight.shadow.radius: shadows soften with distance
 stage.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+// the studio's lights are square panels, which showed on the clear glass as white squares hopping across its curves.
+// The glass alone reflects a copy with round panels: soft round glints.
+const GLASS_ENV = (() => { const room = new RoomEnvironment(), ball = new THREE.SphereGeometry(0.5, 32, 16);
+  room.traverse((o) => { if (o.isMesh && o.material && o.material.isMeshBasicMaterial) o.geometry = ball; });
+  return pmrem.fromScene(room, 0.04).texture; })();
 scene.environmentIntensity = 0.7;
 
 // studio backdrop: deep blue-slate radial gradient, dithered against banding
@@ -397,8 +403,10 @@ const MATS = {
   glass: phys({
     color: 0xffffff, metalness: 0, roughness: 0.07, transmission: 1, ior: 1.5, thickness: 1.5,
     attenuationColor: new THREE.Color(0x9fe0d0), attenuationDistance: 40,
-    specularIntensity: 0.85, specularColor: 0xffffff, envMapIntensity: 1.2, clearcoat: 0.15, clearcoatRoughness: 0.18,   // softer: a sharp glass highlight was blooming
+    specularIntensity: 0.85, specularColor: 0xffffff, clearcoat: 0.15, clearcoatRoughness: 0.18,   // softer: a sharp glass highlight was blooming
     depthWrite: false,   // lets the additive light path draw inside the vial
+    dispersion: 0.35,    // borosilicate splits white light a little at grazing edges
+    envMap: GLASS_ENV, envMapIntensity: 1.5,
   }),
   septum: phys({ color: 0xf2ede4, roughness: 0.45, transmission: 0.3, thickness: 2, ior: 1.41, sheen: 0.4, sheenColor: 0xffffff }),
   cathode: steel(0.34),
@@ -419,7 +427,8 @@ const MATS = {
   temp_probe: phys({ color: 0x2a2c30, metalness: 0.4, roughness: 0.25, clearcoat: 1 }),
   pcb_copper: phys({ color: 0xe6c27a, metalness: 1, roughness: 0.32, envMapIntensity: 0.6 }),
   pcb_parts: phys({ color: 0xd9ccb0, roughness: 0.6 }),
-  led: phys({ color: 0xe6f0ff, roughness: 0.04, transmission: 1, thickness: 3, ior: 1.54, attenuationColor: new THREE.Color(0x8fb4ff), attenuationDistance: 4, clearcoat: 1 }),
+  // not transmissive: three.js leaves transmissive parts out of what other glass refracts, so the LED body vanished behind the vial wall
+  led: phys({ color: 0xe6f0ff, roughness: 0.06, transparent: true, opacity: 0.42, depthWrite: false, clearcoat: 1, envMapIntensity: 1.2 }),
   led_die: ledDieMat,
   pd: phys({ color: 0x0c0c0e, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.05 }),
   pd_die: pdDieMat,
@@ -544,6 +553,7 @@ const keyLight = new THREE.DirectionalLight(0xfff3e6, 2.2);
 keyLight.castShadow = true;
 keyLight.shadow.mapSize.set(2048, 2048);
 keyLight.shadow.bias = -0.0004;
+keyLight.shadow.radius = 5;
 keyLight.shadow.normalBias = 0.25;
 const rimLight = new THREE.DirectionalLight(0x9cc6ff, 0.8);
 const fillLight = new THREE.DirectionalLight(0xc8d6ff, 0.75);
@@ -576,7 +586,22 @@ function placeLights() {
   floor.position.set(c.x, floorY, c.z);
   floor.receiveShadow = true;
   floor.userData.skipPick = true;
+  // shadows fade out across the floor instead of ending at the edge of the void
+  floor.material.onBeforeCompile = (sh) => {
+    sh.uniforms.uR = { value: r };
+    sh.vertexShader = 'varying vec2 vFP;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vFP = position.xy;');
+    sh.fragmentShader = 'uniform float uR; varying vec2 vFP;\n' + sh.fragmentShader.replace(/}\s*$/, ' gl_FragColor.a *= 1.0 - smoothstep(uR * 0.55, uR * 1.6, length(vFP));\n}');
+  };
   scene.add(floor);
+  // a soft dark pool right under the base: the contact shadow a real bench shows where the reactor stands on it
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128; const cx = cv.getContext('2d');
+  const gr = cx.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(0,0,0,0.75)'); gr.addColorStop(0.45, 'rgba(0,0,0,0.45)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  cx.fillStyle = gr; cx.fillRect(0, 0, 128, 128);
+  contactPool = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false, toneMapped: false }));
+  contactPool.scale.set(r * 0.75, r * 0.75, 1);
+  contactPool.rotation.x = -Math.PI / 2; contactPool.position.copy(floor.position); contactPool.position.y += 0.05; contactPool.renderOrder = -1; contactPool.userData.skipPick = true;
+  contactPool.material.opacity = whiteOn ? 0.4 : 1;
+  scene.add(contactPool);
 
   // beam fade runs LED (+X) -> photodiode; spill lights sit at each end at optics height
   const bb = boxOf(['beam']);
@@ -593,7 +618,7 @@ function placeLights() {
 }
 
 // ---------------------------------------------------------------- UI state
-let floor = null;
+let floor = null, contactPool = null;
 let whiteOn = false;
 function setWhite(on) {               // white page for print/PDF: flat white, normal-blended beam, lighter shadow
   whiteOn = on;
@@ -606,6 +631,7 @@ function setWhite(on) {               // white page for print/PDF: flat white, n
   bloom.strength = on ? 0.45 : 0.7;
   renderer.toneMappingExposure = on ? 0.95 : 1.05;
   if (floor) floor.material.opacity = on ? 0.22 : 0.42;
+  if (contactPool) contactPool.material.opacity = on ? 0.4 : 1;
   document.documentElement.classList.toggle('white', on);
   $('whiteBtn')?.setAttribute('aria-pressed', String(on));
 }
@@ -615,8 +641,7 @@ function setBeam(on) {
   if (meshes.beam) meshes.beam.visible = on;
   ledDieMat.emissiveIntensity = on ? 60 : 0.4;
   pdDieMat.emissiveIntensity = on ? 0.6 : 0;
-  ledSpill.intensity = on ? 18 : 0;
-  pdSpill.intensity = on ? 6 : 0;
+  ledSpill.intensity = 0; pdSpill.intensity = 0;   // the red spill lights only made specks and glints on the glass
   $('beamBtn').setAttribute('aria-pressed', String(on));
 }
 function setTurn(on) {
@@ -625,6 +650,7 @@ function setTurn(on) {
 }
 $('beamBtn').addEventListener('click', () => setBeam(!beamOn));
 $('liquidBtn').addEventListener('click', () => LIQUID.setVisible(!LIQUID.on));
+$('explodeBtn').addEventListener('click', () => setExplode(EX.to !== 1));
 $('turnBtn').addEventListener('click', () => setTurn(!controls.autoRotate));
 $('whiteBtn')?.addEventListener('click', () => setWhite(!whiteOn));
 // View pop-up: camera presets and display toggles
@@ -665,7 +691,8 @@ function pick(clientX, clientY) {
   const r = renderer.domElement.getBoundingClientRect();
   ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, camera);
-  const hits = ray.intersectObjects(Object.values(meshes).filter((m) => m.visible), false);
+  const list = []; root.traverse((o) => { if (o.isMesh && o.userData.part && o.visible) list.push(o); });   // CAD parts, fittings and boards
+  const hits = ray.intersectObjects(list, false);
   if (!hits.length) return null;
   const solid = hits.find((h) => h.object.userData.part !== 'glass');
   const h = solid || hits[0];
@@ -739,15 +766,226 @@ function setupFlea() {
   root.add(fleaPivot); fleaPivot.add(m);    // castShadow/receiveShadow stay on the mesh
   fleaPivot.updateMatrixWorld(true);
 }
+const camArc = (() => { const a = new THREE.Vector3(), b = new THREE.Vector3(), q = new THREE.Quaternion();
+  return (tw, e) => {   // the offset from the moving target is interpolated in direction and distance, like a crane
+    a.subVectors(tw.p0, tw.q0); b.subVectors(tw.p1, tw.q1); const ra = a.length(), rb = b.length();
+    if (ra < 1e-3 || rb < 1e-3 || a.angleTo(b) > 2.6) { camera.position.lerpVectors(tw.p0, tw.p1, e); return; }
+    q.setFromUnitVectors(a.clone().normalize(), b.clone().normalize());
+    const d = a.clone().normalize().applyQuaternion(new THREE.Quaternion().slerp(q, e));
+    camera.position.copy(controls.target).addScaledVector(d, ra * Math.pow(rb / ra, e));
+  }; })();
+// ---------------------------------------------------------------- fittings (not in the CAD export)
+// The CO2 line and its luer socket on the anode, and the adapters and filters on the two gas outlets.
+function pieces(geo) {      // split a non-indexed geometry into its connected parts
+  const p = geo.attributes.position.array, na = geo.attributes.normal.array, n = p.length / 9;
+  const par = Int32Array.from({ length: n }, (_, i) => i);
+  const f = (x) => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
+  const own = new Map();
+  for (let t = 0; t < n; t++) for (let k = 0; k < 3; k++) {
+    const o = t * 9 + k * 3, key = `${Math.round(p[o] * 200)},${Math.round(p[o + 1] * 200)},${Math.round(p[o + 2] * 200)}`;
+    if (own.has(key)) par[f(t)] = f(own.get(key)); else own.set(key, t);
+  }
+  const groups = new Map();
+  for (let t = 0; t < n; t++) { const r = f(t); if (!groups.has(r)) groups.set(r, []); groups.get(r).push(t); }
+  return [...groups.values()].map((ts) => {
+    const pp = new Float32Array(ts.length * 9), nn = new Float32Array(ts.length * 9);
+    ts.forEach((t, i) => { pp.set(p.subarray(t * 9, t * 9 + 9), i * 9); nn.set(na.subarray(t * 9, t * 9 + 9), i * 9); });
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pp, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nn, 3));
+    g.computeBoundingBox(); return g;
+  });
+}
+// Pioreactor XR optics boards (extra-parts/eyespy_*.stl): one at each photodiode position, in place of the plain CAD boards
+let xrSlots = [];
+function setupBoards() {
+  const src = ['eyespy_pcb', 'eyespy_conn', 'eyespy_parts'].map((n) => meshes[n]);
+  for (const m of src) if (m) { root.remove(m); delete meshes[m.name]; }
+  if (src.some((m) => !m) || !meshes.pd_board) return;
+  const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+  const mats = [phys({ color: 0x1d6b3a, roughness: 0.45, clearcoat: 0.5 }), phys({ color: 0xf0ede4, roughness: 0.6 }), phys({ color: 0x2a2c30, roughness: 0.4, metalness: 0.2 })];
+  for (const b of pieces(meshes.pd_board.geometry)) {
+    const bb = b.boundingBox, c = bb.getCenter(V3(0, 0, 0)), a = Math.atan2(c.y, c.x);
+    const rh = V3(Math.cos(a), Math.sin(a), 0), tg = V3(-Math.sin(a), Math.cos(a), 0);
+    const g = new THREE.Group();
+    src.forEach((m, i) => { const o = new THREE.Mesh(m.geometry, mats[i]); o.castShadow = true; o.receiveShadow = true; o.userData.part = 'pd_board'; g.add(o); });
+    const M = new THREE.Matrix4().makeBasis(tg, V3(0, 0, 1), rh);
+    M.setPosition(rh.clone().multiplyScalar(Math.hypot(c.x, c.y) - 1.6).add(tg.clone().multiplyScalar(-6.5)).add(V3(0, 0, bb.min.z)));
+    g.applyMatrix4(M);
+    const slot = new THREE.Group(); slot.name = 'xr_board'; slot.add(g); slot.userData.rh = rh; root.add(slot); xrSlots.push(slot);
+  }
+  meshes.pd_board.visible = false; if (meshes.pd) meshes.pd.visible = false;   // kept (hidden) for the framing and anchors that measure them
+}
+// ---------------------------------------------------------------- exploded view
+// Each part backs out the way it goes in, top first: needles and electrodes up out of the cap, the cap and septum off the
+// vial, the optics and temperature module outwards, the heater down. The medium, bubbles and light path are hidden meanwhile.
+const EX = { k: 0, to: 0, items: [], verts: [], was: null };
+function setupExplode() {
+  const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+  const gb = meshes.glass ? meshes.glass.geometry.boundingBox : null, ax = gb ? (gb.min.x + gb.max.x) / 2 : 0, ay = gb ? (gb.min.y + gb.max.y) / 2 : 0;
+  const move = (o, off, rank) => { if (o) EX.items.push({ o, off, rank, base: o.position.clone() }); };
+  const radial = (c, d) => { const v = V3(c.x - ax, c.y - ay, 0); return v.lengthSq() < 1e-6 ? v : v.normalize().multiplyScalar(d); };
+  const centreOf = (n) => (meshes[n] ? meshes[n].geometry.boundingBox.getCenter(V3(0, 0, 0)) : null);
+  // a mesh made of several separate pieces, each going its own way: per-vertex offsets
+  const perPiece = (n, offOf, rank) => {
+    const m = meshes[n]; if (!m || !m.visible) return;
+    const ps = pieces(m.geometry), len = ps.reduce((s, g) => s + g.attributes.position.array.length, 0);
+    const P = new Float32Array(len), N = new Float32Array(len), D = new Float32Array(len); let o = 0;
+    for (const g of ps) {
+      const a = g.attributes.position.array, d = offOf(g.boundingBox.getCenter(V3(0, 0, 0)));
+      P.set(a, o); N.set(g.attributes.normal.array, o);
+      for (let i = 0; i < a.length; i += 3) { D[o + i] = d.x; D[o + i + 1] = d.y; D[o + i + 2] = d.z; }
+      o += a.length;
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(P.slice(), 3)); g.setAttribute('normal', new THREE.BufferAttribute(N, 3));
+    g.computeBoundingBox(); g.computeBoundingSphere(); m.geometry = g; m.frustumCulled = false;
+    EX.verts.push({ g, orig: P, D, rank });
+  };
+  for (const n of ['needles', 'hubs']) move(meshes[n], V3(0, 0, 62), 0);
+  root.children.filter((c) => c.name === 'gas_fitting').forEach((c) => move(c, V3(0, 0, 62), 0));
+  move(root.children.find((c) => c.name === 'co2_fitting'), V3(0, 0, 62), 0.1);
+  for (const n of ['anode', 'anode_ti', 'cathode']) move(meshes[n], V3(0, 0, 40), 0.25);
+  for (const n of ['screws', 'washers']) perPiece(n, (c) => V3(Math.sign(c.x - ax) * 20, 0, 24), 0.35);
+  move(meshes.cap, V3(0, 0, 24), 0.45);
+  move(meshes.septum, V3(0, 0, 13), 0.55);
+  const tc = centreOf('temp_module');
+  if (tc) for (const n of ['temp_module', 'temp_module_parts', 'temp_probe']) move(meshes[n], radial(tc, 22), 0.7);
+  const lc = centreOf('led');
+  if (lc) for (const n of ['led', 'led_die', 'led_legs']) move(meshes[n], radial(lc, 22), 0.8);
+  for (const s of xrSlots) move(s, s.userData.rh.clone().multiplyScalar(22), 0.8);
+  for (const n of ['pd', 'pd_board', 'pd_die']) perPiece(n, (c) => radial(c, 22), 0.8);
+  for (const n of ['pcb', 'pcb_copper', 'pcb_parts', 'thermal_pad']) move(meshes[n], V3(0, 0, -22), 1);
+}
+function explodeApply() {
+  const K = EX.k, kOf = (rank) => ease(Math.max(0, Math.min(1, K * 1.6 - rank * 0.6)));
+  for (const it of EX.items) it.o.position.copy(it.base).addScaledVector(it.off, kOf(it.rank));
+  for (const v of EX.verts) {
+    const e = kOf(v.rank), a = v.g.attributes.position.array;
+    for (let i = 0; i < a.length; i++) a[i] = v.orig[i] + v.D[i] * e;
+    v.g.attributes.position.needsUpdate = true;
+    if (K === EX.to) { v.g.computeBoundingBox(); v.g.computeBoundingSphere(); }
+  }
+}
+function explodeStep(dt) {
+  if (EX.k === EX.to) return;
+  EX.k = REDUCED || STILL ? EX.to : (EX.to > EX.k ? Math.min(1, EX.k + dt / 2.6) : Math.max(0, EX.k - dt / 2.6));
+  explodeApply();
+  if (EX.k === 0 && EX.was) {       // back together: the medium, gas and light path return as they were
+    LIQUID.setVisible(EX.was.liquid); setBeam(EX.was.beam); if (meshes.temp_fov) meshes.temp_fov.visible = true; EX.was = null;
+  }
+}
+function setExplode(on) {
+  if (!EX.items.length || (EX.to === 1) === !!on) return;
+  EX.to = on ? 1 : 0;
+  $('explodeBtn').setAttribute('aria-pressed', String(!!on));
+  if (on && !EX.was) { EX.was = { liquid: LIQUID.on, beam: beamOn }; LIQUID.setVisible(false); setBeam(false); if (meshes.temp_fov) meshes.temp_fov.visible = false; }
+  const box = ALL.clone(); if (on) { box.max.y += 62; box.min.y -= 22; box.expandByVector(new THREE.Vector3(22, 0, 22)); }
+  let v = viewFrom(box, new THREE.Vector3(-0.55, 0.42, -1.0), on ? 1.02 : 0.86);
+  if (on) EX.cam = { pos: camera.position.clone(), target: controls.target.clone() };   // come back to the view it was opened from
+  else if (EX.cam) { v = EX.cam; EX.cam = null; }
+  document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(!on && b.dataset.view === 'assembly')));
+  if (REDUCED || STILL) { camera.position.copy(v.pos); controls.target.copy(v.target); controls.update(); tween = null; return; }
+  if (!tween) resumeTurn = controls.autoRotate;
+  controls.autoRotate = false;
+  tween = { t0: performance.now(), dur: 2600, p0: camera.position.clone(), q0: controls.target.clone(), p1: v.pos, q1: v.target };
+}
+function setupFittings() {
+  if (!meshes.anode || !meshes.anode_ti || !meshes.needles || !meshes.hubs) return;
+  const PI = Math.PI, V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+  const turned = (pts, segs = 64) => { const g = new THREE.LatheGeometry(pts.map(([r, z]) => new THREE.Vector2(r, z)), segs); g.rotateX(PI / 2); return toCreasedNormals(g, PI / 6); };
+  const ringGeo = (ri, ro, z0, z1, segs = 64) => (ri < 0.05 ? turned([[0, z0], [ro, z0], [ro, z1], [0, z1]], segs) : turned([[ri, z0], [ro, z0], [ro, z1], [ri, z1], [ri, z0]], segs));
+  const ringGeoY = (ri, ro, h, segs = 48) => { const g = ringGeo(ri, ro, -h / 2, h / 2, segs); g.rotateX(-PI / 2); return g; };
+  const mk = (g, m) => { const o = new THREE.Mesh(g, m); o.castShadow = true; o.receiveShadow = true; return o; };
+  const tag = (o, part) => { o.traverse((c) => { if (c.isMesh) c.userData.part = part; }); return o; };
+  // platinum-cured silicone is milky, not paint-white
+  const silicone = phys({ color: 0xd2dbda, roughness: 0.5, sheen: 0.9, sheenRoughness: 0.45, sheenColor: 0xffffff, clearcoat: 0.25, clearcoatRoughness: 0.4, side: THREE.DoubleSide });
+  const white = phys({ color: 0xf6f6f2, roughness: 0.45, clearcoat: 0.3 });
+  const red = phys({ color: 0xe0482a, roughness: 0.35, clearcoat: 0.5 });
+  const frosted = phys({ color: 0xf1f4f1, roughness: 0.5, transmission: 0.45, thickness: 2, ior: 1.5, clearcoat: 0.3 });
+
+  // anode: a 1/8" OD, 1 mm bore silicone line down the 4 mm bore, held by a barb with a female luer socket on top
+  {
+    const b = meshes.anode.geometry.boundingBox, ax = (b.min.x + b.max.x) / 2, ay = (b.min.y + b.max.y) / 2;
+    const zt = meshes.anode_ti.geometry.boundingBox.max.z;
+    const f = new THREE.Group(); f.name = 'co2_fitting';
+    f.add(mk(ringGeo(0.5, 25.4 / 16, b.min.z + 0.2, zt, 96), silicone));
+    const barb = mk(new THREE.CylinderGeometry(0.62, 0.95, 6, 24), white); barb.rotation.x = PI / 2; barb.position.z = zt - 3;
+    const ridge = mk(new THREE.CylinderGeometry(0.75, 1.05, 1.2, 24), white); ridge.rotation.x = PI / 2; ridge.position.z = zt - 4.5;
+    const hex = mk(new THREE.CylinderGeometry(3.3, 3.3, 1.6, 6), white); hex.rotation.x = PI / 2; hex.position.z = zt + 0.8;
+    // open on top (tapered bore for the male luer), a small gas hole through the floor, two lock ears on the rim
+    const b0 = zt + 1.6, b1 = zt + 10.6;
+    const body = mk(turned([[0.45, b0], [2.9, b0], [3.4, b1], [2.15, b1], [1.95, b0 + 1.2], [0.45, b0 + 1.2], [0.45, b0]], 48), white);
+    const ears = [-1, 1].map((sd) => { const e = mk(new THREE.BoxGeometry(1.5, 2.4, 1.4), white); e.position.set(sd * 4.05, 0, b1 - 0.7); return e; });
+    f.add(barb, ridge, hex, body, ...ears);
+    f.position.set(ax, ay, 0);
+    root.add(tag(f, 'anode_ti'));
+  }
+
+  // Exapure 25 mm 0.2 µm PTFE syringe filter: orange-red bumper ring, white centre and luers
+  const filterAt = (p, t) => {
+    const g = new THREE.Group();
+    const rim = mk(ringGeo(7.6, 12.5, -3.7, 3.7, 64), red); rim.rotation.x = -PI / 2;
+    const top = mk(new THREE.CylinderGeometry(7.7, 7.7, 5.2, 48), white);
+    const luer1 = mk(new THREE.CylinderGeometry(2.0, 2.8, 7, 24), white); luer1.position.y = -6.5;
+    const luer2 = mk(new THREE.CylinderGeometry(2.05, 2.4, 6, 32), white); luer2.position.y = 6;   // the male outlet narrows to its tip
+    g.add(rim, top, luer1, luer2);
+    g.position.copy(p).add(t.clone().multiplyScalar(10));
+    g.quaternion.setFromUnitVectors(V3(0, 1, 0), t);
+    return g;
+  };
+  // gas outlets (the rear pair): each bent needle is turned about its straight shaft so the two filters splay apart,
+  // and carries a male-to-male luer lock adapter and a filter on its hub
+  const centre = (g) => g.boundingBox.getCenter(new THREE.Vector3());
+  const nd = pieces(meshes.needles.geometry), hb = pieces(meshes.hubs.geometry);
+  for (const n of nd) {
+    const c = centre(n); if (c.y >= 0) continue;
+    const hub = hb.filter((h) => Math.sign(centre(h).x) === Math.sign(c.x) && Math.sign(centre(h).y) === Math.sign(c.y))[0];
+    if (!hub) continue;
+    const hp = hub.attributes.position.array, mc = V3(0, 0, 0);
+    for (let i = 0; i < hp.length; i += 3) mc.add(V3(hp[i], hp[i + 1], hp[i + 2]));
+    mc.multiplyScalar(3 / hp.length);
+    let d = V3(0, 0.3, 1).normalize();                 // principal axis of the hub (power iteration on its covariance)
+    for (let it = 0; it < 30; it++) {
+      const s = V3(0, 0, 0);
+      for (let i = 0; i < hp.length; i += 3) { const v = V3(hp[i] - mc.x, hp[i + 1] - mc.y, hp[i + 2] - mc.z); s.add(v.multiplyScalar(v.dot(d))); }
+      d = s.normalize();
+    }
+    if (d.z < 0) d.negate();
+    let hmax = -1e9; for (let i = 0; i < hp.length; i += 3) hmax = Math.max(hmax, V3(hp[i] - mc.x, hp[i + 1] - mc.y, hp[i + 2] - mc.z).dot(d));
+    const tp = mc.clone().add(d.clone().multiplyScalar(hmax));
+    // two lock collars joined at a narrow waist; each collar goes outside the female it locks onto, clear of the hub's lugs
+    let rl = 3.0;
+    for (let i = 0; i < hp.length; i += 3) { const v = V3(hp[i] - tp.x, hp[i + 1] - tp.y, hp[i + 2] - tp.z), a = v.dot(d); if (a > -4.6) rl = Math.max(rl, v.addScaledVector(d, -a).length()); }
+    const ri = rl + 0.1, ro = ri + 1.1, at = (g, y0, y1) => { g.position.y = (y0 + y1) / 2; return g; };
+    const ad = new THREE.Group();
+    ad.add(at(mk(ringGeoY(ri, ro, 8.6), frosted), -4.6, 4.0), at(mk(ringGeoY(1.2, ro - 0.6, 0.8), frosted), 4.0, 4.8), at(mk(ringGeoY(ri, ro, 8.6), frosted), 4.8, 13.4));
+    ad.position.copy(tp); ad.quaternion.setFromUnitVectors(V3(0, 1, 0), d);
+    const inner = new THREE.Group(); inner.add(ad, filterAt(tp.clone().add(d.clone().multiplyScalar(8.4)), d));
+    const pp = n.attributes.position.array; let sx = 0, sy = 0, k = 0;
+    for (let i = 0; i < pp.length; i += 3) if (pp[i + 2] < 30) { sx += pp[i]; sy += pp[i + 1]; k++; }
+    const piv = new THREE.Group(); piv.name = 'gas_fitting';
+    piv.position.set(sx / k, sy / k, 0); inner.position.set(-sx / k, -sy / k, 0); piv.add(inner); piv.rotation.z = c.x < 0 ? -0.75 : 0.75;
+    piv.updateMatrix();
+    const M = piv.matrix.clone().multiply(new THREE.Matrix4().makeTranslation(-sx / k, -sy / k, 0));
+    n.applyMatrix4(M); hub.applyMatrix4(M);
+    root.add(tag(piv, 'hubs'));
+  }
+  const join = (list) => {
+    const len = list.reduce((s, g) => s + g.attributes.position.array.length, 0), P = new Float32Array(len), N = new Float32Array(len); let o = 0;
+    for (const g of list) { P.set(g.attributes.position.array, o); N.set(g.attributes.normal.array, o); o += g.attributes.position.array.length; }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.BufferAttribute(N, 3));
+    g.computeBoundingBox(); g.computeBoundingSphere(); return g;
+  };
+  meshes.needles.geometry = join(nd); meshes.hubs.geometry = join(hb);
+}
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.1);
   BEAM.uniforms.uTime.value += dt;
   if (fleaPivot && !STILL && !REDUCED) fleaPivot.rotation.z += dt * FLEA_REV_S * Math.PI * 2;
   LIQUID.update(dt);
+  explodeStep(dt);
   if (tween) {
     const k = Math.min(1, (performance.now() - tween.t0) / tween.dur), e = ease(k);
-    camera.position.lerpVectors(tween.p0, tween.p1, e);
     controls.target.lerpVectors(tween.q0, tween.q1, e);
+    camArc(tween, e);
     if (k >= 1) { tween = null; controls.autoRotate = resumeTurn; }
   }
   controls.update(dt);
@@ -763,7 +1001,7 @@ window.__viewerFrameHooks = window.__viewerFrameHooks || [];   // overlays: call
 // That one rule gives bright rims on the dark studio and grey rims on the white page.
 const LIQUID = (() => {
   const TS = 0.5;                    // sim seconds per wall second (keeps the faster bubbles readable)
-  const POOL = 2600, CO2_POOL = 16, NRIP = 24;
+  const POOL = 2600, CO2_POOL = 96, NRIP = 24;
   let rnd = (() => { let a = 0x9e3779b9; return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })();
   const U = (a, b) => a + (b - a) * rnd();
   const group = new THREE.Group();
@@ -790,8 +1028,9 @@ const LIQUID = (() => {
       return c;
     }`;
   const VERT = /* glsl */`
-    varying vec3 vWN, vWP, vTx, vTy, vTz; varying vec2 vP;
+    varying vec3 vWN, vWP, vTx, vTy, vTz; varying vec2 vP; varying vec2 vUv;
     void main() {
+      vUv = uv;
       vec4 lp = vec4(position, 1.0); vec3 n = normal;
       #ifdef USE_INSTANCING
         lp = instanceMatrix * lp; n = mat3(instanceMatrix) * n;
@@ -826,9 +1065,9 @@ const LIQUID = (() => {
     }`);
 
   // the flat surface (ripples) and the menisci (geometry normals)
-  const surfMat = (ripples) => mat(/* glsl */`
-    varying vec3 vWN, vWP, vTx, vTy, vTz; varying vec2 vP;
-    uniform vec4 uRip[${NRIP}]; uniform float uTime, uRipOn;
+  const surfMat = (ripples, fade = 0) => mat(/* glsl */`
+    varying vec3 vWN, vWP, vTx, vTy, vTz; varying vec2 vP; varying vec2 vUv;
+    uniform vec4 uRip[${NRIP}]; uniform float uTime, uRipOn, uFade;
     float H(vec2 p) {
       float h = 0.010 * sin(dot(p, vec2(0.9, 0.4)) + uTime * 4.2) + 0.008 * sin(dot(p, vec2(-0.5, 1.1)) - uTime * 3.4)
               + 0.005 * sin(dot(p, vec2(1.9, -1.4)) + uTime * 6.6);
@@ -845,20 +1084,24 @@ const LIQUID = (() => {
       if (uRipOn > 0.5) {
         float e = 0.06, h0 = H(vP);
         vec3 nl = normalize(vec3(-(H(vP + vec2(e, 0)) - h0) / e, -(H(vP + vec2(0, e)) - h0) / e, 1.0));
-        N = normalize(vTx * nl.x + vTy * nl.y + vTz * nl.z);
+        N = normalize(normalize(vWN) * nl.z + vTx * nl.x + vTy * nl.y);
       } else { N = normalize(vWN); if (N.y < 0.0) N = -N; }
       vec3 V = normalize(cameraPosition - vWP);
       float nv = dot(N, V); bool below = nv < 0.0;
       if (below) { N = -N; nv = -nv; }
       float F = 0.02 + 0.98 * pow(1.0 - nv, 5.0);
-      F = min(1.0, F * 1.6 + 0.04);
-      if (below && nv < 0.66) F = 0.9;                          // total internal reflection seen from under the surface
       vec3 Rr = reflect(-V, N);
-      vec3 emit = envC(Rr) * F + vec3(pow(max(dot(Rr, uL), 0.0), 220.0) * 1.2);
-      float cov = clamp(F * 0.9 + 0.04, 0.0, 0.96);
-      emit += vec3(0.80, 0.86, 0.66) * 0.04 * mix(0.25, 1.0, uWhite);
+      // true water Fresnel (2% head-on), the dark room it reflects, and from below a soft total internal
+      // reflection that mirrors the medium instead of a hard black band
+      F = min(1.0, F * 1.1 + 0.01);
+      float tir = below ? smoothstep(0.78, 0.5, nv) : 0.0;
+      vec3 med = vec3(0.84, 0.87, 0.90) * mix(0.10, 0.75, uWhite);
+      vec3 emit = mix(envC(Rr) * F * mix(0.7, 1.0, uWhite), med * 0.5, tir) + vec3(pow(max(dot(Rr, uL), 0.0), 260.0) * 1.3);
+      float cov = clamp(mix(F * 0.85 + 0.015, 0.45, tir), 0.0, 0.9);
+      float k = uFade > 0.5 ? smoothstep(0.0, 0.85, vUv.y) : 1.0;   // menisci melt into the flat surface: no seam ring
+      emit *= k; cov *= k;
       gl_FragColor = vec4(emit, cov);
-    }`, { uRip: ripU, uTime: timeU, uRipOn: { value: ripples ? 1 : 0 } }, THREE.DoubleSide);
+    }`, { uRip: ripU, uTime: timeU, uRipOn: { value: ripples ? 1 : 0 }, uFade: { value: fade } }, THREE.DoubleSide);
 
   // the liquid column seen through the glass: faint warm-green tint, edges darken/brighten like a full vial
   const volMat = (side, k) => mat(/* glsl */`
@@ -870,7 +1113,7 @@ const LIQUID = (() => {
       float nv = clamp(dot(N, V), 0.0, 1.0), f = pow(1.0 - nv, 3.0);
       vec3 Rr = reflect(-V, N);
       float cov = (0.055 + f * 0.55) * uK;
-      vec3 tint = vec3(0.80, 0.86, 0.62);
+      vec3 tint = vec3(0.84, 0.87, 0.90);   // minimal medium is almost all water: no colour
       vec3 emit = envC(Rr) * f * 0.45 * uK + tint * cov * mix(0.22, 0.93, uWhite);
       gl_FragColor = vec4(emit, cov);
     }`, { uK: { value: k } }, side);
@@ -886,7 +1129,7 @@ const LIQUID = (() => {
   }
   let menI = 0;
   function addMeniscus(cx, cy, g, ro) {
-    const m = new THREE.Mesh(g, surfMat(false));
+    const m = new THREE.Mesh(g, surfMat(false, 1));
     // fixed order after the disc: with equal renderOrder three sorts these by distance, and the
     // order of overlapping premultiplied layers flipped as the camera turned (popping at the rings)
     m.rotation.x = Math.PI / 2; m.position.set(cx, cy, level); m.renderOrder = 5.01 + 0.001 * menI++; group.add(m);
@@ -940,7 +1183,7 @@ const LIQUID = (() => {
     for (const s of sitesO) if (!s.b && (s.wait -= dt) <= 0) spawnOnSite(s);
     // CO2 from the anode bore
     if ((nextCO2 -= dt) <= 0 && co2.length < CO2_POOL) {
-      nextCO2 = U(0.5, 1.0);
+      nextCO2 = U(0.6, 1.4) / 12;   // about six a second as seen (the sim runs at half speed)
       const away = Math.atan2(ano.y - cat.y, ano.x - cat.x);
       co2.push({ st: 0, r: 0.3, req: U(1.0, 2.0), x: ano.x, y: ano.y, z: ano.z0, vz: 0, phi: away + U(-1.25, 1.25), spin: U(-0.8, 0.8), ph: U(0, 6.28), fz: U(5, 8), age: 0, ox: 0, oy: 0 });
     }
@@ -1112,15 +1355,18 @@ const LIQUID = (() => {
   catch (e) { console.error(e); fail('Could not load the model', String(e && e.message || e)); }
   if (!ok) return;
   setupFlea();
+  try { setupBoards(); } catch (e) { console.error("boards", e); }
+  try { setupFittings(); } catch (e) { console.error("fittings", e); }
   root.updateMatrixWorld(true);
   computeViews();
   placeLights();
   LIQUID.init();
+  try { setupExplode(); } catch (e) { console.error("explode", e); }
   setBeam(true);
   setWhite(WHITE0);
   setTurn(!STILL && !REDUCED);
   goView(HASH_VIEW || 'assembly', true);
-  window.__viewer = { THREE, scene, camera, renderer, controls, root, meshes, goView, setTurn, setWhite, hideTip: () => tip.classList.remove('show'), liquid: LIQUID };
+  window.__viewer = { THREE, scene, camera, renderer, controls, root, meshes, goView, setTurn, setWhite, setExplode, hideTip: () => tip.classList.remove('show'), liquid: LIQUID };
   window.dispatchEvent(new Event('viewer-ready'));
   frame();
   $('status').classList.add('gone');

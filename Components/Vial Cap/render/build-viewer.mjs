@@ -42,6 +42,12 @@ if (partsDir.endsWith(".html")) {           // reuse the parts already embedded 
   }
   meta = { built: new Date().toISOString(), parts: names };
 }
+// parts that are not in the OpenSCAD export (the Pioreactor XR optics boards): extra-parts/*.stl, added every time
+const extraDir = path.join(here, "extra-parts");
+if (fs.existsSync(extraDir)) for (const f of fs.readdirSync(extraDir).filter((f) => f.endsWith(".stl")).sort()) {
+  parts[f.slice(0, -4)] = zlib.gzipSync(fs.readFileSync(path.join(extraDir, f)), { level: 9 }).toString("base64");
+}
+meta.parts = Object.keys(parts);
 const names = Object.keys(parts);
 // Function replacers: avoid "$&"-style special patterns in replacement strings.
 const html = tpl.replace(PARTS, () => JSON.stringify(parts)).replace(META, () => JSON.stringify(meta));

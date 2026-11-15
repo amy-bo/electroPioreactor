@@ -9,6 +9,8 @@ On the Mac (needs OpenSCAD and BOSL2 installed; Node 18 or newer):
 node build-viewer.mjs ./parts vial-cap.html     # optional 3rd arg: template path
 ```
 
+STL files in `extra-parts/` (the Pioreactor XR optics boards, which are not in the OpenSCAD model) are embedded as well; the viewer places one at each photodiode position. The CO₂ line, luer fittings and gas filters are drawn by the viewer itself (`setupFittings` in the template).
+
 `OPENSCAD=/path/to/binary` overrides the binary (the macOS app path is tried automatically if `openscad` is not on PATH). `JOBS=n` sets parallelism. The build warns if the HTML exceeds 15 MB.
 
 You can also open `../Vial Cap render.scad` directly in OpenSCAD and press F5 for a coloured preview.
