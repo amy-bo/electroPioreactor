@@ -29,6 +29,17 @@ The [3D model on the home page](/) names each part when you hover over it, and i
 - **MMO lowers electrolysis overpotential.** We started with platinum-plated titanium and moved to MMO, which gives the same current at a lower voltage. This reduces the formation of harmful reactive oxygen species. The cathode is plain stainless steel.
 - **The CO₂ valve has to vent.** A normal solenoid valve traps CO₂ in the line when it closes. The CO₂ dissolves, and the vacuum it leaves sucks culture back up the tube. Eli Silver at Brown University diagnosed this, and a venting valve fixes it.
 
+## What AEP0.2 improved
+
+- **Tubular anode.** CO₂ is sparged through its centre, so CO₂ bubbles knock excess oxygen bubbles off the anode and the sparging geometry is the same every time.
+- **One-piece cap with a single silicone septum.** It replaces multiple O-rings, holds the electrodes parallel at a set height, takes stainless steel needle ports, and has a large self-sealing area for hypodermic needles.
+- **Sprung M3 thumbscrews.** They hold the power leads on the electrodes without tools, and make it easier to connect positive to the anode and negative to the cathode.
+- **40 ml vial.** Twice the height gives gas room to leave the liquid below the electrodes, as microbubbles were affecting the optical density readings.
+- **Pioreactor XR Upgrade Kit.** Light sensors at a shallower angle give a lower limit of detection, so growth shows earlier and failed runs can be stopped sooner.
+- **Plugin.** It times electrolysis and gas sparging, suppresses optical density readings after them, limits the electrolysis power to protect the electrodes, and installs from a microSD card in labs where Pioreactors are not allowed internet access.
+- **Gas train.** O-rings where possible and anaerobic thread sealant elsewhere, in place of PTFE tape, and a thumbscrew adapter to open the CO₂ cylinder.
+- **Raspberry Pi and temperature.** A faster Raspberry Pi with wired Ethernet, and the Pioreactor Precision Temperature Upgrade Kit.
+
 ## Two versions
 
 - **The Aseptic electroPioreactor (AEP)** keeps a single strain free of contamination, with filters on every gas path, a septum-sealed cap and parts that can be autoclaved. The current version, AEP0.2, holds 30 ml of culture.

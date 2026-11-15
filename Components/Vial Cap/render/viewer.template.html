@@ -169,6 +169,7 @@ button[aria-pressed="true"] { background: rgba(150, 175, 210, 0.18); border-colo
           <div class="menu-col">
             <button class="toggle" id="beamBtn" aria-pressed="true"><span class="dot"></span>Light path <span class="note">IR, drawn red</span></button>
             <button class="toggle" id="liquidBtn" aria-pressed="true"><span class="dot"></span>Liquid &amp; gas</button>
+            <button class="toggle" id="explodeBtn" aria-pressed="false"><span class="dot"></span>Exploded view</button>
             <button class="toggle turn" id="turnBtn" aria-pressed="true"><span class="dot"></span>Turntable</button>
             <button class="toggle turn" id="whiteBtn" aria-pressed="false"><span class="dot"></span>White background</button>
           </div>
@@ -649,6 +650,7 @@ function setTurn(on) {
 }
 $('beamBtn').addEventListener('click', () => setBeam(!beamOn));
 $('liquidBtn').addEventListener('click', () => LIQUID.setVisible(!LIQUID.on));
+$('explodeBtn').addEventListener('click', () => setExplode(EX.to !== 1));
 $('turnBtn').addEventListener('click', () => setTurn(!controls.autoRotate));
 $('whiteBtn')?.addEventListener('click', () => setWhite(!whiteOn));
 // View pop-up: camera presets and display toggles
@@ -689,7 +691,8 @@ function pick(clientX, clientY) {
   const r = renderer.domElement.getBoundingClientRect();
   ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, camera);
-  const hits = ray.intersectObjects(Object.values(meshes).filter((m) => m.visible), false);
+  const list = []; root.traverse((o) => { if (o.isMesh && o.userData.part && o.visible) list.push(o); });   // CAD parts, fittings and boards
+  const hits = ray.intersectObjects(list, false);
   if (!hits.length) return null;
   const solid = hits.find((h) => h.object.userData.part !== 'glass');
   const h = solid || hits[0];
@@ -791,6 +794,99 @@ function pieces(geo) {      // split a non-indexed geometry into its connected p
     g.computeBoundingBox(); return g;
   });
 }
+// Pioreactor XR optics boards (extra-parts/eyespy_*.stl): one at each photodiode position, in place of the plain CAD boards
+let xrSlots = [];
+function setupBoards() {
+  const src = ['eyespy_pcb', 'eyespy_conn', 'eyespy_parts'].map((n) => meshes[n]);
+  for (const m of src) if (m) { root.remove(m); delete meshes[m.name]; }
+  if (src.some((m) => !m) || !meshes.pd_board) return;
+  const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+  const mats = [phys({ color: 0x1d6b3a, roughness: 0.45, clearcoat: 0.5 }), phys({ color: 0xf0ede4, roughness: 0.6 }), phys({ color: 0x2a2c30, roughness: 0.4, metalness: 0.2 })];
+  for (const b of pieces(meshes.pd_board.geometry)) {
+    const bb = b.boundingBox, c = bb.getCenter(V3(0, 0, 0)), a = Math.atan2(c.y, c.x);
+    const rh = V3(Math.cos(a), Math.sin(a), 0), tg = V3(-Math.sin(a), Math.cos(a), 0);
+    const g = new THREE.Group();
+    src.forEach((m, i) => { const o = new THREE.Mesh(m.geometry, mats[i]); o.castShadow = true; o.receiveShadow = true; o.userData.part = 'pd_board'; g.add(o); });
+    const M = new THREE.Matrix4().makeBasis(tg, V3(0, 0, 1), rh);
+    M.setPosition(rh.clone().multiplyScalar(Math.hypot(c.x, c.y) - 1.6).add(tg.clone().multiplyScalar(-6.5)).add(V3(0, 0, bb.min.z)));
+    g.applyMatrix4(M);
+    const slot = new THREE.Group(); slot.name = 'xr_board'; slot.add(g); slot.userData.rh = rh; root.add(slot); xrSlots.push(slot);
+  }
+  meshes.pd_board.visible = false; if (meshes.pd) meshes.pd.visible = false;   // kept (hidden) for the framing and anchors that measure them
+}
+// ---------------------------------------------------------------- exploded view
+// Each part backs out the way it goes in, top first: needles and electrodes up out of the cap, the cap and septum off the
+// vial, the optics and temperature module outwards, the heater down. The medium, bubbles and light path are hidden meanwhile.
+const EX = { k: 0, to: 0, items: [], verts: [], was: null };
+function setupExplode() {
+  const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+  const gb = meshes.glass ? meshes.glass.geometry.boundingBox : null, ax = gb ? (gb.min.x + gb.max.x) / 2 : 0, ay = gb ? (gb.min.y + gb.max.y) / 2 : 0;
+  const move = (o, off, rank) => { if (o) EX.items.push({ o, off, rank, base: o.position.clone() }); };
+  const radial = (c, d) => { const v = V3(c.x - ax, c.y - ay, 0); return v.lengthSq() < 1e-6 ? v : v.normalize().multiplyScalar(d); };
+  const centreOf = (n) => (meshes[n] ? meshes[n].geometry.boundingBox.getCenter(V3(0, 0, 0)) : null);
+  // a mesh made of several separate pieces, each going its own way: per-vertex offsets
+  const perPiece = (n, offOf, rank) => {
+    const m = meshes[n]; if (!m || !m.visible) return;
+    const ps = pieces(m.geometry), len = ps.reduce((s, g) => s + g.attributes.position.array.length, 0);
+    const P = new Float32Array(len), N = new Float32Array(len), D = new Float32Array(len); let o = 0;
+    for (const g of ps) {
+      const a = g.attributes.position.array, d = offOf(g.boundingBox.getCenter(V3(0, 0, 0)));
+      P.set(a, o); N.set(g.attributes.normal.array, o);
+      for (let i = 0; i < a.length; i += 3) { D[o + i] = d.x; D[o + i + 1] = d.y; D[o + i + 2] = d.z; }
+      o += a.length;
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(P.slice(), 3)); g.setAttribute('normal', new THREE.BufferAttribute(N, 3));
+    g.computeBoundingBox(); g.computeBoundingSphere(); m.geometry = g; m.frustumCulled = false;
+    EX.verts.push({ g, orig: P, D, rank });
+  };
+  for (const n of ['needles', 'hubs']) move(meshes[n], V3(0, 0, 62), 0);
+  root.children.filter((c) => c.name === 'gas_fitting').forEach((c) => move(c, V3(0, 0, 62), 0));
+  move(root.children.find((c) => c.name === 'co2_fitting'), V3(0, 0, 62), 0.1);
+  for (const n of ['anode', 'anode_ti', 'cathode']) move(meshes[n], V3(0, 0, 40), 0.25);
+  for (const n of ['screws', 'washers']) perPiece(n, (c) => V3(Math.sign(c.x - ax) * 20, 0, 24), 0.35);
+  move(meshes.cap, V3(0, 0, 24), 0.45);
+  move(meshes.septum, V3(0, 0, 13), 0.55);
+  const tc = centreOf('temp_module');
+  if (tc) for (const n of ['temp_module', 'temp_module_parts', 'temp_probe']) move(meshes[n], radial(tc, 22), 0.7);
+  const lc = centreOf('led');
+  if (lc) for (const n of ['led', 'led_die', 'led_legs']) move(meshes[n], radial(lc, 22), 0.8);
+  for (const s of xrSlots) move(s, s.userData.rh.clone().multiplyScalar(22), 0.8);
+  for (const n of ['pd', 'pd_board', 'pd_die']) perPiece(n, (c) => radial(c, 22), 0.8);
+  for (const n of ['pcb', 'pcb_copper', 'pcb_parts', 'thermal_pad']) move(meshes[n], V3(0, 0, -22), 1);
+}
+function explodeApply() {
+  const K = EX.k, kOf = (rank) => ease(Math.max(0, Math.min(1, K * 1.6 - rank * 0.6)));
+  for (const it of EX.items) it.o.position.copy(it.base).addScaledVector(it.off, kOf(it.rank));
+  for (const v of EX.verts) {
+    const e = kOf(v.rank), a = v.g.attributes.position.array;
+    for (let i = 0; i < a.length; i++) a[i] = v.orig[i] + v.D[i] * e;
+    v.g.attributes.position.needsUpdate = true;
+    if (K === EX.to) { v.g.computeBoundingBox(); v.g.computeBoundingSphere(); }
+  }
+}
+function explodeStep(dt) {
+  if (EX.k === EX.to) return;
+  EX.k = REDUCED || STILL ? EX.to : (EX.to > EX.k ? Math.min(1, EX.k + dt / 2.6) : Math.max(0, EX.k - dt / 2.6));
+  explodeApply();
+  if (EX.k === 0 && EX.was) {       // back together: the medium, gas and light path return as they were
+    LIQUID.setVisible(EX.was.liquid); setBeam(EX.was.beam); if (meshes.temp_fov) meshes.temp_fov.visible = true; EX.was = null;
+  }
+}
+function setExplode(on) {
+  if (!EX.items.length || (EX.to === 1) === !!on) return;
+  EX.to = on ? 1 : 0;
+  $('explodeBtn').setAttribute('aria-pressed', String(!!on));
+  if (on && !EX.was) { EX.was = { liquid: LIQUID.on, beam: beamOn }; LIQUID.setVisible(false); setBeam(false); if (meshes.temp_fov) meshes.temp_fov.visible = false; }
+  const box = ALL.clone(); if (on) { box.max.y += 62; box.min.y -= 22; box.expandByVector(new THREE.Vector3(22, 0, 22)); }
+  let v = viewFrom(box, new THREE.Vector3(-0.55, 0.42, -1.0), on ? 1.02 : 0.86);
+  if (on) EX.cam = { pos: camera.position.clone(), target: controls.target.clone() };   // come back to the view it was opened from
+  else if (EX.cam) { v = EX.cam; EX.cam = null; }
+  document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(!on && b.dataset.view === 'assembly')));
+  if (REDUCED || STILL) { camera.position.copy(v.pos); controls.target.copy(v.target); controls.update(); tween = null; return; }
+  if (!tween) resumeTurn = controls.autoRotate;
+  controls.autoRotate = false;
+  tween = { t0: performance.now(), dur: 2600, p0: camera.position.clone(), q0: controls.target.clone(), p1: v.pos, q1: v.target };
+}
 function setupFittings() {
   if (!meshes.anode || !meshes.anode_ti || !meshes.needles || !meshes.hubs) return;
   const PI = Math.PI, V3 = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -885,6 +981,7 @@ function frame() {
   BEAM.uniforms.uTime.value += dt;
   if (fleaPivot && !STILL && !REDUCED) fleaPivot.rotation.z += dt * FLEA_REV_S * Math.PI * 2;
   LIQUID.update(dt);
+  explodeStep(dt);
   if (tween) {
     const k = Math.min(1, (performance.now() - tween.t0) / tween.dur), e = ease(k);
     controls.target.lerpVectors(tween.q0, tween.q1, e);
@@ -1258,16 +1355,18 @@ const LIQUID = (() => {
   catch (e) { console.error(e); fail('Could not load the model', String(e && e.message || e)); }
   if (!ok) return;
   setupFlea();
+  try { setupBoards(); } catch (e) { console.error("boards", e); }
   try { setupFittings(); } catch (e) { console.error("fittings", e); }
   root.updateMatrixWorld(true);
   computeViews();
   placeLights();
   LIQUID.init();
+  try { setupExplode(); } catch (e) { console.error("explode", e); }
   setBeam(true);
   setWhite(WHITE0);
   setTurn(!STILL && !REDUCED);
   goView(HASH_VIEW || 'assembly', true);
-  window.__viewer = { THREE, scene, camera, renderer, controls, root, meshes, goView, setTurn, setWhite, hideTip: () => tip.classList.remove('show'), liquid: LIQUID };
+  window.__viewer = { THREE, scene, camera, renderer, controls, root, meshes, goView, setTurn, setWhite, setExplode, hideTip: () => tip.classList.remove('show'), liquid: LIQUID };
   window.dispatchEvent(new Event('viewer-ready'));
   frame();
   $('status').classList.add('gone');

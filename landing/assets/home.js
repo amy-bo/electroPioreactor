@@ -215,6 +215,7 @@ function go(i) {
 function startTour() {
   if (!V) return;
   if (scrollY > 10) scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
+  if (V.setExplode) V.setExplode(false);   // the tour's stops are on the assembled model
   wasTurning = V.controls.autoRotate;
   V.setTurn(false);
   tourEl.hidden = false; app.classList.add('touring');
