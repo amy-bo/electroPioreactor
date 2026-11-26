@@ -34,6 +34,12 @@ The full AEP0.2 bill of materials is in the assembly guide at <https://docs.elec
 1. 1x [CO₂ regulator](../docs/components/co2-regulator.yaml), [3/2 venting 12 V solenoid valve](../docs/components/solenoid-valve.yaml) on PWM 4, and [needle valve](../docs/components/co2-needle-valve.yaml)
 1. 1x [polyurethane CO₂ tube](../docs/components/polyurethane-co2-tube.yaml) and [anode feed tube](../docs/components/anode-feed-tube.yaml): CO₂ enters through the hollow anode
 
+## Field and lab accessories
+
+Not part of any build; printable parts that support working with the electroPioreactor.
+
+1. [50 ml centrifuge tube coupler](CentrifugeTubeCoupler) — a double-ended threaded collar that joins two 50 ml conical centrifuge tubes rim to rim, so a sediment core can be shaken from one into the other. Used for collecting environmental samples to enrich HOB. Licensed CERN-OHL-S-2.0.
+
 ## MEP0.02 and AEP0.1 parts list (historical)
 
 The list below is the original electroPioreactor parts list, from before AEP0.2: a Pioreactor 20 ml with 60 mm electrodes (MEP0.02Pt / MEP0.02C). It is kept for reference and for existing units; the current MEP build is in the [MEP guide](https://docs.electroPioreactor.org/MEP).
